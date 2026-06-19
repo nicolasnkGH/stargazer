@@ -107,8 +107,8 @@ let currentLon = parseFloat(activeLoc.lon) || -83.037;
 // ── Clock & Subtitle ────────────────────────────────────────────────────────
 function updateClock() {
   const now = new Date();
-  const t = now.toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit', second: '2-digit' });
-  const d = now.toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric' });
+  const t = now.toLocaleTimeString(currentLang, { hour: '2-digit', minute: '2-digit', second: '2-digit', hour12: false });
+  const d = now.toLocaleDateString(currentLang, { weekday: 'short', month: 'short', day: 'numeric' });
   
   const clockEl = document.getElementById('clock');
   const dateEl = document.getElementById('date-display');

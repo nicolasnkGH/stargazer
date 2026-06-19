@@ -363,7 +363,11 @@ const translations = {
     "tour_targets_title": "3. Encuentra Objetivos",
     "tour_targets_desc": "Usa esta base de datos seleccionada para encontrar los objetos mejores y más brillantes para apuntar tu telescopio esta noche.",
     "tour_night_title": "4. Visión Nocturna",
-    "tour_night_desc": "Una vez que estés afuera en la oscuridad, activa el modo de Visión Nocturna para proteger tu adaptación a la oscuridad."
+    "tour_night_desc": "Una vez que estés afuera en la oscuridad, activa el modo de Visión Nocturna para proteger tu adaptación a la oscuridad.",
+
+    // Fallback/Misc
+    "offline_badge": "CACHÉ",
+    "live_badge": "EN VIVO"
   },
   pt: {
     "const_uma": "Ursa Maior",
