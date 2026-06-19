@@ -36,9 +36,11 @@ def _get_skyfield():
         _eph = load("de421.bsp")
     return _ts, _eph
 
-def _get_observer():
+def _get_observer(lat=None, lon=None):
     _, eph = _get_skyfield()
-    columbus = wgs84.latlon(LATITUDE * N, abs(LONGITUDE) * W, elevation_m=ELEVATION_M)
+    use_lat = lat if lat is not None else LATITUDE
+    use_lon = lon if lon is not None else LONGITUDE
+    columbus = wgs84.latlon(use_lat * N, abs(use_lon) * W, elevation_m=ELEVATION_M)
     return eph["earth"] + columbus, columbus
 
 # ── Time utilities ─────────────────────────────────────────────────────────────
@@ -50,12 +52,12 @@ def _sf_time(dt: datetime):
     ts, _ = _get_skyfield()
     return ts.from_datetime(dt.astimezone(ZoneInfo("UTC")))
 
-def _tonight_window(dt: Optional[date] = None) -> tuple[datetime, datetime]:
+def _tonight_window(dt: Optional[date] = None, lat=None, lon=None) -> tuple[datetime, datetime]:
     """Return (astronomical_dusk, astronomical_dawn) for the given date."""
     tz = ZoneInfo(TIMEZONE)
     d = dt or now_local().date()
     ts, eph = _get_skyfield()
-    _, columbus = _get_observer()
+    _, columbus = _get_observer(lat=lat, lon=lon)
 
     midnight = datetime(d.year, d.month, d.day, 12, 0, tzinfo=tz)  # noon local
     t0 = ts.from_datetime(midnight)
@@ -84,9 +86,9 @@ def _tonight_window(dt: Optional[date] = None) -> tuple[datetime, datetime]:
 
 # ── Moon ──────────────────────────────────────────────────────────────────────
 
-def get_moon_info(dt: Optional[datetime] = None) -> dict:
+def get_moon_info(dt: Optional[datetime] = None, lat=None, lon=None) -> dict:
     ts, eph = _get_skyfield()
-    observer, columbus = _get_observer()
+    observer, columbus = _get_observer(lat=lat, lon=lon)
     tz = ZoneInfo(TIMEZONE)
     now = dt or now_local()
     t = _sf_time(now)
@@ -172,9 +174,9 @@ PLANETS = {
     "Neptune": "neptune barycenter",
 }
 
-def get_planet_positions(dt: Optional[datetime] = None) -> list[dict]:
+def get_planet_positions(dt: Optional[datetime] = None, lat=None, lon=None) -> list[dict]:
     ts, eph = _get_skyfield()
-    observer, _ = _get_observer()
+    observer, _ = _get_observer(lat=lat, lon=lon)
     now = dt or now_local()
 
     # Use 10pm local as prime observing time if before noon
@@ -236,10 +238,10 @@ def _az_to_direction(az: float) -> str:
 
 # ── Scorpius ──────────────────────────────────────────────────────────────────
 
-def get_scorpius_window(dt: Optional[date] = None) -> dict:
+def get_scorpius_window(dt: Optional[date] = None, lat=None, lon=None) -> dict:
     """Calculate Scorpius rise/culmination/set and best observing window."""
     ts, eph = _get_skyfield()
-    observer, columbus = _get_observer()
+    observer, columbus = _get_observer(lat=lat, lon=lon)
     tz = ZoneInfo(TIMEZONE)
     d = dt or now_local().date()
 
@@ -306,10 +308,10 @@ def get_scorpius_window(dt: Optional[date] = None) -> dict:
 
 # ── DSO Visibility ────────────────────────────────────────────────────────────
 
-def get_visible_targets(dt: Optional[datetime] = None) -> list[dict]:
+def get_visible_targets(dt: Optional[datetime] = None, lat=None, lon=None) -> list[dict]:
     """Return all Scorpius targets with current altitude/visibility."""
     ts, _ = _get_skyfield()
-    observer, _ = _get_observer()
+    observer, _ = _get_observer(lat=lat, lon=lon)
     now = dt or now_local()
     t = _sf_time(now)
 
@@ -346,7 +348,7 @@ def get_visible_targets(dt: Optional[datetime] = None) -> list[dict]:
 
 # ── ISS Passes ────────────────────────────────────────────────────────────────
 
-def get_iss_passes(count: int = 3) -> list[dict]:
+def get_iss_passes(count: int = 3, lat=None, lon=None) -> list[dict]:
     """
     Predict ISS passes over Columbus using Skyfield + live TLE from wheretheiss.at.
     The wheretheiss.at /tles endpoint returns current TLE as JSON — reliable and free.
@@ -441,11 +443,11 @@ def get_iss_passes(count: int = 3) -> list[dict]:
 
 # ── Seeing / Weather ──────────────────────────────────────────────────────────
 
-def get_seeing_forecast() -> dict:
+def get_seeing_forecast(lat=None, lon=None) -> dict:
     """Fetch astronomical seeing forecast from Open-Meteo (free, no key needed)."""
     url = (
         f"https://api.open-meteo.com/v1/forecast"
-        f"?latitude={LATITUDE}&longitude={LONGITUDE}"
+        f"?latitude={lat if lat else LATITUDE}&longitude={lon if lon else LONGITUDE}"
         f"&hourly=cloudcover,cloudcover_low,cloudcover_mid,cloudcover_high,"
         f"visibility,windspeed_10m,precipitation_probability,temperature_2m"
         f"&daily=sunrise,sunset,precipitation_sum"
@@ -523,28 +525,28 @@ def get_seeing_forecast() -> dict:
             "week_forecast": week_summary,
             "go_nogo": "✅ GO" if score >= 3 else ("⚠️ MARGINAL" if score == 2 else "❌ NO GO"),
             "source": "Open-Meteo (free)",
-            "clearoutside_embed": f"https://clearoutside.com/forecast_embed/{LATITUDE}/{LONGITUDE}",
+            "clearoutside_embed": f"https://clearoutside.com/forecast_embed/{lat if lat else LATITUDE}/{lon if lon else LONGITUDE}",
         }
     except Exception as e:
         return {
             "seeing_score": None,
             "seeing_label": "Could not fetch weather",
             "go_nogo": "❓ UNKNOWN",
-            "clearoutside_embed": f"https://clearoutside.com/forecast_embed/{LATITUDE}/{LONGITUDE}",
+            "clearoutside_embed": f"https://clearoutside.com/forecast_embed/{lat if lat else LATITUDE}/{lon if lon else LONGITUDE}",
             "error": str(e),
         }
 
 # ── Tonight Report ────────────────────────────────────────────────────────────
 
-def get_tonight_report() -> dict:
+def get_tonight_report(lat=None, lon=None) -> dict:
     now = now_local()
-    dusk, dawn = _tonight_window()
+    dusk, dawn = _tonight_window(lat=lat, lon=lon)
 
-    moon = get_moon_info(now)
-    planets = get_planet_positions(now)
-    scorpius = get_scorpius_window()
-    targets = get_visible_targets(now)
-    seeing = get_seeing_forecast()
+    moon = get_moon_info(now, lat=lat, lon=lon)
+    planets = get_planet_positions(now, lat=lat, lon=lon)
+    scorpius = get_scorpius_window(lat=lat, lon=lon)
+    targets = get_visible_targets(now, lat=lat, lon=lon)
+    seeing = get_seeing_forecast(lat=lat, lon=lon)
 
     visible_planets = [p for p in planets if p["visible_tonight"]]
     best_targets = [t for t in targets if t.get("in_fov") and t.get("bortle_min", 99) <= BORTLE_CLASS + 1][:5]
@@ -594,14 +596,14 @@ METEOR_SHOWERS = [
     {"name": "Ursids", "peak": (12, 22), "zhr": 10, "radiant": "Ursa Minor"},
 ]
 
-def get_weekly_report() -> dict:
+def get_weekly_report(lat=None, lon=None) -> dict:
     now = now_local()
     days = []
     for i in range(7):
         d = (now + timedelta(days=i)).date()
         moon = get_moon_info(datetime(d.year, d.month, d.day, 22, 0, tzinfo=ZoneInfo(TIMEZONE)))
         scorpius = get_scorpius_window(d)
-        seeing_data = get_seeing_forecast()
+        seeing_data = get_seeing_forecast(lat=lat, lon=lon)
         weather_day = seeing_data.get("week_forecast", [{} for _ in range(7)])[i] if i < 7 else {}
 
         # Check for meteor showers
@@ -650,7 +652,7 @@ def _rate_night(moon_illum: float, cloud_pct: Optional[float]) -> str:
 
 # ── Monthly Report ────────────────────────────────────────────────────────────
 
-def get_monthly_report() -> dict:
+def get_monthly_report(lat=None, lon=None) -> dict:
     now = now_local()
     ts, eph = _get_skyfield()
     tz = ZoneInfo(TIMEZONE)
@@ -689,7 +691,7 @@ def get_monthly_report() -> dict:
         scorpius_note = "🦂 Scorpius not well-placed this month"
 
     # Visible planet highlights (simplified)
-    planets = get_planet_positions(now)
+    planets = get_planet_positions(now, lat=lat, lon=lon)
     bright_planets = [p for p in planets if p["magnitude_approx"] < 1]
 
     return {

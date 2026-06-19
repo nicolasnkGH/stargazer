@@ -8,8 +8,11 @@ const API_BASE = window.location.hostname === 'localhost' || window.location.hos
   ? 'http://localhost:8181'
   : '/api'; // nginx proxy path in production
 
-const LAT = 40.126;
-const LON = -83.037;
+const DEFAULT_LAT = 40.126;
+const DEFAULT_LON = -83.037;
+
+let currentLat = parseFloat(localStorage.getItem('stargazer_lat')) || DEFAULT_LAT;
+let currentLon = parseFloat(localStorage.getItem('stargazer_lon')) || DEFAULT_LON;
 
 // ── Scorpius Target Database (static, always available) ─────────────────────
 const SCORPIUS_TARGETS = [
@@ -176,7 +179,9 @@ setInterval(updateClock, 1000);
 // ── API Loader ──────────────────────────────────────────────────────────────
 async function fetchAPI(path, fallback = null) {
   try {
-    const resp = await fetch(`${API_BASE}${path}`, { signal: AbortSignal.timeout(12000) });
+    const separator = path.includes('?') ? '&' : '?';
+    const finalPath = `${path}${separator}lat=${currentLat}&lon=${currentLon}`;
+    const resp = await fetch(`${API_BASE}${finalPath}`, { signal: AbortSignal.timeout(12000) });
     if (!resp.ok) throw new Error(`HTTP ${resp.status}`);
     return await resp.json();
   } catch (e) {
@@ -387,9 +392,9 @@ async function loadISS() {
     container.innerHTML = `
       <div class="no-data">
         Could not fetch ISS data automatically.<br>
-        <a href="https://www.heavens-above.com/PassSummary.aspx?lat=${LAT}&lng=${LON}&loc=Columbus&alt=240&tz=ET" 
+        <a href="https://www.heavens-above.com/PassSummary.aspx?lat=${currentLat}&lng=${currentLon}&loc=Custom&alt=240&tz=ET" 
            target="_blank" style="color: #4a9eff">
-          Check Heavens-Above.com for Columbus passes ↗
+          Check Heavens-Above.com for passes ↗
         </a>
       </div>`;
     return;
@@ -489,8 +494,64 @@ async function checkAPIStatus() {
   }
 }
 
+function updateClearOutside() {
+  const img = document.getElementById('clearoutside-img');
+  if (img) {
+    img.src = `https://clearoutside.com/forecast_image_large/${currentLat.toFixed(2)}/${currentLon.toFixed(2)}/forecast.png`;
+  }
+}
+
+// ── Location Modal UI ───────────────────────────────────────────────────────
+function initLocationUI() {
+  const modal = document.getElementById('location-modal');
+  const btnLoc = document.getElementById('btn-location');
+  const inputLat = document.getElementById('input-lat');
+  const inputLon = document.getElementById('input-lon');
+  
+  btnLoc.addEventListener('click', () => {
+    inputLat.value = currentLat;
+    inputLon.value = currentLon;
+    modal.classList.remove('hidden');
+  });
+
+  document.getElementById('btn-close-loc').addEventListener('click', () => {
+    modal.classList.add('hidden');
+  });
+
+  document.getElementById('btn-reset-loc').addEventListener('click', () => {
+    localStorage.removeItem('stargazer_lat');
+    localStorage.removeItem('stargazer_lon');
+    location.reload();
+  });
+
+  document.getElementById('btn-save-loc').addEventListener('click', () => {
+    localStorage.setItem('stargazer_lat', parseFloat(inputLat.value));
+    localStorage.setItem('stargazer_lon', parseFloat(inputLon.value));
+    location.reload();
+  });
+
+  document.getElementById('btn-gps').addEventListener('click', () => {
+    const btn = document.getElementById('btn-gps');
+    btn.textContent = '📡 Locating...';
+    navigator.geolocation.getCurrentPosition(
+      pos => {
+        inputLat.value = pos.coords.latitude.toFixed(4);
+        inputLon.value = pos.coords.longitude.toFixed(4);
+        btn.textContent = '📡 Use Device GPS Location';
+      },
+      err => {
+        alert('Geolocation failed: ' + err.message);
+        btn.textContent = '📡 Use Device GPS Location';
+      }
+    );
+  });
+}
+
 // ── Init ────────────────────────────────────────────────────────────────────
 async function init() {
+  initLocationUI();
+  updateClearOutside();
+
   // Always render the static target database first (no API needed)
   await loadTargets();
 

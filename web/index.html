@@ -26,6 +26,7 @@
         </div>
       </div>
       <div class="header-meta">
+        <button id="btn-location" class="location-btn" title="Set Location">📍</button>
         <div class="live-badge" id="live-badge">
           <span class="pulse-dot"></span> LIVE
         </div>
@@ -288,6 +289,31 @@
     </section>
 
   </main>
+
+  <!-- Location Modal -->
+  <div id="location-modal" class="modal hidden">
+    <div class="modal-content">
+      <h2>📍 Set Observatory Location</h2>
+      <p>Set custom coordinates to calculate planetary/stellar ephemeris data anywhere globally.</p>
+      
+      <button id="btn-gps" class="btn btn-primary" style="width: 100%; margin-bottom: 15px;">📡 Use Device GPS Location</button>
+      
+      <div class="input-group">
+        <label>Latitude (Decimal):</label>
+        <input type="number" id="input-lat" placeholder="40.126" step="any" />
+      </div>
+      <div class="input-group">
+        <label>Longitude (Decimal):</label>
+        <input type="number" id="input-lon" placeholder="-83.037" step="any" />
+      </div>
+      
+      <div style="display: flex; gap: 10px; margin-top: 20px;">
+        <button id="btn-save-loc" class="btn btn-primary" style="flex:1">Save & Reload</button>
+        <button id="btn-reset-loc" class="btn btn-secondary" style="flex:1">Reset to Columbus</button>
+        <button id="btn-close-loc" class="btn btn-secondary">Cancel</button>
+      </div>
+    </div>
+  </div>
 
   <footer class="footer">
     <div>🔭 StarGazer — Personal Observatory Dashboard</div>

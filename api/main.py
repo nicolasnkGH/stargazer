@@ -9,6 +9,7 @@ from dotenv import load_dotenv
 load_dotenv()
 
 from fastapi import FastAPI, Query
+from typing import Optional
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse, PlainTextResponse
 import uvicorn
@@ -60,18 +61,18 @@ def health():
 # ── Tonight ───────────────────────────────────────────────────────────────────
 
 @app.get("/tonight")
-def tonight():
+def tonight(lat: Optional[float] = Query(None), lon: Optional[float] = Query(None)):
     """Full tonight's observing report."""
     try:
-        return get_tonight_report()
+        return get_tonight_report(lat=lat, lon=lon)
     except Exception as e:
         return JSONResponse(status_code=500, content={"error": str(e)})
 
 @app.get("/tonight/telegram")
-def tonight_telegram():
+def tonight_telegram(lat: Optional[float] = Query(None), lon: Optional[float] = Query(None)):
     """Tonight's report formatted as Telegram markdown message."""
     try:
-        report = get_tonight_report()
+        report = get_tonight_report(lat=lat, lon=lon)
         return PlainTextResponse(format_tonight_telegram(report))
     except Exception as e:
         return PlainTextResponse(f"❌ Error: {str(e)}")
@@ -79,18 +80,18 @@ def tonight_telegram():
 # ── Weekly ────────────────────────────────────────────────────────────────────
 
 @app.get("/weekly")
-def weekly():
+def weekly(lat: Optional[float] = Query(None), lon: Optional[float] = Query(None)):
     """7-day celestial event calendar."""
     try:
-        return get_weekly_report()
+        return get_weekly_report(lat=lat, lon=lon)
     except Exception as e:
         return JSONResponse(status_code=500, content={"error": str(e)})
 
 @app.get("/weekly/telegram")
-def weekly_telegram():
+def weekly_telegram(lat: Optional[float] = Query(None), lon: Optional[float] = Query(None)):
     """Weekly report formatted as Telegram markdown message."""
     try:
-        report = get_weekly_report()
+        report = get_weekly_report(lat=lat, lon=lon)
         return PlainTextResponse(format_weekly_telegram(report))
     except Exception as e:
         return PlainTextResponse(f"❌ Error: {str(e)}")
@@ -98,18 +99,18 @@ def weekly_telegram():
 # ── Monthly ───────────────────────────────────────────────────────────────────
 
 @app.get("/monthly")
-def monthly():
+def monthly(lat: Optional[float] = Query(None), lon: Optional[float] = Query(None)):
     """Monthly preview of celestial events."""
     try:
-        return get_monthly_report()
+        return get_monthly_report(lat=lat, lon=lon)
     except Exception as e:
         return JSONResponse(status_code=500, content={"error": str(e)})
 
 @app.get("/monthly/telegram")
-def monthly_telegram():
+def monthly_telegram(lat: Optional[float] = Query(None), lon: Optional[float] = Query(None)):
     """Monthly report formatted as Telegram markdown message."""
     try:
-        report = get_monthly_report()
+        report = get_monthly_report(lat=lat, lon=lon)
         return PlainTextResponse(format_monthly_telegram(report))
     except Exception as e:
         return PlainTextResponse(f"❌ Error: {str(e)}")
@@ -117,11 +118,11 @@ def monthly_telegram():
 # ── Individual Endpoints ──────────────────────────────────────────────────────
 
 @app.get("/scorpius")
-def scorpius():
+def scorpius(lat: Optional[float] = Query(None), lon: Optional[float] = Query(None)):
     """Scorpius visibility window and current status."""
     try:
-        window = get_scorpius_window()
-        targets = [t for t in get_visible_targets() if t.get("visible")]
+        window = get_scorpius_window(lat=lat, lon=lon)
+        targets = [t for t in get_visible_targets(lat=lat, lon=lon) if t.get("visible")]
         return {
             "window": window,
             "visible_targets": targets,
@@ -130,26 +131,26 @@ def scorpius():
         return JSONResponse(status_code=500, content={"error": str(e)})
 
 @app.get("/moon")
-def moon():
+def moon(lat: Optional[float] = Query(None), lon: Optional[float] = Query(None)):
     """Current moon phase and rise/set times."""
     try:
-        return get_moon_info()
+        return get_moon_info(lat=lat, lon=lon)
     except Exception as e:
         return JSONResponse(status_code=500, content={"error": str(e)})
 
 @app.get("/planets")
-def planets():
+def planets(lat: Optional[float] = Query(None), lon: Optional[float] = Query(None)):
     """All planets with current altitude/azimuth."""
     try:
-        return {"planets": get_planet_positions()}
+        return {"planets": get_planet_positions(lat=lat, lon=lon)}
     except Exception as e:
         return JSONResponse(status_code=500, content={"error": str(e)})
 
 @app.get("/iss")
-def iss(count: int = Query(default=3, ge=1, le=10)):
+def iss(count: int = Query(default=3, ge=1, le=10), lat: Optional[float] = Query(None), lon: Optional[float] = Query(None)):
     """Next ISS visible passes over Columbus."""
     try:
-        passes = get_iss_passes(count=count)
+        passes = get_iss_passes(count=count, lat=lat, lon=lon)
         return {
             "location": f"Columbus OH ({LATITUDE}°N, {abs(LONGITUDE)}°W)",
             "passes": passes,
@@ -159,21 +160,23 @@ def iss(count: int = Query(default=3, ge=1, le=10)):
         return JSONResponse(status_code=500, content={"error": str(e)})
 
 @app.get("/seeing")
-def seeing():
+def seeing(lat: Optional[float] = Query(None), lon: Optional[float] = Query(None)):
     """Astronomical seeing forecast (cloud cover, wind, visibility)."""
     try:
-        return get_seeing_forecast()
+        return get_seeing_forecast(lat=lat, lon=lon)
     except Exception as e:
         return JSONResponse(status_code=500, content={"error": str(e)})
 
 @app.get("/targets")
 def targets(
+    lat: Optional[float] = Query(None),
+    lon: Optional[float] = Query(None),
     visible_only: bool = Query(default=False, description="Only return currently visible targets"),
     type_filter: str = Query(default="all", description="Filter by type: all, globular, open, star, double, nebula")
 ):
     """Full Scorpius DSO target database."""
     try:
-        all_targets = get_visible_targets()
+        all_targets = get_visible_targets(lat=lat, lon=lon)
         if visible_only:
             all_targets = [t for t in all_targets if t.get("visible")]
         if type_filter != "all":
