@@ -1385,10 +1385,45 @@ body.night-mode {
   box-shadow: 0 6px 20px rgba(255, 0, 0, 0.3);
 }
 
+.floating-tour-btn {
+  position: fixed;
+  bottom: 30px;
+  left: 30px;
+  width: 50px;
+  height: 50px;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.1);
+  border: 1px solid rgba(255, 255, 255, 0.3);
+  color: #fff;
+  font-size: 1.5rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  z-index: 9999;
+  transition: all 0.2s;
+  box-shadow: 0 4px 15px rgba(255, 255, 255, 0.1);
+  backdrop-filter: blur(5px);
+}
+
+.floating-tour-btn:hover {
+  background: rgba(255, 255, 255, 0.2);
+  border-color: rgba(255, 255, 255, 0.5);
+  transform: scale(1.08);
+  box-shadow: 0 6px 20px rgba(255, 255, 255, 0.2);
+}
+
 @media (max-width: 768px) {
   .floating-night-btn {
     bottom: 20px;
     right: 20px;
+    width: 45px;
+    height: 45px;
+    font-size: 1.2rem;
+  }
+  .floating-tour-btn {
+    bottom: 20px;
+    left: 20px;
     width: 45px;
     height: 45px;
     font-size: 1.2rem;

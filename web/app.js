@@ -905,3 +905,36 @@ if (closeNightTooltip) {
     document.getElementById('night-tooltip').style.display = 'none';
   });
 }
+
+// --- Interactive Tour ---
+function initTour() {
+  if (typeof window.driver === 'undefined') return;
+  
+  const driver = window.driver.js.driver({
+    showProgress: true,
+    animate: true,
+    steps: [
+      { element: '#btn-location', popover: { title: getTrans('tour_loc_title'), description: getTrans('tour_loc_desc'), side: "bottom", align: 'start' }},
+      { element: '.card-conditions', popover: { title: getTrans('tour_cond_title'), description: getTrans('tour_cond_desc'), side: "bottom", align: 'start' }},
+      { element: '#card-targets', popover: { title: getTrans('tour_targets_title'), description: getTrans('tour_targets_desc'), side: "top", align: 'start' }},
+      { element: '#btn-night-mode', popover: { title: getTrans('tour_night_title'), description: getTrans('tour_night_desc'), side: "top", align: 'end' }}
+    ]
+  });
+
+  const btnTour = document.getElementById('btn-tour');
+  if (btnTour) {
+    btnTour.addEventListener('click', () => {
+      driver.drive();
+    });
+  }
+
+  // Auto-start on first load
+  if (!localStorage.getItem('stargazer_tour_seen')) {
+    localStorage.setItem('stargazer_tour_seen', 'true');
+    setTimeout(() => { driver.drive(); }, 1500);
+  }
+}
+
+document.addEventListener('DOMContentLoaded', () => {
+  setTimeout(() => initTour(), 500);
+});

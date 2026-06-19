@@ -71,6 +71,32 @@ const translations = {
     "footer_creator": "StarGazer Creator | Cloud & DevOps",
     "footer_desc": "Personal stargazing dashboard to track active constellations, planets, and ISS passes.",
     "footer_nav": "Navigation",
+
+    // Tour
+    "tour_btn": "🚀",
+    "tour_loc_title": "1. Set Your Location",
+    "tour_loc_desc": "Start by setting your exact coordinates so we can calculate the night sky accurately for you.",
+    "tour_cond_title": "2. Check Conditions",
+    "tour_cond_desc": "Before heading out, check the weather and seeing conditions. We'll tell you if tonight is a GO.",
+    "tour_targets_title": "3. Find Targets",
+    "tour_targets_desc": "Use this curated database to find the best and brightest objects to point your telescope at tonight.",
+    "tour_night_title": "4. Night Vision",
+    "tour_night_desc": "Once you're outside in the dark, turn on Night Vision mode to protect your eyes' dark adaptation.",
+
+    // About Modal
+    "night_vision_title": "Night Vision Mode Active",
+    "night_vision_desc": "Reduces glare to protect your dark adaptation.",
+    "about_btn": "ℹ️",
+    "about_title": "About StarGazer",
+    "about_desc1": "I created this application because getting started with stargazing can be overwhelming. There are too many apps with too much data.",
+    "about_desc2": "I built this to focus on exactly what matters most for a beginner: knowing what's in the sky tonight, where to point the telescope, and nothing else.",
+    "about_highlight1": "🚫 No Ads",
+    "about_highlight2": "🔓 No Tricks",
+    "about_highlight3": "✨ Just Stars",
+    "about_collab_title": "Want to collaborate or request a feature?",
+    "about_github_btn": "🐙 Visit GitHub Repository",
+    "close_btn": "Close",
+
     "footer_tech": "Tech Stack",
     "footer_api": "API Sources",
     "footer_like": "Like this dashboard? Give it a star!",
@@ -237,18 +263,6 @@ const translations = {
     "set_loc_btn": "📍",
     
     // Tonight's Outlook
-    "night_vision_title": "Night Vision Mode Active",
-    "night_vision_desc": "Reduces glare to protect your dark adaptation.",
-    "about_btn": "ℹ️",
-    "about_title": "About StarGazer",
-    "about_desc1": "I created this application because getting started with stargazing can be overwhelming. There are too many apps with too much data.",
-    "about_desc2": "I built this to focus on exactly what matters most for a beginner: knowing what's in the sky tonight, where to point the telescope, and nothing else.",
-    "about_highlight1": "🚫 No Ads",
-    "about_highlight2": "🔓 No Tricks",
-    "about_highlight3": "✨ Just Stars",
-    "about_collab_title": "Want to collaborate or request a feature?",
-    "about_github_btn": "🐙 Visit GitHub Repository",
-    "close_btn": "Close",
     "night_vision_title": "Modo Visión Nocturna Activo",
     "night_vision_desc": "Reduce el resplandor para proteger tu adaptación a la oscuridad.",
     "about_btn": "ℹ️",
@@ -337,15 +351,19 @@ const translations = {
     
     // Footer
     "footer_creator": "Creador de StarGazer | Cloud & DevOps",
-    "footer_desc": "Panel personal para rastrear constelaciones activas, planetas y pasos de la EEI.",
+    "footer_desc": "Panel personal de astronomía para rastrear constelaciones activas, planetas y pasos de la ISS.",
     "footer_nav": "Navegación",
-    "footer_tech": "Tecnologías",
-    "footer_api": "Fuentes API",
-    "footer_like": "¿Te gusta este panel? ¡Dale una estrella!",
-    
-    // Fallback/Misc
-    "offline_badge": "CACHÉ",
-    "live_badge": "EN VIVO"
+
+    // Tour
+    "tour_btn": "🚀",
+    "tour_loc_title": "1. Configura tu Ubicación",
+    "tour_loc_desc": "Comienza configurando tus coordenadas exactas para que podamos calcular el cielo nocturno con precisión para ti.",
+    "tour_cond_title": "2. Revisa las Condiciones",
+    "tour_cond_desc": "Antes de salir, revisa el clima y las condiciones de observación. Te diremos si esta noche es ideal.",
+    "tour_targets_title": "3. Encuentra Objetivos",
+    "tour_targets_desc": "Usa esta base de datos seleccionada para encontrar los objetos mejores y más brillantes para apuntar tu telescopio esta noche.",
+    "tour_night_title": "4. Visión Nocturna",
+    "tour_night_desc": "Una vez que estés afuera en la oscuridad, activa el modo de Visión Nocturna para proteger tu adaptación a la oscuridad."
   },
   pt: {
     "const_uma": "Ursa Maior",
@@ -592,8 +610,20 @@ const translations = {
     
     // Footer
     "footer_creator": "Criador do StarGazer | Cloud & DevOps",
-    "footer_desc": "Painel pessoal para rastrear constelações ativas, planetas e passagens da ISS.",
+    "footer_desc": "Painel pessoal de astronomia para rastrear constelações ativas, planetas e passagens da ISS.",
     "footer_nav": "Navegação",
+
+    // Tour
+    "tour_btn": "🚀",
+    "tour_loc_title": "1. Defina sua Localização",
+    "tour_loc_desc": "Comece definindo suas coordenadas exatas para que possamos calcular o céu noturno com precisão para você.",
+    "tour_cond_title": "2. Verifique as Condições",
+    "tour_cond_desc": "Antes de sair, verifique o clima e as condições de observação. Diremos se esta noite é ideal.",
+    "tour_targets_title": "3. Encontre Alvos",
+    "tour_targets_desc": "Use este banco de dados selecionado para encontrar os melhores e mais brilhantes objetos para apontar seu telescópio esta noite.",
+    "tour_night_title": "4. Visão Noturna",
+    "tour_night_desc": "Quando estiver lá fora no escuro, ative o modo de Visão Noturna para proteger sua adaptação ao escuro.",
+
     "footer_tech": "Tecnologias",
     "footer_api": "Fontes de API",
     "footer_like": "Gostou deste painel? Dê uma estrela!",
