@@ -12,6 +12,9 @@ LONGITUDE = float(os.getenv("OBSERVER_LON", "-82.9988"))
 ELEVATION_M = int(os.getenv("OBSERVER_ELEVATION_M", "240"))   # meters above sea level
 TIMEZONE = os.getenv("OBSERVER_TIMEZONE", "America/New_York")
 
+# Network
+FRONTEND_URL = os.getenv("FRONTEND_URL", "http://localhost:8181")
+
 # Telescope
 TELESCOPE_APERTURE_MM = 130
 TELESCOPE_FOCAL_MM = 650

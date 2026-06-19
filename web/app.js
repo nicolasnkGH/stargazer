@@ -21,7 +21,7 @@ function translateDate(dateStr) {
 // ── Configuration ──────────────────────────────────────────────────────────
 const API_BASE = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1'
   ? 'http://localhost:8181'
-  : '/api'; // nginx proxy path in production
+  : 'https://stargazerapi.nick-t.net'; // Nginx Proxy Manager split-DNS URL
 
 const DEFAULT_LOCATIONS = [
   { id: 'default', name: 'Columbus (Home)', lat: 40.126, lon: -83.037 }
