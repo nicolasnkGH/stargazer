@@ -736,9 +736,11 @@ function initLocationUI() {
   
   // About Modal
   const aboutModal = document.getElementById('about-modal');
-  document.getElementById('btn-about').addEventListener('click', () => {
-    aboutModal.classList.remove('hidden');
-  });
+  const openAbout = () => aboutModal.classList.remove('hidden');
+  
+  document.getElementById('btn-about').addEventListener('click', openAbout);
+  document.getElementById('logo-slogan').addEventListener('click', openAbout);
+  
   document.getElementById('close-about-btn').addEventListener('click', () => {
     aboutModal.classList.add('hidden');
   });

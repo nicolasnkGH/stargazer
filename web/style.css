@@ -105,20 +105,37 @@ body {
   50% { transform: translateY(-4px); }
 }
 
-.logo-title {
-  font-size: 1.5rem;
+.logo-main {
+  font-family: 'Space Grotesk', sans-serif;
+  font-size: 1.4rem;
   font-weight: 700;
-  letter-spacing: 0.05em;
-  background: linear-gradient(135deg, #fff 0%, #a0c4ff 60%, #a855f7 100%);
+  letter-spacing: -0.02em;
+  background: linear-gradient(135deg, #fff, #9ca3af);
   -webkit-background-clip: text;
-  background-clip: text;
   -webkit-text-fill-color: transparent;
+  line-height: 1.1;
+}
+
+.logo-slogan {
+  font-size: 0.75rem;
+  color: var(--accent-blue);
+  opacity: 0.8;
+  margin-top: 2px;
+  cursor: pointer;
+  transition: opacity 0.2s;
+}
+
+.logo-slogan:hover {
+  opacity: 1;
+  text-decoration: underline;
 }
 
 .logo-sub {
-  font-size: 0.72rem;
-  color: var(--text-secondary);
-  letter-spacing: 0.08em;
+  font-family: var(--font-mono);
+  font-size: 0.7rem;
+  color: var(--text-dim);
+  margin-top: 2px;
+  letter-spacing: 0.05em;
   text-transform: uppercase;
 }
 
@@ -679,6 +696,48 @@ body {
 .btn-primary:hover { background: #2563eb; }
 .btn-secondary { background: rgba(255,255,255,0.1); color: white; }
 .btn-secondary:hover { background: rgba(255,255,255,0.2); }
+
+.modal-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 12px;
+  margin-top: 24px;
+}
+.modal-btn {
+  padding: 8px 16px;
+  border-radius: 8px;
+  font-size: 0.9rem;
+  font-weight: 600;
+  cursor: pointer;
+  border: 1px solid var(--border);
+  background: rgba(255, 255, 255, 0.05);
+  color: var(--text-primary);
+  transition: all 0.2s;
+}
+.modal-btn:hover { background: rgba(255, 255, 255, 0.1); }
+.modal-btn.primary {
+  background: var(--accent-blue);
+  color: #fff;
+  border-color: transparent;
+}
+.modal-btn.primary:hover { background: #3a8ded; }
+
+.modal-close {
+  display: block;
+  margin: 30px auto 0;
+  padding: 8px 24px;
+  background: rgba(255, 255, 255, 0.05);
+  color: var(--text-secondary);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 20px;
+  font-size: 0.9rem;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+.modal-close:hover {
+  background: rgba(255, 255, 255, 0.1);
+  color: var(--text-primary);
+}
 
 .location-list {
   display: flex;

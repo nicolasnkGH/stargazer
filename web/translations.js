@@ -2,6 +2,7 @@ const translations = {
   en: {
     // Header
     "app_title": "✨ StarGazer",
+    "app_slogan": "Astronomy made simple. Why we built this ›",
     "loading_loc": "Loading location...",
     "set_loc_btn": "📍",
     
@@ -231,6 +232,7 @@ const translations = {
     "target_m74_desc": "Galaxia espiral de frente con brillo superficial extremadamente bajo.",
     // Header
     "app_title": "✨ StarGazer",
+    "app_slogan": "Astronomía simple. Por qué creamos esto ›",
     "loading_loc": "Cargando ubicación...",
     "set_loc_btn": "📍",
     
@@ -510,6 +512,7 @@ const translations = {
     "target_m74_desc": "Galáxia espiral vista de frente com brilho superficial extremamente baixo.",
     // Header
     "app_title": "✨ StarGazer",
+    "app_slogan": "Astronomia simples. Por que criamos isso ›",
     "loading_loc": "Carregando localização...",
     "set_loc_btn": "📍",
     
