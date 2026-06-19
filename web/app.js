@@ -1,3 +1,4 @@
+let currentLang = localStorage.getItem('stargazer_lang') || 'en';
 
 function translateDate(dateStr) {
   if (!dateStr || currentLang === 'en') return dateStr;
@@ -859,7 +860,6 @@ document.addEventListener('DOMContentLoaded', init);
 
 
 // ── i18n ────────────────────────────────────────────────────────────────────
-let currentLang = localStorage.getItem('stargazer_lang') || 'en';
 
 function setLanguage(lang) {
   if(!window.i18n[lang]) lang = 'en';
