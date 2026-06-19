@@ -375,7 +375,7 @@ def get_iss_passes(count: int = 3, lat=None, lon=None) -> list[dict]:
         # Fallback: try Celestrak stations group TLE file
         try:
             resp = requests.get(
-                "https://celestrak.org/SATCAT/elements/?GROUP=stations&FORMAT=TLE",
+                "https://celestrak.org/NORAD/elements/gp.php?GROUP=stations&FORMAT=tle",
                 timeout=10,
             )
             resp.raise_for_status()
@@ -676,7 +676,7 @@ def get_constellations(lat=None, lon=None) -> list[dict]:
             "abbr": c["abbr"],
             "altitude_deg": round(alt.degrees, 1),
             "direction": _az_to_direction(az.degrees),
-            "visible": alt.degrees > 0
+            "visible": bool(alt.degrees > 0)
         })
 
     results.sort(key=lambda x: -x["altitude_deg"])
