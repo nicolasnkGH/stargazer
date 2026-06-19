@@ -1,4 +1,5 @@
 # 🔭 StarGazer — Personal Observatory Assistant
+[![Deploy Stargazer CI/CD](https://github.com/nicolasnkGH/stargazer/actions/workflows/deploy.yml/badge.svg)](https://github.com/nicolasnkGH/stargazer/actions/workflows/deploy.yml)
 
 > **Columbus, OH · Celestron StarSense Explorer 5" DX · South-facing 3rd floor porch**
 
