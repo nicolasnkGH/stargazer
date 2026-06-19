@@ -24,7 +24,7 @@ from engine import (
     get_constellations,
     now_local, SCORPIUS_TARGETS, NEARBY_TARGETS,
 )
-from config import LATITUDE, LONGITUDE, BORTLE_CLASS, TELESCOPE_APERTURE_MM
+from config import LATITUDE, LONGITUDE, BORTLE_CLASS, TELESCOPE_APERTURE_MM, ELEVATION_M
 
 app = FastAPI(
     title="StarGazer API",

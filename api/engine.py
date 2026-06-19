@@ -663,9 +663,7 @@ def get_constellations(lat=None, lon=None) -> list[dict]:
 
     ts, _ = _get_skyfield()
     t = _sf_time(now_local())
-    _lat = float(lat) if lat is not None else LATITUDE
-    _lon = float(lon) if lon is not None else LONGITUDE
-    observer = wgs84.latlon(_lat * N, abs(_lon) * W, elevation_m=ELEVATION_M)
+    observer, _ = _get_observer(lat=lat, lon=lon)
 
     results = []
     for c in const_data:
