@@ -4,11 +4,13 @@ Columbus, OH — Celestron StarSense Explorer 5" DX
 South-facing 3rd floor porch
 """
 
+import os
+
 # Observer location
-LATITUDE = 40.126   # Columbus, OH (7099 Sawmill Village Dr)
-LONGITUDE = -83.037
-ELEVATION_M = 240   # meters above sea level
-TIMEZONE = "America/New_York"
+LATITUDE = float(os.getenv("OBSERVER_LAT", "39.9612"))   # Default to general Columbus, OH
+LONGITUDE = float(os.getenv("OBSERVER_LON", "-82.9988"))
+ELEVATION_M = int(os.getenv("OBSERVER_ELEVATION_M", "240"))   # meters above sea level
+TIMEZONE = os.getenv("OBSERVER_TIMEZONE", "America/New_York")
 
 # Telescope
 TELESCOPE_APERTURE_MM = 130
@@ -143,7 +145,6 @@ OTHER_TARGETS = [
 ]
 
 # Telegram config (set via environment variables)
-import os
 TELEGRAM_BOT_TOKEN = os.getenv("TELEGRAM_BOT_TOKEN", "")
 TELEGRAM_CHAT_ID = os.getenv("TELEGRAM_CHAT_ID", "")
 
