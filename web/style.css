@@ -653,6 +653,37 @@ body {
 .loc-del:hover { opacity: 1; }
 
 /* ── Target Database ────────────────────────────────────────────────────── */
+
+.constellation-tabs {
+  display: flex;
+  overflow-x: auto;
+  gap: 10px;
+  padding: 10px 24px;
+  border-bottom: 1px solid var(--border-color);
+  background: rgba(0, 0, 0, 0.2);
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
+.constellation-tabs::-webkit-scrollbar { display: none; }
+.const-tab {
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  color: var(--text-dim);
+  padding: 6px 14px;
+  border-radius: 20px;
+  font-size: 0.85rem;
+  font-weight: 500;
+  cursor: pointer;
+  white-space: nowrap;
+  transition: all 0.2s;
+}
+.const-tab:hover { background: rgba(255, 255, 255, 0.1); color: white; }
+.const-tab.active {
+  background: rgba(168, 85, 247, 0.2);
+  border-color: #a855f7;
+  color: white;
+}
+
 .targets-scope-note {
   padding: 12px 24px;
   font-size: 0.82rem;

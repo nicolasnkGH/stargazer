@@ -164,14 +164,15 @@ def planets(lat: Optional[float] = Query(None), lon: Optional[float] = Query(Non
         return JSONResponse(status_code=500, content={"error": str(e)})
 
 @app.get("/iss")
-def iss(count: int = Query(default=3, ge=1, le=10), lat: Optional[float] = Query(None), lon: Optional[float] = Query(None)):
-    """Next ISS visible passes over Columbus."""
+def iss(count: int = Query(3), lat: Optional[float] = Query(None), lon: Optional[float] = Query(None)):
+    """Next ISS passes."""
     try:
-        passes = get_iss_passes(count=count, lat=lat, lon=lon)
+        passes = get_iss_passes(count, lat=lat, lon=lon)
+        loc_str = f"{lat}°N, {abs(lon)}°W" if lat and lon else f"{LATITUDE}°N, {abs(LONGITUDE)}°W"
         return {
-            "location": f"Columbus OH ({LATITUDE}°N, {abs(LONGITUDE)}°W)",
+            "location": loc_str,
             "passes": passes,
-            "heavens_above": f"https://www.heavens-above.com/PassSummary.aspx?lat={LATITUDE}&lng={LONGITUDE}&loc=Columbus&alt=240&tz=ET",
+            "heavens_above": f"https://www.heavens-above.com/PassSummary.aspx?lat={lat or LATITUDE}&lng={lon or LONGITUDE}&alt={ELEVATION_M}&tz=ET",
         }
     except Exception as e:
         return JSONResponse(status_code=500, content={"error": str(e)})

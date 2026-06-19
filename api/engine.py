@@ -19,7 +19,7 @@ from skyfield import almanac
 
 from config import (
     LATITUDE, LONGITUDE, ELEVATION_M, TIMEZONE,
-    SCORPIUS_TARGETS, NEARBY_TARGETS,
+    SCORPIUS_TARGETS, NEARBY_TARGETS, OTHER_TARGETS,
     MIN_ALTITUDE_DEG, TELESCOPE_APERTURE_MM, BORTLE_CLASS, LIMITING_MAG
 )
 
@@ -308,15 +308,17 @@ def get_scorpius_window(dt: Optional[date] = None, lat=None, lon=None) -> dict:
 
 # ── DSO Visibility ────────────────────────────────────────────────────────────
 
-def get_visible_targets(dt: Optional[datetime] = None, lat=None, lon=None) -> list[dict]:
-    """Return all Scorpius targets with current altitude/visibility."""
+def get_visible_targets(dt: Optional[datetime] = None, lat=None, lon=None, constellation: str = "Sco") -> list[dict]:
+    """Return targets for a specific constellation with current altitude/visibility."""
     ts, _ = _get_skyfield()
     observer, _ = _get_observer(lat=lat, lon=lon)
     now = dt or now_local()
     t = _sf_time(now)
 
     results = []
-    all_targets = SCORPIUS_TARGETS + NEARBY_TARGETS
+    all_targets = SCORPIUS_TARGETS + NEARBY_TARGETS + OTHER_TARGETS
+    if constellation and constellation != "All":
+        all_targets = [t for t in all_targets if t.get("constellation", "Sco") == constellation]
 
     for target in all_targets:
         ra_h = target["ra_h"] + target["ra_m"] / 60 + target["ra_s"] / 3600
@@ -628,9 +630,6 @@ def get_weekly_report(lat=None, lon=None) -> dict:
             p = sorted(visible_planets, key=lambda x: -x["altitude_deg"])[0]
             highlights.append(f"{p['emoji']} {p['name']} peaks at {p['altitude_deg']}°")
             
-        if not highlights and scorpius["culmination_altitude_deg"] > 20:
-            highlights.append(f"🦂 Scorpius peaks at {scorpius['culmination_altitude_deg']}°")
-        
         if not highlights:
             highlights.append("✨ Clear skies (no major events)")
 

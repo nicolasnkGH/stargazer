@@ -33,87 +33,6 @@ if (!activeLoc) {
 let currentLat = parseFloat(activeLoc.lat) || 40.126;
 let currentLon = parseFloat(activeLoc.lon) || -83.037;
 
-// ── Scorpius Target Database (static, always available) ─────────────────────
-const SCORPIUS_TARGETS = [
-  {
-    id: "antares", name: "Antares (α Scorpii)", emoji: "🔴",
-    type: "Star — Red Supergiant", magnitude: 1.06, difficulty: "naked_eye",
-    bortle_min: 1, eyepiece_rec: "Any — try 10mm for color contrast",
-    description: "The 'heart of the scorpion' — brilliant red-orange supergiant 700× the Sun's diameter. Gorgeous orange-red color, sometimes shows a slight disc at high power. Your porch star.",
-    season_peak: "July"
-  },
-  {
-    id: "m4", name: "M4 (NGC 6121)", emoji: "✨",
-    type: "Globular Cluster", magnitude: 5.6, difficulty: "easy",
-    bortle_min: 4, eyepiece_rec: "25mm → 10mm for resolution",
-    description: "One of the nearest globulars (~7,200 ly). 1.3° west of Antares — start here! Large, loose, and resolves into individual stars. A central bar of stars is a unique feature.",
-    season_peak: "July"
-  },
-  {
-    id: "m80", name: "M80 (NGC 6093)", emoji: "💫",
-    type: "Globular Cluster", magnitude: 7.3, difficulty: "easy",
-    bortle_min: 5, eyepiece_rec: "10mm at ~65× — compact bright core",
-    description: "Compact, bright globular between Antares and Graffias. Dense, almost star-like core at low power. One of the most densely packed globulars in the Milky Way.",
-    season_peak: "July"
-  },
-  {
-    id: "m6", name: "M6 — Butterfly Cluster", emoji: "🦋",
-    type: "Open Cluster", magnitude: 4.2, difficulty: "easy",
-    bortle_min: 3, eyepiece_rec: "25mm — cluster fills the field beautifully",
-    description: "The 'Butterfly Cluster' near the scorpion's tail. At low power, the star arrangement clearly resembles a butterfly in flight. Over 80 stars, bright and rewarding.",
-    season_peak: "August"
-  },
-  {
-    id: "m7", name: "M7 — Ptolemy Cluster", emoji: "⭐",
-    type: "Open Cluster", magnitude: 3.3, difficulty: "naked_eye",
-    bortle_min: 2, eyepiece_rec: "25mm wide-field or binoculars",
-    description: "Ptolemy's Cluster — visible to the naked eye even from Columbus on good nights! Huge, sprawling cluster of ~80 bright stars. Use your widest field eyepiece. Known since 130 AD.",
-    season_peak: "August"
-  },
-  {
-    id: "ngc6231", name: "NGC 6231", emoji: "💎",
-    type: "Open Cluster", magnitude: 2.6, difficulty: "easy",
-    bortle_min: 3, eyepiece_rec: "25mm — packed bright cluster",
-    description: "The 'Northern Jewel Box' — stunning, compact open cluster at the scorpion's tail. Very bright and concentrated. Note: very low (~8°) from Columbus — needs clear southern horizon.",
-    season_peak: "July", horizon_note: "⚠️ Very low (~8° max) — needs clear S horizon"
-  },
-  {
-    id: "graffias", name: "Graffias (β Scorpii)", emoji: "🔵",
-    type: "Double Star", magnitude: 2.62, difficulty: "easy",
-    bortle_min: 1, eyepiece_rec: "10mm at ~65× — easy clean split",
-    description: "Beautiful double star at the scorpion's head. Easily split at low magnification — blue-white primary with a companion. Actually a 6-star system! One of the finest summer doubles.",
-    season_peak: "July"
-  },
-  {
-    id: "nu_sco", name: "Nu Scorpii (Jabbah)", emoji: "🌟",
-    type: "Multiple Star System", magnitude: 4.0, difficulty: "moderate",
-    bortle_min: 1, eyepiece_rec: "10mm first, then 6mm for the close pair",
-    description: "A quadruple (4-star) system! At low power it appears double, but increase magnification to split the close pair. A fun challenge — 4 suns visible in one field.",
-    season_peak: "July"
-  },
-  {
-    id: "ngc6144", name: "NGC 6144", emoji: "🌫️",
-    type: "Globular Cluster", magnitude: 9.0, difficulty: "moderate",
-    bortle_min: 6, eyepiece_rec: "10mm — look 0.5° NW of Antares",
-    description: "A faint globular just ½° northwest of Antares. Often overlooked due to Antares glare. On new moon nights look for a faint fuzzy patch NW of Antares. Rewarding challenge for your 5-inch.",
-    season_peak: "July", horizon_note: "Requires new moon and best transparency"
-  },
-  {
-    id: "shaula", name: "Shaula & Lesath (λ & υ Sco)", emoji: "🦂",
-    type: "Naked Eye Pair", magnitude: 1.62, difficulty: "naked_eye",
-    bortle_min: 1, eyepiece_rec: "Naked eye or binoculars",
-    description: "The 'Stinger' — two bright stars at the scorpion's tail tip. Shaula is the 25th brightest star in the sky. Not physically related — a beautiful line-of-sight coincidence.",
-    season_peak: "August", horizon_note: "⚠️ Very low (~5-10°) — crystal-clear S horizon needed"
-  },
-  {
-    id: "m19", name: "M19 (NGC 6273)", emoji: "🌀",
-    type: "Globular Cluster", magnitude: 6.8, difficulty: "easy",
-    bortle_min: 5, eyepiece_rec: "10mm",
-    description: "Ophiuchus globular just north of the Scorpius border. One of the most oblate (flattened) globulars in the sky — noticeably elongated at high power. Bright and rewarding.",
-    season_peak: "July"
-  },
-];
-
 // ── Starfield Canvas ────────────────────────────────────────────────────────
 (function initStarfield() {
   const canvas = document.getElementById('starfield');
@@ -245,7 +164,6 @@ async function loadTonightReport() {
       renderGoNogo(null);
       renderMoon(null);
       renderSeeing(null);
-      renderScorpius(null);
       renderPlanets(null);
       renderAlerts(null);
       return;
@@ -424,10 +342,11 @@ async function loadWeekly() {
           <div class="day-rating">${d.rating || '—'}</div>
           <div class="day-moon">${moonEmoji}</div>
           <div class="day-weather">${d.weather || '—'}</div>
-          <marquee scrollamount="3" scrolldelay="100" style="width: 100%;">
-            ${highlights.map(h => `<span class="day-highlight" style="margin-right: 15px;">${h}</span>`).join('')}
-          </marquee>
         </div>
+        <marquee scrollamount="3" scrolldelay="100" style="width: 100%;">
+          ${highlights.map(h => `<span class="day-highlight" style="margin-right: 15px;">${h}</span>`).join('')}
+        </marquee>
+      </div>
       `;
     }).join('');
   });
@@ -488,14 +407,17 @@ async function loadConstellations() {
 }
 
 // ── Render: Target Database ─────────────────────────────────────────────────
-async function loadTargets() {
-  await fetchAndRender('/targets', (liveData) => {
-    const liveMap = {};
-    if (liveData && liveData.targets) {
-      liveData.targets.forEach(t => { liveMap[t.id] = t; });
-    }
+let currentConstellation = 'Sco';
 
-    renderTargetGrid(SCORPIUS_TARGETS, liveMap, 'all');
+async function loadTargets() {
+  await fetchAndRender(`/targets?constellation=${currentConstellation}`, (liveData) => {
+    if (!liveData || !liveData.targets) return;
+    const targets = liveData.targets;
+
+    const filterBtn = document.querySelector('.filter-btn.active');
+    const filter = filterBtn ? filterBtn.dataset.filter : 'all';
+
+    renderTargetGrid(targets, filter);
 
     // Filter buttons
     document.querySelectorAll('.filter-btn').forEach(btn => {
@@ -655,8 +577,16 @@ async function init() {
   initLocationUI();
   updateClearOutside();
 
-  // Always render the static target database first (no API needed)
-  await loadTargets();
+  // Setup Constellation Tabs
+  document.querySelectorAll('.const-tab').forEach(btn => {
+    btn.addEventListener('click', () => {
+      document.querySelectorAll('.const-tab').forEach(b => b.classList.remove('active'));
+      btn.classList.add('active');
+      currentConstellation = btn.dataset.const;
+      document.getElementById('target-db-title').textContent = `${btn.textContent} Target Database`;
+      loadTargets();
+    });
+  });
 
   // Load everything in parallel
   await Promise.allSettled([

@@ -199,6 +199,16 @@ NEARBY_TARGETS = [
     },
 ]
 
+# Other major deep-sky targets for dynamic constellation tabs
+OTHER_TARGETS = [
+    {"id": "m42", "name": "Orion Nebula (M42)", "type": "Emission Nebula", "ra_h": 5, "ra_m": 35, "ra_s": 17, "dec_d": -5, "dec_m": 23, "dec_s": 28, "magnitude": 4.0, "constellation": "Ori", "difficulty": "naked_eye", "emoji": "🌌", "description": "The Great Orion Nebula. The brightest and most famous star-forming region, easily visible to the naked eye. In a 5-inch scope, the Trapezium cluster is obvious."},
+    {"id": "m31", "name": "Andromeda Galaxy (M31)", "type": "Spiral Galaxy", "ra_h": 0, "ra_m": 42, "ra_s": 44, "dec_d": 41, "dec_m": 16, "dec_s": 9, "magnitude": 3.4, "constellation": "And", "difficulty": "easy", "emoji": "🌀", "description": "The closest spiral galaxy to the Milky Way. Visible to the naked eye under dark skies. Your telescope will reveal its bright core and extensive halo."},
+    {"id": "m81", "name": "Bode's Galaxy (M81)", "type": "Spiral Galaxy", "ra_h": 9, "ra_m": 55, "ra_s": 33, "dec_d": 69, "dec_m": 3, "dec_s": 55, "magnitude": 6.9, "constellation": "UMa", "difficulty": "moderate", "emoji": "🛸", "description": "A stunning, bright spiral galaxy in Ursa Major. It often fits in the same low-power eyepiece field as the nearby Cigar Galaxy (M82)."},
+    {"id": "m13", "name": "Hercules Globular Cluster (M13)", "type": "Globular Cluster", "ra_h": 16, "ra_m": 41, "ra_s": 41, "dec_d": 36, "dec_m": 27, "dec_s": 35, "magnitude": 5.8, "constellation": "Her", "difficulty": "easy", "emoji": "🎇", "description": "The Great Globular Cluster in Hercules. Contains roughly 300,000 stars. At medium-high power, a 5-inch scope resolves stars across the edges."},
+    {"id": "albireo", "name": "Albireo (β Cygni)", "type": "Double Star", "ra_h": 19, "ra_m": 30, "ra_s": 43, "dec_d": 27, "dec_m": 57, "dec_s": 34, "magnitude": 3.0, "constellation": "Cyg", "difficulty": "easy", "emoji": "🟡", "description": "One of the most beautiful double stars in the sky. It features a stunning color contrast between a golden-yellow primary and a brilliant sapphire-blue secondary."},
+    {"id": "pleiades", "name": "Pleiades (M45)", "type": "Open Cluster", "ra_h": 3, "ra_m": 47, "ra_s": 24, "dec_d": 24, "dec_m": 7, "dec_s": 0, "magnitude": 1.6, "constellation": "Tau", "difficulty": "naked_eye", "emoji": "✨", "description": "The Seven Sisters. An absolutely spectacular open cluster that dominates the winter sky. Use your lowest power eyepiece to fit it all in!"},
+]
+
 # Telegram config (set via environment variables)
 import os
 TELEGRAM_BOT_TOKEN = os.getenv("TELEGRAM_BOT_TOKEN", "")

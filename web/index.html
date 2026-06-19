@@ -8,7 +8,7 @@
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;400;500;600;700&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet" />
-  <link rel="stylesheet" href="style.css?v=5" />
+  <link rel="stylesheet" href="style.css?v=6" />
 </head>
 <body>
 
@@ -186,12 +186,12 @@
       </div>
     </section>
 
-    <!-- ── Scorpius Target Database ── -->
+    <!-- ── Dynamic Target Database ── -->
     <section class="card card-targets" id="card-targets">
       <div class="card-header">
-        <span class="card-icon">🎯</span>
-        <h2 class="card-title">Scorpius Target Database</h2>
-        <div class="filter-row" id="filter-row">
+        <div class="card-icon">🎯</div>
+        <h2 class="card-title" id="target-db-title">Scorpius Target Database</h2>
+        <div class="card-actions">
           <button class="filter-btn active" data-filter="all">All</button>
           <button class="filter-btn" data-filter="globular">Globulars</button>
           <button class="filter-btn" data-filter="open">Open Clusters</button>
@@ -199,6 +199,19 @@
           <button class="filter-btn" data-filter="star">Stars</button>
         </div>
       </div>
+      
+      <!-- Constellation Selector Tabs -->
+      <div class="constellation-tabs" id="constellation-tabs">
+        <button class="const-tab active" data-const="Sco">Scorpius</button>
+        <button class="const-tab" data-const="Sgr">Sagittarius</button>
+        <button class="const-tab" data-const="Ori">Orion</button>
+        <button class="const-tab" data-const="And">Andromeda</button>
+        <button class="const-tab" data-const="UMa">Ursa Major</button>
+        <button class="const-tab" data-const="Her">Hercules</button>
+        <button class="const-tab" data-const="Cyg">Cygnus</button>
+        <button class="const-tab" data-const="Tau">Taurus</button>
+      </div>
+
       <div class="targets-scope-note">
         🔭 Rated for <strong>Celestron 5" DX</strong> (130mm) under <strong>Bortle 8</strong> Columbus skies.
         Moon illumination affects DSO visibility — best within 5 days of new moon.
@@ -354,6 +367,6 @@
     <div>Powered by Skyfield (NASA JPL DE421) · Open-Meteo · Clear Outside · Open source · No ads · No tracking</div>
   </footer>
 
-  <script src="app.js?v=5"></script>
+  <script src="app.js?v=6"></script>
 </body>
 </html>
