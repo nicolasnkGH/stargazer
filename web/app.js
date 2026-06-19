@@ -406,6 +406,31 @@ async function loadConstellations() {
   });
 }
 
+// ── Render: Constellations Tonight ──────────────────────────────────────────
+async function loadConstellations() {
+  await fetchAndRender('/constellations', (data) => {
+    const grid = document.getElementById('constellations-grid');
+    if (!data || !data.constellations || data.constellations.length === 0) {
+      grid.innerHTML = '<div class="no-data" style="padding:30px">Could not load constellations</div>';
+      return;
+    }
+
+    const visibleConst = data.constellations.filter(c => c.visible).slice(0, 16);
+    
+    grid.innerHTML = visibleConst.map(c => `
+      <div class="target-card" style="padding: 15px; cursor: pointer; transition: transform 0.2s;" onmouseover="this.style.transform='translateY(-2px)'" onmouseout="this.style.transform='none'" onclick="document.querySelector('.const-tab[data-const=\\'${c.abbr}\\']')?.click(); document.getElementById('card-targets').scrollIntoView({behavior: 'smooth'})">
+        <div class="tc-header" style="margin-bottom: 5px;">
+          <div class="tc-name" style="font-size: 1.1rem;">${c.name}</div>
+          <div class="tc-type" style="margin-top: 2px;">${c.abbr}</div>
+        </div>
+        <div class="tc-footer" style="margin-top: 10px;">
+          <span style="color: #4ade80;">● ${c.altitude_deg}° ${c.direction}</span>
+        </div>
+      </div>
+    `).join('');
+  });
+}
+
 // ── Render: Target Database ─────────────────────────────────────────────────
 let currentConstellation = 'Sco';
 
