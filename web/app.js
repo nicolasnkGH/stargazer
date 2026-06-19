@@ -733,6 +733,15 @@ function initLocationUI() {
   document.getElementById('btn-close-loc').addEventListener('click', () => {
     modal.classList.add('hidden');
   });
+  
+  // About Modal
+  const aboutModal = document.getElementById('about-modal');
+  document.getElementById('btn-about').addEventListener('click', () => {
+    aboutModal.classList.remove('hidden');
+  });
+  document.getElementById('close-about-btn').addEventListener('click', () => {
+    aboutModal.classList.add('hidden');
+  });
 
   document.getElementById('btn-save-loc').addEventListener('click', () => {
     const lat = parseFloat(inputLat.value);

@@ -27,6 +27,7 @@
       </div>
       <div class="header-meta">
         <select id="lang-select" class="lang-select"><option value="en">🇺🇸 EN</option><option value="es">🇪🇸 ES</option><option value="pt">🇧🇷 PT</option></select>
+        <button id="btn-about" class="about-btn" title="About StarGazer" data-i18n="about_btn">ℹ️</button>
         <button id="btn-location" class="location-btn" title="Set Location" data-i18n="set_loc_btn">📍</button>
         <div class="live-badge" id="live-badge">
           <span class="pulse-dot"></span> <span data-i18n="live_badge">LIVE</span>
@@ -458,7 +459,28 @@
 
   <!-- GitHub Buttons -->
   <script async defer src="https://buttons.github.io/buttons.js"></script>
-  <script src="translations.js?v=8"></script>
+  <!-- About Modal -->
+  <div id="about-modal" class="modal hidden">
+    <div class="modal-content about-modal-content">
+      <h2 data-i18n="about_title">About StarGazer</h2>
+      <p data-i18n="about_desc1">I created this application because getting started with stargazing can be overwhelming. There are too many apps with too much data.</p>
+      <p data-i18n="about_desc2">I built this to focus on exactly what matters most for a beginner: knowing what's in the sky tonight, where to point the telescope, and nothing else.</p>
+      <div class="about-highlights">
+        <span data-i18n="about_highlight1">🚫 No Ads</span>
+        <span data-i18n="about_highlight2">🔓 No Tricks</span>
+        <span data-i18n="about_highlight3">✨ Just Stars</span>
+      </div>
+      <div class="about-collab">
+        <p data-i18n="about_collab_title">Want to collaborate or request a feature?</p>
+        <a href="https://github.com/nicolasnkGH/stargazer" target="_blank" class="github-link" data-i18n="about_github_btn">
+          <span>🐙</span> Visit GitHub Repository
+        </a>
+      </div>
+      <button id="close-about-btn" class="modal-close" data-i18n="close_btn">Close</button>
+    </div>
+  </div>
+
+  <script src="translations.js"></script>
   <script src="app.js?v=24"></script>
 </body>
 </html>
