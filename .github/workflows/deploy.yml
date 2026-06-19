@@ -69,9 +69,10 @@ jobs:
 
       - name: Deploy to Server
         run: |
+          # The runner has checked out the latest code in the current directory.
+          # Sync it over to the live directory, ignoring the .git folder and any existing .env
+          rsync -a --delete --exclude '.env' --exclude '.git/' ./ /opt/stargazer/
           cd /opt/stargazer
-          git fetch origin main
-          git reset --hard origin/main
           if [ ! -f .env ]; then
             echo "No .env found, initializing from .env.example"
             cp .env.example .env
