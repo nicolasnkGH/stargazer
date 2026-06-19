@@ -1469,7 +1469,7 @@ body.night-mode {
     justify-content: center;
     gap: 8px;
   }
-  .weather-grid, .planets-grid, .targets-grid, .card-row, .card-row-2, .iss-grid {
+  .weather-grid, .planets-grid, .target-grid, .card-row, .card-row-2, .iss-grid {
     grid-template-columns: 1fr !important;
   }
   .banner-content {
