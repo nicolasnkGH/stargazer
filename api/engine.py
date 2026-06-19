@@ -381,9 +381,9 @@ def get_iss_passes(count: int = 3, lat=None, lon=None) -> list[dict]:
     observer = wgs84.latlon(_lat * N, abs(_lon) * W, elevation_m=ELEVATION_M)
 
     # ── Step 1: Fetch live ISS TLE with caching ─────────────────────────────────
+    import tempfile, os
     name, line1, line2 = None, None, None
-    cache_file = "/tmp/iss_tle_cache.json"
-    
+    cache_file = os.path.join(tempfile.gettempdir(), "iss_tle_cache.json")
     # Try reading valid cache first (under 24h old)
     try:
         import json
