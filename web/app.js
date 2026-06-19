@@ -12,12 +12,26 @@ const DEFAULT_LOCATIONS = [
   { id: 'default', name: 'Columbus (Home)', lat: 40.126, lon: -83.037 }
 ];
 
-let savedLocations = JSON.parse(localStorage.getItem('stargazer_locations')) || DEFAULT_LOCATIONS;
-let activeLocId = localStorage.getItem('stargazer_active_loc') || 'default';
-let activeLoc = savedLocations.find(l => l.id === activeLocId) || savedLocations[0];
+let savedLocations = DEFAULT_LOCATIONS;
+try {
+  const parsed = JSON.parse(localStorage.getItem('stargazer_locations'));
+  if (Array.isArray(parsed) && parsed.length > 0) {
+    savedLocations = parsed;
+  }
+} catch (e) {
+  console.error("Failed to parse saved locations", e);
+}
 
-let currentLat = activeLoc.lat;
-let currentLon = activeLoc.lon;
+let activeLocId = localStorage.getItem('stargazer_active_loc') || 'default';
+let activeLoc = savedLocations.find(l => l.id === activeLocId);
+if (!activeLoc) {
+  activeLoc = savedLocations[0];
+  activeLocId = activeLoc.id;
+  localStorage.setItem('stargazer_active_loc', activeLocId);
+}
+
+let currentLat = parseFloat(activeLoc.lat) || 40.126;
+let currentLon = parseFloat(activeLoc.lon) || -83.037;
 
 // ── Scorpius Target Database (static, always available) ─────────────────────
 const SCORPIUS_TARGETS = [
@@ -161,8 +175,12 @@ function updateClock() {
   const now = new Date();
   const t = now.toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit', second: '2-digit' });
   const d = now.toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric' });
-  document.getElementById('clock-time').textContent = t;
-  document.getElementById('clock-date').textContent = d;
+  
+  const clockEl = document.getElementById('clock');
+  const dateEl = document.getElementById('date-display');
+  
+  if (clockEl) clockEl.textContent = t;
+  if (dateEl) dateEl.textContent = d;
 }
 updateClock();
 setInterval(updateClock, 1000);
