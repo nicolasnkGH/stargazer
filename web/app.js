@@ -909,6 +909,7 @@ if (closeNightTooltip) {
 // --- Interactive Tour ---
 function initTour() {
   if (typeof window.driver === 'undefined') return;
+  const getTrans = (key) => window.i18n[currentLang][key] || key;
   
   const driver = window.driver.js.driver({
     showProgress: true,
