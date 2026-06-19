@@ -1,0 +1,6 @@
+skyfield
+fastapi
+uvicorn[standard]
+requests
+pytz
+python-dotenv

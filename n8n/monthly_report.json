@@ -1,0 +1,78 @@
+{
+  "name": "StarGazer — Monthly Preview (1st of Month)",
+  "nodes": [
+    {
+      "parameters": {
+        "rule": {
+          "interval": [
+            {
+              "field": "cronExpression",
+              "expression": "0 19 1 * *"
+            }
+          ]
+        }
+      },
+      "id": "m1-schedule",
+      "name": "1st of Month 7pm",
+      "type": "n8n-nodes-base.scheduleTrigger",
+      "typeVersion": 1.1,
+      "position": [240, 300]
+    },
+    {
+      "parameters": {
+        "url": "={{ $env.STARGAZER_API_URL }}/monthly",
+        "options": {"timeout": 20000}
+      },
+      "id": "m2-http",
+      "name": "Get Monthly Report",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [460, 300]
+    },
+    {
+      "parameters": {
+        "jsCode": "const r = $input.first().json;\n\nconst lines = [\n  `🔭 *StarGazer — ${r.month} Preview*`,\n  ``,\n  `*${r.scorpius_note}*`,\n  ``,\n  `*🌙 Moon Phases*`,\n  ...(r.moon_phases || []).map(p => `• ${p.phase}: ${p.date}`),\n];\n\nif ((r.meteor_showers || []).length > 0) {\n  lines.push('');\n  lines.push('*☄️ Meteor Showers*');\n  r.meteor_showers.forEach(s => {\n    lines.push(`• ${s.name}: Peak ~${s.peak[1]}/${s.peak[0]} — ZHR~${s.zhr}/hr`);\n  });\n}\n\nif ((r.highlights || []).length > 0) {\n  lines.push('');\n  lines.push('*⭐ Highlights*');\n  r.highlights.forEach(h => lines.push(`• ${h}`));\n}\n\nlines.push('');\nlines.push('*💡 Tip of the Month*');\nlines.push(`_${r.tip_of_month}_`);\nlines.push('');\nlines.push(`_${r.bortle_note}_`);\nlines.push(`_📡 Celestron 5\" DX | Columbus OH_`);\n\nreturn [{ json: { text: lines.join('\\n') } }];"
+      },
+      "id": "m3-format",
+      "name": "Format Monthly Message",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [680, 300]
+    },
+    {
+      "parameters": {
+        "chatId": "={{ $env.TELEGRAM_CHAT_ID }}",
+        "text": "={{ $json.text }}",
+        "additionalFields": {
+          "parse_mode": "Markdown",
+          "disable_web_page_preview": true
+        }
+      },
+      "id": "m4-telegram",
+      "name": "Send Monthly to Telegram",
+      "type": "n8n-nodes-base.telegram",
+      "typeVersion": 1.2,
+      "position": [900, 300],
+      "credentials": {
+        "telegramApi": {
+          "id": "REPLACE_WITH_YOUR_CREDENTIAL_ID",
+          "name": "Telegram Bot — StarGazer"
+        }
+      }
+    }
+  ],
+  "connections": {
+    "1st of Month 7pm": {
+      "main": [[{"node": "Get Monthly Report", "type": "main", "index": 0}]]
+    },
+    "Get Monthly Report": {
+      "main": [[{"node": "Format Monthly Message", "type": "main", "index": 0}]]
+    },
+    "Format Monthly Message": {
+      "main": [[{"node": "Send Monthly to Telegram", "type": "main", "index": 0}]]
+    }
+  },
+  "active": false,
+  "settings": {"executionOrder": "v1"},
+  "tags": [{"name": "stargazer"}]
+}

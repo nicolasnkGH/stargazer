@@ -1,0 +1,302 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>StarGazer — Columbus Observatory Dashboard</title>
+  <meta name="description" content="Personal stargazing dashboard for Columbus, OH. Celestron StarSense Explorer 5&quot; DX. Scorpius targets, planet tracker, ISS alerts, and nightly conditions." />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;400;500;600;700&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+
+  <!-- Starfield canvas -->
+  <canvas id="starfield"></canvas>
+
+  <!-- Header -->
+  <header class="header">
+    <div class="header-inner">
+      <div class="logo">
+        <span class="logo-icon">🔭</span>
+        <div>
+          <div class="logo-title">StarGazer</div>
+          <div class="logo-sub">Columbus, OH · Celestron 5" DX · South Porch</div>
+        </div>
+      </div>
+      <div class="header-meta">
+        <div class="live-badge" id="live-badge">
+          <span class="pulse-dot"></span> LIVE
+        </div>
+        <div class="clock" id="clock">--:-- --</div>
+        <div class="date-display" id="date-display">Loading...</div>
+      </div>
+    </div>
+  </header>
+
+  <main class="main">
+
+    <!-- ── Go/No-Go Banner ── -->
+    <section id="gonogo-banner" class="gonogo-banner loading-state">
+      <div class="gonogo-inner">
+        <span class="gonogo-icon" id="gonogo-icon">⏳</span>
+        <div>
+          <div class="gonogo-title" id="gonogo-title">Checking tonight's conditions…</div>
+          <div class="gonogo-sub" id="gonogo-sub">Fetching weather and sky data</div>
+        </div>
+        <div class="gonogo-detail" id="gonogo-detail"></div>
+      </div>
+    </section>
+
+    <!-- ── Row 1: Conditions + Moon + Scorpius ── -->
+    <div class="card-row">
+
+      <!-- Seeing Conditions -->
+      <div class="card card-seeing" id="card-seeing">
+        <div class="card-header">
+          <span class="card-icon">🌤</span>
+          <h2 class="card-title">Conditions</h2>
+          <span class="card-badge" id="seeing-score-badge">—</span>
+        </div>
+        <div class="card-body">
+          <div class="metric-row">
+            <div class="metric" id="m-cloud">
+              <div class="metric-val">—</div>
+              <div class="metric-label">Cloud Cover</div>
+            </div>
+            <div class="metric" id="m-wind">
+              <div class="metric-val">—</div>
+              <div class="metric-label">Wind (km/h)</div>
+            </div>
+            <div class="metric" id="m-precip">
+              <div class="metric-val">—</div>
+              <div class="metric-label">Rain Chance</div>
+            </div>
+          </div>
+          <div class="seeing-label" id="seeing-label">Loading…</div>
+          <div class="dark-window" id="dark-window">Dark window: loading…</div>
+        </div>
+      </div>
+
+      <!-- Moon -->
+      <div class="card card-moon" id="card-moon">
+        <div class="card-header">
+          <span class="card-icon" id="moon-phase-icon">🌙</span>
+          <h2 class="card-title">Moon</h2>
+          <span class="card-badge" id="moon-illum-badge">—%</span>
+        </div>
+        <div class="card-body">
+          <div class="moon-phase-name" id="moon-phase-name">Loading…</div>
+          <div class="moon-arc-wrap">
+            <div class="moon-arc-bar">
+              <div class="moon-arc-fill" id="moon-arc-fill" style="width:0%"></div>
+            </div>
+            <span class="moon-arc-label" id="moon-arc-label">0%</span>
+          </div>
+          <div class="moon-times">
+            <div><span class="ti-label">Rise</span> <span id="moon-rise">—</span></div>
+            <div><span class="ti-label">Set</span> <span id="moon-set">—</span></div>
+            <div><span class="ti-label">Alt</span> <span id="moon-alt">—</span></div>
+          </div>
+          <div class="dso-impact" id="dso-impact">Loading…</div>
+        </div>
+      </div>
+
+      <!-- Scorpius -->
+      <div class="card card-scorpius" id="card-scorpius">
+        <div class="card-header">
+          <span class="card-icon">🦂</span>
+          <h2 class="card-title">Scorpius</h2>
+          <span class="card-badge" id="scorpius-status-badge">—</span>
+        </div>
+        <div class="card-body">
+          <div class="scorpius-status" id="scorpius-status">Loading…</div>
+          <div class="scorpius-grid">
+            <div class="sg-item"><span class="sg-label">Rise</span><span id="sc-rise">—</span></div>
+            <div class="sg-item"><span class="sg-label">Culminates</span><span id="sc-culm">—</span></div>
+            <div class="sg-item"><span class="sg-label">Peak Alt</span><span id="sc-peak-alt">—</span></div>
+            <div class="sg-item"><span class="sg-label">Now</span><span id="sc-now">—</span></div>
+          </div>
+          <div class="scorpius-tip">
+            💡 Your south-facing porch is <strong>perfectly oriented</strong> for Scorpius — it culminates due south.
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ── Row 2: Planets + Must-See ── -->
+    <div class="card-row card-row-2">
+
+      <!-- Planets Tonight -->
+      <div class="card card-planets">
+        <div class="card-header">
+          <span class="card-icon">🪐</span>
+          <h2 class="card-title">Planets Tonight</h2>
+        </div>
+        <div class="card-body">
+          <div class="planet-list" id="planet-list">
+            <div class="loading-shimmer"></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Must-See Alerts -->
+      <div class="card card-mustsee">
+        <div class="card-header">
+          <span class="card-icon">⚡</span>
+          <h2 class="card-title">Must-See Tonight</h2>
+        </div>
+        <div class="card-body">
+          <div class="alert-list" id="alert-list">
+            <div class="loading-shimmer"></div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ── Clear Outside Weather Embed ── -->
+    <section class="card card-weather">
+      <div class="card-header">
+        <span class="card-icon">☁️</span>
+        <h2 class="card-title">Clear Outside — Astronomical Weather Forecast</h2>
+        <a href="https://clearoutside.com/forecast/40.10/-83.08" target="_blank" class="ext-link">Open Full Forecast ↗</a>
+      </div>
+      <div class="weather-embed-wrap">
+        <iframe
+          src="https://clearoutside.com/forecast_embed/40.10/-83.08"
+          id="clearoutside-frame"
+          scrolling="no"
+          frameborder="0"
+          title="Clear Outside astronomical weather forecast for Columbus, OH"
+        ></iframe>
+      </div>
+    </section>
+
+    <!-- ── Scorpius Target Database ── -->
+    <section class="card card-targets" id="card-targets">
+      <div class="card-header">
+        <span class="card-icon">🎯</span>
+        <h2 class="card-title">Scorpius Target Database</h2>
+        <div class="filter-row" id="filter-row">
+          <button class="filter-btn active" data-filter="all">All</button>
+          <button class="filter-btn" data-filter="globular">Globulars</button>
+          <button class="filter-btn" data-filter="open">Open Clusters</button>
+          <button class="filter-btn" data-filter="double">Double Stars</button>
+          <button class="filter-btn" data-filter="star">Stars</button>
+        </div>
+      </div>
+      <div class="targets-scope-note">
+        🔭 Rated for <strong>Celestron 5" DX</strong> (130mm) under <strong>Bortle 8</strong> Columbus skies.
+        Moon illumination affects DSO visibility — best within 5 days of new moon.
+      </div>
+      <div class="target-grid" id="target-grid">
+        <!-- Populated by JS -->
+      </div>
+    </section>
+
+    <!-- ── Weekly Outlook ── -->
+    <section class="card card-weekly">
+      <div class="card-header">
+        <span class="card-icon">📅</span>
+        <h2 class="card-title">7-Day Outlook</h2>
+      </div>
+      <div class="weekly-grid" id="weekly-grid">
+        <div class="loading-shimmer"></div>
+      </div>
+    </section>
+
+    <!-- ── ISS Tracker ── -->
+    <section class="card card-iss">
+      <div class="card-header">
+        <span class="card-icon">🛸</span>
+        <h2 class="card-title">ISS Pass Tracker</h2>
+        <a href="https://www.heavens-above.com/PassSummary.aspx?lat=40.126&lng=-83.037&loc=Columbus&alt=240&tz=ET" target="_blank" class="ext-link">Heavens-Above ↗</a>
+      </div>
+      <div class="card-body">
+        <div class="iss-tip">
+          The ISS appears as a very bright, fast-moving star — no telescope needed! It moves from horizon to horizon in ~6 minutes.
+        </div>
+        <div class="iss-passes" id="iss-passes">
+          <div class="loading-shimmer"></div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ── Resources ── -->
+    <section class="card card-resources">
+      <div class="card-header">
+        <span class="card-icon">🔗</span>
+        <h2 class="card-title">Resources</h2>
+      </div>
+      <div class="resource-grid">
+        <a href="https://columbusastronomy.org/observing-sites/perkins-observatory/" target="_blank" class="resource-card">
+          <div class="resource-icon">🌃</div>
+          <div class="resource-info">
+            <div class="resource-name">Perkins Observatory</div>
+            <div class="resource-desc">Columbus Astronomical Society's dark-sky site — Delaware, OH (Bortle 5-6)</div>
+          </div>
+        </a>
+        <a href="https://stellarium-web.org" target="_blank" class="resource-card">
+          <div class="resource-icon">🌐</div>
+          <div class="resource-info">
+            <div class="resource-name">Stellarium Web</div>
+            <div class="resource-desc">Free online planetarium — real-time sky map for any date/time/location</div>
+          </div>
+        </a>
+        <a href="https://theskylive.com/scorpius-info" target="_blank" class="resource-card">
+          <div class="resource-icon">📡</div>
+          <div class="resource-info">
+            <div class="resource-name">TheSkyLive</div>
+            <div class="resource-desc">Live Scorpius positions, rise/set, and object finder</div>
+          </div>
+        </a>
+        <a href="https://in-the-sky.org/newscal.php" target="_blank" class="resource-card">
+          <div class="resource-icon">📆</div>
+          <div class="resource-info">
+            <div class="resource-name">In-The-Sky.org</div>
+            <div class="resource-desc">Astronomy event calendar — conjunctions, oppositions, showers</div>
+          </div>
+        </a>
+        <a href="https://www.heavens-above.com/" target="_blank" class="resource-card">
+          <div class="resource-icon">🛸</div>
+          <div class="resource-info">
+            <div class="resource-name">Heavens-Above</div>
+            <div class="resource-desc">ISS & satellite passes for Columbus — most accurate predictions</div>
+          </div>
+        </a>
+        <a href="https://www.astrob.in" target="_blank" class="resource-card">
+          <div class="resource-icon">📸</div>
+          <div class="resource-info">
+            <div class="resource-name">AstroBin</div>
+            <div class="resource-desc">Astrophotography community — see what others have captured from similar scopes</div>
+          </div>
+        </a>
+        <a href="https://edu.kde.org/kstars/" target="_blank" class="resource-card">
+          <div class="resource-icon">⭐</div>
+          <div class="resource-info">
+            <div class="resource-name">KStars (Free)</div>
+            <div class="resource-desc">Best free Stellarium alternative — includes EKOS for telescope control</div>
+          </div>
+        </a>
+        <a href="https://clearoutside.com/forecast/40.10/-83.08" target="_blank" class="resource-card">
+          <div class="resource-icon">🌤</div>
+          <div class="resource-info">
+            <div class="resource-name">Clear Outside</div>
+            <div class="resource-desc">Astronomy-optimized weather for your exact coordinates</div>
+          </div>
+        </a>
+      </div>
+    </section>
+
+  </main>
+
+  <footer class="footer">
+    <div>🔭 StarGazer — Personal Observatory Dashboard</div>
+    <div>Columbus, OH 40.126°N · Celestron StarSense Explorer 5" DX · Bortle 8 · South-facing 3rd floor porch</div>
+    <div>Powered by Skyfield (NASA JPL DE421) · Open-Meteo · Clear Outside · Open source · No ads · No tracking</div>
+  </footer>
+
+  <script src="app.js"></script>
+</body>
+</html>
