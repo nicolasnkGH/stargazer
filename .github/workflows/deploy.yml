@@ -66,6 +66,12 @@ jobs:
           cd /opt/stargazer
           git fetch origin main
           git reset --hard origin/main
+          if [ ! -f .env ]; then
+            echo "No .env found, initializing from .env.example"
+            cp .env.example .env
+          else
+            echo "Existing .env found, preserving it."
+          fi
           docker compose up -d --build
 
       - name: Health Check Verification
