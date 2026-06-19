@@ -8,7 +8,7 @@
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;400;500;600;700&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet" />
-  <link rel="stylesheet" href="style.css?v=3" />
+  <link rel="stylesheet" href="style.css?v=4" />
 </head>
 <body>
 
@@ -20,10 +20,10 @@
     <div class="header-inner">
       <div class="logo">
         <span class="logo-icon">🔭</span>
-        <div>
-          <div class="logo-title">StarGazer</div>
-          <div class="logo-sub">Columbus, OH · Celestron 5" DX · South Porch</div>
-        </div>
+        <div class="logo-wrap">
+        <div class="logo-main">✨ StarGazer</div>
+        <div id="logo-sub" class="logo-sub">Loading location...</div>
+      </div>
       </div>
       <div class="header-meta">
         <button id="btn-location" class="location-btn" title="Set Location">📍</button>
@@ -169,6 +169,20 @@
           id="clearoutside-img"
           alt="Clear Outside astronomical weather forecast for Columbus, OH"
         />
+      </div>
+    </section>
+
+    <!-- Constellations Tonight -->
+    <section class="card" style="margin-bottom: 20px;">
+      <div class="card-header">
+        <div class="card-icon">🌌</div>
+        <div class="card-title">Constellations Tonight</div>
+        <div class="card-badge" style="background: rgba(168, 85, 247, 0.15); color: #a855f7; border-color: rgba(168, 85, 247, 0.3);">
+          Sorted by best view
+        </div>
+      </div>
+      <div id="constellations-grid" class="weekly-grid">
+        <!-- JS Injected Constellations -->
       </div>
     </section>
 
@@ -340,6 +354,6 @@
     <div>Powered by Skyfield (NASA JPL DE421) · Open-Meteo · Clear Outside · Open source · No ads · No tracking</div>
   </footer>
 
-  <script src="app.js?v=3"></script>
+  <script src="app.js?v=4"></script>
 </body>
 </html>

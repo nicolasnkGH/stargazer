@@ -21,6 +21,7 @@ from engine import (
     get_moon_info, get_planet_positions, get_scorpius_window,
     get_visible_targets, get_iss_passes, get_seeing_forecast,
     format_tonight_telegram, format_weekly_telegram, format_monthly_telegram,
+    get_constellations,
     now_local, SCORPIUS_TARGETS, NEARBY_TARGETS,
 )
 from config import LATITUDE, LONGITUDE, BORTLE_CLASS, TELESCOPE_APERTURE_MM
@@ -59,6 +60,22 @@ def health():
     return {"status": "ok", "time": now_local().isoformat()}
 
 # ── Tonight ───────────────────────────────────────────────────────────────────
+
+@app.get("/targets")
+def get_targets_endpoint(lat: Optional[float] = None, lon: Optional[float] = None):
+    try:
+        targets = get_visible_targets(lat=lat, lon=lon)
+        return {"targets": targets}
+    except Exception as e:
+        return JSONResponse(status_code=500, content={"error": str(e)})
+
+@app.get("/constellations")
+def get_constellations_endpoint(lat: Optional[float] = None, lon: Optional[float] = None):
+    try:
+        data = get_constellations(lat=lat, lon=lon)
+        return {"constellations": data}
+    except Exception as e:
+        return JSONResponse(status_code=500, content={"error": str(e)})
 
 @app.get("/tonight")
 def tonight(lat: Optional[float] = Query(None), lon: Optional[float] = Query(None)):

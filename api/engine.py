@@ -350,12 +350,13 @@ def get_visible_targets(dt: Optional[datetime] = None, lat=None, lon=None) -> li
 
 def get_iss_passes(count: int = 3, lat=None, lon=None) -> list[dict]:
     """
-    Predict ISS passes over Columbus using Skyfield + live TLE from wheretheiss.at.
-    The wheretheiss.at /tles endpoint returns current TLE as JSON — reliable and free.
+    Predict ISS passes using Skyfield + live TLE from wheretheiss.at.
     """
     ts, _ = _get_skyfield()
     tz = ZoneInfo(TIMEZONE)
-    observer = wgs84.latlon(LATITUDE * N, abs(LONGITUDE) * W, elevation_m=ELEVATION_M)
+    _lat = float(lat) if lat is not None else LATITUDE
+    _lon = float(lon) if lon is not None else LONGITUDE
+    observer = wgs84.latlon(_lat * N, abs(_lon) * W, elevation_m=ELEVATION_M)
 
     # ── Step 1: Fetch live ISS TLE from wheretheiss.at ────────────────────────
     try:
@@ -613,20 +614,30 @@ def get_weekly_report(lat=None, lon=None) -> dict:
         highlights = []
         if showers_today:
             for s in showers_today:
-                highlights.append(f"☄️ {s['name']} Meteor Shower peak! ZHR~{s['zhr']}/hr")
+                highlights.append(f"☄️ {s['name']} peak! ZHR~{s['zhr']}/hr")
         if moon["illumination_pct"] < 5:
             highlights.append("🌑 New Moon — prime DSO night!")
         if moon["illumination_pct"] > 95:
             highlights.append("🌕 Full Moon — planets & moon only")
-        if scorpius["culmination_altitude_deg"] > 20:
-            highlights.append(f"🦂 Scorpius peaks at {scorpius['culmination_altitude_deg']}° @ {scorpius['culmination_time']}")
+            
+        # Get planets info for this day
+        d_dt = datetime(d.year, d.month, d.day, 22, 0, tzinfo=ZoneInfo(TIMEZONE))
+        planets = get_planet_positions(d_dt, lat=lat, lon=lon)
+        visible_planets = [p for p in planets if p.get("visible_tonight") and p.get("altitude_deg", 0) > 20]
+        if visible_planets:
+            p = sorted(visible_planets, key=lambda x: -x["altitude_deg"])[0]
+            highlights.append(f"{p['emoji']} {p['name']} peaks at {p['altitude_deg']}°")
+            
+        if not highlights and scorpius["culmination_altitude_deg"] > 20:
+            highlights.append(f"🦂 Scorpius peaks at {scorpius['culmination_altitude_deg']}°")
+        
+        if not highlights:
+            highlights.append("✨ Clear skies (no major events)")
 
         days.append({
             "date": d.strftime("%A, %B %d"),
             "moon_phase": moon["phase_name"],
             "moon_illumination": moon["illumination_pct"],
-            "scorpius_peak_alt": scorpius["culmination_altitude_deg"],
-            "scorpius_peak_time": scorpius["culmination_time"],
             "weather": weather_day.get("status", "N/A"),
             "cloud_pct": weather_day.get("cloud_pct"),
             "highlights": highlights,
@@ -638,6 +649,41 @@ def get_weekly_report(lat=None, lon=None) -> dict:
         "days": days,
         "best_nights": [d for d in days if d["rating"] == "⭐⭐⭐ Excellent"],
     }
+
+# ── Constellations ────────────────────────────────────────────────────────────
+
+def get_constellations(lat=None, lon=None) -> list[dict]:
+    import json
+    import os
+    file_path = os.path.join(os.path.dirname(__file__), 'constellations.json')
+    try:
+        with open(file_path, 'r') as f:
+            const_data = json.load(f)
+    except:
+        return []
+
+    ts, _ = _get_skyfield()
+    t = _sf_time(now_local())
+    _lat = float(lat) if lat is not None else LATITUDE
+    _lon = float(lon) if lon is not None else LONGITUDE
+    observer = wgs84.latlon(_lat * N, abs(_lon) * W, elevation_m=ELEVATION_M)
+
+    results = []
+    for c in const_data:
+        target = Star(ra_hours=c["ra"], dec_degrees=c["dec"])
+        astrometric = observer.at(t).observe(target)
+        alt, az, _ = astrometric.apparent().altaz()
+        
+        results.append({
+            "name": c["name"],
+            "abbr": c["abbr"],
+            "altitude_deg": round(alt.degrees, 1),
+            "direction": _az_to_direction(az.degrees),
+            "visible": alt.degrees > 0
+        })
+
+    results.sort(key=lambda x: -x["altitude_deg"])
+    return results
 
 def _rate_night(moon_illum: float, cloud_pct: Optional[float]) -> str:
     cloud = cloud_pct or 50

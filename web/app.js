@@ -121,8 +121,6 @@ const SCORPIUS_TARGETS = [
         y: Math.random() * canvas.height,
         r: Math.random() * 1.4 + 0.2,
         alpha: Math.random() * 0.7 + 0.1,
-        speed: Math.random() * 0.004 + 0.001,
-        phase: Math.random() * Math.PI * 2,
         color: randomStarColor(),
       });
     }
@@ -136,49 +134,44 @@ const SCORPIUS_TARGETS = [
     return '#e8ecff'; // white
   }
 
-  function draw(t) {
+  function draw() {
     ctx.clearRect(0, 0, canvas.width, canvas.height);
     stars.forEach(s => {
-      const alpha = s.alpha * (0.6 + 0.4 * Math.sin(t * s.speed + s.phase));
       ctx.fillStyle = s.color;
-      ctx.globalAlpha = alpha;
-      // Using fillRect instead of arc for massive performance boost
+      ctx.globalAlpha = s.alpha;
       ctx.fillRect(s.x, s.y, s.r * 2, s.r * 2);
     });
     ctx.globalAlpha = 1;
     // Milky Way subtle glow
-    const grad = ctx.createLinearGradient(0, canvas.height * 0.2, canvas.width, canvas.height * 0.9);
-    grad.addColorStop(0, 'rgba(60,40,120,0)');
-    grad.addColorStop(0.3, 'rgba(60,40,120,0.04)');
-    grad.addColorStop(0.7, 'rgba(40,60,100,0.06)');
-    grad.addColorStop(1, 'rgba(60,40,120,0)');
+    const grad = ctx.createLinearGradient(0, 0, canvas.width, canvas.height);
+    grad.addColorStop(0, 'rgba(20,20,40,0.0)');
+    grad.addColorStop(0.5, 'rgba(50,50,90,0.06)');
+    grad.addColorStop(1, 'rgba(20,20,40,0.0)');
     ctx.fillStyle = grad;
     ctx.fillRect(0, 0, canvas.width, canvas.height);
-
-    requestAnimationFrame(draw);
   }
 
   window.addEventListener('resize', resize);
   resize();
-  requestAnimationFrame(draw);
+  draw();
 })();
 
-// ── Clock ───────────────────────────────────────────────────────────────────
+// ── Clock & Subtitle ────────────────────────────────────────────────────────
 function updateClock() {
   const now = new Date();
-  const timeStr = now.toLocaleTimeString('en-US', {
-    hour: '2-digit', minute: '2-digit', second: '2-digit',
-    hour12: true, timeZone: 'America/New_York'
-  });
-  const dateStr = now.toLocaleDateString('en-US', {
-    weekday: 'long', month: 'long', day: 'numeric',
-    timeZone: 'America/New_York'
-  });
-  document.getElementById('clock').textContent = timeStr + ' ET';
-  document.getElementById('date-display').textContent = dateStr;
+  const t = now.toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit', second: '2-digit' });
+  const d = now.toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric' });
+  document.getElementById('clock-time').textContent = t;
+  document.getElementById('clock-date').textContent = d;
 }
 updateClock();
 setInterval(updateClock, 1000);
+
+// Set Dynamic Subtitle
+const subtitle = document.getElementById('logo-sub');
+if (subtitle) {
+  subtitle.textContent = `${activeLoc.name} · ${activeLoc.lat.toFixed(3)}°N, ${activeLoc.lon.toFixed(3)}°W`;
+}
 
 async function fetchAPI(path, fallback = null) {
   const separator = path.includes('?') ? '&' : '?';
@@ -190,32 +183,6 @@ async function fetchAPI(path, fallback = null) {
   let parsedCache = null;
   if (cached) {
     try { parsedCache = JSON.parse(cached); } catch(e) {}
-  }
-
-  // Fetch fresh data in the background (or foreground if no cache)
-  const fetchPromise = fetch(`${API_BASE}${finalPath}`, { signal: AbortSignal.timeout(12000) })
-    .then(async resp => {
-      if (!resp.ok) throw new Error(`HTTP ${resp.status}`);
-      const data = await resp.json();
-      localStorage.setItem(cacheKey, JSON.stringify(data));
-      return data;
-    })
-    .catch(e => {
-      console.warn(`API ${path} failed:`, e.message);
-      return fallback;
-    });
-
-  // If we have cache, return it instantly, but trigger a re-render when fetch finishes
-  if (parsedCache) {
-    fetchPromise.then(freshData => {
-      // Dispatch a custom event or just re-render directly (handled by caller typically)
-      // Since our callers await fetchAPI, if we return parsedCache they won't wait for freshData.
-      // For true SWR in vanilla JS, we'll return a proxy object or just return cache.
-      // But actually, we want the UI to paint instantly, then update.
-    });
-    // To keep it simple: return the fetch promise, but the caller can optionally use SWR.
-    // Wait, the easiest way is to let the caller pass a callback, or return both.
-    // Let's just return the cache, AND fire the fetch.
   }
 
   try {
@@ -428,8 +395,6 @@ async function loadWeekly() {
       return;
     }
 
-    const today = new Date().toLocaleDateString('en-US', { weekday: 'long', month: 'long', day: 'numeric', timeZone: 'America/New_York' });
-
     grid.innerHTML = data.days.map((d, i) => {
       const isToday = i === 0;
       const moonEmoji = d.moon_phase ? d.moon_phase.split(' ')[0] : '🌙';
@@ -441,7 +406,9 @@ async function loadWeekly() {
           <div class="day-rating">${d.rating || '—'}</div>
           <div class="day-moon">${moonEmoji}</div>
           <div class="day-weather">${d.weather || '—'}</div>
-          ${highlights.map(h => `<div class="day-highlight">${h}</div>`).join('')}
+          <marquee scrollamount="3" scrolldelay="100" style="width: 100%;">
+            ${highlights.map(h => `<span class="day-highlight" style="margin-right: 15px;">${h}</span>`).join('')}
+          </marquee>
         </div>
       `;
     }).join('');
@@ -479,6 +446,26 @@ async function loadISS() {
         </div>
       `;
     }).join('');
+  });
+}
+
+// ── Render: Constellations ──────────────────────────────────────────────────
+async function loadConstellations() {
+  await fetchAndRender('/constellations', (data) => {
+    const grid = document.getElementById('constellations-grid');
+    if (!data || !data.constellations) return;
+    
+    // Only show visible ones
+    const visible = data.constellations.filter(c => c.visible);
+    
+    grid.innerHTML = visible.map(c => `
+      <div class="day-card" style="min-width: 100px;">
+        <div class="day-name" style="font-size: 0.85rem; color: #a855f7;">${c.name}</div>
+        <div class="day-date" style="font-family: var(--font-mono); margin-bottom: 2px;">${c.abbr}</div>
+        <div class="day-weather" style="margin: 6px 0;">Alt: ${c.altitude_deg}°</div>
+        <div class="day-highlight">${c.direction}</div>
+      </div>
+    `).join('');
   });
 }
 
@@ -653,12 +640,13 @@ async function init() {
   // Always render the static target database first (no API needed)
   await loadTargets();
 
-  // Then kick off all API-dependent loads in parallel
+  // Load everything in parallel
   await Promise.allSettled([
     checkAPIStatus(),
     loadTonightReport(),
     loadWeekly(),
     loadISS(),
+    loadConstellations()
   ]);
 
   // Refresh live data every 10 minutes
