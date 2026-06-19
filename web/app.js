@@ -24,7 +24,7 @@ const API_BASE = window.location.hostname === 'localhost' || window.location.hos
   : 'https://stargazerapi.nick-t.net'; // Nginx Proxy Manager split-DNS URL
 
 const DEFAULT_LOCATIONS = [
-  { id: 'default', name: 'Columbus (Home)', lat: 40.126, lon: -83.037 }
+  { id: 'default', name: 'Mauna Kea Observatory', lat: 19.8206, lon: -155.4681 }
 ];
 
 let savedLocations = DEFAULT_LOCATIONS;
