@@ -19,6 +19,9 @@ const translations = {
     "cond_partly": "Partly cloudy",
     "cond_mostly": "Mostly cloudy",
     "cond_overcast": "Overcast / Poor conditions",
+    "good": "Good", "fair": "Fair", "poor": "Poor", "excellent": "Excellent",
+    "clear_skies": "Clear skies (no major events)",
+    "go_title": "✅ GO (Great Conditions)", "nogo_title": "❌ NO GO (Poor Conditions)", "marginal_title": "⚠️ MARGINAL (Acceptable Conditions)",
     
     // Active Constellation
     "active_const_title": "Active Constellation",

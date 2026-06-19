@@ -20,19 +20,35 @@ jobs:
       - name: Install dependencies
         run: |
           python -m pip install --upgrade pip
-          pip install flake8
+          pip install flake8 bandit
           if [ -f api/requirements.txt ]; then pip install -r api/requirements.txt; fi
 
       - name: Lint with flake8
         run: |
-          # stop the build if there are Python syntax errors or undefined names
           flake8 api/ --count --select=E9,F63,F7,F82 --show-source --statistics
-          # exit-zero treats all errors as warnings. The GitHub editor is 127 chars wide
           flake8 api/ --count --exit-zero --max-complexity=10 --max-line-length=127 --statistics
+
+      - name: Security Check with Bandit
+        run: |
+          bandit -r api/ -ll -ii -s B104
+
+      - name: Create dummy .env for validation
+        run: cp .env.example .env
 
       - name: Validate docker-compose.yml
         run: docker compose config -q
-        
+
+      - name: Port Conflict / Network Validation
+        run: |
+          grep "8181:8181" docker-compose.yml || (echo "Port 8181 mapping missing" && exit 1)
+          grep "8080:80" docker-compose.yml || (echo "Port 8080 mapping missing" && exit 1)
+
+      - name: Dockerfile Linter (Hadolint)
+        uses: hadolint/hadolint-action@v3.1.0
+        with:
+          dockerfile: api/Dockerfile
+          failure-threshold: error
+
       - name: Secret Scanning
         uses: gitleaks/gitleaks-action@v2
         env:
@@ -48,5 +64,13 @@ jobs:
       - name: Deploy to Server
         run: |
           cd /opt/stargazer
-          git pull origin main
+          git fetch origin main
+          git reset --hard origin/main
           docker compose up -d --build
+
+      - name: Health Check Verification
+        run: |
+          echo "Waiting for API to start..."
+          sleep 5
+          curl -f http://localhost:8181/health || (echo "Health check failed" && exit 1)
+          echo "Deployment successful and healthy!"
