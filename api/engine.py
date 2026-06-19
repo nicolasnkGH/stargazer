@@ -194,7 +194,7 @@ def get_planet_positions(dt: Optional[datetime] = None) -> list[dict]:
             apparent = astrometric.apparent()
             alt, az, dist = apparent.altaz()
 
-            visible = alt.degrees > MIN_ALTITUDE_DEG
+            visible = bool(alt.degrees > MIN_ALTITUDE_DEG)
 
             # Magnitude estimates (rough)
             mag_map = {
@@ -203,7 +203,7 @@ def get_planet_positions(dt: Optional[datetime] = None) -> list[dict]:
             }
 
             direction = _az_to_direction(az.degrees)
-            naked_eye = mag_map.get(name, 5) < 6.5
+            naked_eye = bool(mag_map.get(name, 5) < 6.5)
 
             results.append({
                 "name": name,
@@ -252,7 +252,7 @@ def get_scorpius_window(dt: Optional[date] = None) -> dict:
     t1 = ts.from_datetime(midnight + timedelta(hours=36))
 
     # Find rise/set
-    f = almanac.risings_and_settings(eph["earth"], antares, columbus)
+    f = almanac.risings_and_settings(eph, antares, columbus)
     try:
         times, events = almanac.find_discrete(t0, t1, f)
     except Exception:
@@ -325,10 +325,10 @@ def get_visible_targets(dt: Optional[datetime] = None) -> list[dict]:
         astrometric = observer.at(t).observe(star)
         alt, az, _ = astrometric.apparent().altaz()
 
-        visible = alt.degrees > MIN_ALTITUDE_DEG
+        visible = bool(alt.degrees > MIN_ALTITUDE_DEG)
         mag = target.get("magnitude", 99)
-        in_limiting_mag = mag <= LIMITING_MAG if mag != 99 else True
-        observable = visible and in_limiting_mag
+        in_limiting_mag = bool(mag <= LIMITING_MAG if mag != 99 else True)
+        observable = bool(visible and in_limiting_mag)
 
         result = {**target}
         result.update({
@@ -337,7 +337,7 @@ def get_visible_targets(dt: Optional[datetime] = None) -> list[dict]:
             "direction": _az_to_direction(az.degrees),
             "visible": visible,
             "observable": observable,
-            "in_fov": observable and alt.degrees > 10,
+            "in_fov": bool(observable and alt.degrees > 10),
         })
         results.append(result)
 
@@ -420,7 +420,7 @@ def get_iss_passes(count: int = 3) -> list[dict]:
                 current_pass["peak_az"]  = _az_to_direction(az.degrees)
             elif event == 2:    # set below horizon
                 current_pass["set"]     = dt_local.strftime("%I:%M %p")
-                current_pass["visible"] = current_pass.get("peak_alt", 0) >= 20
+                current_pass["visible"] = bool(current_pass.get("peak_alt", 0) > 20)
                 passes.append(current_pass)
                 current_pass = {}
                 if len(passes) >= count:
