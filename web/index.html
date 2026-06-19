@@ -8,7 +8,7 @@
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;400;500;600;700&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet" />
-  <link rel="stylesheet" href="style.css?v=2" />
+  <link rel="stylesheet" href="style.css?v=3" />
 </head>
 <body>
 
@@ -292,26 +292,45 @@
 
   <!-- Location Modal -->
   <div id="location-modal" class="modal hidden">
-    <div class="modal-content">
-      <h2>📍 Set Observatory Location</h2>
-      <p>Set custom coordinates to calculate planetary/stellar ephemeris data anywhere globally.</p>
+    <div class="modal-content" style="max-width: 500px;">
+      <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px;">
+        <h2 style="margin: 0;">📍 Observatory Locations</h2>
+        <button id="btn-close-loc" class="btn btn-secondary" style="padding: 5px 10px;">✕</button>
+      </div>
       
-      <button id="btn-gps" class="btn btn-primary" style="width: 100%; margin-bottom: 15px;">📡 Use Device GPS Location</button>
+      <p style="margin-top: 0;">Select an active location or create a new custom profile.</p>
+
+      <!-- Saved Locations List -->
+      <div id="saved-locations-list" class="location-list">
+        <!-- Injected via JS -->
+      </div>
+
+      <hr style="border: none; border-top: 1px solid var(--border-color); margin: 20px 0;">
+
+      <!-- Add New Location Form -->
+      <h3 style="font-size: 1rem; margin-top: 0; margin-bottom: 15px;">Add Custom Location</h3>
       
       <div class="input-group">
-        <label>Latitude (Decimal):</label>
-        <input type="number" id="input-lat" placeholder="40.126" step="any" />
+        <label>Profile Name (e.g. South Porch)</label>
+        <input type="text" id="input-loc-name" placeholder="My Backyard" />
       </div>
-      <div class="input-group">
-        <label>Longitude (Decimal):</label>
-        <input type="number" id="input-lon" placeholder="-83.037" step="any" />
+
+      <div style="display: flex; gap: 10px;">
+        <div class="input-group" style="flex: 1;">
+          <label>Latitude</label>
+          <input type="number" id="input-lat" placeholder="40.126" step="any" />
+        </div>
+        <div class="input-group" style="flex: 1;">
+          <label>Longitude</label>
+          <input type="number" id="input-lon" placeholder="-83.037" step="any" />
+        </div>
       </div>
       
-      <div style="display: flex; gap: 10px; margin-top: 20px;">
-        <button id="btn-save-loc" class="btn btn-primary" style="flex:1">Save & Reload</button>
-        <button id="btn-reset-loc" class="btn btn-secondary" style="flex:1">Reset to Columbus</button>
-        <button id="btn-close-loc" class="btn btn-secondary">Cancel</button>
-      </div>
+      <button id="btn-gps" class="btn btn-secondary" style="width: 100%; margin-bottom: 15px; font-size: 0.8rem;">
+        📡 Try Device GPS (Requires HTTPS)
+      </button>
+      
+      <button id="btn-save-loc" class="btn btn-primary" style="width: 100%;">Save Profile & Activate</button>
     </div>
   </div>
 
@@ -321,6 +340,6 @@
     <div>Powered by Skyfield (NASA JPL DE421) · Open-Meteo · Clear Outside · Open source · No ads · No tracking</div>
   </footer>
 
-  <script src="app.js?v=2"></script>
+  <script src="app.js?v=3"></script>
 </body>
 </html>

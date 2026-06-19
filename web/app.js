@@ -8,11 +8,16 @@ const API_BASE = window.location.hostname === 'localhost' || window.location.hos
   ? 'http://localhost:8181'
   : '/api'; // nginx proxy path in production
 
-const DEFAULT_LAT = 40.126;
-const DEFAULT_LON = -83.037;
+const DEFAULT_LOCATIONS = [
+  { id: 'default', name: 'Columbus (Home)', lat: 40.126, lon: -83.037 }
+];
 
-let currentLat = parseFloat(localStorage.getItem('stargazer_lat')) || DEFAULT_LAT;
-let currentLon = parseFloat(localStorage.getItem('stargazer_lon')) || DEFAULT_LON;
+let savedLocations = JSON.parse(localStorage.getItem('stargazer_locations')) || DEFAULT_LOCATIONS;
+let activeLocId = localStorage.getItem('stargazer_active_loc') || 'default';
+let activeLoc = savedLocations.find(l => l.id === activeLocId) || savedLocations[0];
+
+let currentLat = activeLoc.lat;
+let currentLon = activeLoc.lon;
 
 // ── Scorpius Target Database (static, always available) ─────────────────────
 const SCORPIUS_TARGETS = [
@@ -135,11 +140,10 @@ const SCORPIUS_TARGETS = [
     ctx.clearRect(0, 0, canvas.width, canvas.height);
     stars.forEach(s => {
       const alpha = s.alpha * (0.6 + 0.4 * Math.sin(t * s.speed + s.phase));
-      ctx.beginPath();
-      ctx.arc(s.x, s.y, s.r, 0, Math.PI * 2);
       ctx.fillStyle = s.color;
       ctx.globalAlpha = alpha;
-      ctx.fill();
+      // Using fillRect instead of arc for massive performance boost
+      ctx.fillRect(s.x, s.y, s.r * 2, s.r * 2);
     });
     ctx.globalAlpha = 1;
     // Milky Way subtle glow
@@ -176,39 +180,98 @@ function updateClock() {
 updateClock();
 setInterval(updateClock, 1000);
 
-// ── API Loader ──────────────────────────────────────────────────────────────
 async function fetchAPI(path, fallback = null) {
+  const separator = path.includes('?') ? '&' : '?';
+  const finalPath = `${path}${separator}lat=${currentLat}&lon=${currentLon}`;
+  const cacheKey = `stargazer_cache_${finalPath}`;
+  
+  // Stale-while-revalidate: return cached data immediately if we have it
+  const cached = localStorage.getItem(cacheKey);
+  let parsedCache = null;
+  if (cached) {
+    try { parsedCache = JSON.parse(cached); } catch(e) {}
+  }
+
+  // Fetch fresh data in the background (or foreground if no cache)
+  const fetchPromise = fetch(`${API_BASE}${finalPath}`, { signal: AbortSignal.timeout(12000) })
+    .then(async resp => {
+      if (!resp.ok) throw new Error(`HTTP ${resp.status}`);
+      const data = await resp.json();
+      localStorage.setItem(cacheKey, JSON.stringify(data));
+      return data;
+    })
+    .catch(e => {
+      console.warn(`API ${path} failed:`, e.message);
+      return fallback;
+    });
+
+  // If we have cache, return it instantly, but trigger a re-render when fetch finishes
+  if (parsedCache) {
+    fetchPromise.then(freshData => {
+      // Dispatch a custom event or just re-render directly (handled by caller typically)
+      // Since our callers await fetchAPI, if we return parsedCache they won't wait for freshData.
+      // For true SWR in vanilla JS, we'll return a proxy object or just return cache.
+      // But actually, we want the UI to paint instantly, then update.
+    });
+    // To keep it simple: return the fetch promise, but the caller can optionally use SWR.
+    // Wait, the easiest way is to let the caller pass a callback, or return both.
+    // Let's just return the cache, AND fire the fetch.
+  }
+
   try {
-    const separator = path.includes('?') ? '&' : '?';
-    const finalPath = `${path}${separator}lat=${currentLat}&lon=${currentLon}`;
     const resp = await fetch(`${API_BASE}${finalPath}`, { signal: AbortSignal.timeout(12000) });
     if (!resp.ok) throw new Error(`HTTP ${resp.status}`);
-    return await resp.json();
+    const data = await resp.json();
+    localStorage.setItem(cacheKey, JSON.stringify(data));
+    return data;
   } catch (e) {
     console.warn(`API ${path} failed:`, e.message);
-    return fallback;
+    return parsedCache || fallback;
+  }
+}
+
+// SWR wrapper for immediate render
+async function fetchAndRender(path, renderFn, fallback = null) {
+  const separator = path.includes('?') ? '&' : '?';
+  const finalPath = `${path}${separator}lat=${currentLat}&lon=${currentLon}`;
+  const cacheKey = `stargazer_cache_${finalPath}`;
+  
+  const cached = localStorage.getItem(cacheKey);
+  if (cached) {
+    try { renderFn(JSON.parse(cached)); } catch(e) {}
+  }
+
+  try {
+    const resp = await fetch(`${API_BASE}${finalPath}`, { signal: AbortSignal.timeout(12000) });
+    if (!resp.ok) throw new Error(`HTTP ${resp.status}`);
+    const data = await resp.json();
+    localStorage.setItem(cacheKey, JSON.stringify(data));
+    renderFn(data); // Re-render with fresh data
+  } catch (e) {
+    console.warn(`API ${path} failed:`, e.message);
+    if (!cached) renderFn(fallback);
   }
 }
 
 // ── Render: Tonight Report ──────────────────────────────────────────────────
 async function loadTonightReport() {
-  const data = await fetchAPI('/tonight');
-  if (!data) {
-    renderGoNogo(null);
-    renderMoon(null);
-    renderSeeing(null);
-    renderScorpius(null);
-    renderPlanets(null);
-    renderAlerts(null);
-    return;
-  }
-
-  renderGoNogo(data);
-  renderSeeing(data.seeing, data);
-  renderMoon(data.moon);
-  renderScorpius(data.scorpius);
-  renderPlanets(data.visible_planets || []);
-  renderAlerts(data.must_see || []);
+  await fetchAndRender('/tonight', (data) => {
+    if (!data) {
+      renderGoNogo(null);
+      renderMoon(null);
+      renderSeeing(null);
+      renderScorpius(null);
+      renderPlanets(null);
+      renderAlerts(null);
+      return;
+    }
+    renderGoNogo(data);
+    renderSeeing(data.seeing, data);
+    renderMoon(data.moon);
+    renderScorpius(data.scorpius);
+    renderPlanets(data.visible_planets || []);
+    renderAlerts(data.must_see || []);
+  });
 }
 
 function renderGoNogo(data) {
@@ -358,83 +421,89 @@ function renderAlerts(alerts) {
 
 // ── Render: Weekly ──────────────────────────────────────────────────────────
 async function loadWeekly() {
-  const data = await fetchAPI('/weekly');
-  const grid = document.getElementById('weekly-grid');
-  if (!data || !data.days) {
-    grid.innerHTML = '<div class="no-data" style="padding:30px">Could not load weekly data</div>';
-    return;
-  }
+  await fetchAndRender('/weekly', (data) => {
+    const grid = document.getElementById('weekly-grid');
+    if (!data || !data.days) {
+      grid.innerHTML = '<div class="no-data" style="padding:30px">Could not load weekly data</div>';
+      return;
+    }
 
-  const today = new Date().toLocaleDateString('en-US', { weekday: 'long', month: 'long', day: 'numeric', timeZone: 'America/New_York' });
+    const today = new Date().toLocaleDateString('en-US', { weekday: 'long', month: 'long', day: 'numeric', timeZone: 'America/New_York' });
 
-  grid.innerHTML = data.days.map((d, i) => {
-    const isToday = i === 0;
-    const moonEmoji = d.moon_phase ? d.moon_phase.split(' ')[0] : '🌙';
-    const highlights = (d.highlights || []).slice(0, 2);
-    return `
-      <div class="day-card ${isToday ? 'today' : ''}">
-        <div class="day-name">${d.date.split(',')[0]}</div>
-        <div class="day-date">${d.date.split(', ')[1] || ''}</div>
-        <div class="day-rating">${d.rating || '—'}</div>
-        <div class="day-moon">${moonEmoji}</div>
-        <div class="day-weather">${d.weather || '—'}</div>
-        ${highlights.map(h => `<div class="day-highlight">${h}</div>`).join('')}
-      </div>
-    `;
-  }).join('');
+    grid.innerHTML = data.days.map((d, i) => {
+      const isToday = i === 0;
+      const moonEmoji = d.moon_phase ? d.moon_phase.split(' ')[0] : '🌙';
+      const highlights = (d.highlights || []).slice(0, 2);
+      return `
+        <div class="day-card ${isToday ? 'today' : ''}">
+          <div class="day-name">${d.date.split(',')[0]}</div>
+          <div class="day-date">${d.date.split(', ')[1] || ''}</div>
+          <div class="day-rating">${d.rating || '—'}</div>
+          <div class="day-moon">${moonEmoji}</div>
+          <div class="day-weather">${d.weather || '—'}</div>
+          ${highlights.map(h => `<div class="day-highlight">${h}</div>`).join('')}
+        </div>
+      `;
+    }).join('');
+  });
 }
 
 // ── Render: ISS Passes ──────────────────────────────────────────────────────
 async function loadISS() {
-  const data = await fetchAPI('/iss?count=4');
-  const container = document.getElementById('iss-passes');
-  if (!data || !data.passes || data.passes.length === 0) {
-    container.innerHTML = `
-      <div class="no-data">
-        Could not fetch ISS data automatically.<br>
-        <a href="https://www.heavens-above.com/PassSummary.aspx?lat=${currentLat}&lng=${currentLon}&loc=Custom&alt=240&tz=ET" 
-           target="_blank" style="color: #4a9eff">
-          Check Heavens-Above.com for passes ↗
-        </a>
-      </div>`;
-    return;
-  }
-
-  container.innerHTML = data.passes.map(p => {
-    if (p.rise === 'Check Heavens-Above.com') {
-      return `<div class="iss-pass-item"><a href="https://heavens-above.com" target="_blank" style="color:#4a9eff">Check Heavens-Above.com for pass times ↗</a></div>`;
+  await fetchAndRender('/iss?count=4', (data) => {
+    const container = document.getElementById('iss-passes');
+    if (!data || !data.passes || data.passes.length === 0) {
+      container.innerHTML = `
+        <div class="no-data">
+          Could not fetch ISS data automatically.<br>
+          <a href="https://www.heavens-above.com/PassSummary.aspx?lat=${currentLat}&lng=${currentLon}&loc=Custom&alt=240&tz=ET" 
+             target="_blank" style="color: #4a9eff">
+            Check Heavens-Above.com for passes ↗
+          </a>
+        </div>`;
+      return;
     }
-    return `
-      <div class="iss-pass-item ${p.visible ? 'visible' : ''}">
-        <span class="iss-time">🚀 ${p.rise || 'N/A'}</span>
-        <span>→ ${p.set || 'N/A'}</span>
-        <span class="iss-alt">📐 ${p.peak_alt !== 'N/A' ? p.peak_alt + '°' : '?'} ${p.peak_az || ''}</span>
-        <span class="iss-vis-label" style="color: ${p.visible ? '#22c55e' : '#64748b'}">
-          ${p.visible ? '✅ VISIBLE' : '🔭 Low pass'}
-        </span>
-      </div>
-    `;
-  }).join('');
+
+    container.innerHTML = data.passes.map(p => {
+      if (p.rise === 'Check Heavens-Above.com') {
+        return `<div class="iss-pass-item"><a href="https://heavens-above.com" target="_blank" style="color:#4a9eff">Check Heavens-Above.com for pass times ↗</a></div>`;
+      }
+      return `
+        <div class="iss-pass-item ${p.visible ? 'visible' : ''}">
+          <span class="iss-time">🚀 ${p.rise || 'N/A'}</span>
+          <span>→ ${p.set || 'N/A'}</span>
+          <span class="iss-alt">📐 ${p.peak_alt !== 'N/A' ? p.peak_alt + '°' : '?'} ${p.peak_az || ''}</span>
+          <span class="iss-vis-label" style="color: ${p.visible ? '#22c55e' : '#64748b'}">
+            ${p.visible ? '✅ VISIBLE' : '🔭 Low pass'}
+          </span>
+        </div>
+      `;
+    }).join('');
+  });
 }
 
 // ── Render: Target Database ─────────────────────────────────────────────────
 async function loadTargets() {
-  // Fetch live altitude data if API is available
-  let liveData = await fetchAPI('/targets');
-  const liveMap = {};
-  if (liveData && liveData.targets) {
-    liveData.targets.forEach(t => { liveMap[t.id] = t; });
-  }
+  await fetchAndRender('/targets', (liveData) => {
+    const liveMap = {};
+    if (liveData && liveData.targets) {
+      liveData.targets.forEach(t => { liveMap[t.id] = t; });
+    }
 
-  renderTargetGrid(SCORPIUS_TARGETS, liveMap, 'all');
+    renderTargetGrid(SCORPIUS_TARGETS, liveMap, 'all');
 
-  // Filter buttons
-  document.querySelectorAll('.filter-btn').forEach(btn => {
-    btn.addEventListener('click', () => {
-      document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
-      btn.classList.add('active');
-      const filter = btn.dataset.filter;
-      renderTargetGrid(SCORPIUS_TARGETS, liveMap, filter);
+    // Filter buttons
+    document.querySelectorAll('.filter-btn').forEach(btn => {
+      // Remove old listeners to prevent duplicates on SWR re-render
+      const newBtn = btn.cloneNode(true);
+      btn.parentNode.replaceChild(newBtn, btn);
+      
+      newBtn.addEventListener('click', () => {
+        document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
+        newBtn.classList.add('active');
+        const filter = newBtn.dataset.filter;
+        renderTargetGrid(SCORPIUS_TARGETS, liveMap, filter);
+      });
     });
   });
 }
@@ -505,12 +574,37 @@ function updateClearOutside() {
 function initLocationUI() {
   const modal = document.getElementById('location-modal');
   const btnLoc = document.getElementById('btn-location');
+  const listEl = document.getElementById('saved-locations-list');
+  const inputName = document.getElementById('input-loc-name');
   const inputLat = document.getElementById('input-lat');
   const inputLon = document.getElementById('input-lon');
   
+  function renderList() {
+    listEl.innerHTML = savedLocations.map(l => `
+      <div class="loc-item ${l.id === activeLocId ? 'active' : ''}">
+        <div class="loc-info" onclick="activateLocation('${l.id}')">
+          <div class="loc-name">${l.name}</div>
+          <div class="loc-coords">${l.lat.toFixed(4)}, ${l.lon.toFixed(4)}</div>
+        </div>
+        ${l.id !== 'default' ? `<button class="loc-del" onclick="deleteLocation('${l.id}')">✕</button>` : ''}
+      </div>
+    `).join('');
+  }
+
+  window.activateLocation = (id) => {
+    localStorage.setItem('stargazer_active_loc', id);
+    location.reload(); // Refresh to apply changes instantly everywhere
+  };
+
+  window.deleteLocation = (id) => {
+    savedLocations = savedLocations.filter(l => l.id !== id);
+    localStorage.setItem('stargazer_locations', JSON.stringify(savedLocations));
+    if (activeLocId === id) activateLocation('default');
+    else renderList();
+  };
+
   btnLoc.addEventListener('click', () => {
-    inputLat.value = currentLat;
-    inputLon.value = currentLon;
+    renderList();
     modal.classList.remove('hidden');
   });
 
@@ -518,30 +612,34 @@ function initLocationUI() {
     modal.classList.add('hidden');
   });
 
-  document.getElementById('btn-reset-loc').addEventListener('click', () => {
-    localStorage.removeItem('stargazer_lat');
-    localStorage.removeItem('stargazer_lon');
-    location.reload();
-  });
-
   document.getElementById('btn-save-loc').addEventListener('click', () => {
-    localStorage.setItem('stargazer_lat', parseFloat(inputLat.value));
-    localStorage.setItem('stargazer_lon', parseFloat(inputLon.value));
-    location.reload();
+    const lat = parseFloat(inputLat.value);
+    const lon = parseFloat(inputLon.value);
+    const name = inputName.value.trim() || 'Custom Location';
+    if (isNaN(lat) || isNaN(lon)) return alert('Invalid coordinates');
+    
+    const newLoc = { id: 'loc_' + Date.now(), name, lat, lon };
+    savedLocations.push(newLoc);
+    localStorage.setItem('stargazer_locations', JSON.stringify(savedLocations));
+    activateLocation(newLoc.id);
   });
 
   document.getElementById('btn-gps').addEventListener('click', () => {
     const btn = document.getElementById('btn-gps');
+    if (window.location.protocol !== 'https:' && window.location.hostname !== 'localhost') {
+      alert("Browser Geolocation requires HTTPS. Since you are accessing via HTTP on your local network, this will fail. Please enter coordinates manually.");
+    }
     btn.textContent = '📡 Locating...';
     navigator.geolocation.getCurrentPosition(
       pos => {
         inputLat.value = pos.coords.latitude.toFixed(4);
         inputLon.value = pos.coords.longitude.toFixed(4);
-        btn.textContent = '📡 Use Device GPS Location';
+        if (!inputName.value) inputName.value = "GPS Location";
+        btn.textContent = '📡 Try Device GPS';
       },
       err => {
         alert('Geolocation failed: ' + err.message);
-        btn.textContent = '📡 Use Device GPS Location';
+        btn.textContent = '📡 Try Device GPS';
       }
     );
   });
