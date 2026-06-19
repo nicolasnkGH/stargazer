@@ -544,10 +544,10 @@ body {
   overflow: hidden;
 }
 
-#clearoutside-frame {
+#clearoutside-img {
   width: 100%;
-  height: 580px;
-  border: none;
+  height: auto;
+  border-radius: 6px;
   display: block;
 }
 
