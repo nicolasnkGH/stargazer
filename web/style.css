@@ -729,6 +729,7 @@ body {
   border-bottom: 1px solid var(--border-color);
   background: rgba(0, 0, 0, 0.2);
   -ms-overflow-style: auto;
+  white-space: nowrap;
 }
 /* Force persistent scrollbar in WebKit (Chrome/Safari) */
 .constellation-tabs::-webkit-scrollbar {
@@ -1468,12 +1469,22 @@ body.night-mode {
     justify-content: center;
     gap: 8px;
   }
-  .weather-grid, .planets-grid, .targets-grid, .card-row, .card-row-2, .iss-grid, .weekly-grid {
+  .weather-grid, .planets-grid, .targets-grid, .card-row, .card-row-2, .iss-grid {
     grid-template-columns: 1fr !important;
   }
   .banner-content {
     flex-direction: column;
     text-align: center;
     gap: 10px;
+  }
+  .card-header {
+    flex-wrap: wrap;
+  }
+  .card-actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    margin-top: 5px;
+    width: 100%;
   }
 }
