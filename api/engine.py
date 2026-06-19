@@ -236,25 +236,42 @@ def _az_to_direction(az: float) -> str:
             "S", "SSW", "SW", "WSW", "W", "WNW", "NW", "NNW"]
     return dirs[round(az / 22.5) % 16]
 
-# ── Scorpius ──────────────────────────────────────────────────────────────────
+FAMOUS_CONSTELLATIONS = {
+    "UMa": "🐻", "Ori": "🏹", "Cas": "👑", "Cyg": "🦢", "Cru": "✝️",
+    "Sco": "🦂", "CMa": "🐕", "Cen": "🏇", "Ari": "♈", "Tau": "♉",
+    "Gem": "♊", "Cnc": "♋", "Leo": "♌", "Vir": "♍", "Lib": "♎",
+    "Sgr": "♐", "Cap": "♑", "Aqr": "♒", "Psc": "♓", "Lyr": "🪕", "Her": "💪"
+}
 
-def get_scorpius_window(dt: Optional[date] = None, lat=None, lon=None) -> dict:
-    """Calculate Scorpius rise/culmination/set and best observing window."""
+def get_constellation_window(abbr: str, dt: Optional[date] = None, lat=None, lon=None) -> dict:
+    """Calculate constellation rise/culmination/set and best observing window."""
+    import json
+    import os
+    file_path = os.path.join(os.path.dirname(__file__), 'constellations.json')
+    try:
+        with open(file_path, 'r') as f:
+            const_data = json.load(f)
+    except:
+        return {"status": "Database error"}
+    
+    c = next((x for x in const_data if x["abbr"] == abbr), None)
+    if not c:
+        return {"status": "Constellation not found"}
+
     ts, eph = _get_skyfield()
     observer, columbus = _get_observer(lat=lat, lon=lon)
     tz = ZoneInfo(TIMEZONE)
     d = dt or now_local().date()
 
-    # Antares as proxy for Scorpius center
-    antares = Star(ra_hours=(16 + 29/60 + 24.4/3600),
-                   dec_degrees=-(26 + 25/60 + 55/3600))
+    # Use constellation central RA/DEC as proxy
+    proxy = Star(ra_hours=c["ra"], dec_degrees=c["dec"])
 
     midnight = datetime(d.year, d.month, d.day, 0, 0, tzinfo=tz)
     t0 = ts.from_datetime(midnight)
     t1 = ts.from_datetime(midnight + timedelta(hours=36))
 
     # Find rise/set
-    f = almanac.risings_and_settings(eph, antares, columbus)
+    f = almanac.risings_and_settings(eph, proxy, columbus)
     try:
         times, events = almanac.find_discrete(t0, t1, f)
     except Exception:
@@ -275,7 +292,7 @@ def get_scorpius_window(dt: Optional[date] = None, lat=None, lon=None) -> dict:
     for h in range(24):
         check_t = now_dt + timedelta(hours=h)
         t_sf = _sf_time(check_t)
-        astrometric = observer.at(t_sf).observe(antares)
+        astrometric = observer.at(t_sf).observe(proxy)
         alt, az, _ = astrometric.apparent().altaz()
         if alt.degrees > best_alt:
             best_alt = alt.degrees
@@ -283,16 +300,16 @@ def get_scorpius_window(dt: Optional[date] = None, lat=None, lon=None) -> dict:
 
     # Current altitude
     t_now = _sf_time(now_local())
-    astrometric_now = observer.at(t_now).observe(antares)
+    astrometric_now = observer.at(t_now).observe(proxy)
     alt_now, az_now, _ = astrometric_now.apparent().altaz()
 
     # Determine status
     if alt_now.degrees > 15:
-        status = "🟢 EXCELLENT — Scorpius is high and well-placed"
+        status = f"🟢 EXCELLENT — {c['name']} is high and well-placed"
     elif alt_now.degrees > 5:
-        status = "🟡 VISIBLE — Scorpius is above horizon (low)"
+        status = f"🟡 VISIBLE — {c['name']} is above horizon (low)"
     else:
-        status = "🔴 NOT VISIBLE — Below horizon or in twilight"
+        status = f"🔴 NOT VISIBLE — Below horizon or in twilight"
 
     return {
         "rise_time": rise_time.strftime("%I:%M %p") if rise_time else "N/A",
@@ -303,6 +320,9 @@ def get_scorpius_window(dt: Optional[date] = None, lat=None, lon=None) -> dict:
         "current_azimuth_deg": round(az_now.degrees, 1),
         "current_direction": _az_to_direction(az_now.degrees),
         "status": status,
+        "name": c["name"],
+        "abbr": abbr,
+        "emoji": FAMOUS_CONSTELLATIONS.get(abbr, "✨"),
         "best_time": best_time_local.strftime("%I:%M %p") if best_time_local else "N/A",
     }
 
@@ -360,42 +380,68 @@ def get_iss_passes(count: int = 3, lat=None, lon=None) -> list[dict]:
     _lon = float(lon) if lon is not None else LONGITUDE
     observer = wgs84.latlon(_lat * N, abs(_lon) * W, elevation_m=ELEVATION_M)
 
-    # ── Step 1: Fetch live ISS TLE from wheretheiss.at ────────────────────────
+    # ── Step 1: Fetch live ISS TLE with caching ─────────────────────────────────
+    name, line1, line2 = None, None, None
+    cache_file = "/tmp/iss_tle_cache.json"
+    
+    # Try reading valid cache first (under 24h old)
     try:
-        tle_resp = requests.get(
-            "https://api.wheretheiss.at/v1/satellites/25544/tles",
-            timeout=8,
-        )
-        tle_resp.raise_for_status()
-        tle_data = tle_resp.json()
-        line1 = tle_data["line1"]
-        line2 = tle_data["line2"]
-        name  = tle_data.get("name", "ISS (ZARYA)")
+        import json
+        import time
+        with open(cache_file, "r") as f:
+            c = json.load(f)
+            if time.time() - c.get("timestamp", 0) < 86400:
+                name, line1, line2 = c["name"], c["line1"], c["line2"]
     except Exception:
-        # Fallback: try Celestrak stations group TLE file
+        pass
+
+    if not name:
         try:
-            resp = requests.get(
-                "https://celestrak.org/NORAD/elements/gp.php?GROUP=stations&FORMAT=tle",
-                timeout=10,
+            tle_resp = requests.get(
+                "https://api.wheretheiss.at/v1/satellites/25544/tles",
+                timeout=8,
             )
-            resp.raise_for_status()
-            lines = [l.strip() for l in resp.text.strip().splitlines() if l.strip()]
-            # Find ISS (ZARYA) — it's usually the first entry
-            iss_idx = next(
-                (i for i, l in enumerate(lines) if "ISS" in l.upper() or "ZARYA" in l.upper()),
-                0,
-            )
-            name  = lines[iss_idx]
-            line1 = lines[iss_idx + 1]
-            line2 = lines[iss_idx + 2]
-        except Exception as e:
-            return [{
-                "rise": "N/A", "set": "N/A",
-                "peak_alt": "N/A", "peak_az": "S",
-                "visible": False,
-                "error": f"Could not fetch TLE: {e}",
-                "fallback_url": f"https://heavens-above.com/PassSummary.aspx?lat={LATITUDE}&lng={LONGITUDE}&loc=Columbus&alt=240&tz=ET",
-            }]
+            tle_resp.raise_for_status()
+            tle_data = tle_resp.json()
+            line1 = tle_data["line1"]
+            line2 = tle_data["line2"]
+            name  = tle_data.get("name", "ISS (ZARYA)")
+        except Exception:
+            # Fallback: try ARISS live ISS TLE
+            try:
+                resp = requests.get(
+                    "https://live.ariss.org/iss.txt",
+                    timeout=10,
+                )
+                resp.raise_for_status()
+                lines = [l.strip() for l in resp.text.strip().splitlines() if l.strip()]
+                name  = lines[0]
+                line1 = lines[1]
+                line2 = lines[2]
+            except Exception as e:
+                # As a last resort, try reading expired cache if available
+                try:
+                    with open(cache_file, "r") as f:
+                        c = json.load(f)
+                        name, line1, line2 = c["name"], c["line1"], c["line2"]
+                except Exception:
+                    return [{
+                        "rise": "N/A", "set": "N/A",
+                        "peak_alt": "N/A", "peak_az": "S",
+                        "visible": False,
+                        "error": f"Could not fetch TLE and no cache available: {e}",
+                        "fallback_url": f"https://heavens-above.com/PassSummary.aspx?satid=25544&lat={LATITUDE}&lng={LONGITUDE}",
+                    }]
+
+        # Save successful fetch to cache
+        if name and line1 and line2:
+            try:
+                import json
+                import time
+                with open(cache_file, "w") as f:
+                    json.dump({"name": name, "line1": line1, "line2": line2, "timestamp": time.time()}, f)
+            except Exception:
+                pass
 
     # ── Step 2: Build EarthSatellite and find passes ──────────────────────────
     try:
@@ -441,7 +487,7 @@ def get_iss_passes(count: int = 3, lat=None, lon=None) -> list[dict]:
             "rise": "Prediction error", "set": "N/A",
             "peak_alt": "N/A", "peak_az": "S", "visible": False,
             "error": str(e),
-            "fallback_url": f"https://heavens-above.com/PassSummary.aspx?lat={LATITUDE}&lng={LONGITUDE}&loc=Columbus&alt=240&tz=ET",
+            "fallback_url": f"https://heavens-above.com/PassSummary.aspx?satid=25544&lat={LATITUDE}&lng={LONGITUDE}",
         }]
 
 # ── Seeing / Weather ──────────────────────────────────────────────────────────
@@ -547,7 +593,6 @@ def get_tonight_report(lat=None, lon=None) -> dict:
 
     moon = get_moon_info(now, lat=lat, lon=lon)
     planets = get_planet_positions(now, lat=lat, lon=lon)
-    scorpius = get_scorpius_window(lat=lat, lon=lon)
     targets = get_visible_targets(now, lat=lat, lon=lon)
     seeing = get_seeing_forecast(lat=lat, lon=lon)
 
@@ -556,8 +601,13 @@ def get_tonight_report(lat=None, lon=None) -> dict:
 
     # Must-see tonight
     must_see = []
-    if scorpius["current_altitude_deg"] > 10:
-        must_see.append(f"🦂 Scorpius is UP — {scorpius['status']}")
+    
+    # Get highest famous constellation
+    consts = get_constellations(lat=lat, lon=lon, filter_famous=True)
+    if consts and consts[0]["altitude_deg"] > 20:
+        best_c = consts[0]
+        must_see.append(f"{best_c['emoji']} {best_c['name']} is UP — 🟢 EXCELLENT")
+
     for p in visible_planets[:3]:
         must_see.append(f"{p['emoji']} {p['name']} at {p['altitude_deg']}° {p['direction']}")
     if moon["illumination_pct"] < 15:
@@ -571,7 +621,6 @@ def get_tonight_report(lat=None, lon=None) -> dict:
         "observing_window_hours": round((dawn - dusk).total_seconds() / 3600, 1),
         "seeing": seeing,
         "moon": moon,
-        "scorpius": scorpius,
         "visible_planets": visible_planets,
         "best_targets_tonight": best_targets,
         "must_see": must_see,
@@ -605,7 +654,6 @@ def get_weekly_report(lat=None, lon=None) -> dict:
     for i in range(7):
         d = (now + timedelta(days=i)).date()
         moon = get_moon_info(datetime(d.year, d.month, d.day, 22, 0, tzinfo=ZoneInfo(TIMEZONE)))
-        scorpius = get_scorpius_window(d)
         seeing_data = get_seeing_forecast(lat=lat, lon=lon)
         weather_day = seeing_data.get("week_forecast", [{} for _ in range(7)])[i] if i < 7 else {}
 
@@ -651,7 +699,7 @@ def get_weekly_report(lat=None, lon=None) -> dict:
 
 # ── Constellations ────────────────────────────────────────────────────────────
 
-def get_constellations(lat=None, lon=None) -> list[dict]:
+def get_constellations(lat=None, lon=None, filter_famous=False) -> list[dict]:
     import json
     import os
     file_path = os.path.join(os.path.dirname(__file__), 'constellations.json')
@@ -667,6 +715,8 @@ def get_constellations(lat=None, lon=None) -> list[dict]:
 
     results = []
     for c in const_data:
+        if filter_famous and c["abbr"] not in FAMOUS_CONSTELLATIONS:
+            continue
         target = Star(ra_hours=c["ra"], dec_degrees=c["dec"])
         astrometric = observer.at(t).observe(target)
         alt, az, _ = astrometric.apparent().altaz()
@@ -674,6 +724,7 @@ def get_constellations(lat=None, lon=None) -> list[dict]:
         results.append({
             "name": c["name"],
             "abbr": c["abbr"],
+            "emoji": FAMOUS_CONSTELLATIONS.get(c["abbr"], "✨"),
             "altitude_deg": round(alt.degrees, 1),
             "direction": _az_to_direction(az.degrees),
             "visible": bool(alt.degrees > 0)

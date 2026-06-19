@@ -1,3 +1,18 @@
+
+function translateDate(dateStr) {
+  if (!dateStr || currentLang === 'en') return dateStr;
+  const dict = window.i18n[currentLang];
+  let res = dateStr;
+  ['MONDAY', 'TUESDAY', 'WEDNESDAY', 'THURSDAY', 'FRIDAY', 'SATURDAY', 'SUNDAY'].forEach(d => {
+    if (res.includes(d)) res = res.replace(d, dict['t_'+d.toLowerCase()] || d);
+    const cap = d.charAt(0) + d.slice(1).toLowerCase();
+    if (res.includes(cap)) res = res.replace(cap, dict['t_'+d.toLowerCase()] ? dict['t_'+d.toLowerCase()].charAt(0) + dict['t_'+d.toLowerCase()].slice(1).toLowerCase() : cap);
+  });
+  ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'].forEach(m => {
+    if (res.includes(m)) res = res.replace(m, dict['m_'+m.toLowerCase()] || m);
+  });
+  return res;
+}
 /* =====================================================================
    StarGazer Dashboard — app.js
    Handles: starfield animation, clock, API data loading, UI rendering
@@ -107,6 +122,7 @@ setInterval(updateClock, 1000);
 // Set Dynamic Subtitle
 const subtitle = document.getElementById('logo-sub');
 if (subtitle) {
+  subtitle.removeAttribute('data-i18n');
   subtitle.textContent = `${activeLoc.name} · ${activeLoc.lat.toFixed(3)}°N, ${activeLoc.lon.toFixed(3)}°W`;
 }
 
@@ -171,7 +187,6 @@ async function loadTonightReport() {
     renderGoNogo(data);
     renderSeeing(data.seeing, data);
     renderMoon(data.moon);
-    renderScorpius(data.scorpius);
     renderPlanets(data.visible_planets || []);
     renderAlerts(data.must_see || []);
   });
@@ -200,23 +215,27 @@ function renderGoNogo(data) {
   if (gn.includes('GO') && !gn.includes('NO')) {
     banner.classList.add('go');
     icon.textContent = '✅';
-    title.textContent = gn;
-    sub.textContent = `${seeing.seeing_label || ''} — ${data.date || ''}`;
+    title.textContent = window.i18n[currentLang].go_title || gn;
+    sub.textContent = `${seeing.seeing_label || ''} — ${translateDate(data.date || '')}`;
   } else if (gn.includes('MARGINAL')) {
     banner.classList.add('marginal');
     icon.textContent = '⚠️';
-    title.textContent = gn;
-    sub.textContent = `${seeing.seeing_label || ''} — conditions marginal for tonight`;
+    title.textContent = window.i18n[currentLang].marginal_title || gn;
+    sub.textContent = `${seeing.seeing_label || ''} — ${window.i18n[currentLang].marginal_sub || 'conditions marginal for tonight'}`;
   } else {
     banner.classList.add('nogo');
     icon.textContent = '❌';
-    title.textContent = gn || 'NO GO';
-    sub.textContent = 'Poor conditions — check again tomorrow';
+    title.textContent = window.i18n[currentLang].nogo_title || gn || 'NO GO';
+    sub.textContent = window.i18n[currentLang].poor_cond || 'Poor conditions — check again tomorrow';
   }
 
-  detail.innerHTML = `Dark: ${data.astronomical_dusk || '?'} → ${data.astronomical_dawn || '?'}<br>
-    Window: ${data.observing_window_hours || '?'}h of darkness<br>
-    ${data.date || ''}`;
+  const lblDark = window.i18n[currentLang].lbl_dark || 'Dark:';
+  const lblWindow = window.i18n[currentLang].lbl_window || 'Window:';
+  const lblHoursDark = window.i18n[currentLang].lbl_hours_dark || 'h of darkness';
+
+  detail.innerHTML = `${lblDark} ${data.astronomical_dusk || '?'} → ${data.astronomical_dawn || '?'}<br>
+    ${lblWindow} ${data.observing_window_hours || '?'} ${lblHoursDark}<br>
+    ${translateDate(data.date || '')}`;
 }
 
 function renderSeeing(seeing, data) {
@@ -238,11 +257,21 @@ function renderSeeing(seeing, data) {
     seeing.tonight_wind_kmh != null ? `${seeing.tonight_wind_kmh}` : '—';
   document.getElementById('m-precip').querySelector('.metric-val').textContent =
     seeing.tonight_precip_prob != null ? `${seeing.tonight_precip_prob}%` : '—';
-  document.getElementById('seeing-label').textContent = seeing.seeing_label || '—';
+  let sl = seeing.seeing_label || '—';
+  if (sl !== '—') {
+    const dict = window.i18n[currentLang] || window.i18n['en'];
+    if (sl.includes('Excellent')) sl = sl.replace('Excellent', dict.excellent || 'Excellent');
+    else if (sl.includes('Good')) sl = sl.replace('Good', dict.good || 'Good');
+    else if (sl.includes('Fair')) sl = sl.replace('Fair', dict.fair || 'Fair');
+    else if (sl.includes('Poor')) sl = sl.replace('Poor', dict.poor || 'Poor');
+    else if (sl.includes('Not observing tonight')) sl = sl.replace('Not observing tonight', dict.not_obs || 'Not observing tonight');
+  }
+  document.getElementById('seeing-label').textContent = sl;
 
   if (data) {
+    const lblDark = window.i18n[currentLang].lbl_dark || 'Dark:';
     document.getElementById('dark-window').textContent =
-      `Dark: ${data.astronomical_dusk || '?'} → ${data.astronomical_dawn || '?'} (${data.observing_window_hours || '?'}h)`;
+      `${lblDark} ${data.astronomical_dusk || '?'} → ${data.astronomical_dawn || '?'} (${data.observing_window_hours || '?'}h)`;
   }
 }
 
@@ -251,62 +280,147 @@ function renderMoon(moon) {
     document.getElementById('moon-phase-name').textContent = 'Loading failed';
     return;
   }
+  const dict = window.i18n[currentLang] || window.i18n['en'];
+  const phaseMap = {
+    "New Moon": dict.p_new || "New Moon",
+    "Waxing Crescent": dict.p_wax_c || "Waxing Crescent",
+    "First Quarter": dict.p_1q || "First Quarter",
+    "Waxing Gibbous": dict.p_wax_g || "Waxing Gibbous",
+    "Full Moon": dict.p_full || "Full Moon",
+    "Waning Gibbous": dict.p_wan_g || "Waning Gibbous",
+    "Last Quarter": dict.p_3q || "Last Quarter",
+    "Waning Crescent": dict.p_wan_c || "Waning Crescent"
+  };
+
   document.getElementById('moon-phase-icon').textContent = moon.phase_name ? moon.phase_name.split(' ')[0] : '🌙';
-  document.getElementById('moon-phase-name').textContent = moon.phase_name || '—';
+  let pName = moon.phase_name || '—';
+  if (pName !== '—') {
+    const rawPhase = pName.replace(/[^a-zA-Z\s]/g, '').trim();
+    if (phaseMap[rawPhase]) {
+      pName = pName.replace(rawPhase, phaseMap[rawPhase]);
+    }
+  }
+  document.getElementById('moon-phase-name').textContent = pName;
   document.getElementById('moon-illum-badge').textContent = `${moon.illumination_pct ?? '?'}%`;
   document.getElementById('moon-arc-fill').style.width = `${moon.illumination_pct || 0}%`;
   document.getElementById('moon-arc-label').textContent = `${moon.illumination_pct ?? 0}%`;
   document.getElementById('moon-rise').textContent = moon.moonrise || '—';
   document.getElementById('moon-set').textContent = moon.moonset || '—';
   document.getElementById('moon-alt').textContent = `${moon.altitude_deg ?? '?'}°`;
-  document.getElementById('dso-impact').textContent = moon.dso_impact || '—';
+
+  let impact = moon.dso_impact || '—';
+  if (impact !== '—') {
+    if (impact.includes('Good')) impact = dict.moon_good || impact;
+    else if (impact.includes('Fair')) impact = dict.moon_fair || impact;
+    else if (impact.includes('Poor')) impact = dict.moon_poor || impact;
+    else if (impact.includes('Excellent')) impact = dict.moon_exc || impact;
+    else if (impact.includes('below horizon')) impact = dict.moon_below || impact;
+  }
+  document.getElementById('dso-impact').textContent = impact;
 }
 
-function renderScorpius(s) {
-  if (!s) {
-    document.getElementById('scorpius-status').textContent = 'Could not load Scorpius data';
+function loadActiveConstellation(abbr) {
+  const select = document.getElementById('ac-select');
+  if (select && select.value !== abbr) select.value = abbr;
+  
+  const statusEl = document.getElementById('ac-status');
+  if (statusEl) {
+    statusEl.textContent = 'Loading...';
+    statusEl.style.color = 'var(--text-primary)';
+    statusEl.style.borderColor = 'var(--border)';
+  }
+  fetchAndRender(`/constellation_window?abbr=${abbr}`, renderActiveConstellation, { status: "Network error" });
+}
+
+function renderActiveConstellation(s) {
+  const statusEl = document.getElementById('ac-status');
+  
+  if (!s || s.error) {
+    if (statusEl) statusEl.textContent = 'Could not load data';
     return;
   }
-  document.getElementById('scorpius-status').textContent = s.status || '—';
-
-  const badgeEl = document.getElementById('scorpius-status-badge');
-  if (s.current_altitude_deg > 15) {
-    badgeEl.textContent = 'UP NOW';
-    badgeEl.style.background = 'rgba(34,197,94,0.15)';
-    badgeEl.style.borderColor = 'rgba(34,197,94,0.4)';
-    badgeEl.style.color = '#22c55e';
-  } else if (s.current_altitude_deg > 0) {
-    badgeEl.textContent = 'LOW';
-    badgeEl.style.color = '#f59e0b';
-  } else {
-    badgeEl.textContent = 'DOWN';
-    badgeEl.style.color = '#f87171';
+  
+  if (statusEl) {
+    let rawStat = s.status || '—';
+    const dict = window.i18n[currentLang] || window.i18n['en'];
+    if (rawStat.includes('NOT VISIBLE')) rawStat = `🔴 ${dict.not_vis || 'NOT VISIBLE'} — ${dict.not_vis_sub || 'Below horizon or in twilight'}`;
+    else if (rawStat.includes('VISIBLE NOW')) rawStat = `🟢 ${dict.vis_now || 'VISIBLE NOW'} — ${dict.highest_at || 'Highest point at'} ${s.culmination_time}`;
+    else if (rawStat.includes('LOW')) rawStat = `🟡 ${dict.low_vis || 'LOW'} — ${dict.best_later || 'Visible, but best later at'} ${s.culmination_time}`;
+    
+    statusEl.innerHTML = rawStat;
+    if (s.current_altitude_deg > 15) {
+      statusEl.style.borderColor = 'rgba(34,197,94,0.4)';
+      statusEl.style.color = '#22c55e';
+    } else if (s.current_altitude_deg > 0) {
+      statusEl.style.borderColor = 'rgba(245,158,11,0.4)';
+      statusEl.style.color = '#f59e0b';
+    } else {
+      statusEl.style.borderColor = 'rgba(248,113,113,0.4)';
+      statusEl.style.color = '#f87171';
+    }
   }
 
-  document.getElementById('sc-rise').textContent = s.rise_time || '—';
-  document.getElementById('sc-culm').textContent = s.culmination_time || '—';
-  document.getElementById('sc-peak-alt').textContent = s.culmination_altitude_deg ? `${s.culmination_altitude_deg}°` : '—';
-  document.getElementById('sc-now').textContent = s.current_altitude_deg != null
+  const badgeEl = document.getElementById('ac-status-badge');
+  if (badgeEl) {
+    const dict = window.i18n[currentLang] || window.i18n['en'];
+    if (s.current_altitude_deg > 15) {
+      badgeEl.textContent = dict.up_now || 'UP NOW';
+      badgeEl.style.background = 'rgba(34,197,94,0.15)';
+      badgeEl.style.borderColor = 'rgba(34,197,94,0.4)';
+      badgeEl.style.color = '#22c55e';
+    } else if (s.current_altitude_deg > 0) {
+      badgeEl.textContent = dict.low || 'LOW';
+      badgeEl.style.background = 'rgba(245,158,11,0.15)';
+      badgeEl.style.borderColor = 'rgba(245,158,11,0.4)';
+      badgeEl.style.color = '#f59e0b';
+    } else {
+      badgeEl.textContent = dict.down || 'DOWN';
+      badgeEl.style.background = 'rgba(248,113,113,0.15)';
+      badgeEl.style.borderColor = 'rgba(248,113,113,0.4)';
+      badgeEl.style.color = '#f87171';
+    }
+  }
+
+  document.getElementById('ac-rise').textContent = s.rise_time || '—';
+  document.getElementById('ac-culm').textContent = s.culmination_time || '—';
+  document.getElementById('ac-peak-alt').textContent = s.culmination_altitude_deg != null ? `${s.culmination_altitude_deg}°` : '—';
+  document.getElementById('ac-now').textContent = s.current_altitude_deg != null
     ? `${s.current_altitude_deg}° ${s.current_direction || ''}`
     : '—';
+    
+  const dict = window.i18n[currentLang] || window.i18n['en'];
+  const constName = dict[`const_${s.abbr ? s.abbr.toLowerCase() : ''}`] || s.name;
+  
+  const lblBestTime = dict.best_viewing || 'Best viewing time for';
+  const lblTonightAround = dict.tonight_around || 'tonight is around';
+  
+  document.getElementById('ac-note').innerHTML = `💡 ${lblBestTime} <strong>${constName}</strong> ${lblTonightAround} <strong>${s.best_time}</strong>.`;
 }
 
 function renderPlanets(planets) {
   const list = document.getElementById('planet-list');
-  if (!planets || planets.length === 0) {
+  if (!planets) {
     list.innerHTML = '<div class="no-data">Could not load planet data — API may be offline</div>';
     return;
   }
+  if (planets.length === 0) {
+    list.innerHTML = '<div class="no-data">No major planets visible above the horizon right now</div>';
+    return;
+  }
 
-  list.innerHTML = planets.map(p => `
-    <div class="planet-item ${p.visible_tonight ? '' : 'not-visible'}">
-      <div class="planet-vis-dot ${p.visible_tonight ? 'visible' : 'hidden'}"></div>
-      <span class="planet-emoji">${p.emoji}</span>
-      <span class="planet-name">${p.name}</span>
-      <span class="planet-alt">${p.altitude_deg}°</span>
-      <span class="planet-dir">${p.direction}</span>
-    </div>
-  `).join('');
+  list.innerHTML = planets.map(p => {
+    const dict = window.i18n[currentLang] || window.i18n['en'];
+    const pName = dict[`planet_${p.name.toLowerCase()}`] || p.name;
+    return `
+      <div class="planet-item ${p.visible_tonight ? '' : 'not-visible'}">
+        <div class="planet-vis-dot ${p.visible_tonight ? 'visible' : 'hidden'}"></div>
+        <span class="planet-emoji">${p.emoji}</span>
+        <span class="planet-name">${pName}</span>
+        <span class="planet-alt">${p.altitude_deg}°</span>
+        <span class="planet-dir">${p.direction}</span>
+      </div>
+    `;
+  }).join('');
 }
 
 function renderAlerts(alerts) {
@@ -315,11 +429,30 @@ function renderAlerts(alerts) {
     list.innerHTML = '<div class="no-data">No special alerts for tonight</div>';
     return;
   }
-  list.innerHTML = alerts.map((a, i) => `
-    <div class="alert-item" style="animation-delay: ${i * 0.08}s">
-      ${a}
-    </div>
-  `).join('');
+  list.innerHTML = alerts.map((a, i) => {
+    const dict = window.i18n[currentLang] || window.i18n['en'];
+    let str = a;
+    if (str.includes('is UP')) str = str.replace('is UP', dict.is_up || 'is UP');
+    if (str.includes('EXCELLENT')) str = str.replace('EXCELLENT', dict.excellent || 'EXCELLENT');
+    if (str.includes(' at ')) str = str.replace(' at ', ` ${dict.at || 'at'} `);
+    // Try to translate planets and constellations in the string
+    ['Venus', 'Mars', 'Jupiter', 'Saturn', 'Mercury'].forEach(pl => {
+      if (str.includes(pl)) str = str.replace(pl, dict[`planet_${pl.toLowerCase()}`] || pl);
+    });
+    for (const key in dict) {
+      if (key.startsWith('const_')) {
+        const en_name = window.i18n['en'][key];
+        if (en_name && str.includes(en_name)) {
+          str = str.replace(en_name, dict[key]);
+        }
+      }
+    }
+    return `
+      <div class="alert-item" style="animation-delay: ${i * 0.08}s">
+        ${str}
+      </div>
+    `;
+  }).join('');
 }
 
 // ── Render: Weekly ──────────────────────────────────────────────────────────
@@ -333,20 +466,47 @@ async function loadWeekly() {
 
     grid.innerHTML = data.days.map((d, i) => {
       const isToday = i === 0;
+      let dDateRaw = d.date.split(',')[0];
+      let dMonthRaw = d.date.split(', ')[1] || '';
+      let dRatingRaw = d.rating || '—';
+      let dWeatherRaw = d.weather || '—';
+      
+      const dict = window.i18n[currentLang] || window.i18n['en'];
+      let dDate = translateDate(dDateRaw);
+      let dMonth = translateDate(dMonthRaw);
+      
+      if (dRatingRaw.includes('Poor')) dRatingRaw = dRatingRaw.replace('Poor', dict.poor || 'Poor');
+      if (dRatingRaw.includes('Good')) dRatingRaw = dRatingRaw.replace('Good', dict.good || 'Good');
+      if (dRatingRaw.includes('Fair')) dRatingRaw = dRatingRaw.replace('Fair', dict.fair || 'Fair');
+      if (dRatingRaw.includes('Excellent')) dRatingRaw = dRatingRaw.replace('Excellent', dict.excellent || 'Excellent');
+      
+      if (dWeatherRaw.includes('Cloudy')) dWeatherRaw = dWeatherRaw.replace('Cloudy', dict.w_cloudy || 'Cloudy');
+      if (dWeatherRaw.includes('Clear')) dWeatherRaw = dWeatherRaw.replace('Clear', dict.w_clear || 'Clear');
+      if (dWeatherRaw.includes('Rain')) dWeatherRaw = dWeatherRaw.replace('Rain', dict.w_rain || 'Rain');
+      if (dWeatherRaw.includes('Snow')) dWeatherRaw = dWeatherRaw.replace('Snow', dict.w_snow || 'Snow');
+
       const moonEmoji = d.moon_phase ? d.moon_phase.split(' ')[0] : '🌙';
-      const highlights = (d.highlights || []).slice(0, 2);
+      let highlights = (d.highlights || []).slice(0, 2);
+      highlights = highlights.map(h => {
+        let res = h;
+        if (res.includes('Clear skies')) res = res.replace('Clear skies (no major events)', dict.clear_skies || 'Clear skies (no major events)');
+        return res;
+      });
       return `
         <div class="day-card ${isToday ? 'today' : ''}">
-          <div class="day-name">${d.date.split(',')[0]}</div>
-          <div class="day-date">${d.date.split(', ')[1] || ''}</div>
-          <div class="day-rating">${d.rating || '—'}</div>
+          <div class="day-name">${dDate}</div>
+          <div class="day-date">${dMonth}</div>
+          <div class="day-rating">${dRatingRaw}</div>
           <div class="day-moon">${moonEmoji}</div>
-          <div class="day-weather">${d.weather || '—'}</div>
+          <div class="day-weather">${dWeatherRaw}</div>
+          ${highlights.length > 0 ? `
+          <div style="margin-top: 12px; border-top: 1px solid rgba(255,255,255,0.05); padding-top: 8px;">
+            <marquee scrollamount="2" scrolldelay="100" style="width: 100%; font-size: 0.75rem; color: var(--accent-scorpius);">
+              ${highlights.map(h => `<span class="day-highlight" style="margin-right: 15px;">${h}</span>`).join('')}
+            </marquee>
+          </div>
+          ` : ''}
         </div>
-        <marquee scrollamount="3" scrolldelay="100" style="width: 100%;">
-          ${highlights.map(h => `<span class="day-highlight" style="margin-right: 15px;">${h}</span>`).join('')}
-        </marquee>
-      </div>
       `;
     }).join('');
   });
@@ -360,7 +520,7 @@ async function loadISS() {
       container.innerHTML = `
         <div class="no-data">
           Could not fetch ISS data automatically.<br>
-          <a href="https://www.heavens-above.com/PassSummary.aspx?lat=${currentLat}&lng=${currentLon}&loc=Custom&alt=240&tz=ET" 
+          <a href="https://heavens-above.com/PassSummary.aspx?satid=25544&lat=${currentLat}&lng=${currentLon}" 
              target="_blank" style="color: #4a9eff">
             Check Heavens-Above.com for passes ↗
           </a>
@@ -369,8 +529,15 @@ async function loadISS() {
     }
 
     container.innerHTML = data.passes.map(p => {
-      if (p.rise === 'Check Heavens-Above.com') {
-        return `<div class="iss-pass-item"><a href="https://heavens-above.com" target="_blank" style="color:#4a9eff">Check Heavens-Above.com for pass times ↗</a></div>`;
+      if (p.rise === 'Check Heavens-Above.com' || p.rise === 'N/A' || p.error) {
+        return `
+        <div class="no-data" style="padding: 15px; margin: 0;">
+          API Connection Error (Could not fetch TLE data)<br><br>
+          <a href="https://heavens-above.com/PassSummary.aspx?satid=25544&lat=${currentLat}&lng=${currentLon}" 
+             target="_blank" style="color: #4a9eff; font-size: 0.9em;">
+            Check Heavens-Above.com directly ↗
+          </a>
+        </div>`;
       }
       return `
         <div class="iss-pass-item ${p.visible ? 'visible' : ''}">
@@ -386,48 +553,42 @@ async function loadISS() {
   });
 }
 
-// ── Render: Constellations ──────────────────────────────────────────────────
+// ── Render: Constellations Tonight ─────────────────────────────────────────
 async function loadConstellations() {
-  await fetchAndRender('/constellations', (data) => {
-    const grid = document.getElementById('constellations-grid');
-    if (!data || !data.constellations) return;
-    
-    // Only show visible ones
-    const visible = data.constellations.filter(c => c.visible);
-    
-    grid.innerHTML = visible.map(c => `
-      <div class="day-card" style="min-width: 100px;">
-        <div class="day-name" style="font-size: 0.85rem; color: #a855f7;">${c.name}</div>
-        <div class="day-date" style="font-family: var(--font-mono); margin-bottom: 2px;">${c.abbr}</div>
-        <div class="day-weather" style="margin: 6px 0;">Alt: ${c.altitude_deg}°</div>
-        <div class="day-highlight">${c.direction}</div>
-      </div>
-    `).join('');
-  });
-}
-
-// ── Render: Constellations Tonight ──────────────────────────────────────────
-async function loadConstellations() {
-  await fetchAndRender('/constellations', (data) => {
-    const grid = document.getElementById('constellations-grid');
+  await fetchAndRender('/constellations?filter_famous=true', (data) => {
+    const list = document.getElementById('constellations-grid');
     if (!data || !data.constellations || data.constellations.length === 0) {
-      grid.innerHTML = '<div class="no-data" style="padding:30px">Could not load constellations</div>';
+      list.innerHTML = '<div class="no-data">Could not load constellation data</div>';
       return;
     }
 
     const visibleConst = data.constellations.filter(c => c.visible).slice(0, 16);
-    
-    grid.innerHTML = visibleConst.map(c => `
-      <div class="target-card" style="padding: 15px; cursor: pointer; transition: transform 0.2s;" onmouseover="this.style.transform='translateY(-2px)'" onmouseout="this.style.transform='none'" onclick="document.querySelector('.const-tab[data-const=\\'${c.abbr}\\']')?.click(); document.getElementById('card-targets').scrollIntoView({behavior: 'smooth'})">
-        <div class="tc-header" style="margin-bottom: 5px;">
-          <div class="tc-name" style="font-size: 1.1rem;">${c.name}</div>
-          <div class="tc-type" style="margin-top: 2px;">${c.abbr}</div>
-        </div>
-        <div class="tc-footer" style="margin-top: 10px;">
-          <span style="color: #4ade80;">● ${c.altitude_deg}° ${c.direction}</span>
-        </div>
-      </div>
-    `).join('');
+    if (visibleConst.length === 0) {
+      list.innerHTML = '<div class="no-data">No famous constellations visible tonight</div>';
+      return;
+    }
+
+    list.innerHTML = '';
+    visibleConst.forEach(c => {
+      const div = document.createElement('div');
+      const color = c.altitude_deg > 15 ? '#22c55e' : c.altitude_deg > 0 ? '#f59e0b' : '#f87171';
+      div.className = 'const-card';
+      div.dataset.const = c.abbr;
+      div.innerHTML = `
+        <div class="c-name">${c.emoji || '✨'} ${c.name}</div>
+        <div class="c-abbr">${c.abbr}</div>
+        <div class="c-alt" style="color: ${color}">● ${c.altitude_deg}° ${c.direction}</div>
+      `;
+      div.addEventListener('click', () => {
+        // Find corresponding tab and click it
+        const tab = document.querySelector(`.const-tab[data-const="${c.abbr}"]`);
+        if (tab) tab.click();
+        
+        // Scroll target database into view
+        document.getElementById('card-targets').scrollIntoView({ behavior: 'smooth' });
+      });
+      list.appendChild(div);
+    });
   });
 }
 
@@ -439,10 +600,14 @@ async function loadTargets() {
     if (!liveData || !liveData.targets) return;
     const targets = liveData.targets;
 
+    // Build a live altitude map from API data
+    const liveMap = {};
+    targets.forEach(t => { liveMap[t.id] = t; });
+
     const filterBtn = document.querySelector('.filter-btn.active');
     const filter = filterBtn ? filterBtn.dataset.filter : 'all';
 
-    renderTargetGrid(targets, filter);
+    renderTargetGrid(targets, liveMap, filter);
 
     // Filter buttons
     document.querySelectorAll('.filter-btn').forEach(btn => {
@@ -453,8 +618,8 @@ async function loadTargets() {
       newBtn.addEventListener('click', () => {
         document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
         newBtn.classList.add('active');
-        const filter = newBtn.dataset.filter;
-        renderTargetGrid(SCORPIUS_TARGETS, liveMap, filter);
+        const f = newBtn.dataset.filter;
+        renderTargetGrid(targets, liveMap, f);
       });
     });
   });
@@ -473,17 +638,22 @@ function renderTargetGrid(targets, liveMap, filter) {
       ? `${live.altitude_deg}° ${live.direction || ''}`
       : null;
 
+    const dict = window.i18n[currentLang] || window.i18n['en'];
+    const tName = dict[`target_${t.id}_name`] || t.name;
+    const tType = dict[`target_${t.id}_type`] || t.type;
+    const tDesc = dict[`target_${t.id}_desc`] || t.description;
+
     return `
       <div class="target-card ${visibleNow ? 'visible-now' : ''}" data-type="${t.type}">
         <div class="tc-header">
           <span class="tc-emoji">${t.emoji}</span>
           <div>
-            <div class="tc-name">${t.name}</div>
-            <div class="tc-type">${t.type}</div>
+            <div class="tc-name">${tName}</div>
+            <div class="tc-type">${tType}</div>
           </div>
           <span class="tc-mag">mag ${t.magnitude}</span>
         </div>
-        <div class="tc-desc">${t.description}</div>
+        <div class="tc-desc">${tDesc}</div>
         ${t.horizon_note ? `<div class="tc-horizon-note">${t.horizon_note}</div>` : ''}
         <div class="tc-footer">
           <span class="tc-difficulty ${t.difficulty}">${t.difficulty.replace('_', ' ')}</span>
@@ -502,13 +672,13 @@ async function checkAPIStatus() {
   try {
     const resp = await fetch(`${API_BASE}/health`, { signal: AbortSignal.timeout(4000) });
     if (resp.ok) {
-      badge.innerHTML = '<span class="pulse-dot"></span> LIVE';
+      badge.innerHTML = '<span class="pulse-dot"></span> <span data-i18n="live_badge">' + window.i18n[currentLang].live_badge + '</span>';
       badge.style.background = 'rgba(34,197,94,0.1)';
       badge.style.borderColor = 'rgba(34,197,94,0.3)';
       badge.style.color = '#22c55e';
     } else { throw new Error(); }
   } catch {
-    badge.innerHTML = '📡 API OFFLINE';
+    badge.innerHTML = '📡 <span data-i18n="offline_badge">' + window.i18n[currentLang].offline_badge + '</span>';
     badge.style.background = 'rgba(239,68,68,0.1)';
     badge.style.borderColor = 'rgba(239,68,68,0.3)';
     badge.style.color = '#f87171';
@@ -603,15 +773,40 @@ async function init() {
   updateClearOutside();
 
   // Setup Constellation Tabs
-  document.querySelectorAll('.const-tab').forEach(btn => {
-    btn.addEventListener('click', () => {
+  document.querySelectorAll('.const-tab').forEach(tab => {
+    tab.addEventListener('click', (e) => {
       document.querySelectorAll('.const-tab').forEach(b => b.classList.remove('active'));
+      const btn = e.target;
       btn.classList.add('active');
       currentConstellation = btn.dataset.const;
-      document.getElementById('target-db-title').textContent = `${btn.textContent} Target Database`;
+      document.getElementById('target-db-title').textContent = `${btn.textContent.trim()} ${window.i18n[currentLang].targets_title_suffix}`;
       loadTargets();
+      loadActiveConstellation(currentConstellation);
     });
   });
+
+  // Setup Active Constellation Dropdown
+  const selectEl = document.getElementById('ac-select');
+  if (selectEl) {
+    selectEl.addEventListener('change', (e) => {
+      currentConstellation = e.target.value;
+      
+      // Update the active tab if it exists
+      document.querySelectorAll('.const-tab').forEach(b => b.classList.remove('active'));
+      const matchingTab = document.querySelector(`.const-tab[data-const="${currentConstellation}"]`);
+      if (matchingTab) {
+        matchingTab.classList.add('active');
+        document.getElementById('target-db-title').textContent = `${matchingTab.textContent.trim()} ${window.i18n[currentLang].targets_title_suffix}`;
+      } else {
+        // Fallback title update if no tab exists for this constellation
+        const text = e.target.options[e.target.selectedIndex].text.replace(/^[^\s]+\s/, ''); // Remove emoji
+        document.getElementById('target-db-title').textContent = `${text} ${window.i18n[currentLang].targets_title_suffix}`;
+      }
+      
+      loadTargets();
+      loadActiveConstellation(currentConstellation);
+    });
+  }
 
   // Load everything in parallel
   await Promise.allSettled([
@@ -619,14 +814,83 @@ async function init() {
     loadTonightReport(),
     loadWeekly(),
     loadISS(),
-    loadConstellations()
+    loadConstellations(),
+    loadTargets(),
+    loadActiveConstellation(currentConstellation)
   ]);
+
+  // Night Mode Toggle
+  const nightBtn = document.getElementById('btn-night-mode');
+  if (nightBtn) {
+    nightBtn.addEventListener('click', () => {
+      document.body.classList.toggle('night-mode');
+    });
+  }
+
+  // Back to top smooth scroll
+  const backToTopBtn = document.querySelector('.back-to-top');
+  if (backToTopBtn) {
+    backToTopBtn.addEventListener('click', (e) => {
+      e.preventDefault();
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    });
+  }
 
   // Refresh live data every 10 minutes
   setInterval(async () => {
     await loadTonightReport();
     await loadISS();
+    await loadActiveConstellation(currentConstellation);
   }, 10 * 60 * 1000);
 }
 
 document.addEventListener('DOMContentLoaded', init);
+
+
+// ── i18n ────────────────────────────────────────────────────────────────────
+let currentLang = localStorage.getItem('stargazer_lang') || 'en';
+
+function setLanguage(lang) {
+  if(!window.i18n[lang]) lang = 'en';
+  currentLang = lang;
+  localStorage.setItem('stargazer_lang', lang);
+  
+  const dict = window.i18n[currentLang];
+  document.querySelectorAll('[data-i18n]').forEach(el => {
+    const key = el.dataset.i18n;
+    if (dict[key]) {
+      el.innerHTML = dict[key];
+    }
+  });
+  
+  const langSelect = document.getElementById('lang-select');
+  if(langSelect) langSelect.value = currentLang;
+  
+  // Update dynamic titles
+  const targetTitle = document.getElementById('target-db-title');
+  if(targetTitle && document.querySelector('.const-tab.active')) {
+    const tabTxt = document.querySelector('.const-tab.active').textContent.trim();
+    targetTitle.textContent = `${tabTxt} ${dict.targets_title_suffix}`;
+  }
+}
+
+document.addEventListener('DOMContentLoaded', () => {
+    setTimeout(() => {
+        const langSelect = document.getElementById('lang-select');
+        if(langSelect) {
+            langSelect.addEventListener('change', (e) => {
+                setLanguage(e.target.value);
+                window.location.reload();
+            });
+        }
+        setLanguage(currentLang);
+    }, 100);
+});
+
+
+const closeNightTooltip = document.getElementById('close-night-tooltip');
+if (closeNightTooltip) {
+  closeNightTooltip.addEventListener('click', () => {
+    document.getElementById('night-tooltip').style.display = 'none';
+  });
+}

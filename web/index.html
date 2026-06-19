@@ -8,7 +8,7 @@
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;400;500;600;700&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet" />
-  <link rel="stylesheet" href="style.css?v=6" />
+  <link rel="stylesheet" href="style.css?v=24" />
 </head>
 <body>
 
@@ -21,14 +21,15 @@
       <div class="logo">
         <span class="logo-icon">🔭</span>
         <div class="logo-wrap">
-        <div class="logo-main">✨ StarGazer</div>
-        <div id="logo-sub" class="logo-sub">Loading location...</div>
+        <div class="logo-main" data-i18n="app_title">✨ StarGazer</div>
+        <div id="logo-sub" class="logo-sub" data-i18n="loading_loc">Loading location...</div>
       </div>
       </div>
       <div class="header-meta">
-        <button id="btn-location" class="location-btn" title="Set Location">📍</button>
+        <select id="lang-select" class="lang-select"><option value="en">🇺🇸 EN</option><option value="es">🇪🇸 ES</option><option value="pt">🇧🇷 PT</option></select>
+        <button id="btn-location" class="location-btn" title="Set Location" data-i18n="set_loc_btn">📍</button>
         <div class="live-badge" id="live-badge">
-          <span class="pulse-dot"></span> LIVE
+          <span class="pulse-dot"></span> <span data-i18n="live_badge">LIVE</span>
         </div>
         <div class="clock" id="clock">--:-- --</div>
         <div class="date-display" id="date-display">Loading...</div>
@@ -43,36 +44,36 @@
       <div class="gonogo-inner">
         <span class="gonogo-icon" id="gonogo-icon">⏳</span>
         <div>
-          <div class="gonogo-title" id="gonogo-title">Checking tonight's conditions…</div>
-          <div class="gonogo-sub" id="gonogo-sub">Fetching weather and sky data</div>
+          <div class="gonogo-title" id="gonogo-title" data-i18n="lbl_status_checking">Tonight's Observing Status…</div>
+          <div class="gonogo-sub" id="gonogo-sub" data-i18n="gonogo_fetching">Fetching weather and sky data</div>
         </div>
         <div class="gonogo-detail" id="gonogo-detail"></div>
       </div>
     </section>
 
     <!-- ── Row 1: Conditions + Moon + Scorpius ── -->
-    <div class="card-row">
+    <div class="card-row" id="card-tonight">
 
       <!-- Seeing Conditions -->
       <div class="card card-seeing" id="card-seeing">
         <div class="card-header">
           <span class="card-icon">🌤</span>
-          <h2 class="card-title">Conditions</h2>
+          <h2 class="card-title" data-i18n="card_conditions">Conditions</h2>
           <span class="card-badge" id="seeing-score-badge">—</span>
         </div>
         <div class="card-body">
           <div class="metric-row">
             <div class="metric" id="m-cloud">
               <div class="metric-val">—</div>
-              <div class="metric-label">Cloud Cover</div>
+              <div class="metric-label" data-i18n="m_cloud">Cloud Cover</div>
             </div>
             <div class="metric" id="m-wind">
               <div class="metric-val">—</div>
-              <div class="metric-label">Wind (km/h)</div>
+              <div class="metric-label" data-i18n="m_wind">Wind (km/h)</div>
             </div>
             <div class="metric" id="m-precip">
               <div class="metric-val">—</div>
-              <div class="metric-label">Rain Chance</div>
+              <div class="metric-label" data-i18n="m_rain">Rain Chance</div>
             </div>
           </div>
           <div class="seeing-label" id="seeing-label">Loading…</div>
@@ -84,7 +85,7 @@
       <div class="card card-moon" id="card-moon">
         <div class="card-header">
           <span class="card-icon" id="moon-phase-icon">🌙</span>
-          <h2 class="card-title">Moon</h2>
+          <h2 class="card-title" data-i18n="card_moon">Moon</h2>
           <span class="card-badge" id="moon-illum-badge">—%</span>
         </div>
         <div class="card-body">
@@ -96,34 +97,55 @@
             <span class="moon-arc-label" id="moon-arc-label">0%</span>
           </div>
           <div class="moon-times">
-            <div><span class="ti-label">Rise</span> <span id="moon-rise">—</span></div>
-            <div><span class="ti-label">Set</span> <span id="moon-set">—</span></div>
-            <div><span class="ti-label">Alt</span> <span id="moon-alt">—</span></div>
+            <div><span class="ti-label" data-i18n="lbl_rise">Rise</span> <span id="moon-rise">—</span></div>
+            <div><span class="ti-label" data-i18n="lbl_set">Set</span> <span id="moon-set">—</span></div>
+            <div><span class="ti-label" data-i18n="lbl_alt">Alt</span> <span id="moon-alt">—</span></div>
           </div>
           <div class="dso-impact" id="dso-impact">Loading…</div>
         </div>
       </div>
 
-      <!-- Scorpius -->
-      <div class="card card-scorpius" id="card-scorpius">
+      <!-- ── Active Constellation Card ────────────────────────────────────────── -->
+      <section class="card" id="card-active-const">
         <div class="card-header">
-          <span class="card-icon">🦂</span>
-          <h2 class="card-title">Scorpius</h2>
-          <span class="card-badge" id="scorpius-status-badge">—</span>
+          <div class="ac-select-wrap">
+            <select id="ac-select" class="ac-select">
+              <option value="Sco">🦂 Scorpius</option>
+              <option value="UMa">🐻 Ursa Major</option>
+              <option value="Ori">🏹 Orion</option>
+              <option value="Cas">👑 Cassiopeia</option>
+              <option value="Cyg">🦢 Cygnus</option>
+              <option value="Cru">✝️ Crux</option>
+              <option value="CMa">🐕 Canis Major</option>
+              <option value="Cen">🐎 Centaurus</option>
+              <option value="Ari">♈ Aries</option>
+              <option value="Tau">♉ Taurus</option>
+              <option value="Gem">♊ Gemini</option>
+              <option value="Cnc">♋ Cancer</option>
+              <option value="Leo">♌ Leo</option>
+              <option value="Vir">♍ Virgo</option>
+              <option value="Lib">♎ Libra</option>
+              <option value="Sgr">♐ Sagittarius</option>
+              <option value="Cap">♑ Capricornus</option>
+              <option value="Aqr">♒ Aquarius</option>
+              <option value="Psc">♓ Pisces</option>
+            </select>
+          </div>
+          <span class="card-badge" id="ac-status-badge">...</span>
         </div>
         <div class="card-body">
-          <div class="scorpius-status" id="scorpius-status">Loading…</div>
+          <div class="ac-status" id="ac-status">Loading constellation data...</div>
           <div class="scorpius-grid">
-            <div class="sg-item"><span class="sg-label">Rise</span><span id="sc-rise">—</span></div>
-            <div class="sg-item"><span class="sg-label">Culminates</span><span id="sc-culm">—</span></div>
-            <div class="sg-item"><span class="sg-label">Peak Alt</span><span id="sc-peak-alt">—</span></div>
-            <div class="sg-item"><span class="sg-label">Now</span><span id="sc-now">—</span></div>
+            <div class="sg-item"><span class="sg-label" data-i18n="lbl_rise">Rise</span><span id="ac-rise">—</span></div>
+            <div class="sg-item"><span class="sg-label" data-i18n="lbl_culm">Culminates</span><span id="ac-culm">—</span></div>
+            <div class="sg-item"><span class="sg-label" data-i18n="lbl_peak_alt">Peak Alt</span><span id="ac-peak-alt">—</span></div>
+            <div class="sg-item"><span class="sg-label" data-i18n="lbl_now">Now</span><span id="ac-now">—</span></div>
           </div>
-          <div class="scorpius-tip">
-            💡 Your south-facing porch is <strong>perfectly oriented</strong> for Scorpius — it culminates due south.
+          <div class="scorpius-tip" id="ac-note">
+            <span data-i18n="sg_tip">Select a constellation to see its best observing times.</span>
           </div>
         </div>
-      </div>
+      </section>
     </div>
 
     <!-- ── Row 2: Planets + Must-See ── -->
@@ -133,7 +155,7 @@
       <div class="card card-planets">
         <div class="card-header">
           <span class="card-icon">🪐</span>
-          <h2 class="card-title">Planets Tonight</h2>
+          <h2 class="card-title" data-i18n="card_planets">Planets Tonight</h2>
         </div>
         <div class="card-body">
           <div class="planet-list" id="planet-list">
@@ -146,7 +168,7 @@
       <div class="card card-mustsee">
         <div class="card-header">
           <span class="card-icon">⚡</span>
-          <h2 class="card-title">Must-See Tonight</h2>
+          <h2 class="card-title" data-i18n="card_mustsee">Must-See Tonight</h2>
         </div>
         <div class="card-body">
           <div class="alert-list" id="alert-list">
@@ -160,8 +182,8 @@
     <section class="card card-weather">
       <div class="card-header">
         <span class="card-icon">☁️</span>
-        <h2 class="card-title">Clear Outside — Astronomical Weather Forecast</h2>
-        <a href="https://clearoutside.com/forecast/40.10/-83.08" target="_blank" class="ext-link">Open Full Forecast ↗</a>
+        <h2 class="card-title" data-i18n="card_weather">Clear Outside — Astronomical Weather Forecast</h2>
+        <a href="https://clearoutside.com/forecast/40.10/-83.08" target="_blank" class="ext-link" data-i18n="btn_full_forecast">Open Full Forecast ↗</a>
       </div>
       <div class="weather-embed-wrap">
         <img
@@ -176,9 +198,9 @@
     <section class="card" style="margin-bottom: 20px;">
       <div class="card-header">
         <div class="card-icon">🌌</div>
-        <div class="card-title">Constellations Tonight</div>
+        <div class="card-title" data-i18n="card_const_tonight">Constellations Tonight</div>
         <div class="card-badge" style="background: rgba(168, 85, 247, 0.15); color: #a855f7; border-color: rgba(168, 85, 247, 0.3);">
-          Sorted by best view
+          <span data-i18n="badge_sorted">Sorted by best view</span>
         </div>
       </div>
       <div id="constellations-grid" class="weekly-grid">
@@ -190,31 +212,42 @@
     <section class="card card-targets" id="card-targets">
       <div class="card-header">
         <div class="card-icon">🎯</div>
-        <h2 class="card-title" id="target-db-title">Scorpius Target Database</h2>
+        <h2 class="card-title" id="target-db-title">Scorpius Must-See Targets</h2>
         <div class="card-actions">
-          <button class="filter-btn active" data-filter="all">All</button>
-          <button class="filter-btn" data-filter="globular">Globulars</button>
-          <button class="filter-btn" data-filter="open">Open Clusters</button>
-          <button class="filter-btn" data-filter="double">Double Stars</button>
-          <button class="filter-btn" data-filter="star">Stars</button>
+          <button class="filter-btn active" data-filter="all" data-i18n="filter_all">All</button>
+          <button class="filter-btn" data-filter="globular" data-i18n="filter_globular">Globulars</button>
+          <button class="filter-btn" data-filter="open" data-i18n="filter_open">Open Clusters</button>
+          <button class="filter-btn" data-filter="double" data-i18n="filter_double">Double Stars</button>
+          <button class="filter-btn" data-filter="star" data-i18n="filter_stars">Stars</button>
         </div>
       </div>
       
       <!-- Constellation Selector Tabs -->
       <div class="constellation-tabs" id="constellation-tabs">
         <button class="const-tab active" data-const="Sco">Scorpius</button>
-        <button class="const-tab" data-const="Sgr">Sagittarius</button>
-        <button class="const-tab" data-const="Ori">Orion</button>
-        <button class="const-tab" data-const="And">Andromeda</button>
         <button class="const-tab" data-const="UMa">Ursa Major</button>
-        <button class="const-tab" data-const="Her">Hercules</button>
+        <button class="const-tab" data-const="Ori">Orion</button>
+        <button class="const-tab" data-const="Cas">Cassiopeia</button>
         <button class="const-tab" data-const="Cyg">Cygnus</button>
+        <button class="const-tab" data-const="Cru">Crux</button>
+        <button class="const-tab" data-const="CMa">Canis Major</button>
+        <button class="const-tab" data-const="Cen">Centaurus</button>
+        <button class="const-tab" data-const="Ari">Aries</button>
         <button class="const-tab" data-const="Tau">Taurus</button>
+        <button class="const-tab" data-const="Gem">Gemini</button>
+        <button class="const-tab" data-const="Cnc">Cancer</button>
+        <button class="const-tab" data-const="Leo">Leo</button>
+        <button class="const-tab" data-const="Vir">Virgo</button>
+        <button class="const-tab" data-const="Lib">Libra</button>
+        <button class="const-tab" data-const="Sgr">Sagittarius</button>
+        <button class="const-tab" data-const="Cap">Capricornus</button>
+        <button class="const-tab" data-const="Aqr">Aquarius</button>
+        <button class="const-tab" data-const="Psc">Pisces</button>
       </div>
 
       <div class="targets-scope-note">
-        🔭 Rated for <strong>Celestron 5" DX</strong> (130mm) under <strong>Bortle 8</strong> Columbus skies.
-        Moon illumination affects DSO visibility — best within 5 days of new moon.
+        🔭 Visibility depends on local sky conditions, light pollution, and your equipment. 
+        This database highlights the most prominent targets for amateur stargazers and beginners.
       </div>
       <div class="target-grid" id="target-grid">
         <!-- Populated by JS -->
@@ -222,10 +255,10 @@
     </section>
 
     <!-- ── Weekly Outlook ── -->
-    <section class="card card-weekly">
+    <section class="card card-weekly" id="card-weekly">
       <div class="card-header">
         <span class="card-icon">📅</span>
-        <h2 class="card-title">7-Day Outlook</h2>
+        <h2 class="card-title" data-i18n="card_weekly">7-Day Outlook</h2>
       </div>
       <div class="weekly-grid" id="weekly-grid">
         <div class="loading-shimmer"></div>
@@ -233,15 +266,15 @@
     </section>
 
     <!-- ── ISS Tracker ── -->
-    <section class="card card-iss">
+    <section class="card card-iss" id="card-iss">
       <div class="card-header">
         <span class="card-icon">🛸</span>
-        <h2 class="card-title">ISS Pass Tracker</h2>
-        <a href="https://www.heavens-above.com/PassSummary.aspx?lat=40.126&lng=-83.037&loc=Columbus&alt=240&tz=ET" target="_blank" class="ext-link">Heavens-Above ↗</a>
+        <h2 class="card-title" data-i18n="iss_title" data-i18n="nav_iss">ISS Pass Tracker</h2>
+        <a href="https://heavens-above.com/PassSummary.aspx?satid=25544&lat=40.126&lng=-83.037" target="_blank" class="ext-link">Heavens-Above ↗</a>
       </div>
       <div class="card-body">
         <div class="iss-tip">
-          The ISS appears as a very bright, fast-moving star — no telescope needed! It moves from horizon to horizon in ~6 minutes.
+          <span data-i18n="iss_tip">The ISS appears as a very bright, fast-moving star &mdash; no telescope needed! It moves from horizon to horizon in ~6 minutes.</span> — no telescope needed! It moves from horizon to horizon in ~6 minutes.
         </div>
         <div class="iss-passes" id="iss-passes">
           <div class="loading-shimmer"></div>
@@ -253,7 +286,7 @@
     <section class="card card-resources">
       <div class="card-header">
         <span class="card-icon">🔗</span>
-        <h2 class="card-title">Resources</h2>
+        <h2 class="card-title" data-i18n="card_resources">Resources</h2>
       </div>
       <div class="resource-grid">
         <a href="https://columbusastronomy.org/observing-sites/perkins-observatory/" target="_blank" class="resource-card">
@@ -344,11 +377,11 @@
 
       <div style="display: flex; gap: 10px;">
         <div class="input-group" style="flex: 1;">
-          <label>Latitude</label>
+          <label data-i18n="lbl_lat">Latitude</label>
           <input type="number" id="input-lat" placeholder="40.126" step="any" />
         </div>
         <div class="input-group" style="flex: 1;">
-          <label>Longitude</label>
+          <label data-i18n="lbl_lon">Longitude</label>
           <input type="number" id="input-lon" placeholder="-83.037" step="any" />
         </div>
       </div>
@@ -357,16 +390,75 @@
         📡 Try Device GPS (Requires HTTPS)
       </button>
       
-      <button id="btn-save-loc" class="btn btn-primary" style="width: 100%;">Save Profile & Activate</button>
+      <button id="btn-save-loc" class="btn btn-primary" style="width: 100%;" data-i18n="btn_save">Save Profile & Activate</button>
     </div>
   </div>
 
   <footer class="footer">
-    <div>🔭 StarGazer — Personal Observatory Dashboard</div>
-    <div>Columbus, OH 40.126°N · Celestron StarSense Explorer 5" DX · Bortle 8 · South-facing 3rd floor porch</div>
-    <div>Powered by Skyfield (NASA JPL DE421) · Open-Meteo · Clear Outside · Open source · No ads · No tracking</div>
+    <div class="footer-inner">
+      <div class="footer-col">
+        <h3>Nicolas Teixeira</h3>
+        <p style="color: var(--text-secondary); margin-bottom: 8px;"><span data-i18n="footer_creator">StarGazer Creator | Cloud & DevOps</span></p>
+        <p><span data-i18n="footer_desc">Personal stargazing dashboard to track active constellations, planets, and ISS passes.</span></p>
+        <div class="footer-socials">
+          <a href="https://www.linkedin.com/in/nicolasdealmeidateixeira" target="_blank" title="LinkedIn">LinkedIn</a>
+          <a href="https://github.com/nicolasnkGH" target="_blank" title="GitHub">GitHub</a>
+          <a href="https://nick-t.net" target="_blank" title="Portfolio">Portfolio</a>
+        </div>
+        <div style="margin-top: 20px;">
+          <p style="color: var(--text-secondary); margin-bottom: 8px; font-size: 0.9em;"><span data-i18n="footer_like">Like this dashboard? Give it a star!</span></p>
+          <a class="github-button" href="https://github.com/nicolasnkGH/stargazer" data-color-scheme="no-preference: dark; light: dark; dark: dark;" data-icon="octicon-star" data-size="large" data-show-count="true" aria-label="Star nicolasnkGH/stargazer on GitHub">Star</a>
+        </div>
+      </div>
+      <div class="footer-col">
+        <h3 data-i18n="footer_nav">Navigation</h3>
+        <ul class="footer-links">
+          <li><a href="#card-tonight" data-i18n="nav_tonight">Tonight's Outlook</a></li>
+          <li><a href="#card-active-const" data-i18n="nav_active_const">Active Constellation</a></li>
+          <li><a href="#card-targets" data-i18n="nav_target_db">Target Database</a></li>
+          <li><a href="#card-iss" data-i18n="nav_iss">ISS Pass Tracker</a></li>
+          <li><a href="#card-weekly" data-i18n="nav_weekly">7-Day Forecast</a></li>
+        </ul>
+      </div>
+      <div class="footer-col">
+        <h3 data-i18n="footer_tech">Tech Stack</h3>
+        <div class="tech-badges">
+          <span class="tech-badge">Python</span>
+          <span class="tech-badge">FastAPI</span>
+          <span class="tech-badge">Skyfield API</span>
+          <span class="tech-badge">Vanilla JS</span>
+          <span class="tech-badge">CSS Grid</span>
+        </div>
+        <h3 style="margin-top: 25px;">API Sources</h3>
+        <div class="tech-badges">
+          <span class="tech-badge">Heavens-Above</span>
+          <span class="tech-badge">ARISS</span>
+          <span class="tech-badge">Open-Meteo</span>
+        </div>
+      </div>
+    </div>
+    <div class="footer-bottom">
+      <div>© 2026 Nicolas Teixeira. All rights reserved.</div>
+      <a href="#" class="back-to-top" title="Back to Top">↑</a>
+    </div>
   </footer>
 
-  <script src="app.js?v=6"></script>
+  <div id="night-overlay"></div>
+
+  <!-- Floating Night Mode Toggle -->
+  <div class="night-mode-wrapper">
+    <div class="night-tooltip" id="night-tooltip">
+      <span data-i18n="night_tooltip">Toggle Night Vision Mode</span>
+      <button id="close-night-tooltip" class="close-btn" onclick="document.getElementById('night-tooltip').style.display='none'" style="background:none; border:none; color:#ff4444; margin-left:10px; cursor:pointer; font-weight:bold;">✕</button>
+    </div>
+    <button id="btn-night-mode" class="floating-night-btn" title="Toggle Night Vision Mode">
+      🔴
+    </button>
+  </div>
+
+  <!-- GitHub Buttons -->
+  <script async defer src="https://buttons.github.io/buttons.js"></script>
+  <script src="translations.js?v=8"></script>
+  <script src="app.js?v=24"></script>
 </body>
 </html>

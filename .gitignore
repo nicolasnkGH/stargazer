@@ -32,3 +32,5 @@ Leap_Second.dat
 .vscode/
 .idea/
 *.swp
+scratch/
+test_planets.py

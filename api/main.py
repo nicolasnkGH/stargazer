@@ -17,12 +17,22 @@ from datetime import datetime
 from zoneinfo import ZoneInfo
 
 from engine import (
-    get_tonight_report, get_weekly_report, get_monthly_report,
-    get_moon_info, get_planet_positions, get_scorpius_window,
-    get_visible_targets, get_iss_passes, get_seeing_forecast,
-    format_tonight_telegram, format_weekly_telegram, format_monthly_telegram,
+    get_tonight_report,
+    get_weekly_report,
+    get_monthly_report,
+    get_moon_info,
+    get_planet_positions,
+    get_visible_targets,
+    get_iss_passes,
+    get_seeing_forecast,
+    format_tonight_telegram,
+    format_weekly_telegram,
+    format_monthly_telegram,
     get_constellations,
-    now_local, SCORPIUS_TARGETS, NEARBY_TARGETS,
+    get_constellation_window,
+    now_local,
+    SCORPIUS_TARGETS,
+    NEARBY_TARGETS,
 )
 from config import LATITUDE, LONGITUDE, BORTLE_CLASS, TELESCOPE_APERTURE_MM, ELEVATION_M
 
@@ -60,14 +70,6 @@ def health():
     return {"status": "ok", "time": now_local().isoformat()}
 
 # ── Tonight ───────────────────────────────────────────────────────────────────
-
-@app.get("/targets")
-def get_targets_endpoint(lat: Optional[float] = None, lon: Optional[float] = None):
-    try:
-        targets = get_visible_targets(lat=lat, lon=lon)
-        return {"targets": targets}
-    except Exception as e:
-        return JSONResponse(status_code=500, content={"error": str(e)})
 
 @app.get("/constellations")
 def get_constellations_endpoint(lat: Optional[float] = None, lon: Optional[float] = None):
@@ -134,18 +136,7 @@ def monthly_telegram(lat: Optional[float] = Query(None), lon: Optional[float] = 
 
 # ── Individual Endpoints ──────────────────────────────────────────────────────
 
-@app.get("/scorpius")
-def scorpius(lat: Optional[float] = Query(None), lon: Optional[float] = Query(None)):
-    """Scorpius visibility window and current status."""
-    try:
-        window = get_scorpius_window(lat=lat, lon=lon)
-        targets = [t for t in get_visible_targets(lat=lat, lon=lon) if t.get("visible")]
-        return {
-            "window": window,
-            "visible_targets": targets,
-        }
-    except Exception as e:
-        return JSONResponse(status_code=500, content={"error": str(e)})
+
 
 @app.get("/moon")
 def moon(lat: Optional[float] = Query(None), lon: Optional[float] = Query(None)):
@@ -172,7 +163,7 @@ def iss(count: int = Query(3), lat: Optional[float] = Query(None), lon: Optional
         return {
             "location": loc_str,
             "passes": passes,
-            "heavens_above": f"https://www.heavens-above.com/PassSummary.aspx?lat={lat or LATITUDE}&lng={lon or LONGITUDE}&alt={ELEVATION_M}&tz=ET",
+            "heavens_above": f"https://heavens-above.com/PassSummary.aspx?satid=25544&lat={lat or LATITUDE}&lng={lon or LONGITUDE}"
         }
     except Exception as e:
         return JSONResponse(status_code=500, content={"error": str(e)})
@@ -189,12 +180,13 @@ def seeing(lat: Optional[float] = Query(None), lon: Optional[float] = Query(None
 def targets(
     lat: Optional[float] = Query(None),
     lon: Optional[float] = Query(None),
+    constellation: str = Query(default="Sco", description="Filter by constellation abbreviation"),
     visible_only: bool = Query(default=False, description="Only return currently visible targets"),
     type_filter: str = Query(default="all", description="Filter by type: all, globular, open, star, double, nebula")
 ):
-    """Full Scorpius DSO target database."""
+    """Full Target database filtered by constellation."""
     try:
-        all_targets = get_visible_targets(lat=lat, lon=lon)
+        all_targets = get_visible_targets(lat=lat, lon=lon, constellation=constellation)
         if visible_only:
             all_targets = [t for t in all_targets if t.get("visible")]
         if type_filter != "all":
@@ -210,6 +202,13 @@ def targets(
         return JSONResponse(status_code=500, content={"error": str(e)})
 
 # ── Run ───────────────────────────────────────────────────────────────────────
+
+@app.get("/constellation_window")
+def constellation_window(abbr: str, lat: Optional[float] = None, lon: Optional[float] = None):
+    try:
+        return get_constellation_window(abbr=abbr, lat=lat, lon=lon)
+    except Exception as e:
+        return JSONResponse(status_code=500, content={"error": str(e)})
 
 if __name__ == "__main__":
     uvicorn.run("main:app", host="0.0.0.0", port=8181, reload=False)
