@@ -539,9 +539,11 @@ body {
 
 /* ── Weather Embed ──────────────────────────────────────────────────────── */
 .weather-embed-wrap {
-  background: #fff;
+  background: transparent;
   border-radius: 0 0 var(--radius) var(--radius);
   overflow: hidden;
+  display: flex;
+  justify-content: center;
 }
 
 #clearoutside-img {
