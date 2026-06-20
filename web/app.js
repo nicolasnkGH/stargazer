@@ -554,7 +554,10 @@ function renderConstellationMap(targets) {
   if (!container || typeof Celestial === 'undefined') return;
   
   // Clear previous
-  container.innerHTML = '<div id="ac-map-tooltip" style="position: absolute; opacity: 0; pointer-events: none; background: rgba(15,23,42,0.9); color: #fff; padding: 4px 8px; border-radius: 4px; font-size: 0.75rem; border: 1px solid rgba(168,85,247,0.3); transition: opacity 0.2s; white-space: nowrap; z-index: 10;"></div>';
+  container.innerHTML = `
+    <button id="btn-map-expand" class="map-expand-btn" onclick="toggleMapFullscreen()" title="Toggle Fullscreen">⤢</button>
+    <div id="ac-map-tooltip" style="position: absolute; opacity: 0; pointer-events: none; background: rgba(15,23,42,0.9); color: #fff; padding: 4px 8px; border-radius: 4px; font-size: 0.75rem; border: 1px solid rgba(168,85,247,0.3); transition: opacity 0.2s; white-space: nowrap; z-index: 10;"></div>
+  `;
   detailsPanel.style.display = 'none';
 
   const validTargets = targets ? targets.filter(t => t.ra_hours != null && t.dec_degrees != null) : [];
@@ -664,6 +667,21 @@ function renderConstellationMap(targets) {
       nodes.exit().remove();
     }
   });
+}
+
+function toggleMapFullscreen() {
+  const container = document.getElementById('ac-map-container');
+  if (!container) return;
+  container.classList.toggle('map-fullscreen');
+  const btn = document.getElementById('btn-map-expand');
+  if (container.classList.contains('map-fullscreen')) {
+    if (btn) btn.innerHTML = '⤓'; // minimize icon
+  } else {
+    if (btn) btn.innerHTML = '⤢'; // maximize icon
+  }
+  if (typeof Celestial !== 'undefined' && Celestial.resize) {
+    Celestial.resize();
+  }
 }
 
 function renderActiveConstellation(s) {

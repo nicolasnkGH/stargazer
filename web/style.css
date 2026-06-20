@@ -1672,3 +1672,41 @@ body.night-mode {
     width: 100%;
   }
 }
+
+/* --- Map Fullscreen Classes --- */
+.map-fullscreen {
+  position: fixed !important;
+  top: 0 !important;
+  left: 0 !important;
+  width: 100vw !important;
+  height: 100vh !important;
+  z-index: 9999 !important;
+  border-radius: 0 !important;
+  margin: 0 !important;
+  background: #0a0f1c !important;
+  max-height: none !important;
+}
+
+.map-expand-btn {
+  position: absolute;
+  top: 8px;
+  right: 8px;
+  background: rgba(255,255,255,0.1);
+  border: 1px solid rgba(255,255,255,0.2);
+  color: #fff;
+  border-radius: 4px;
+  padding: 2px 6px;
+  cursor: pointer;
+  z-index: 20;
+  font-size: 1.1rem;
+  line-height: 1;
+  transition: all 0.2s;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  backdrop-filter: blur(4px);
+}
+
+.map-expand-btn:hover {
+  background: rgba(255,255,255,0.25);
+}
