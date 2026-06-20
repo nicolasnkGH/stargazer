@@ -198,17 +198,15 @@ async function loadTonightReport() {
 
 async function fetchAIAnalysis() {
   const aiTargetsCard = document.getElementById('card-ai-targets');
-  const aiTargetsList = document.getElementById('ai-targets-list');
   const engineBadgeEl = document.getElementById('seeing-engine-badge');
 
-  if (aiTargetsCard && aiTargetsList) {
-    aiTargetsCard.style.display = 'block';
-    aiTargetsList.innerHTML = '<div style="color: #a1a1aa; padding: 10px; font-style: italic;">⏳ Asking Qwen3.5 for analysis (this may take up to 60s)...</div>';
+  if (aiTargetsCard) {
+    aiTargetsCard.style.display = 'none';
   }
   
   if (engineBadgeEl) {
     engineBadgeEl.style.display = '';
-    engineBadgeEl.textContent = '⏳ AI Loading...';
+    engineBadgeEl.innerHTML = '<span class="spinner" style="display:inline-block; animation: spin 1s linear infinite;">⚙️</span> Loading...';
     engineBadgeEl.className = 'seeing-engine-badge rule';
   }
 
@@ -357,6 +355,17 @@ function renderSeeing(seeing, data) {
   if (explanationEl) {
     explanationEl.textContent = seeing.seeing_explanation || '';
     explanationEl.style.display = seeing.seeing_explanation ? '' : 'none';
+  }
+
+  // Moon Fact
+  const moonFactEl = document.getElementById('moon-fact');
+  if (moonFactEl) {
+    if (seeing.moon_fact) {
+      moonFactEl.innerHTML = `✨ <strong>Moon Fact:</strong> ${seeing.moon_fact}`;
+      moonFactEl.style.display = 'block';
+    } else {
+      moonFactEl.style.display = 'none';
+    }
   }
 
   // Best window badge
