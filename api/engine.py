@@ -589,7 +589,7 @@ Respond ONLY with valid JSON — no markdown, no explanation outside the JSON:
         if not (1 <= score <= 10):
             raise ValueError(f"Score out of range: {score}")
 
-        return {
+        result = {
             "score": score,
             "label": str(result.get("label", ""))[:60],
             "explanation": str(result.get("explanation", ""))[:300],
@@ -597,10 +597,22 @@ Respond ONLY with valid JSON — no markdown, no explanation outside the JSON:
             "warnings": [str(w)[:80] for w in result.get("warnings", [])[:4]],
             "ai_powered": True,
         }
+        
+        # Update Cache
+        _AI_CACHE["timestamp"] = _time.time()
+        _AI_CACHE["params_hash"] = current_hash
+        _AI_CACHE["data"] = result
+        
+        return result
 
     except Exception as e:
         import logging
-        logging.getLogger("stargazer").warning(f"AI seeing analysis failed ({type(e).__name__}): {e}")
+        logger = logging.getLogger("stargazer")
+        logger.warning(f"AI seeing analysis failed ({type(e).__name__}): {e}")
+        # Resilient Fallback: If we have ANY cached data for tonight, serve it rather than dropping to rule-based
+        if _AI_CACHE["data"]:
+            logger.warning("AI Seeing: Falling back to stale cached response due to LLM failure")
+            return _AI_CACHE["data"]
         return None
 
 
