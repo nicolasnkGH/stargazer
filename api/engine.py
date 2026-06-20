@@ -591,11 +591,11 @@ Respond ONLY with valid JSON — no markdown, no explanation outside the JSON:
             except Exception:
                 pass
                 
-        # 2. If no valid block found, find the last JSON-like structure
+        # 2. If no valid block found, find the first JSON-like structure
         if result is None:
-            last_brace = raw.rfind('{')
-            if last_brace != -1:
-                candidate = raw[last_brace:].strip()
+            first_brace = raw.find('{')
+            if first_brace != -1:
+                candidate = raw[first_brace:].strip()
                 # Attempt to parse, appending closing syntax if it was truncated by max_tokens
                 for suffix in ["", "}", "]}", '"]}', '"}']:
                     try:
