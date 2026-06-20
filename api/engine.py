@@ -503,7 +503,7 @@ def get_iss_passes(count: int = 3, lat=None, lon=None) -> list[dict]:
 
 
 
-def _ai_seeing_analysis(weather: dict, moon_illum: float, moon_alt: float) -> Optional[dict]:
+def _ai_seeing_analysis(weather: dict, moon_illum: float, moon_alt: float, visible_targets: list = None) -> Optional[dict]:
     """
     Call Qwen3.5-9B with a structured astronomy seeing prompt.
     Returns dict with score (1-10), label, explanation, best_window, warnings[].
@@ -524,6 +524,13 @@ def _ai_seeing_analysis(weather: dict, moon_illum: float, moon_alt: float) -> Op
             logging.getLogger("stargazer").info("AI Seeing: Returning fresh cached response")
             return _AI_CACHE["data"]
             
+    if visible_targets:
+        # Just grab the top 15 highest altitude targets so we don't blow up the prompt context
+        targets_str = ", ".join([f"{t['name']} (Mag {t.get('magnitude', '?')})" for t in visible_targets[:15]])
+        target_prompt = f"\n- Top visible deep-sky targets tonight: {targets_str}\nSelect up to 3 of these as 'recommended_targets' considering the moon and weather."
+    else:
+        target_prompt = ""
+
     prompt = f"""You are an expert astronomical seeing forecaster helping amateur astronomers decide whether to observe tonight.
 
 Tonight's atmospheric data (averaged 8 PM – 4 AM local time):
@@ -536,13 +543,13 @@ Tonight's atmospheric data (averaged 8 PM – 4 AM local time):
 - Surface pressure: {weather.get('pressure', '?')} hPa
 - Visibility: {weather.get('visibility_km', '?')} km
 - High cirrus clouds present: {'Yes' if (weather.get('cloud_high') or 0) > 20 else 'No'}
-- Moon: {moon_illum:.0f}% illuminated, currently {moon_alt:.1f}° above horizon
+- Moon: {moon_illum:.0f}% illuminated, currently {moon_alt:.1f}° above horizon{target_prompt}
 
 Rate the astronomical seeing quality on a scale of 1–10 (10 = perfect, 1 = stay inside).
 Consider: transparency (cloud/humidity/cirrus), atmospheric stability (jet stream), dew risk, moon interference, and overall observing potential.
 
 Respond ONLY with valid JSON — no markdown, no explanation outside the JSON:
-{{"score": <int 1-10>, "label": "<short label e.g. Exceptional transparency>", "explanation": "<2 sentences for a beginner astronomer>", "best_window": "<e.g. 10 PM – Midnight or All night>", "warnings": [<list of short warning strings, empty list if none>]}}"""
+{{"score": <int 1-10>, "label": "<short label e.g. Exceptional transparency>", "explanation": "<2 sentences for a beginner astronomer>", "best_window": "<e.g. 10 PM – Midnight or All night>", "warnings": [<list of short warning strings, empty list if none>], "recommended_targets": [{{"name": "<Target Name>", "reason": "<Why it's good tonight>"}}]}}"""
 
     headers = {"Content-Type": "application/json"}
     if AI_API_KEY:
@@ -616,6 +623,7 @@ Respond ONLY with valid JSON — no markdown, no explanation outside the JSON:
             "explanation": str(result.get("explanation", ""))[:300],
             "best_window": str(result.get("best_window", "Check conditions"))[:60],
             "warnings": [str(w)[:80] for w in result.get("warnings", [])[:4]],
+            "recommended_targets": result.get("recommended_targets", []),
             "ai_powered": True,
         }
         
@@ -721,6 +729,7 @@ def _rule_based_seeing_score(weather: dict, moon_illum: float, moon_alt: float) 
         "explanation": "",   # rule-based doesn't generate prose
         "best_window": best_window,
         "warnings": warnings,
+        "recommended_targets": [],
         "ai_powered": False,
     }
 
@@ -813,10 +822,15 @@ def get_seeing_forecast(lat=None, lon=None) -> dict:
         moon_alt   = moon_now.get("altitude_deg", 0)
     except Exception:
         moon_illum, moon_alt = 50, 0
+        
+    try:
+        targets = get_visible_targets(constellation="All", lat=lat, lon=lon)
+    except Exception:
+        targets = []
 
     # ── AI analysis (Qwen3.5-9B) → fallback to rule-based ────────────────────
     try:
-        analysis = _ai_seeing_analysis(weather_snapshot, moon_illum, moon_alt)
+        analysis = _ai_seeing_analysis(weather_snapshot, moon_illum, moon_alt, targets)
     except Exception:
         analysis = None
 
@@ -864,6 +878,7 @@ def get_seeing_forecast(lat=None, lon=None) -> dict:
         "seeing_explanation": analysis["explanation"], # prose for beginners
         "best_window":        analysis["best_window"],
         "warnings":           analysis["warnings"],
+        "recommended_targets": analysis.get("recommended_targets", []),
         "ai_powered":         analysis["ai_powered"],
         # Weather snapshot (kept for frontend metrics)
         "tonight_cloud_pct":     cloud_total,
