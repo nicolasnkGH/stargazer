@@ -653,7 +653,7 @@ def get_weekly_report(lat=None, lon=None) -> dict:
     days = []
     for i in range(7):
         d = (now + timedelta(days=i)).date()
-        moon = get_moon_info(datetime(d.year, d.month, d.day, 22, 0, tzinfo=ZoneInfo(TIMEZONE)))
+        moon = get_moon_info(datetime(d.year, d.month, d.day, 22, 0, tzinfo=ZoneInfo(TIMEZONE)), lat=lat, lon=lon)
         seeing_data = get_seeing_forecast(lat=lat, lon=lon)
         weather_day = seeing_data.get("week_forecast", [{} for _ in range(7)])[i] if i < 7 else {}
 
