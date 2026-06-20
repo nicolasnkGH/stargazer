@@ -19,6 +19,23 @@ function translateDate(dateStr) {
    Handles: starfield animation, clock, API data loading, UI rendering
    ===================================================================== */
 
+/**
+ * Simple toast popup function for tooltips
+ */
+let toastTimeout;
+window.showInfo = function(msg) {
+  const t = document.getElementById('toast');
+  if (!t) return;
+  t.textContent = msg;
+  t.style.display = 'block';
+  t.style.opacity = '1';
+  clearTimeout(toastTimeout);
+  toastTimeout = setTimeout(() => {
+    t.style.opacity = '0';
+    setTimeout(() => { t.style.display = 'none'; }, 300);
+  }, 3500);
+};
+
 // ── Configuration ──────────────────────────────────────────────────────────
 const API_BASE = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1'
   ? 'http://localhost:8181'
@@ -199,6 +216,7 @@ async function loadTonightReport() {
 async function fetchAIAnalysis() {
   const aiTargetsCard = document.getElementById('card-ai-targets');
   const engineBadgeEl = document.getElementById('seeing-engine-badge');
+  const moonFactEl = document.getElementById('moon-fact');
 
   if (aiTargetsCard) {
     aiTargetsCard.style.display = 'none';
@@ -208,6 +226,11 @@ async function fetchAIAnalysis() {
     engineBadgeEl.style.display = '';
     engineBadgeEl.innerHTML = '<span class="spinner" style="display:inline-block; animation: spin 1s linear infinite;">⚙️</span> Loading...';
     engineBadgeEl.className = 'seeing-engine-badge rule';
+  }
+
+  if (moonFactEl) {
+    moonFactEl.innerHTML = '<span class="spinner" style="display:inline-block; animation: spin 1s linear infinite;">⚙️</span> 🤖 Generating moon fun fact...';
+    moonFactEl.style.display = 'block';
   }
 
   try {
@@ -231,6 +254,9 @@ async function fetchAIAnalysis() {
       engineBadgeEl.textContent = 'Fallback: Rule-based';
       engineBadgeEl.className = 'seeing-engine-badge rule';
       engineBadgeEl.title = 'AI could not be reached. Showing rule-based metrics.';
+    }
+    if (moonFactEl) {
+      moonFactEl.style.display = 'none';
     }
   }
 }
