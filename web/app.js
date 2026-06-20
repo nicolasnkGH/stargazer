@@ -140,7 +140,7 @@ async function fetchAPI(path, fallback = null) {
   }
 
   try {
-    const resp = await fetch(`${API_BASE}${finalPath}`, { signal: AbortSignal.timeout(25000) });
+    const resp = await fetch(`${API_BASE}${finalPath}`, { signal: AbortSignal.timeout(45000) });
     if (!resp.ok) throw new Error(`HTTP ${resp.status}`);
     const data = await resp.json();
     localStorage.setItem(cacheKey, JSON.stringify(data));
@@ -163,7 +163,7 @@ async function fetchAndRender(path, renderFn, fallback = null) {
   }
 
   try {
-    const resp = await fetch(`${API_BASE}${finalPath}`, { signal: AbortSignal.timeout(25000) });
+    const resp = await fetch(`${API_BASE}${finalPath}`, { signal: AbortSignal.timeout(45000) });
     if (!resp.ok) throw new Error(`HTTP ${resp.status}`);
     const data = await resp.json();
     localStorage.setItem(cacheKey, JSON.stringify(data));
