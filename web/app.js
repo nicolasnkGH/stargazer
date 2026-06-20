@@ -344,6 +344,40 @@ function renderSeeing(seeing, data) {
     }
   }
 
+  // AI Recommended Targets
+  const aiTargetsCard = document.getElementById('card-ai-targets');
+  const aiTargetsList = document.getElementById('ai-targets-list');
+  if (aiTargetsCard && aiTargetsList) {
+    if (seeing.ai_powered && seeing.recommended_targets && seeing.recommended_targets.length > 0) {
+      aiTargetsList.innerHTML = '';
+      seeing.recommended_targets.forEach(t => {
+        const wrap = document.createElement('div');
+        wrap.style.background = 'rgba(255,255,255,0.03)';
+        wrap.style.padding = '8px 12px';
+        wrap.style.borderRadius = '6px';
+        wrap.style.borderLeft = '3px solid #8a2be2';
+        
+        const title = document.createElement('div');
+        title.style.fontWeight = 'bold';
+        title.style.color = '#fff';
+        title.textContent = t.name;
+        
+        const reason = document.createElement('div');
+        reason.style.fontSize = '0.85rem';
+        reason.style.color = '#ccc';
+        reason.style.marginTop = '4px';
+        reason.textContent = t.reason;
+        
+        wrap.appendChild(title);
+        wrap.appendChild(reason);
+        aiTargetsList.appendChild(wrap);
+      });
+      aiTargetsCard.style.display = 'block';
+    } else {
+      aiTargetsCard.style.display = 'none';
+    }
+  }
+
   // Dark window
   if (data) {
     const lblDark = window.i18n[currentLang].lbl_dark || 'Dark:';
