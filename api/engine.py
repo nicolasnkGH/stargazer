@@ -190,12 +190,8 @@ def get_planet_positions(dt: Optional[datetime] = None, lat=None, lon=None) -> l
     observer, _ = _get_observer(lat=lat, lon=lon)
     now = dt or now_local()
 
-    # Use 10pm local as prime observing time if before noon
-    if now.hour < 20:
-        tz = ZoneInfo(TIMEZONE)
-        obs_time = now.replace(hour=22, minute=0, second=0)
-    else:
-        obs_time = now
+    # Always use real-time for planet calculations
+    obs_time = now
 
     t = _sf_time(obs_time)
     results = []
@@ -503,7 +499,7 @@ def get_iss_passes(count: int = 3, lat=None, lon=None) -> list[dict]:
 
 
 
-def _ai_seeing_analysis(weather: dict, moon_illum: float, moon_alt: float, visible_targets: list = None) -> Optional[dict]:
+def _ai_seeing_analysis(weather: dict, moon_illum: float, moon_alt: float, visible_targets: list = None, window_label: str = "averaged 8 PM – 4 AM local time") -> Optional[dict]:
     """
     Call Qwen3.5-9B with a structured astronomy seeing prompt.
     Returns dict with score (1-10), label, explanation, best_window, warnings[].
@@ -533,7 +529,7 @@ def _ai_seeing_analysis(weather: dict, moon_illum: float, moon_alt: float, visib
 
     prompt = f"""You are an expert astronomical seeing forecaster helping amateur astronomers decide whether to observe tonight.
 
-Tonight's atmospheric data (averaged 8 PM – 4 AM local time):
+Tonight's atmospheric data ({window_label}):
 - Cloud cover: {weather.get('cloud_total', '?')}% (low: {weather.get('cloud_low', '?')}%, mid: {weather.get('cloud_mid', '?')}%, high/cirrus: {weather.get('cloud_high', '?')}%)
 - Surface wind: {weather.get('wind_surface', '?')} km/h
 - Upper-atmosphere wind (500hPa jet stream proxy): {weather.get('wind_upper', '?')} km/h
@@ -778,8 +774,25 @@ def get_seeing_forecast(lat=None, lon=None) -> dict:
     hourly = data.get("hourly", {})
     daily  = data.get("daily",  {})
 
-    # ── Average the overnight observing window (8 PM → 4 AM = indices 20-28) ──
-    tonight_start, tonight_end = 20, 28
+    # ── Average the overnight observing window (dynamic 8-hour block) ──
+    current_hour = now_local().hour
+    if current_hour < 12:
+        # After midnight: observing right now
+        tonight_start = current_hour
+    elif current_hour < 20:
+        # Daytime/afternoon: planning for tonight
+        tonight_start = 20
+    else:
+        # Evening: observing right now
+        tonight_start = current_hour
+        
+    tonight_end = tonight_start + 8
+    
+    start_h = tonight_start % 24
+    end_h = tonight_end % 24
+    start_str = f"{start_h % 12 or 12} {'AM' if start_h < 12 else 'PM'}"
+    end_str = f"{end_h % 12 or 12} {'AM' if end_h < 12 else 'PM'}"
+    window_label = f"averaged {start_str} – {end_str} local time"
 
     def avg(field, start=tonight_start, end=tonight_end):
         vals = [v for v in (hourly.get(field, []) or [])[start:end] if v is not None]
@@ -830,7 +843,7 @@ def get_seeing_forecast(lat=None, lon=None) -> dict:
 
     # ── AI analysis (Qwen3.5-9B) → fallback to rule-based ────────────────────
     try:
-        analysis = _ai_seeing_analysis(weather_snapshot, moon_illum, moon_alt, targets)
+        analysis = _ai_seeing_analysis(weather_snapshot, moon_illum, moon_alt, targets, window_label)
     except Exception:
         analysis = None
 
