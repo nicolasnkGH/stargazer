@@ -7,6 +7,7 @@ No API key required for core calculations.
 """
 
 from __future__ import annotations
+import json
 import math
 import requests
 from datetime import datetime, timedelta, date
@@ -20,7 +21,8 @@ from skyfield import almanac
 from config import (
     LATITUDE, LONGITUDE, ELEVATION_M, TIMEZONE,
     SCORPIUS_TARGETS, NEARBY_TARGETS, OTHER_TARGETS,
-    MIN_ALTITUDE_DEG, TELESCOPE_APERTURE_MM, BORTLE_CLASS, LIMITING_MAG
+    MIN_ALTITUDE_DEG, TELESCOPE_APERTURE_MM, BORTLE_CLASS, LIMITING_MAG,
+    AI_API_URL, AI_API_KEY, AI_MODEL, AI_TIMEOUT,
 )
 
 # ── Skyfield setup ────────────────────────────────────────────────────────────
@@ -490,102 +492,323 @@ def get_iss_passes(count: int = 3, lat=None, lon=None) -> list[dict]:
             "fallback_url": f"https://heavens-above.com/PassSummary.aspx?satid=25544&lat={LATITUDE}&lng={LONGITUDE}",
         }]
 
-# ── Seeing / Weather ──────────────────────────────────────────────────────────
 
-def get_seeing_forecast(lat=None, lon=None) -> dict:
-    """Fetch astronomical seeing forecast from Open-Meteo (free, no key needed)."""
-    url = (
-        f"https://api.open-meteo.com/v1/forecast"
-        f"?latitude={lat if lat else LATITUDE}&longitude={lon if lon else LONGITUDE}"
-        f"&hourly=cloudcover,cloudcover_low,cloudcover_mid,cloudcover_high,"
-        f"visibility,windspeed_10m,precipitation_probability,temperature_2m"
-        f"&daily=sunrise,sunset,precipitation_sum"
-        f"&timezone={TIMEZONE}&forecast_days=7"
-    )
+
+def _ai_seeing_analysis(weather: dict, moon_illum: float, moon_alt: float) -> Optional[dict]:
+    """
+    Call Qwen3.5-9B with a structured astronomy seeing prompt.
+    Returns dict with score (1-10), label, explanation, best_window, warnings[].
+    Returns None on timeout or any failure — caller falls back to rule-based scorer.
+    """
+    prompt = f"""You are an expert astronomical seeing forecaster helping amateur astronomers decide whether to observe tonight.
+
+Tonight's atmospheric data (averaged 8 PM – 4 AM local time):
+- Cloud cover: {weather.get('cloud_total', '?')}% (low: {weather.get('cloud_low', '?')}%, mid: {weather.get('cloud_mid', '?')}%, high/cirrus: {weather.get('cloud_high', '?')}%)
+- Surface wind: {weather.get('wind_surface', '?')} km/h
+- Upper-atmosphere wind (500hPa jet stream proxy): {weather.get('wind_upper', '?')} km/h
+- Precipitation probability: {weather.get('precip', '?')}%
+- Relative humidity: {weather.get('humidity', '?')}%
+- Dew point spread (temp − dewpoint): {weather.get('dew_spread', '?')}°C  [<3°C = fogging risk]
+- Surface pressure: {weather.get('pressure', '?')} hPa
+- Visibility: {weather.get('visibility_km', '?')} km
+- High cirrus clouds present: {'Yes' if (weather.get('cloud_high') or 0) > 20 else 'No'}
+- Moon: {moon_illum:.0f}% illuminated, currently {moon_alt:.1f}° above horizon
+
+Rate the astronomical seeing quality on a scale of 1–10 (10 = perfect, 1 = stay inside).
+Consider: transparency (cloud/humidity/cirrus), atmospheric stability (jet stream), dew risk, moon interference, and overall observing potential.
+
+Respond ONLY with valid JSON — no markdown, no explanation outside the JSON:
+{{"score": <int 1-10>, "label": "<short label e.g. Exceptional transparency>", "explanation": "<2 sentences for a beginner astronomer>", "best_window": "<e.g. 10 PM – Midnight or All night>", "warnings": [<list of short warning strings, empty list if none>]}}"""
+
+    headers = {"Content-Type": "application/json"}
+    if AI_API_KEY:
+        headers["Authorization"] = f"Bearer {AI_API_KEY}"
+
+    payload = {
+        "model": AI_MODEL,
+        "messages": [
+            {"role": "system", "content": "You are a precise astronomical seeing forecaster. Always respond with valid JSON only."},
+            {"role": "user", "content": prompt},
+        ],
+        "temperature": 0.1,
+        "max_tokens": 300,
+        "stream": False,
+    }
+
     try:
-        resp = requests.get(url, timeout=8)
-        data = resp.json()
-        hourly = data.get("hourly", {})
-        daily = data.get("daily", {})
+        resp = requests.post(AI_API_URL, json=payload, headers=headers, timeout=AI_TIMEOUT)
+        resp.raise_for_status()
+        raw = resp.json()["choices"][0]["message"]["content"].strip()
 
-        now_hour_idx = now_local().hour
-        tonight_start = 20  # 8pm
-        tonight_end = 28    # 4am next day (hour index)
+        # Strip markdown code fences if model adds them
+        if "```json" in raw:
+            raw = raw.split("```json")[1].split("```")[0].strip()
+        elif "```" in raw:
+            raw = raw.split("```")[1].split("```")[0].strip()
 
-        def avg_hours(field, start, end):
-            vals = hourly.get(field, [])
-            subset = vals[start:end]
-            return round(sum(subset) / len(subset), 1) if subset else None
+        result = json.loads(raw)
 
-        tonight_cloud = avg_hours("cloudcover", tonight_start, tonight_end)
-        tonight_cloud_low = avg_hours("cloudcover_low", tonight_start, tonight_end)
-        tonight_vis = avg_hours("visibility", tonight_start, tonight_end)
-        tonight_wind = avg_hours("windspeed_10m", tonight_start, tonight_end)
-        tonight_precip = avg_hours("precipitation_probability", tonight_start, tonight_end)
-
-        # Seeing score 1-5
-        score = 5
-        if tonight_cloud and tonight_cloud > 80:
-            score -= 3
-        elif tonight_cloud and tonight_cloud > 50:
-            score -= 2
-        elif tonight_cloud and tonight_cloud > 20:
-            score -= 1
-        if tonight_precip and tonight_precip > 50:
-            score -= 1
-        if tonight_wind and tonight_wind > 30:
-            score -= 1
-        score = max(1, score)
-
-        seeing_labels = {
-            5: "⭐⭐⭐⭐⭐ Exceptional",
-            4: "⭐⭐⭐⭐ Good",
-            3: "⭐⭐⭐ Average",
-            2: "⭐⭐ Poor",
-            1: "⭐ Bad — stay in"
-        }
-
-        # 7-day summary
-        week_summary = []
-        for i in range(7):
-            idx_start = i * 24 + tonight_start
-            idx_end = idx_start + 8
-            cloud = avg_hours("cloudcover", idx_start, idx_end)
-            precip = avg_hours("precipitation_probability", idx_start, idx_end)
-            d = daily.get("sunrise", [""] * 7)
-            label = "🟢 Clear" if cloud and cloud < 30 else ("🟡 Partly Cloudy" if cloud and cloud < 70 else "🔴 Cloudy")
-            from datetime import date as dt_date
-            day_date = (dt_date.today() + timedelta(days=i)).strftime("%a %b %d")
-            week_summary.append({
-                "date": day_date,
-                "cloud_pct": cloud,
-                "precip_prob": precip,
-                "status": label
-            })
+        # Validate required fields
+        score = int(result.get("score", 0))
+        if not (1 <= score <= 10):
+            raise ValueError(f"Score out of range: {score}")
 
         return {
-            "seeing_score": score,
-            "seeing_label": seeing_labels[score],
-            "tonight_cloud_pct": tonight_cloud,
-            "tonight_cloud_low_pct": tonight_cloud_low,
-            "tonight_visibility_m": tonight_vis,
-            "tonight_wind_kmh": tonight_wind,
-            "tonight_precip_prob": tonight_precip,
-            "week_forecast": week_summary,
-            "go_nogo": "✅ GO" if score >= 3 else ("⚠️ MARGINAL" if score == 2 else "❌ NO GO"),
-            "source": "Open-Meteo (free)",
-            "clearoutside_embed": f"https://clearoutside.com/forecast_embed/{lat if lat else LATITUDE}/{lon if lon else LONGITUDE}",
+            "score": score,
+            "label": str(result.get("label", ""))[:60],
+            "explanation": str(result.get("explanation", ""))[:300],
+            "best_window": str(result.get("best_window", "Check conditions"))[:60],
+            "warnings": [str(w)[:80] for w in result.get("warnings", [])[:4]],
+            "ai_powered": True,
         }
+
+    except Exception as e:
+        import logging
+        logging.getLogger("stargazer").warning(f"AI seeing analysis failed ({type(e).__name__}): {e}")
+        return None
+
+
+def _rule_based_seeing_score(weather: dict, moon_illum: float, moon_alt: float) -> dict:
+    """
+    Improved deterministic fallback scorer on 1–10 scale.
+    Used when Qwen is unreachable or times out.
+    """
+    cloud  = weather.get("cloud_total") or 50
+    wind_s = weather.get("wind_surface") or 0
+    wind_u = weather.get("wind_upper") or 0
+    precip = weather.get("precip") or 0
+    humid  = weather.get("humidity") or 50
+    spread = weather.get("dew_spread")   # may be None
+    cirrus = weather.get("cloud_high") or 0
+
+    score = 10
+
+    # Cloud cover — biggest factor
+    if cloud > 80:   score -= 4
+    elif cloud > 50: score -= 2
+    elif cloud > 20: score -= 1
+
+    # Jet stream / upper wind — seeing turbulence
+    if wind_u > 80:   score -= 2
+    elif wind_u > 50: score -= 1
+
+    # Surface wind
+    if wind_s > 40:   score -= 1
+
+    # Rain risk
+    if precip > 50:   score -= 1
+
+    # Dew / fogging risk
+    if spread is not None and spread < 2:  score -= 2
+    elif spread is not None and spread < 4: score -= 1
+
+    # Humidity
+    if humid > 90:    score -= 1
+
+    # High cirrus — kills transparency
+    if cirrus > 50:   score -= 1
+
+    # Moon interference (only counts when moon is above horizon)
+    if moon_illum > 80 and moon_alt > 20: score -= 1
+
+    score = max(1, min(10, score))
+
+    labels = {
+        10: "Perfect — rare, exceptional night",
+        9:  "Excellent transparency",
+        8:  "Very good conditions",
+        7:  "Good — solid observing night",
+        6:  "Decent — most targets reachable",
+        5:  "Average — bright objects only",
+        4:  "Below average — limiting",
+        3:  "Poor — consider waiting",
+        2:  "Very poor conditions",
+        1:  "Bad — stay in",
+    }
+
+    warnings = []
+    if spread is not None and spread < 4:
+        warnings.append(f"Dew risk — spread only {spread:.1f}°C, bring dew heater")
+    if wind_u > 50:
+        warnings.append(f"Jet stream turbulence likely ({wind_u:.0f} km/h at altitude)")
+    if cirrus > 30:
+        warnings.append(f"High cirrus clouds ({cirrus:.0f}%) — affects transparency")
+    if moon_illum > 60 and moon_alt > 10:
+        warnings.append(f"Moon {moon_illum:.0f}% lit — DSO contrast reduced")
+    if precip > 30:
+        warnings.append(f"Rain chance {precip:.0f}% — watch the sky")
+
+    # Rough best window suggestion
+    if cloud < 30 and precip < 20:
+        best_window = "All night"
+    elif cloud < 60:
+        best_window = "Early evening (8–11 PM)"
+    else:
+        best_window = "Check hourly cloud forecast"
+
+    return {
+        "score": score,
+        "label": labels[score],
+        "explanation": "",   # rule-based doesn't generate prose
+        "best_window": best_window,
+        "warnings": warnings,
+        "ai_powered": False,
+    }
+
+
+def get_seeing_forecast(lat=None, lon=None) -> dict:
+    """
+    Fetch astronomical seeing forecast from Open-Meteo (expanded parameters)
+    and analyse with Qwen3.5-9B AI, falling back to an improved rule-based scorer.
+    """
+    import json as _json
+
+    use_lat = lat if lat is not None else LATITUDE
+    use_lon = lon if lon is not None else LONGITUDE
+
+    url = (
+        f"https://api.open-meteo.com/v1/forecast"
+        f"?latitude={use_lat}&longitude={use_lon}"
+        # Surface
+        f"&hourly=cloudcover,cloudcover_low,cloudcover_mid,cloudcover_high,"
+        f"visibility,windspeed_10m,winddirection_10m,"
+        f"precipitation_probability,temperature_2m,dewpoint_2m,"
+        f"relativehumidity_2m,surface_pressure"
+        # Upper atmosphere (jet stream proxy)
+        f"&hourly=windspeed_500hPa"
+        f"&daily=sunrise,sunset,precipitation_sum"
+        f"&timezone=auto&forecast_days=7"
+    )
+
+    try:
+        resp = requests.get(url, timeout=8)
+        resp.raise_for_status()
+        data = resp.json()
     except Exception as e:
         return {
             "seeing_score": None,
             "seeing_label": "Could not fetch weather",
+            "seeing_explanation": "",
+            "best_window": "Unknown",
+            "warnings": [],
+            "ai_powered": False,
             "go_nogo": "❓ UNKNOWN",
-            "clearoutside_embed": f"https://clearoutside.com/forecast_embed/{lat if lat else LATITUDE}/{lon if lon else LONGITUDE}",
+            "clearoutside_embed": f"https://clearoutside.com/forecast_embed/{use_lat}/{use_lon}",
             "error": str(e),
         }
 
+    hourly = data.get("hourly", {})
+    daily  = data.get("daily",  {})
+
+    # ── Average the overnight observing window (8 PM → 4 AM = indices 20-28) ──
+    tonight_start, tonight_end = 20, 28
+
+    def avg(field, start=tonight_start, end=tonight_end):
+        vals = [v for v in (hourly.get(field, []) or [])[start:end] if v is not None]
+        return round(sum(vals) / len(vals), 1) if vals else None
+
+    cloud_total = avg("cloudcover")
+    cloud_low   = avg("cloudcover_low")
+    cloud_mid   = avg("cloudcover_mid")
+    cloud_high  = avg("cloudcover_high")
+    wind_s      = avg("windspeed_10m")
+    wind_u      = avg("windspeed_500hPa")
+    precip      = avg("precipitation_probability")
+    temp        = avg("temperature_2m")
+    dewpoint    = avg("dewpoint_2m")
+    humidity    = avg("relativehumidity_2m")
+    pressure    = avg("surface_pressure")
+    visibility  = avg("visibility")
+
+    dew_spread = round(temp - dewpoint, 1) if (temp is not None and dewpoint is not None) else None
+    visibility_km = round(visibility / 1000, 1) if visibility is not None else None
+
+    weather_snapshot = {
+        "cloud_total": cloud_total,
+        "cloud_low":   cloud_low,
+        "cloud_mid":   cloud_mid,
+        "cloud_high":  cloud_high,
+        "wind_surface": wind_s,
+        "wind_upper":  wind_u,
+        "precip":      precip,
+        "humidity":    humidity,
+        "dew_spread":  dew_spread,
+        "pressure":    pressure,
+        "visibility_km": visibility_km,
+    }
+
+    # Moon context for AI/fallback scoring
+    try:
+        moon_now = get_moon_info(lat=lat, lon=lon)
+        moon_illum = moon_now.get("illumination_pct", 50)
+        moon_alt   = moon_now.get("altitude_deg", 0)
+    except Exception:
+        moon_illum, moon_alt = 50, 0
+
+    # ── AI analysis (Qwen3.5-9B) → fallback to rule-based ────────────────────
+    analysis = _ai_seeing_analysis(weather_snapshot, moon_illum, moon_alt)
+    if analysis is None:
+        analysis = _rule_based_seeing_score(weather_snapshot, moon_illum, moon_alt)
+
+    score = analysis["score"]
+
+    # Map 1-10 AI score → 1-5 stars for legacy badge compatibility
+    stars = max(1, round(score / 2))
+
+    seeing_labels_5 = {
+        5: "⭐⭐⭐⭐⭐ Exceptional",
+        4: "⭐⭐⭐⭐ Good",
+        3: "⭐⭐⭐ Average",
+        2: "⭐⭐ Poor",
+        1: "⭐ Bad — stay in",
+    }
+
+    go_nogo = "✅ GO" if score >= 6 else ("⚠️ MARGINAL" if score >= 4 else "❌ NO GO")
+
+    # ── 7-day summary (unchanged logic, extended field) ───────────────────────
+    week_summary = []
+    for i in range(7):
+        idx_s = i * 24 + tonight_start
+        idx_e = idx_s + 8
+        day_cloud  = avg("cloudcover", idx_s, idx_e)
+        day_precip = avg("precipitation_probability", idx_s, idx_e)
+        label = "🟢 Clear" if (day_cloud or 100) < 30 else ("🟡 Partly Cloudy" if (day_cloud or 100) < 70 else "🔴 Cloudy")
+        from datetime import date as _date
+        day_date = (_date.today() + timedelta(days=i)).strftime("%a %b %d")
+        week_summary.append({
+            "date":        day_date,
+            "cloud_pct":   day_cloud,
+            "precip_prob": day_precip,
+            "status":      label,
+        })
+
+    return {
+        # Core score (1-10) and 5-star display
+        "seeing_score":       stars,          # 1-5 for badge/stars UI
+        "seeing_score_raw":   score,          # 1-10 for display/tooltip
+        "seeing_label":       seeing_labels_5[stars],
+        "seeing_label_ai":    analysis["label"],       # AI's own short label
+        "seeing_explanation": analysis["explanation"], # prose for beginners
+        "best_window":        analysis["best_window"],
+        "warnings":           analysis["warnings"],
+        "ai_powered":         analysis["ai_powered"],
+        # Weather snapshot (kept for frontend metrics)
+        "tonight_cloud_pct":     cloud_total,
+        "tonight_cloud_low_pct": cloud_low,
+        "tonight_wind_kmh":      wind_s,
+        "tonight_precip_prob":   precip,
+        "tonight_humidity":      humidity,
+        "tonight_dew_spread":    dew_spread,
+        "tonight_visibility_km": visibility_km,
+        # Go/No-Go
+        "go_nogo":  go_nogo,
+        "source":   "Open-Meteo + Qwen3.5-9B" if analysis["ai_powered"] else "Open-Meteo (rule-based fallback)",
+        "clearoutside_embed": f"https://clearoutside.com/forecast_embed/{use_lat}/{use_lon}",
+        "week_forecast": week_summary,
+    }
+
 # ── Tonight Report ────────────────────────────────────────────────────────────
+
 
 def get_tonight_report(lat=None, lon=None) -> dict:
     now = now_local()
