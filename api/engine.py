@@ -531,22 +531,29 @@ Respond ONLY with valid JSON — no markdown, no explanation outside the JSON:
             {"role": "user", "content": prompt},
         ],
         "temperature": 0.1,
-        "max_tokens": 300,
+        "max_tokens": 1200,
         "stream": False,
     }
 
     try:
         resp = requests.post(AI_API_URL, json=payload, headers=headers, timeout=AI_TIMEOUT)
         resp.raise_for_status()
-        raw = resp.json()["choices"][0]["message"]["content"].strip()
+        
+        msg = resp.json()["choices"][0]["message"]
+        content = msg.get("content", "").strip()
+        reasoning = msg.get("reasoning_content", "").strip()
+        
+        # Some reasoning models (like DeepSeek R1) output their entire thought process in reasoning_content
+        # and may hit max_tokens before ever writing 'content'. We check both.
+        raw = content if content else reasoning
 
-        # Strip markdown code fences if model adds them
-        if "```json" in raw:
-            raw = raw.split("```json")[1].split("```")[0].strip()
-        elif "```" in raw:
-            raw = raw.split("```")[1].split("```")[0].strip()
+        # Ultra-robust JSON extraction via regex (looks for the first valid-looking JSON object)
+        import re
+        match = re.search(r'\{.*"score"\s*:.*\}', raw, re.DOTALL)
+        if match:
+            raw = match.group(0)
 
-        result = json.loads(raw)
+        result = _json.loads(raw)
 
         # Validate required fields
         score = int(result.get("score", 0))
