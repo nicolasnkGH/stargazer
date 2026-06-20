@@ -662,10 +662,11 @@ Respond ONLY with valid JSON — no markdown, no explanation outside the JSON:
         import logging
         logger = logging.getLogger("stargazer")
         logger.warning(f"AI seeing analysis failed ({type(e).__name__}): {e}")
-        # Resilient Fallback: If we have ANY cached data for tonight, serve it rather than dropping to rule-based
-        if _AI_CACHE.get("data"):
+        # Resilient Fallback: If we have ANY cached data for this weather, serve it rather than dropping to rule-based
+        fallback_entry = cache_db.get(current_hash, {})
+        if fallback_entry.get("data"):
             logger.warning("AI Seeing: Falling back to stale cached response due to LLM failure")
-            return _AI_CACHE["data"]
+            return fallback_entry["data"]
         return None
 
 
