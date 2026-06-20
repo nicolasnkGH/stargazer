@@ -539,27 +539,115 @@ function loadActiveConstellation(abbr) {
   }
   fetchAndRender(`/constellation_window?abbr=${abbr}`, renderActiveConstellation, { status: "Network error" });
   
-  // Concurrently fetch targets
-  fetchAPI(`/targets?constellation=${abbr}&visible_only=true`).then(res => {
-    const listEl = document.getElementById('ac-targets-list');
-    if (!listEl) return;
-    if (!res || !res.targets || res.targets.length === 0) {
-      listEl.innerHTML = '<div style="color: #a1a1aa; font-size: 0.8rem; font-style: italic;">No notable targets visible right now</div>';
-      return;
+  // Concurrently fetch targets to plot on map
+  fetchAPI(`/targets?constellation=${abbr}`).then(res => {
+    if (res && res.targets) {
+      renderConstellationMap(res.targets);
     }
-    
-    // Sort by magnitude and take top 3
-    const topTargets = res.targets.sort((a,b) => (a.magnitude||99) - (b.magnitude||99)).slice(0, 3);
-    listEl.innerHTML = topTargets.map(t => `
-      <div style="background: rgba(255,255,255,0.03); border: 1px solid rgba(255,255,255,0.05); padding: 8px 10px; border-radius: 6px; font-size: 0.85rem; display: flex; justify-content: space-between; align-items: center; transition: background 0.2s;" onmouseover="this.style.background='rgba(255,255,255,0.08)'" onmouseout="this.style.background='rgba(255,255,255,0.03)'">
-        <div style="display:flex; flex-direction:column; gap:2px;">
-          <span style="color:#e2e8f0; font-weight:500;">${t.name}</span>
-          <span style="color:#94a3b8; font-size:0.75rem;">${t.type || 'Object'} • Mag ${t.magnitude || '?'}</span>
-        </div>
-        <div style="background: rgba(168,85,247,0.15); color: #c084fc; padding: 2px 6px; border-radius: 4px; font-size: 0.75rem; font-family: var(--font-mono);">${t.altitude_deg}°</div>
-      </div>
-    `).join('');
   });
+}
+
+function renderConstellationMap(targets) {
+  const container = document.getElementById('ac-map-container');
+  const svg = d3.select('#ac-map-svg');
+  const tooltip = d3.select('#ac-map-tooltip');
+  const detailsPanel = document.getElementById('ac-details-panel');
+  
+  if (!container || !svg.node()) return;
+  
+  // Clear previous
+  svg.selectAll('*').remove();
+  detailsPanel.style.display = 'none';
+
+  if (!targets || targets.length === 0) {
+    svg.append('text')
+       .attr('x', '50%').attr('y', '50%')
+       .attr('text-anchor', 'middle').attr('fill', '#a1a1aa')
+       .attr('font-size', '0.8rem').text('No map data available');
+    return;
+  }
+
+  // Filter out targets missing ra/dec
+  const validTargets = targets.filter(t => t.ra_hours != null && t.dec_degrees != null);
+  if (validTargets.length === 0) return;
+
+  const width = container.clientWidth || 300;
+  const height = container.clientHeight || 200;
+
+  // Calculate center of all targets
+  const centerRa = d3.mean(validTargets, d => d.ra_hours) * 15; // convert hours to degrees
+  const centerDec = d3.mean(validTargets, d => d.dec_degrees);
+
+  // Projection setup
+  const projection = d3.geoStereographic()
+      .rotate([-centerRa, -centerDec])
+      .scale(width * 1.5)
+      .translate([width / 2, height / 2]);
+
+  // Draw targets
+  const nodes = svg.selectAll('g.target')
+    .data(validTargets)
+    .enter()
+    .append('g')
+    .attr('class', 'target')
+    .attr('transform', d => {
+        const [x, y] = projection([d.ra_hours * 15, d.dec_degrees]);
+        return `translate(${x},${y})`;
+    })
+    .style('cursor', 'pointer')
+    .on('mouseover', function(event, d) {
+        d3.select(this).select('circle').attr('stroke', '#fff').attr('stroke-width', 2);
+        tooltip.style('opacity', 1)
+               .html(`<strong>${d.name}</strong><br>Mag ${d.magnitude || '?'}`)
+               .style('left', (event.pageX + 10) + 'px')
+               .style('top', (event.pageY - 20) + 'px');
+    })
+    .on('mousemove', function(event) {
+        tooltip.style('left', (event.pageX + 10) + 'px')
+               .style('top', (event.pageY - 20) + 'px');
+    })
+    .on('mouseout', function(event, d) {
+        d3.select(this).select('circle').attr('stroke', null);
+        tooltip.style('opacity', 0);
+    })
+    .on('click', function(event, d) {
+        // Show details panel
+        detailsPanel.style.display = 'block';
+        document.getElementById('acd-name').textContent = d.name;
+        document.getElementById('acd-type').textContent = `${d.type || 'Object'} • Mag ${d.magnitude || '?'}`;
+        document.getElementById('acd-desc').textContent = d.description || 'No description available.';
+        
+        let diffColor = 'rgba(255,255,255,0.1)';
+        let diffText = '#fff';
+        const diffStr = (d.difficulty || '').toLowerCase();
+        if (diffStr.includes('easy') || diffStr.includes('naked')) { diffColor = 'rgba(34,197,94,0.15)'; diffText = '#4ade80'; }
+        else if (diffStr.includes('medium')) { diffColor = 'rgba(245,158,11,0.15)'; diffText = '#f59e0b'; }
+        else if (diffStr.includes('hard')) { diffColor = 'rgba(248,113,113,0.15)'; diffText = '#f87171'; }
+        
+        const diffEl = document.getElementById('acd-diff');
+        diffEl.textContent = (d.difficulty || 'Unknown').replace('_', ' ');
+        diffEl.style.background = diffColor;
+        diffEl.style.color = diffText;
+        
+        document.getElementById('acd-alt').textContent = d.altitude_deg != null ? `${d.altitude_deg}° ${d.direction} • ${d.visible ? 'In view' : 'Below horizon'}` : '';
+    });
+
+  // Plot circle
+  nodes.append('circle')
+    .attr('r', d => {
+        const mag = d.magnitude || 5;
+        // Brighter (lower mag) = bigger radius
+        return Math.max(2, 6 - (mag / 2));
+    })
+    .attr('fill', d => {
+        const t = (d.type || '').toLowerCase();
+        if (t.includes('star')) return '#fbbf24'; // yellow-ish
+        if (t.includes('cluster')) return '#38bdf8'; // blue-ish
+        if (t.includes('nebula')) return '#f472b6'; // pink-ish
+        if (t.includes('galaxy')) return '#a855f7'; // purple
+        return '#cbd5e1';
+    })
+    .style('filter', 'drop-shadow(0 0 4px rgba(255,255,255,0.4))');
 }
 
 function renderActiveConstellation(s) {
