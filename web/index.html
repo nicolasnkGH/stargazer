@@ -94,10 +94,24 @@
               <div class="metric-label" data-i18n="m_rain">Rain Chance</div>
             </div>
           </div>
-          <div class="seeing-label" id="seeing-label">Loading…</div>
+          <!-- 5-star label + engine badge -->
+          <div class="seeing-label-row">
+            <div class="seeing-label" id="seeing-label">Loading…</div>
+            <span class="seeing-engine-badge" id="seeing-engine-badge" style="display:none"></span>
+          </div>
+          <!-- AI short label -->
+          <div class="seeing-ai-label" id="seeing-ai-label" style="display:none"></div>
+          <!-- AI explanation prose -->
+          <div class="seeing-explanation" id="seeing-explanation" style="display:none"></div>
+          <!-- Best observing window -->
+          <div class="seeing-best-window" id="seeing-best-window" style="display:none"></div>
+          <!-- Warning chips -->
+          <div class="seeing-warnings" id="seeing-warnings" style="display:none"></div>
           <div class="dark-window" id="dark-window">Dark window: loading…</div>
         </div>
       </div>
+
+
 
       <!-- Moon -->
       <div class="card card-moon" id="card-moon">

@@ -380,6 +380,97 @@ body {
   font-family: var(--font-mono);
 }
 
+/* ── AI Seeing Score Extras ─────────────────────────────────────────────── */
+
+.seeing-label-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 6px;
+  flex-wrap: wrap;
+}
+
+/* Engine badge — 🤖 AI or 📐 Rule-based */
+.seeing-engine-badge {
+  display: inline-block;
+  font-size: 0.68rem;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  padding: 2px 9px;
+  border-radius: 20px;
+  border: 1px solid;
+  cursor: default;
+  transition: opacity 0.2s;
+  white-space: nowrap;
+}
+.seeing-engine-badge.ai {
+  background: rgba(168, 85, 247, 0.12);
+  border-color: rgba(168, 85, 247, 0.35);
+  color: #c084fc;
+}
+.seeing-engine-badge.rule {
+  background: rgba(100, 116, 139, 0.12);
+  border-color: rgba(100, 116, 139, 0.3);
+  color: var(--text-secondary);
+}
+
+/* AI short descriptive label */
+.seeing-ai-label {
+  font-size: 0.82rem;
+  color: var(--accent-blue);
+  font-style: italic;
+  margin-bottom: 8px;
+  opacity: 0.85;
+}
+
+/* AI explanation prose for beginners */
+.seeing-explanation {
+  font-size: 0.82rem;
+  color: var(--text-secondary);
+  line-height: 1.55;
+  margin-bottom: 10px;
+  padding: 10px 12px;
+  background: var(--bg-glass);
+  border-radius: 8px;
+  border-left: 2px solid rgba(168, 85, 247, 0.4);
+  animation: fadeInUp 0.4s ease;
+}
+
+/* Best observing window pill */
+.seeing-best-window {
+  display: inline-block;
+  font-size: 0.75rem;
+  font-weight: 600;
+  padding: 4px 12px;
+  border-radius: 20px;
+  background: rgba(74, 158, 255, 0.1);
+  border: 1px solid rgba(74, 158, 255, 0.25);
+  color: var(--accent-blue);
+  margin-bottom: 10px;
+  letter-spacing: 0.02em;
+}
+
+/* Warning chips row */
+.seeing-warnings {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin-bottom: 10px;
+}
+
+.seeing-warning-chip {
+  font-size: 0.72rem;
+  padding: 3px 10px;
+  border-radius: 20px;
+  background: rgba(245, 158, 11, 0.1);
+  border: 1px solid rgba(245, 158, 11, 0.3);
+  color: #fbbf24;
+  white-space: nowrap;
+  animation: fadeInUp 0.3s ease forwards;
+}
+
+
+
 /* ── Moon Card ──────────────────────────────────────────────────────────── */
 .moon-phase-name {
   font-size: 1.1rem;

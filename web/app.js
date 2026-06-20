@@ -246,18 +246,37 @@ function renderSeeing(seeing, data) {
   }
 
   const scoreEl = document.getElementById('seeing-score-badge');
-  const score = seeing.seeing_score;
-  scoreEl.textContent = score ? `${score}/5 ⭐` : '—';
-  scoreEl.style.background = score >= 4 ? 'rgba(34,197,94,0.15)' : score >= 3 ? 'rgba(74,158,255,0.15)' : 'rgba(239,68,68,0.15)';
-  scoreEl.style.borderColor = score >= 4 ? 'rgba(34,197,94,0.4)' : score >= 3 ? 'rgba(74,158,255,0.4)' : 'rgba(239,68,68,0.4)';
-  scoreEl.style.color = score >= 4 ? '#22c55e' : score >= 3 ? '#4a9eff' : '#f87171';
+  const score   = seeing.seeing_score;    // 1-5 stars
+  const scoreRaw = seeing.seeing_score_raw; // 1-10
 
+  // 5-star colour coding
+  const isGood     = score >= 4;
+  const isAvg      = score >= 3;
+  const colorGreen = 'rgba(34,197,94,0.15)';
+  const colorBlue  = 'rgba(74,158,255,0.15)';
+  const colorRed   = 'rgba(239,68,68,0.15)';
+  const borderGreen = 'rgba(34,197,94,0.4)';
+  const borderBlue  = 'rgba(74,158,255,0.4)';
+  const borderRed   = 'rgba(239,68,68,0.4)';
+  const textGreen   = '#22c55e';
+  const textBlue    = '#4a9eff';
+  const textRed     = '#f87171';
+
+  scoreEl.textContent = score ? `${score}/5 ⭐` : '—';
+  if (scoreRaw != null) scoreEl.title = `AI score: ${scoreRaw}/10`;
+  scoreEl.style.background   = isGood ? colorGreen : isAvg ? colorBlue : colorRed;
+  scoreEl.style.borderColor  = isGood ? borderGreen : isAvg ? borderBlue : borderRed;
+  scoreEl.style.color        = isGood ? textGreen   : isAvg ? textBlue  : textRed;
+
+  // Weather metrics
   document.getElementById('m-cloud').querySelector('.metric-val').textContent =
     seeing.tonight_cloud_pct != null ? `${seeing.tonight_cloud_pct}%` : '—';
   document.getElementById('m-wind').querySelector('.metric-val').textContent =
     seeing.tonight_wind_kmh != null ? `${seeing.tonight_wind_kmh}` : '—';
   document.getElementById('m-precip').querySelector('.metric-val').textContent =
     seeing.tonight_precip_prob != null ? `${seeing.tonight_precip_prob}%` : '—';
+
+  // Seeing label (5-star text)
   let sl = seeing.seeing_label || '—';
   if (sl !== '—') {
     const dict = window.i18n[currentLang] || window.i18n['en'];
@@ -265,16 +284,74 @@ function renderSeeing(seeing, data) {
     else if (sl.includes('Good')) sl = sl.replace('Good', dict.good || 'Good');
     else if (sl.includes('Fair')) sl = sl.replace('Fair', dict.fair || 'Fair');
     else if (sl.includes('Poor')) sl = sl.replace('Poor', dict.poor || 'Poor');
-    else if (sl.includes('Not observing tonight')) sl = sl.replace('Not observing tonight', dict.not_obs || 'Not observing tonight');
   }
   document.getElementById('seeing-label').textContent = sl;
 
+  // ── AI-powered extras ─────────────────────────────────────────────────────
+
+  // Engine badge (🤖 AI | 📐 Rule-based)
+  const engineBadgeEl = document.getElementById('seeing-engine-badge');
+  if (engineBadgeEl) {
+    const isAI = seeing.ai_powered;
+    engineBadgeEl.textContent   = isAI ? '🤖 AI' : '📐 Rule-based';
+    engineBadgeEl.title         = isAI
+      ? 'Scored by Qwen3.5-9B (local AI)'
+      : 'AI unavailable — using extended rule-based scorer';
+    engineBadgeEl.className = `seeing-engine-badge ${isAI ? 'ai' : 'rule'}`;
+  }
+
+  // AI label (short label from the model)
+  const aiLabelEl = document.getElementById('seeing-ai-label');
+  if (aiLabelEl) {
+    aiLabelEl.textContent = seeing.seeing_label_ai || '';
+    aiLabelEl.style.display = seeing.seeing_label_ai ? '' : 'none';
+  }
+
+  // Explanation prose
+  const explanationEl = document.getElementById('seeing-explanation');
+  if (explanationEl) {
+    explanationEl.textContent = seeing.seeing_explanation || '';
+    explanationEl.style.display = seeing.seeing_explanation ? '' : 'none';
+  }
+
+  // Best window badge
+  const windowEl = document.getElementById('seeing-best-window');
+  if (windowEl) {
+    if (seeing.best_window) {
+      windowEl.textContent = `🔭 Best window: ${seeing.best_window}`;
+      windowEl.style.display = '';
+    } else {
+      windowEl.style.display = 'none';
+    }
+  }
+
+  // Warning chips
+  const warningsEl = document.getElementById('seeing-warnings');
+  if (warningsEl) {
+    warningsEl.innerHTML = '';
+    const warnings = seeing.warnings || [];
+    if (warnings.length > 0) {
+      warnings.forEach(w => {
+        const chip = document.createElement('span');
+        chip.className = 'seeing-warning-chip';
+        chip.textContent = `⚠️ ${w}`;
+        warningsEl.appendChild(chip);
+      });
+      warningsEl.style.display = '';
+    } else {
+      warningsEl.style.display = 'none';
+    }
+  }
+
+  // Dark window
   if (data) {
     const lblDark = window.i18n[currentLang].lbl_dark || 'Dark:';
     document.getElementById('dark-window').textContent =
       `${lblDark} ${data.astronomical_dusk || '?'} → ${data.astronomical_dawn || '?'} (${data.observing_window_hours || '?'}h)`;
   }
 }
+
+
 
 function renderMoon(moon) {
   if (!moon) {
