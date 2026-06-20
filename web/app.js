@@ -298,6 +298,7 @@ function renderSeeing(seeing, data) {
       ? 'Scored by Qwen3.5-9B (local AI)'
       : 'AI unavailable — using extended rule-based scorer';
     engineBadgeEl.className = `seeing-engine-badge ${isAI ? 'ai' : 'rule'}`;
+    engineBadgeEl.style.display = '';
   }
 
   // AI label (short label from the model)
