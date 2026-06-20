@@ -19,7 +19,7 @@ FRONTEND_URL = os.getenv("FRONTEND_URL", "http://localhost:8181")
 AI_API_URL  = os.getenv("AI_API_URL",   "http://10.27.27.145:8083/v1/chat/completions")
 AI_API_KEY  = os.getenv("AI_API_KEY",   "")          # no auth required on local inference server
 AI_MODEL    = os.getenv("AI_MODEL",     "qwen-9b")
-AI_TIMEOUT  = int(os.getenv("AI_TIMEOUT", "8"))      # seconds — fall back to rule-based on timeout
+AI_TIMEOUT  = int(os.getenv("AI_TIMEOUT", "15"))     # seconds — fall back to rule-based on timeout
 
 
 # Telescope
