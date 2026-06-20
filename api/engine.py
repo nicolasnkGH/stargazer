@@ -379,6 +379,8 @@ def get_visible_targets(dt: Optional[datetime] = None, lat=None, lon=None, const
 
         result = {**target}
         result.update({
+            "ra_hours": ra_h,
+            "dec_degrees": dec_deg,
             "altitude_deg": round(alt.degrees, 1),
             "azimuth_deg": round(az.degrees, 1),
             "direction": _az_to_direction(az.degrees),

@@ -29,6 +29,10 @@
   <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;400;500;600;700&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet" />
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/driver.js@1.0.1/dist/driver.css" />
   <link rel="stylesheet" href="style.css?v=24" />
+  
+  <!-- D3.js for Interactive Star Map -->
+  <script src="https://d3js.org/d3.v7.min.js"></script>
+  <script src="https://d3js.org/d3-geo.v3.min.js"></script>
 </head>
 <body>
 
@@ -172,29 +176,35 @@
           </div>
           <span class="card-badge" id="ac-status-badge">...</span>
         </div>
-        <div class="card-body">
-          <div class="ac-status" id="ac-status">Loading constellation data...</div>
+        <div class="card-body" style="padding-bottom: 8px;">
+          <div class="ac-status" id="ac-status" style="margin-bottom: 12px;">Loading constellation map...</div>
           
-          <div class="moon-arc-wrap" style="margin-top: 15px; margin-bottom: 5px;">
-            <div class="moon-arc-bar" style="background: rgba(255,255,255,0.1);">
-              <div class="moon-arc-fill" id="ac-arc-fill" style="width:0%; background: #3b82f6; box-shadow: 0 0 10px #3b82f6;"></div>
-            </div>
-            <span class="moon-arc-label" id="ac-arc-label" style="color: #60a5fa;">0°</span>
+          <!-- Interactive D3 Map Container -->
+          <div id="ac-map-container" style="width: 100%; height: 200px; background: rgba(0,0,0,0.2); border-radius: 8px; border: 1px solid rgba(255,255,255,0.05); position: relative; overflow: hidden; margin-bottom: 12px;">
+            <svg id="ac-map-svg" width="100%" height="100%"></svg>
+            <div id="ac-map-tooltip" style="position: absolute; opacity: 0; pointer-events: none; background: rgba(15,23,42,0.9); color: #fff; padding: 4px 8px; border-radius: 4px; font-size: 0.75rem; border: 1px solid rgba(168,85,247,0.3); transition: opacity 0.2s; white-space: nowrap;"></div>
           </div>
 
-          <div style="font-size: 0.8rem; color: #a1a1aa; margin-bottom: 12px; display: flex; justify-content: space-between;">
+          <!-- Target Details Panel (hidden until clicked) -->
+          <div id="ac-details-panel" style="display: none; background: rgba(168,85,247,0.05); border: 1px solid rgba(168,85,247,0.2); border-radius: 8px; padding: 12px; margin-bottom: 12px;">
+            <div style="display:flex; justify-content:space-between; align-items:flex-start; margin-bottom: 6px;">
+              <div>
+                <h4 id="acd-name" style="margin:0; font-size: 1rem; color: #e2e8f0; font-weight: 600;">Target Name</h4>
+                <div id="acd-type" style="font-size: 0.8rem; color: #94a3b8;">Type • Mag 0.0</div>
+              </div>
+              <button onclick="document.getElementById('ac-details-panel').style.display='none'" style="background:none; border:none; color:#a1a1aa; cursor:pointer; font-size:1.1rem; padding:0;">&times;</button>
+            </div>
+            <div style="font-size: 0.85rem; color: #cbd5e1; margin-bottom: 8px; line-height: 1.4;" id="acd-desc">Description goes here...</div>
+            <div style="display:flex; justify-content:space-between; align-items:center;">
+              <span id="acd-diff" style="background: rgba(34,197,94,0.15); color: #4ade80; padding: 2px 6px; border-radius: 4px; font-size: 0.75rem; font-family: var(--font-mono); text-transform:uppercase;">EASY</span>
+              <span id="acd-alt" style="font-size: 0.8rem; color: #94a3b8;">45.0° SSE • In view</span>
+            </div>
+          </div>
+
+          <div style="font-size: 0.8rem; color: #a1a1aa; display: flex; justify-content: space-between; padding-top: 8px; border-top: 1px solid rgba(255,255,255,0.05);">
              <span><span data-i18n="lbl_rise" style="opacity: 0.6;">Rise</span> <span id="ac-rise" style="color:#fff;">—</span></span>
              <span><span data-i18n="lbl_set" style="opacity: 0.6;">Set</span> <span id="ac-set" style="color:#fff;">—</span></span>
           </div>
-
-          <div id="ac-targets-container" style="border-top: 1px solid rgba(255,255,255,0.05); padding-top: 12px;">
-            <div style="font-size: 0.8rem; font-weight: 600; color: #a855f7; margin-bottom: 8px; text-transform: uppercase; letter-spacing: 0.05em;">Notable Targets</div>
-            <div id="ac-targets-list" style="display:flex; flex-direction: column; gap: 8px;">
-               <!-- Populated by JS -->
-            </div>
-          </div>
-
-          <div class="ac-note" id="ac-note" style="margin-top: 15px;"></div>
         </div>
       </section>
     </div>
