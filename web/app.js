@@ -963,15 +963,45 @@ function initLocationUI() {
     aboutModal.classList.add('hidden');
   });
 
-  document.getElementById('btn-save-loc').addEventListener('click', () => {
+  document.getElementById('btn-save-loc').addEventListener('click', async () => {
     const lat = parseFloat(inputLat.value);
     const lon = parseFloat(inputLon.value);
-    const name = inputName.value.trim() || 'Custom Location';
+    let name = inputName.value.trim();
     if (isNaN(lat) || isNaN(lon)) return alert('Invalid coordinates');
+    
+    const btn = document.getElementById('btn-save-loc');
+    const oldText = btn.textContent;
+    btn.textContent = 'Locating...';
+    btn.disabled = true;
+
+    // Reverse geocode if no custom name provided
+    if (!name || name === 'GPS Location' || name === 'Custom Location') {
+      try {
+        const res = await fetch(`https://api.bigdatacloud.net/data/reverse-geocode-client?latitude=${lat}&longitude=${lon}&localityLanguage=en`);
+        const data = await res.json();
+        const parts = [];
+        if (data.city || data.locality) parts.push(data.city || data.locality);
+        if (data.principalSubdivision) parts.push(data.principalSubdivision);
+        
+        if (parts.length > 0) {
+            name = parts.join(', ');
+        } else if (data.countryName) {
+            name = data.countryName;
+        } else {
+            name = 'Custom Location';
+        }
+      } catch (e) {
+        console.warn('Reverse geocode failed:', e);
+        name = name || 'Custom Location';
+      }
+    }
     
     const newLoc = { id: 'loc_' + Date.now(), name, lat, lon };
     savedLocations.push(newLoc);
     localStorage.setItem('stargazer_locations', JSON.stringify(savedLocations));
+    
+    btn.textContent = oldText;
+    btn.disabled = false;
     activateLocation(newLoc.id);
   });
 
