@@ -738,7 +738,10 @@ function renderActiveConstellation(s) {
   const lblBestTime = dict.best_viewing || 'Best viewing time for';
   const lblTonightAround = dict.tonight_around || 'tonight is around';
   
-  document.getElementById('ac-note').innerHTML = `💡 ${lblBestTime} <strong>${constName}</strong> ${lblTonightAround} <strong>${s.best_time}</strong>.`;
+  const noteEl = document.getElementById('ac-note');
+  if (noteEl) {
+    noteEl.innerHTML = `💡 ${lblBestTime} <strong>${constName}</strong> ${lblTonightAround} <strong>${s.best_time}</strong>.`;
+  }
 }
 
 function renderPlanets(planets) {
