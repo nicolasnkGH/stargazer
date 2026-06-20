@@ -510,7 +510,7 @@ def _ai_seeing_analysis(weather: dict, moon_illum: float, moon_alt: float) -> Op
     Returns None on timeout or any failure — caller falls back to rule-based scorer.
     """
     if not AI_API_URL or not AI_MODEL:
-        return None
+        raise ValueError("AI_API_URL or AI_MODEL is not configured in .env")
 
     # Calculate parameter hash to detect weather changes
     params_str = str(sorted(weather.items()))
@@ -631,10 +631,12 @@ Respond ONLY with valid JSON — no markdown, no explanation outside the JSON:
         logger = logging.getLogger("stargazer")
         logger.warning(f"AI seeing analysis failed ({type(e).__name__}): {e}")
         # Resilient Fallback: If we have ANY cached data for tonight, serve it rather than dropping to rule-based
-        if _AI_CACHE["data"]:
+        if _AI_CACHE.get("data"):
             logger.warning("AI Seeing: Falling back to stale cached response due to LLM failure")
             return _AI_CACHE["data"]
-        return None
+        
+        # Raise so the frontend can display the exact exception for debugging
+        raise RuntimeError(f"{type(e).__name__}: {e}")
 
 
 def _rule_based_seeing_score(weather: dict, moon_illum: float, moon_alt: float) -> dict:
@@ -815,9 +817,17 @@ def get_seeing_forecast(lat=None, lon=None) -> dict:
         moon_illum, moon_alt = 50, 0
 
     # ── AI analysis (Qwen3.5-9B) → fallback to rule-based ────────────────────
-    analysis = _ai_seeing_analysis(weather_snapshot, moon_illum, moon_alt)
+    ai_exception_msg = ""
+    try:
+        analysis = _ai_seeing_analysis(weather_snapshot, moon_illum, moon_alt)
+    except Exception as e:
+        ai_exception_msg = str(e)
+        analysis = None
+
     if analysis is None:
         analysis = _rule_based_seeing_score(weather_snapshot, moon_illum, moon_alt)
+        if ai_exception_msg:
+            analysis["label"] = f"AI FAILED: {ai_exception_msg}"
 
     score = analysis["score"]
 
