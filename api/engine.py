@@ -515,7 +515,7 @@ def get_iss_passes(count: int = 3, lat=None, lon=None) -> list[dict]:
 
 
 
-def _ai_seeing_analysis(weather: dict, moon_illum: float, moon_alt: float, visible_targets: list = None, window_label: str = "averaged 8 PM – 4 AM local time", lat: float = 0.0, lon: float = 0.0) -> Optional[dict]:
+def _ai_seeing_analysis(weather: dict, moon_illum: float, moon_alt: float, visible_targets: list = None, window_label: str = "averaged 8 PM – 4 AM local time", lat: float = 0.0, lon: float = 0.0, lang: str = "en") -> Optional[dict]:
     """
     Call Qwen3.5-9B with a structured astronomy seeing prompt.
     Returns dict with score (1-10), label, explanation, best_window, warnings[].
@@ -528,7 +528,7 @@ def _ai_seeing_analysis(weather: dict, moon_illum: float, moon_alt: float, visib
     # This ensures stability across minor weather float changes and page refreshes.
     import time
     time_block = int(time.time()) // 10800
-    current_hash = f"{round(float(lat), 2)}_{round(float(lon), 2)}_{time_block}"
+    current_hash = f"{round(float(lat), 2)}_{round(float(lon), 2)}_{time_block}_{lang}"
     
     # Cache Hit
     cache_db = _load_ai_cache()
@@ -544,6 +544,8 @@ def _ai_seeing_analysis(weather: dict, moon_illum: float, moon_alt: float, visib
         target_prompt = f"\n- Top visible deep-sky targets tonight: {targets_str}\nSelect up to 3 of these as 'recommended_targets' considering the moon and weather."
     else:
         target_prompt = ""
+
+    lang_instruction = f"\nCRITICAL: All string values in your JSON response (label, explanation, moon_fact, warnings, recommended_targets names and reasons) MUST be written in the ISO language code '{lang}'. Do not use English unless '{lang}' is 'en'." if lang != "en" else ""
 
     prompt = f"""You are an expert astronomical seeing forecaster helping amateur astronomers decide whether to observe tonight.
 
@@ -563,7 +565,7 @@ Rate the astronomical seeing quality on a scale of 1–10 (10 = perfect, 1 = sta
 Consider: transparency (cloud/humidity/cirrus), atmospheric stability (jet stream), dew risk, moon interference, and overall observing potential.
 
 Respond ONLY with valid JSON — no markdown, no explanation outside the JSON:
-{{"score": <int 1-10>, "label": "<short label e.g. Exceptional transparency>", "explanation": "<2 sentences for a beginner astronomer>", "moon_fact": "<1 short interesting sentence about the moon's phase tonight>", "best_window": "<e.g. 10 PM – Midnight or All night>", "warnings": [<list of short warning strings, empty list if none>], "recommended_targets": [{{"name": "<Target Name>", "reason": "<Why it's good tonight>"}}]}}"""
+{{"score": <int 1-10>, "label": "<short label e.g. Exceptional transparency>", "explanation": "<2 sentences for a beginner astronomer>", "moon_fact": "<1 short interesting sentence about the moon's phase tonight>", "best_window": "<e.g. 10 PM – Midnight or All night>", "warnings": [<list of short warning strings, empty list if none>], "recommended_targets": [{{"name": "<Target Name>", "reason": "<Why it's good tonight>"}}]}}{lang_instruction}"""
 
     headers = {"Content-Type": "application/json"}
     if AI_API_KEY:
@@ -643,8 +645,9 @@ Respond ONLY with valid JSON — no markdown, no explanation outside the JSON:
         }
         
         # Save back to persistent cache
+        import time
         cache_db[current_hash] = {
-            "timestamp": current_time,
+            "timestamp": time.time(),
             "data": result
         }
         
@@ -761,7 +764,7 @@ def _rule_based_seeing_score(weather: dict, moon_illum: float, moon_alt: float) 
     }
 
 
-def get_seeing_forecast(lat=None, lon=None, ai_enabled: bool = False) -> dict:
+def get_seeing_forecast(lat=None, lon=None, ai_enabled: bool = False, lang: str = "en") -> dict:
     """
     Fetch astronomical seeing forecast from Open-Meteo (expanded parameters)
     and conditionally analyse with Qwen3.5-9B AI.
@@ -875,7 +878,7 @@ def get_seeing_forecast(lat=None, lon=None, ai_enabled: bool = False) -> dict:
     # ── AI analysis (Qwen3.5-9B) → fallback to rule-based ────────────────────
     if ai_enabled:
         try:
-            analysis = _ai_seeing_analysis(weather_snapshot, moon_illum, moon_alt, targets, window_label, lat=use_lat, lon=use_lon)
+            analysis = _ai_seeing_analysis(weather_snapshot, moon_illum, moon_alt, targets, window_label, lat=use_lat, lon=use_lon, lang=lang)
         except Exception:
             analysis = None
     else:
@@ -946,14 +949,15 @@ def get_seeing_forecast(lat=None, lon=None, ai_enabled: bool = False) -> dict:
 # ── Tonight Report ────────────────────────────────────────────────────────────
 
 
-def get_tonight_report(lat=None, lon=None) -> dict:
+def get_tonight_report(lat=None, lon=None, lang: str = "en") -> dict:
+    """Aggregate data for tonight's dashboard view."""
     now = now_local()
     dusk, dawn = _tonight_window(lat=lat, lon=lon)
 
     moon = get_moon_info(now, lat=lat, lon=lon)
     planets = get_planet_positions(now, lat=lat, lon=lon)
     targets = get_visible_targets(now, lat=lat, lon=lon)
-    seeing = get_seeing_forecast(lat=lat, lon=lon)
+    seeing = get_seeing_forecast(lat=lat, lon=lon, lang=lang)
 
     visible_planets = [p for p in planets if p["visible_tonight"]]
     best_targets = [t for t in targets if t.get("in_fov") and t.get("bortle_min", 99) <= BORTLE_CLASS + 1][:5]

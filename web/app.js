@@ -157,7 +157,7 @@ if (subtitle) {
 
 async function fetchAPI(path, fallback = null) {
   const separator = path.includes('?') ? '&' : '?';
-  const finalPath = `${path}${separator}lat=${currentLat}&lon=${currentLon}`;
+  const finalPath = `${path}${separator}lat=${currentLat}&lon=${currentLon}&lang=${currentLang}`;
   const cacheKey = `stargazer_cache_${finalPath}`;
   
   // Stale-while-revalidate: return cached data immediately if we have it
@@ -182,7 +182,7 @@ async function fetchAPI(path, fallback = null) {
 // SWR wrapper for immediate render
 async function fetchAndRender(path, renderFn, fallback = null) {
   const separator = path.includes('?') ? '&' : '?';
-  const finalPath = `${path}${separator}lat=${currentLat}&lon=${currentLon}`;
+  const finalPath = `${path}${separator}lat=${currentLat}&lon=${currentLon}&lang=${currentLang}`;
   const cacheKey = `stargazer_cache_${finalPath}`;
   
   const cached = localStorage.getItem(cacheKey);
@@ -245,7 +245,7 @@ async function fetchAIAnalysis() {
   }
 
   try {
-    const q = (currentLat != null && currentLon != null) ? `?lat=${currentLat}&lon=${currentLon}` : '';
+    const q = (currentLat != null && currentLon != null) ? `?lat=${currentLat}&lon=${currentLon}&lang=${currentLang}` : `?lang=${currentLang}`;
     const res = await fetch(`${API_BASE}/seeing/ai${q}`);
     if (!res.ok) throw new Error('AI API failed');
     const aiData = await res.json();
@@ -538,6 +538,28 @@ function loadActiveConstellation(abbr) {
     statusEl.style.borderColor = 'var(--border)';
   }
   fetchAndRender(`/constellation_window?abbr=${abbr}`, renderActiveConstellation, { status: "Network error" });
+  
+  // Concurrently fetch targets
+  fetchAPI(`/targets?constellation=${abbr}&visible_only=true`).then(res => {
+    const listEl = document.getElementById('ac-targets-list');
+    if (!listEl) return;
+    if (!res || !res.targets || res.targets.length === 0) {
+      listEl.innerHTML = '<div style="color: #a1a1aa; font-size: 0.8rem; font-style: italic;">No notable targets visible right now</div>';
+      return;
+    }
+    
+    // Sort by magnitude and take top 3
+    const topTargets = res.targets.sort((a,b) => (a.magnitude||99) - (b.magnitude||99)).slice(0, 3);
+    listEl.innerHTML = topTargets.map(t => `
+      <div style="background: rgba(255,255,255,0.03); border: 1px solid rgba(255,255,255,0.05); padding: 8px 10px; border-radius: 6px; font-size: 0.85rem; display: flex; justify-content: space-between; align-items: center; transition: background 0.2s;" onmouseover="this.style.background='rgba(255,255,255,0.08)'" onmouseout="this.style.background='rgba(255,255,255,0.03)'">
+        <div style="display:flex; flex-direction:column; gap:2px;">
+          <span style="color:#e2e8f0; font-weight:500;">${t.name}</span>
+          <span style="color:#94a3b8; font-size:0.75rem;">${t.type || 'Object'} • Mag ${t.magnitude || '?'}</span>
+        </div>
+        <div style="background: rgba(168,85,247,0.15); color: #c084fc; padding: 2px 6px; border-radius: 4px; font-size: 0.75rem; font-family: var(--font-mono);">${t.altitude_deg}°</div>
+      </div>
+    `).join('');
+  });
 }
 
 function renderActiveConstellation(s) {
@@ -590,11 +612,21 @@ function renderActiveConstellation(s) {
   }
 
   document.getElementById('ac-rise').textContent = s.rise_time || '—';
-  document.getElementById('ac-culm').textContent = s.culmination_time || '—';
-  document.getElementById('ac-peak-alt').textContent = s.culmination_altitude_deg != null ? `${s.culmination_altitude_deg}°` : '—';
-  document.getElementById('ac-now').textContent = s.current_altitude_deg != null
-    ? `${s.current_altitude_deg}° ${s.current_direction || ''}`
-    : '—';
+  
+  // Set time (using set if available, else derive from best_time loosely or NA)
+  document.getElementById('ac-set').textContent = s.set_time || '—';
+  
+  // Calculate Arc progress
+  const fillEl = document.getElementById('ac-arc-fill');
+  const labelEl = document.getElementById('ac-arc-label');
+  if (fillEl && labelEl && s.current_altitude_deg != null && s.culmination_altitude_deg != null) {
+      let pct = 0;
+      if (s.current_altitude_deg > 0) {
+          pct = Math.min(100, Math.max(0, (s.current_altitude_deg / s.culmination_altitude_deg) * 100));
+      }
+      fillEl.style.width = `${pct}%`;
+      labelEl.textContent = `${s.current_altitude_deg}°`;
+  }
     
   const dict = window.i18n[currentLang] || window.i18n['en'];
   const constName = dict[`const_${s.abbr ? s.abbr.toLowerCase() : ''}`] || s.name;
