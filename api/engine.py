@@ -547,13 +547,39 @@ Respond ONLY with valid JSON — no markdown, no explanation outside the JSON:
         # and may hit max_tokens before ever writing 'content'. We check both.
         raw = content if content else reasoning
 
-        # Ultra-robust JSON extraction via regex (looks for the first valid-looking JSON object)
-        import re
-        match = re.search(r'\{.*"score"\s*:.*\}', raw, re.DOTALL)
-        if match:
-            raw = match.group(0)
-
-        result = _json.loads(raw)
+        # Ultra-robust JSON extraction & truncated JSON repair
+        result = None
+        
+        # 1. Look for markdown block first
+        if "```json" in raw:
+            block = raw.split("```json")[-1]
+            if "```" in block:
+                block = block.split("```")[0]
+            try:
+                result = _json.loads(block.strip())
+            except Exception:
+                pass
+                
+        # 2. If no valid block found, find the last JSON-like structure
+        if result is None:
+            last_brace = raw.rfind('{')
+            if last_brace != -1:
+                candidate = raw[last_brace:].strip()
+                # Attempt to parse, appending closing syntax if it was truncated by max_tokens
+                for suffix in ["", "}", "]}", '"]}', '"}']:
+                    try:
+                        result = _json.loads(candidate + suffix)
+                        break
+                    except Exception:
+                        pass
+                    try:
+                        result = _json.loads(candidate + '"' + suffix)
+                        break
+                    except Exception:
+                        pass
+        
+        if result is None:
+            raise ValueError("Could not extract valid JSON from AI response")
 
         # Validate required fields
         score = int(result.get("score", 0))
