@@ -80,10 +80,10 @@ def get_constellations_endpoint(lat: Optional[float] = None, lon: Optional[float
         return JSONResponse(status_code=500, content={"error": str(e)})
 
 @app.get("/tonight")
-def tonight(lat: Optional[float] = Query(None), lon: Optional[float] = Query(None)):
+def tonight(lat: Optional[float] = Query(None), lon: Optional[float] = Query(None), lang: Optional[str] = Query("en")):
     """Full tonight's observing report."""
     try:
-        return get_tonight_report(lat=lat, lon=lon)
+        return get_tonight_report(lat=lat, lon=lon, lang=lang)
     except Exception as e:
         return JSONResponse(status_code=500, content={"error": str(e)})
 
@@ -177,10 +177,10 @@ def seeing(lat: Optional[float] = Query(None), lon: Optional[float] = Query(None
         return JSONResponse(status_code=500, content={"error": str(e)})
 
 @app.get("/seeing/ai")
-def seeing_ai(lat: Optional[float] = Query(None), lon: Optional[float] = Query(None)):
+def seeing_ai(lat: Optional[float] = Query(None), lon: Optional[float] = Query(None), lang: Optional[str] = Query("en")):
     """Astronomical seeing forecast - AI Analysis."""
     try:
-        return get_seeing_forecast(lat=lat, lon=lon, ai_enabled=True)
+        return get_seeing_forecast(lat=lat, lon=lon, ai_enabled=True, lang=lang)
     except Exception as e:
         return JSONResponse(status_code=500, content={"error": str(e)})
 

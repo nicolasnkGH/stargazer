@@ -174,15 +174,27 @@
         </div>
         <div class="card-body">
           <div class="ac-status" id="ac-status">Loading constellation data...</div>
-          <div class="scorpius-grid">
-            <div class="sg-item"><span class="sg-label" data-i18n="lbl_rise">Rise</span><span id="ac-rise">—</span></div>
-            <div class="sg-item"><span class="sg-label" data-i18n="lbl_culm">Culminates</span><span id="ac-culm">—</span></div>
-            <div class="sg-item"><span class="sg-label" data-i18n="lbl_peak_alt">Peak Alt</span><span id="ac-peak-alt">—</span></div>
-            <div class="sg-item"><span class="sg-label" data-i18n="lbl_now">Now</span><span id="ac-now">—</span></div>
+          
+          <div class="moon-arc-wrap" style="margin-top: 15px; margin-bottom: 5px;">
+            <div class="moon-arc-bar" style="background: rgba(255,255,255,0.1);">
+              <div class="moon-arc-fill" id="ac-arc-fill" style="width:0%; background: #3b82f6; box-shadow: 0 0 10px #3b82f6;"></div>
+            </div>
+            <span class="moon-arc-label" id="ac-arc-label" style="color: #60a5fa;">0°</span>
           </div>
-          <div class="scorpius-tip" id="ac-note">
-            <span data-i18n="sg_tip">Select a constellation to see its best observing times.</span>
+
+          <div style="font-size: 0.8rem; color: #a1a1aa; margin-bottom: 12px; display: flex; justify-content: space-between;">
+             <span><span data-i18n="lbl_rise" style="opacity: 0.6;">Rise</span> <span id="ac-rise" style="color:#fff;">—</span></span>
+             <span><span data-i18n="lbl_set" style="opacity: 0.6;">Set</span> <span id="ac-set" style="color:#fff;">—</span></span>
           </div>
+
+          <div id="ac-targets-container" style="border-top: 1px solid rgba(255,255,255,0.05); padding-top: 12px;">
+            <div style="font-size: 0.8rem; font-weight: 600; color: #a855f7; margin-bottom: 8px; text-transform: uppercase; letter-spacing: 0.05em;">Notable Targets</div>
+            <div id="ac-targets-list" style="display:flex; flex-direction: column; gap: 8px;">
+               <!-- Populated by JS -->
+            </div>
+          </div>
+
+          <div class="ac-note" id="ac-note" style="margin-top: 15px;"></div>
         </div>
       </section>
     </div>
