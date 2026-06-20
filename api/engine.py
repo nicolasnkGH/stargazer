@@ -347,6 +347,8 @@ def get_constellation_window(abbr: str, dt: Optional[date] = None, lat=None, lon
         "abbr": abbr,
         "emoji": FAMOUS_CONSTELLATIONS.get(abbr, "✨"),
         "best_time": best_time_local.strftime("%I:%M %p") if best_time_local else "N/A",
+        "ra_hours": c["ra"],
+        "dec_degrees": c["dec"],
     }
 
 # ── DSO Visibility ────────────────────────────────────────────────────────────
