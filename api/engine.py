@@ -28,11 +28,27 @@ from config import (
 import time
 import hashlib
 
-_AI_CACHE = {
-    "timestamp": 0,
-    "params_hash": None,
-    "data": None
-}
+import json as _json
+import os as _os
+
+CACHE_FILE = "/app/data/ai_cache.json"
+
+def _load_ai_cache():
+    if _os.path.exists(CACHE_FILE):
+        try:
+            with open(CACHE_FILE, "r") as f:
+                return _json.load(f)
+        except Exception:
+            return {}
+    return {}
+
+def _save_ai_cache(cache_dict):
+    try:
+        _os.makedirs(_os.path.dirname(CACHE_FILE), exist_ok=True)
+        with open(CACHE_FILE, "w") as f:
+            _json.dump(cache_dict, f)
+    except Exception:
+        pass
 
 # ── Skyfield setup ────────────────────────────────────────────────────────────
 
@@ -512,13 +528,16 @@ def _ai_seeing_analysis(weather: dict, moon_illum: float, moon_alt: float, visib
     params_str = str(sorted(weather.items()))
     current_hash = hashlib.sha256(params_str.encode('utf-8')).hexdigest()
     
-    # Cache Hit: Valid for 3 hours if params haven't changed
+    # Cache Hit: Valid for 3 hours if params haven't changed for this specific location/weather
     current_time = time.time()
-    if _AI_CACHE["data"] and _AI_CACHE["params_hash"] == current_hash:
-        if current_time - _AI_CACHE["timestamp"] < 3 * 3600:
+    cache_db = _load_ai_cache()
+    
+    if current_hash in cache_db:
+        entry = cache_db[current_hash]
+        if current_time - entry["timestamp"] < 3 * 3600:
             import logging
-            logging.getLogger("stargazer").info("AI Seeing: Returning fresh cached response")
-            return _AI_CACHE["data"]
+            logging.getLogger("stargazer").info("AI Seeing: Returning fresh cached response from disk")
+            return entry["data"]
             
     if visible_targets:
         # Just grab the top 15 highest altitude targets so we don't blow up the prompt context
@@ -623,11 +642,19 @@ Respond ONLY with valid JSON — no markdown, no explanation outside the JSON:
             "ai_powered": True,
         }
         
-        # Update Cache
-        _AI_CACHE["timestamp"] = time.time()
-        _AI_CACHE["params_hash"] = current_hash
-        _AI_CACHE["data"] = result
+        # Save back to persistent cache
+        cache_db[current_hash] = {
+            "timestamp": current_time,
+            "data": result
+        }
         
+        # Prune old cache entries to prevent unbounded growth (keep last 50)
+        if len(cache_db) > 50:
+            oldest = min(cache_db.keys(), key=lambda k: cache_db[k]["timestamp"])
+            del cache_db[oldest]
+            
+        _save_ai_cache(cache_db)
+
         return result
 
     except Exception as e:
@@ -730,10 +757,10 @@ def _rule_based_seeing_score(weather: dict, moon_illum: float, moon_alt: float) 
     }
 
 
-def get_seeing_forecast(lat=None, lon=None) -> dict:
+def get_seeing_forecast(lat=None, lon=None, ai_enabled: bool = False) -> dict:
     """
     Fetch astronomical seeing forecast from Open-Meteo (expanded parameters)
-    and analyse with Qwen3.5-9B AI, falling back to an improved rule-based scorer.
+    and conditionally analyse with Qwen3.5-9B AI.
     """
     import json as _json
 
@@ -842,9 +869,12 @@ def get_seeing_forecast(lat=None, lon=None) -> dict:
         targets = []
 
     # ── AI analysis (Qwen3.5-9B) → fallback to rule-based ────────────────────
-    try:
-        analysis = _ai_seeing_analysis(weather_snapshot, moon_illum, moon_alt, targets, window_label)
-    except Exception:
+    if ai_enabled:
+        try:
+            analysis = _ai_seeing_analysis(weather_snapshot, moon_illum, moon_alt, targets, window_label)
+        except Exception:
+            analysis = None
+    else:
         analysis = None
 
     if analysis is None:

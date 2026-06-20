@@ -170,9 +170,17 @@ def iss(count: int = Query(3), lat: Optional[float] = Query(None), lon: Optional
 
 @app.get("/seeing")
 def seeing(lat: Optional[float] = Query(None), lon: Optional[float] = Query(None)):
-    """Astronomical seeing forecast (cloud cover, wind, visibility)."""
+    """Astronomical seeing forecast (cloud cover, wind, visibility) - Rule Based Only."""
     try:
-        return get_seeing_forecast(lat=lat, lon=lon)
+        return get_seeing_forecast(lat=lat, lon=lon, ai_enabled=False)
+    except Exception as e:
+        return JSONResponse(status_code=500, content={"error": str(e)})
+
+@app.get("/seeing/ai")
+def seeing_ai(lat: Optional[float] = Query(None), lon: Optional[float] = Query(None)):
+    """Astronomical seeing forecast - AI Analysis."""
+    try:
+        return get_seeing_forecast(lat=lat, lon=lon, ai_enabled=True)
     except Exception as e:
         return JSONResponse(status_code=500, content={"error": str(e)})
 

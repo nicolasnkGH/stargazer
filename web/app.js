@@ -190,7 +190,51 @@ async function loadTonightReport() {
     renderMoon(data.moon);
     renderPlanets(data.visible_planets || []);
     renderAlerts(data.must_see || []);
+    
+    // Fire off async AI fetch now that the UI is rendered
+    fetchAIAnalysis();
   });
+}
+
+async function fetchAIAnalysis() {
+  const aiTargetsCard = document.getElementById('card-ai-targets');
+  const aiTargetsList = document.getElementById('ai-targets-list');
+  const engineBadgeEl = document.getElementById('seeing-engine-badge');
+
+  if (aiTargetsCard && aiTargetsList) {
+    aiTargetsCard.style.display = 'block';
+    aiTargetsList.innerHTML = '<div style="color: #a1a1aa; padding: 10px; font-style: italic;">⏳ Asking Qwen3.5 for analysis (this may take up to 60s)...</div>';
+  }
+  
+  if (engineBadgeEl) {
+    engineBadgeEl.style.display = '';
+    engineBadgeEl.textContent = '⏳ AI Loading...';
+    engineBadgeEl.className = 'seeing-engine-badge rule';
+  }
+
+  try {
+    const lat = window.localStorage.getItem('sg_lat');
+    const lon = window.localStorage.getItem('sg_lon');
+    const q = (lat && lon) ? `?lat=${lat}&lon=${lon}` : '';
+    const res = await fetch(`${API_BASE}/seeing/ai${q}`);
+    if (!res.ok) throw new Error('AI API failed');
+    const aiData = await res.json();
+    
+    // Update the UI with the fresh AI data
+    if (aiData.ai_powered) {
+      renderSeeing(aiData, null); 
+    } else {
+      throw new Error('AI returned rule-based fallback');
+    }
+  } catch(e) {
+    console.warn("AI Fetch failed", e);
+    if (aiTargetsCard) aiTargetsCard.style.display = 'none';
+    if (engineBadgeEl) {
+      engineBadgeEl.textContent = 'Fallback: Rule-based';
+      engineBadgeEl.className = 'seeing-engine-badge rule';
+      engineBadgeEl.title = 'AI could not be reached. Showing rule-based metrics.';
+    }
+  }
 }
 
 function renderGoNogo(data) {
