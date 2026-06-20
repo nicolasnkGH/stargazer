@@ -500,6 +500,9 @@ def _ai_seeing_analysis(weather: dict, moon_illum: float, moon_alt: float) -> Op
     Returns dict with score (1-10), label, explanation, best_window, warnings[].
     Returns None on timeout or any failure — caller falls back to rule-based scorer.
     """
+    if not AI_API_URL or not AI_MODEL:
+        return None
+        
     prompt = f"""You are an expert astronomical seeing forecaster helping amateur astronomers decide whether to observe tonight.
 
 Tonight's atmospheric data (averaged 8 PM – 4 AM local time):
@@ -531,7 +534,7 @@ Respond ONLY with valid JSON — no markdown, no explanation outside the JSON:
             {"role": "user", "content": prompt},
         ],
         "temperature": 0.1,
-        "max_tokens": 1200,
+        "max_tokens": 4000,
         "stream": False,
     }
 
