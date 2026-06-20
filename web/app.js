@@ -431,20 +431,27 @@ function renderSeeing(seeing, data) {
       aiTargetsList.innerHTML = '';
       seeing.recommended_targets.forEach(t => {
         const wrap = document.createElement('div');
-        wrap.style.background = 'rgba(255,255,255,0.03)';
-        wrap.style.padding = '8px 12px';
-        wrap.style.borderRadius = '6px';
-        wrap.style.borderLeft = '3px solid #8a2be2';
+        wrap.style.background = 'rgba(168, 85, 247, 0.05)';
+        wrap.style.border = '1px solid rgba(168, 85, 247, 0.2)';
+        wrap.style.boxShadow = '0 4px 12px rgba(0,0,0,0.2)';
+        wrap.style.padding = '12px 16px';
+        wrap.style.borderRadius = '8px';
+        wrap.style.transition = 'transform 0.2s ease, background 0.2s ease';
+        wrap.style.cursor = 'default';
+        wrap.onmouseover = () => { wrap.style.background = 'rgba(168, 85, 247, 0.1)'; wrap.style.transform = 'translateY(-2px)'; wrap.style.border = '1px solid rgba(168, 85, 247, 0.4)'; };
+        wrap.onmouseout = () => { wrap.style.background = 'rgba(168, 85, 247, 0.05)'; wrap.style.transform = 'none'; wrap.style.border = '1px solid rgba(168, 85, 247, 0.2)'; };
         
         const title = document.createElement('div');
-        title.style.fontWeight = 'bold';
-        title.style.color = '#fff';
-        title.textContent = t.name;
+        title.style.fontWeight = '600';
+        title.style.color = '#e2e8f0';
+        title.style.fontSize = '1.05rem';
+        title.innerHTML = `✨ ${t.name}`;
         
         const reason = document.createElement('div');
         reason.style.fontSize = '0.85rem';
-        reason.style.color = '#ccc';
-        reason.style.marginTop = '4px';
+        reason.style.color = '#94a3b8';
+        reason.style.marginTop = '6px';
+        reason.style.lineHeight = '1.4';
         reason.textContent = t.reason;
         
         wrap.appendChild(title);
