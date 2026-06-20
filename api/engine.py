@@ -514,7 +514,7 @@ def _ai_seeing_analysis(weather: dict, moon_illum: float, moon_alt: float) -> Op
 
     # Calculate parameter hash to detect weather changes
     params_str = str(sorted(weather.items()))
-    current_hash = hashlib.md5(params_str.encode('utf-8')).hexdigest()
+    current_hash = hashlib.sha256(params_str.encode('utf-8')).hexdigest()
     
     # Cache Hit: Valid for 3 hours if params haven't changed
     current_time = time.time()
