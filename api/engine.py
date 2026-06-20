@@ -564,7 +564,7 @@ Rate the astronomical seeing quality on a scale of 1–10 (10 = perfect, 1 = sta
 Consider: transparency (cloud/humidity/cirrus), atmospheric stability (jet stream), dew risk, moon interference, and overall observing potential.
 
 Respond ONLY with valid JSON — no markdown, no explanation outside the JSON:
-{{"score": <int 1-10>, "label": "<short label e.g. Exceptional transparency>", "explanation": "<2 sentences for a beginner astronomer>", "best_window": "<e.g. 10 PM – Midnight or All night>", "warnings": [<list of short warning strings, empty list if none>], "recommended_targets": [{{"name": "<Target Name>", "reason": "<Why it's good tonight>"}}]}}"""
+{{"score": <int 1-10>, "label": "<short label e.g. Exceptional transparency>", "explanation": "<2 sentences for a beginner astronomer>", "moon_fact": "<1 short interesting sentence about the moon's phase tonight>", "best_window": "<e.g. 10 PM – Midnight or All night>", "warnings": [<list of short warning strings, empty list if none>], "recommended_targets": [{{"name": "<Target Name>", "reason": "<Why it's good tonight>"}}]}}"""
 
     headers = {"Content-Type": "application/json"}
     if AI_API_KEY:
@@ -636,6 +636,7 @@ Respond ONLY with valid JSON — no markdown, no explanation outside the JSON:
             "score": score,
             "label": str(result.get("label", ""))[:60],
             "explanation": str(result.get("explanation", ""))[:300],
+            "moon_fact": str(result.get("moon_fact", ""))[:150],
             "best_window": str(result.get("best_window", "Check conditions"))[:60],
             "warnings": [str(w)[:80] for w in result.get("warnings", [])[:4]],
             "recommended_targets": result.get("recommended_targets", []),
@@ -750,6 +751,7 @@ def _rule_based_seeing_score(weather: dict, moon_illum: float, moon_alt: float) 
         "score": score,
         "label": labels[score],
         "explanation": "",   # rule-based doesn't generate prose
+        "moon_fact": "",     # rule-based doesn't generate prose
         "best_window": best_window,
         "warnings": warnings,
         "recommended_targets": [],
@@ -919,6 +921,7 @@ def get_seeing_forecast(lat=None, lon=None, ai_enabled: bool = False) -> dict:
         "seeing_label":       seeing_labels_5[stars],
         "seeing_label_ai":    analysis["label"],       # AI's own short label
         "seeing_explanation": analysis["explanation"], # prose for beginners
+        "moon_fact":          analysis.get("moon_fact", ""), # fun fact
         "best_window":        analysis["best_window"],
         "warnings":           analysis["warnings"],
         "recommended_targets": analysis.get("recommended_targets", []),
