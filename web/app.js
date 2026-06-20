@@ -537,17 +537,26 @@ function loadActiveConstellation(abbr) {
     statusEl.style.color = 'var(--text-primary)';
     statusEl.style.borderColor = 'var(--border)';
   }
-  fetchAndRender(`/constellation_window?abbr=${abbr}`, renderActiveConstellation, { status: "Network error" });
-  
-  // Concurrently fetch targets to plot on map
-  fetchAPI(`/targets?constellation=${abbr}`).then(res => {
-    if (res && res.targets) {
-      renderConstellationMap(res.targets);
+
+  // Fetch constellation info first, then targets, to ensure we have RA/Dec for the map center
+  fetchAPI(`/constellation_window?abbr=${abbr}`).then(constRes => {
+    if (constRes && !constRes.error) {
+      renderActiveConstellation(constRes);
+      // Cache this for the map
+      window.lastConstInfo = constRes;
+    } else {
+      renderActiveConstellation({ status: "Network error" });
+      window.lastConstInfo = null;
     }
+    
+    fetchAPI(`/targets?constellation=${abbr}`).then(targetRes => {
+      const targets = (targetRes && targetRes.targets) ? targetRes.targets : [];
+      renderConstellationMap(targets, window.lastConstInfo);
+    });
   });
 }
 
-function renderConstellationMap(targets) {
+function renderConstellationMap(targets, constInfo) {
   const container = document.getElementById('ac-map-container');
   const detailsPanel = document.getElementById('ac-details-panel');
   
@@ -561,10 +570,19 @@ function renderConstellationMap(targets) {
   detailsPanel.style.display = 'none';
 
   const validTargets = targets ? targets.filter(t => t.ra_hours != null && t.dec_degrees != null) : [];
-  if (validTargets.length === 0) return;
 
-  const centerRa = d3.mean(validTargets, d => d.ra_hours) * 15;
-  const centerDec = d3.mean(validTargets, d => d.dec_degrees);
+  let centerRa = 0;
+  let centerDec = 0;
+
+  if (constInfo && constInfo.ra_hours != null && constInfo.dec_degrees != null) {
+    centerRa = constInfo.ra_hours * 15;
+    centerDec = constInfo.dec_degrees;
+  } else if (validTargets.length > 0) {
+    centerRa = d3.mean(validTargets, d => d.ra_hours) * 15;
+    centerDec = d3.mean(validTargets, d => d.dec_degrees);
+  } else {
+    return; // Cannot render without a center
+  }
 
   const config = {
     container: "ac-map-container",
@@ -672,7 +690,25 @@ function renderConstellationMap(targets) {
 function toggleMapFullscreen() {
   const container = document.getElementById('ac-map-container');
   if (!container) return;
-  container.classList.toggle('map-fullscreen');
+  
+  const isFullscreen = container.classList.contains('map-fullscreen');
+  
+  if (!isFullscreen) {
+    // Going to fullscreen: move to document body to avoid clipping
+    window.originalMapParent = container.parentNode;
+    window.originalMapNextSibling = container.nextSibling;
+    document.body.appendChild(container);
+    container.classList.add('map-fullscreen');
+    document.body.style.overflow = 'hidden';
+  } else {
+    // Reverting from fullscreen
+    container.classList.remove('map-fullscreen');
+    if (window.originalMapParent) {
+      window.originalMapParent.insertBefore(container, window.originalMapNextSibling);
+    }
+    document.body.style.overflow = '';
+  }
+
   const btn = document.getElementById('btn-map-expand');
   if (container.classList.contains('map-fullscreen')) {
     if (btn) btn.innerHTML = '⤓'; // minimize icon
