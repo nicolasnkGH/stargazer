@@ -687,10 +687,20 @@ async function checkAPIStatus() {
 }
 
 function updateClearOutside() {
+  const lat = currentLat.toFixed(2);
+  const lon = currentLon.toFixed(2);
+  const forecastUrl = `https://clearoutside.com/forecast/${lat}/${lon}`;
+
   const img = document.getElementById('clearoutside-img');
   if (img) {
-    img.src = `https://clearoutside.com/forecast_image_large/${currentLat.toFixed(2)}/${currentLon.toFixed(2)}/forecast.png`;
+    img.src = `https://clearoutside.com/forecast_image_large/${lat}/${lon}/forecast.png`;
   }
+
+  const headerLink = document.getElementById('clearoutside-link');
+  if (headerLink) headerLink.href = forecastUrl;
+
+  const resourceLink = document.getElementById('clearoutside-resource-link');
+  if (resourceLink) resourceLink.href = forecastUrl;
 }
 
 // ── Location Modal UI ───────────────────────────────────────────────────────

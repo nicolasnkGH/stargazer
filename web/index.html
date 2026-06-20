@@ -5,6 +5,21 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>StarGazer — Columbus Observatory Dashboard</title>
   <meta name="description" content="Personal stargazing dashboard for Columbus, OH. Celestron StarSense Explorer 5&quot; DX. Scorpius targets, planet tracker, ISS alerts, and nightly conditions." />
+
+  <!-- Open Graph -->
+  <meta property="og:type" content="website" />
+  <meta property="og:url" content="https://stargazer.nick-t.net/" />
+  <meta property="og:title" content="StarGazer — Columbus Observatory Dashboard" />
+  <meta property="og:description" content="Personal stargazing dashboard for Columbus, OH — nightly sky conditions, planet tracker, ISS pass alerts, and target database for amateur astronomers." />
+  <meta property="og:image" content="https://stargazer.nick-t.net/og-preview.png" />
+  <meta property="og:site_name" content="StarGazer" />
+
+  <!-- Twitter / X Card -->
+  <meta name="twitter:card" content="summary_large_image" />
+  <meta name="twitter:title" content="StarGazer — Columbus Observatory Dashboard" />
+  <meta name="twitter:description" content="Nightly sky conditions, planet tracker, ISS alerts, and target database for amateur astronomers in Columbus, OH." />
+  <meta name="twitter:image" content="https://stargazer.nick-t.net/og-preview.png" />
+
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;400;500;600;700&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet" />
@@ -186,11 +201,11 @@
       <div class="card-header">
         <span class="card-icon">☁️</span>
         <h2 class="card-title" data-i18n="card_weather">Clear Outside — Astronomical Weather Forecast</h2>
-        <a href="https://clearoutside.com/forecast/40.10/-83.08" target="_blank" class="ext-link" data-i18n="btn_full_forecast">Open Full Forecast ↗</a>
+        <a id="clearoutside-link" href="https://clearoutside.com/forecast/40.126/-83.037" target="_blank" class="ext-link" data-i18n="btn_full_forecast">Open Full Forecast ↗</a>
       </div>
       <div class="weather-embed-wrap">
         <img
-          src="https://clearoutside.com/forecast_image_large/40.10/-83.08/forecast.png"
+          src="https://clearoutside.com/forecast_image_large/40.126/-83.037/forecast.png"
           id="clearoutside-img"
           alt="Clear Outside astronomical weather forecast for Columbus, OH"
         />
@@ -341,7 +356,7 @@
             <div class="resource-desc">Best free Stellarium alternative — includes EKOS for telescope control</div>
           </div>
         </a>
-        <a href="https://clearoutside.com/forecast/40.10/-83.08" target="_blank" class="resource-card">
+        <a id="clearoutside-resource-link" href="https://clearoutside.com/forecast/40.126/-83.037" target="_blank" class="resource-card">
           <div class="resource-icon">🌤</div>
           <div class="resource-info">
             <div class="resource-name">Clear Outside</div>

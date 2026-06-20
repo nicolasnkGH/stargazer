@@ -1,0 +1,4 @@
+User-agent: *
+Allow: /
+
+Sitemap: https://stargazer.nick-t.net/sitemap.xml
