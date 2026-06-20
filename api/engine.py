@@ -634,9 +634,7 @@ Respond ONLY with valid JSON — no markdown, no explanation outside the JSON:
         if _AI_CACHE.get("data"):
             logger.warning("AI Seeing: Falling back to stale cached response due to LLM failure")
             return _AI_CACHE["data"]
-        
-        # Raise so the frontend can display the exact exception for debugging
-        raise RuntimeError(f"{type(e).__name__}: {e}")
+        return None
 
 
 def _rule_based_seeing_score(weather: dict, moon_illum: float, moon_alt: float) -> dict:
@@ -817,17 +815,13 @@ def get_seeing_forecast(lat=None, lon=None) -> dict:
         moon_illum, moon_alt = 50, 0
 
     # ── AI analysis (Qwen3.5-9B) → fallback to rule-based ────────────────────
-    ai_exception_msg = ""
     try:
         analysis = _ai_seeing_analysis(weather_snapshot, moon_illum, moon_alt)
-    except Exception as e:
-        ai_exception_msg = str(e)
+    except Exception:
         analysis = None
 
     if analysis is None:
         analysis = _rule_based_seeing_score(weather_snapshot, moon_illum, moon_alt)
-        if ai_exception_msg:
-            analysis["label"] = f"AI FAILED: {ai_exception_msg}"
 
     score = analysis["score"]
 
