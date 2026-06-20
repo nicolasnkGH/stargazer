@@ -25,6 +25,15 @@ from config import (
     AI_API_URL, AI_API_KEY, AI_MODEL, AI_TIMEOUT,
 )
 
+import time
+import hashlib
+
+_AI_CACHE = {
+    "timestamp": 0,
+    "params_hash": None,
+    "data": None
+}
+
 # ── Skyfield setup ────────────────────────────────────────────────────────────
 
 _ts = None
@@ -502,7 +511,19 @@ def _ai_seeing_analysis(weather: dict, moon_illum: float, moon_alt: float) -> Op
     """
     if not AI_API_URL or not AI_MODEL:
         return None
-        
+
+    # Calculate parameter hash to detect weather changes
+    params_str = str(sorted(weather.items()))
+    current_hash = hashlib.md5(params_str.encode('utf-8')).hexdigest()
+    
+    # Cache Hit: Valid for 3 hours if params haven't changed
+    current_time = time.time()
+    if _AI_CACHE["data"] and _AI_CACHE["params_hash"] == current_hash:
+        if current_time - _AI_CACHE["timestamp"] < 3 * 3600:
+            import logging
+            logging.getLogger("stargazer").info("AI Seeing: Returning fresh cached response")
+            return _AI_CACHE["data"]
+            
     prompt = f"""You are an expert astronomical seeing forecaster helping amateur astronomers decide whether to observe tonight.
 
 Tonight's atmospheric data (averaged 8 PM – 4 AM local time):
@@ -559,7 +580,7 @@ Respond ONLY with valid JSON — no markdown, no explanation outside the JSON:
             if "```" in block:
                 block = block.split("```")[0]
             try:
-                result = _json.loads(block.strip())
+                result = json.loads(block.strip())
             except Exception:
                 pass
                 
@@ -571,12 +592,12 @@ Respond ONLY with valid JSON — no markdown, no explanation outside the JSON:
                 # Attempt to parse, appending closing syntax if it was truncated by max_tokens
                 for suffix in ["", "}", "]}", '"]}', '"}']:
                     try:
-                        result = _json.loads(candidate + suffix)
+                        result = json.loads(candidate + suffix)
                         break
                     except Exception:
                         pass
                     try:
-                        result = _json.loads(candidate + '"' + suffix)
+                        result = json.loads(candidate + '"' + suffix)
                         break
                     except Exception:
                         pass
@@ -599,7 +620,7 @@ Respond ONLY with valid JSON — no markdown, no explanation outside the JSON:
         }
         
         # Update Cache
-        _AI_CACHE["timestamp"] = _time.time()
+        _AI_CACHE["timestamp"] = time.time()
         _AI_CACHE["params_hash"] = current_hash
         _AI_CACHE["data"] = result
         
