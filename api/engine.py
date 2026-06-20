@@ -515,7 +515,7 @@ def get_iss_passes(count: int = 3, lat=None, lon=None) -> list[dict]:
 
 
 
-def _ai_seeing_analysis(weather: dict, moon_illum: float, moon_alt: float, visible_targets: list = None, window_label: str = "averaged 8 PM – 4 AM local time") -> Optional[dict]:
+def _ai_seeing_analysis(weather: dict, moon_illum: float, moon_alt: float, visible_targets: list = None, window_label: str = "averaged 8 PM – 4 AM local time", lat: float = 0.0, lon: float = 0.0) -> Optional[dict]:
     """
     Call Qwen3.5-9B with a structured astronomy seeing prompt.
     Returns dict with score (1-10), label, explanation, best_window, warnings[].
@@ -524,20 +524,19 @@ def _ai_seeing_analysis(weather: dict, moon_illum: float, moon_alt: float, visib
     if not AI_API_URL or not AI_MODEL:
         raise ValueError("AI_API_URL or AI_MODEL is not configured in .env")
 
-    # Calculate parameter hash to detect weather changes
-    params_str = str(sorted(weather.items()))
-    current_hash = hashlib.sha256(params_str.encode('utf-8')).hexdigest()
+    # Cache key: lat, lon, and a 3-hour time block (10800 seconds)
+    # This ensures stability across minor weather float changes and page refreshes.
+    import time
+    time_block = int(time.time()) // 10800
+    current_hash = f"{round(float(lat), 2)}_{round(float(lon), 2)}_{time_block}"
     
-    # Cache Hit: Valid for 3 hours if params haven't changed for this specific location/weather
-    current_time = time.time()
+    # Cache Hit
     cache_db = _load_ai_cache()
-    
     if current_hash in cache_db:
         entry = cache_db[current_hash]
-        if current_time - entry["timestamp"] < 3 * 3600:
-            import logging
-            logging.getLogger("stargazer").info("AI Seeing: Returning fresh cached response from disk")
-            return entry["data"]
+        import logging
+        logging.getLogger("stargazer").info("AI Seeing: Returning fresh cached response from disk")
+        return entry["data"]
             
     if visible_targets:
         # Just grab the top 15 highest altitude targets so we don't blow up the prompt context
@@ -662,11 +661,13 @@ Respond ONLY with valid JSON — no markdown, no explanation outside the JSON:
         import logging
         logger = logging.getLogger("stargazer")
         logger.warning(f"AI seeing analysis failed ({type(e).__name__}): {e}")
-        # Resilient Fallback: If we have ANY cached data for this weather, serve it rather than dropping to rule-based
-        fallback_entry = cache_db.get(current_hash, {})
-        if fallback_entry.get("data"):
-            logger.warning("AI Seeing: Falling back to stale cached response due to LLM failure")
-            return fallback_entry["data"]
+        # Resilient Fallback: If we have ANY cached data for this location, serve it
+        # Try to find the most recent cache entry for this lat/lon
+        prefix = f"{round(float(lat), 2)}_{round(float(lon), 2)}_"
+        for key in sorted(cache_db.keys(), reverse=True):
+            if key.startswith(prefix) and cache_db[key].get("data"):
+                logger.warning("AI Seeing: Falling back to stale cached response due to LLM failure")
+                return cache_db[key]["data"]
         return None
 
 
@@ -874,7 +875,7 @@ def get_seeing_forecast(lat=None, lon=None, ai_enabled: bool = False) -> dict:
     # ── AI analysis (Qwen3.5-9B) → fallback to rule-based ────────────────────
     if ai_enabled:
         try:
-            analysis = _ai_seeing_analysis(weather_snapshot, moon_illum, moon_alt, targets, window_label)
+            analysis = _ai_seeing_analysis(weather_snapshot, moon_illum, moon_alt, targets, window_label, lat=use_lat, lon=use_lon)
         except Exception:
             analysis = None
     else:
