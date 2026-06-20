@@ -136,7 +136,6 @@ body {
   color: var(--text-dim);
   margin-top: 2px;
   letter-spacing: 0.05em;
-  text-transform: uppercase;
 }
 
 .header-meta {
