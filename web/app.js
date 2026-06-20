@@ -23,16 +23,27 @@ function translateDate(dateStr) {
  * Simple toast popup function for tooltips
  */
 let toastTimeout;
-window.showInfo = function(msg) {
+window.showInfo = function(msg, event) {
   const t = document.getElementById('toast');
-  if (!t) return;
-  t.textContent = msg;
+  const tm = document.getElementById('toast-msg');
+  if (!t || !tm) return;
+  tm.textContent = msg;
+  
+  if (event) {
+    t.style.left = Math.min(event.pageX - 125, window.innerWidth - 260) + 'px';
+    t.style.top = (event.pageY + 15) + 'px';
+  } else {
+    t.style.left = '50%';
+    t.style.top = '20px';
+    t.style.transform = 'translateX(-50%)';
+  }
+  
   t.style.display = 'block';
   t.style.opacity = '1';
   clearTimeout(toastTimeout);
   toastTimeout = setTimeout(() => {
     t.style.opacity = '0';
-    setTimeout(() => { t.style.display = 'none'; }, 300);
+    setTimeout(() => { t.style.display = 'none'; }, 200);
   }, 3500);
 };
 
@@ -234,9 +245,7 @@ async function fetchAIAnalysis() {
   }
 
   try {
-    const lat = window.localStorage.getItem('sg_lat');
-    const lon = window.localStorage.getItem('sg_lon');
-    const q = (lat && lon) ? `?lat=${lat}&lon=${lon}` : '';
+    const q = (currentLat != null && currentLon != null) ? `?lat=${currentLat}&lon=${currentLon}` : '';
     const res = await fetch(`${API_BASE}/seeing/ai${q}`);
     if (!res.ok) throw new Error('AI API failed');
     const aiData = await res.json();
