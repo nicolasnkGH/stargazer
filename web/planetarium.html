@@ -119,6 +119,80 @@
       z-index: 20;
       box-shadow: 0 4px 12px rgba(0,0,0,0.5);
     }
+
+    /* Elegant Floating Details Panel */
+    #pl-details-panel {
+      position: absolute;
+      top: 20px;
+      left: 20px;
+      width: 320px;
+      background: rgba(13, 17, 30, 0.85);
+      backdrop-filter: blur(16px);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 20px;
+      display: none;
+      z-index: 30;
+      box-shadow: 0 10px 40px rgba(0,0,0,0.6);
+    }
+    
+    .pld-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-start;
+      margin-bottom: 16px;
+    }
+    
+    .pld-title {
+      font-size: 1.3rem;
+      font-weight: 600;
+      color: #fff;
+      margin: 0;
+    }
+    
+    .pld-subtitle {
+      font-size: 0.85rem;
+      color: var(--text-secondary);
+      margin-top: 4px;
+    }
+
+    .pld-close {
+      background: transparent;
+      border: none;
+      color: var(--text-secondary);
+      font-size: 1.2rem;
+      cursor: pointer;
+      padding: 0;
+      transition: color 0.2s;
+    }
+    .pld-close:hover {
+      color: #fff;
+    }
+
+    .pld-grid {
+      display: grid;
+      grid-template-columns: 100px 1fr;
+      gap: 8px 12px;
+      font-size: 0.85rem;
+      margin-bottom: 16px;
+    }
+    
+    .pld-label {
+      color: var(--text-secondary);
+    }
+    
+    .pld-value {
+      color: #e2e8f0;
+      font-weight: 500;
+    }
+
+    .pld-desc {
+      font-size: 0.85rem;
+      color: var(--text-secondary);
+      line-height: 1.5;
+      border-top: 1px solid rgba(255,255,255,0.1);
+      padding-top: 16px;
+    }
   </style>
 
   <!-- D3.js and d3-celestial for Interactive Star Map -->
@@ -136,6 +210,35 @@
   <main>
     <div id="celestial-container">
       <div id="ac-map-tooltip"></div>
+      
+      <!-- Elegant Details Panel -->
+      <div id="pl-details-panel">
+        <div class="pld-header">
+          <div>
+            <h2 class="pld-title" id="pld-name">Target Name</h2>
+            <div class="pld-subtitle" id="pld-type">Star</div>
+          </div>
+          <button class="pld-close" onclick="document.getElementById('pl-details-panel').style.display='none'">✕</button>
+        </div>
+        
+        <div class="pld-grid">
+          <div class="pld-label">Magnitude</div>
+          <div class="pld-value" id="pld-mag">—</div>
+          
+          <div class="pld-label">RA/Dec</div>
+          <div class="pld-value" id="pld-radec">—</div>
+          
+          <div class="pld-label">Difficulty</div>
+          <div class="pld-value" id="pld-diff">—</div>
+          
+          <div class="pld-label">Altitude</div>
+          <div class="pld-value" id="pld-alt">—</div>
+        </div>
+        
+        <div class="pld-desc" id="pld-desc">
+          Description goes here...
+        </div>
+      </div>
     </div>
   </main>
 
