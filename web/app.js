@@ -1185,7 +1185,7 @@ function renderTargetGrid(targets, liveMap, filter) {
         <div class="tc-footer">
           <button class="btn-fov" onclick="openFovModal(${t.ra_hours * 15}, ${t.dec_degrees}, '${t.name.replace(/'/g, "\\'")}')">Simulate View 🔭</button>
           <span class="tc-equipment">${t.equipment || '🔭 Telescope'}</span>
-          ${t.difficulty !== 'NAKED_EYE' ? `<span class="tc-difficulty ${t.difficulty}">${t.difficulty.replace('_', ' ')}</span>` : ''}
+          ${(t.difficulty && t.difficulty.replace('_', ' ') !== 'NAKED EYE') ? `<span class="tc-difficulty ${t.difficulty.replace(' ', '_')}">${t.difficulty.replace('_', ' ')}</span>` : ''}
           <span class="tc-eyepiece">🔭 ${t.eyepiece_rec || ''}</span>
           ${altText ? `<span class="tc-altitude">${altText}</span>` : ''}
           ${visibleNow ? '<span class="tc-visible-now"><span style="width:6px;height:6px;border-radius:50%;background:#22c55e;display:inline-block"></span> In view now</span>' : ''}
