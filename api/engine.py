@@ -10,25 +10,24 @@ import json
 import math
 import requests
 
+
 def _background_ai_task(payload, headers, current_hash):
     import requests, json, time
     try:
-        resp = requests.post(AI_API_URL, json=payload, headers=headers, timeout=AI_TIMEOUT)
+        from api.engine import _load_ai_cache, _save_ai_cache
+        resp = requests.post("http://10.27.27.145:8083/v1/chat/completions", json=payload, headers=headers, timeout=180)
         resp.raise_for_status()
         msg = resp.json()["choices"][0]["message"]
-        content = msg.get("content", "").strip()
+        content_txt = msg.get("content", "").strip()
         reasoning = msg.get("reasoning_content", "").strip()
-        raw = content if content else reasoning
+        raw = content_txt if content_txt else reasoning
         
         result = None
         if "```json" in raw:
-            block = raw.split("```json")[-1]
-            if "```" in block:
-                block = block.split("```")[0]
-            try:
-                result = json.loads(block.strip())
-            except Exception:
-                pass
+            block = raw.split("```json")[-1].split("```")[0]
+            try: result = json.loads(block.strip())
+            except: pass
+            
         if result is None:
             first_brace = raw.find('{')
             if first_brace != -1:
@@ -37,28 +36,43 @@ def _background_ai_task(payload, headers, current_hash):
                     try:
                         result = json.loads(candidate + suffix)
                         break
-                    except Exception:
-                        pass
+                    except: pass
                     try:
                         result = json.loads(candidate + '"' + suffix)
                         break
-                    except Exception:
-                        pass
-        
+                    except: pass
+                    
         if result and "score" in result:
-            db = _load_ai_cache()
-            db[current_hash] = {"timestamp": int(time.time()), "data": result}
-            _save_ai_cache(db)
-        else:
-            db = _load_ai_cache()
-            if current_hash in db and db[current_hash].get("data", {}).get("status") == "processing":
-                del db[current_hash]
+            score = int(result.get("score", 0))
+            if 1 <= score <= 10:
+                final_result = {
+                    "score": score,
+                    "label": str(result.get("label", ""))[:60],
+                    "explanation": str(result.get("explanation", ""))[:300],
+                    "moon_fact": str(result.get("moon_fact", ""))[:150],
+                    "best_window": str(result.get("best_window", "Check conditions"))[:60],
+                    "warnings": [str(w)[:80] for w in result.get("warnings", [])[:4]],
+                    "recommended_targets": result.get("recommended_targets", []),
+                    "ai_powered": True,
+                }
+                db = _load_ai_cache()
+                db[current_hash] = {"timestamp": int(time.time()), "data": final_result}
                 _save_ai_cache(db)
-    except Exception:
+                return
+                
+        # If we got here, parsing failed or score was missing
         db = _load_ai_cache()
         if current_hash in db and db[current_hash].get("data", {}).get("status") == "processing":
             del db[current_hash]
             _save_ai_cache(db)
+            
+    except Exception:
+        from api.engine import _load_ai_cache, _save_ai_cache
+        db = _load_ai_cache()
+        if current_hash in db and db[current_hash].get("data", {}).get("status") == "processing":
+            del db[current_hash]
+            _save_ai_cache(db)
+
 from datetime import datetime, timedelta, date
 from typing import Optional
 import pytz
@@ -648,70 +662,20 @@ Respond ONLY with valid JSON — no markdown, no explanation outside the JSON:
     }
 
     try:
-        # 2. If no valid block found, find the first JSON-like structure
-        if result is None:
-            first_brace = raw.find('{')
-            if first_brace != -1:
-                candidate = raw[first_brace:].strip()
-                # Attempt to parse, appending closing syntax if it was truncated by max_tokens
-                for suffix in ["", "}", "]}", '"]}', '"}']:
-                    try:
-                        result = json.loads(candidate + suffix)
-                        break
-                    except Exception:
-                        pass
-                    try:
-                        result = json.loads(candidate + '"' + suffix)
-                        break
-                    except Exception:
-                        pass
-        
-        if result is None:
-            raise ValueError("Could not extract valid JSON from AI response")
-
-        # Validate required fields
-        score = int(result.get("score", 0))
-        if not (1 <= score <= 10):
-            raise ValueError(f"Score out of range: {score}")
-
-        result = {
-            "score": score,
-            "label": str(result.get("label", ""))[:60],
-            "explanation": str(result.get("explanation", ""))[:300],
-            "moon_fact": str(result.get("moon_fact", ""))[:150],
-            "best_window": str(result.get("best_window", "Check conditions"))[:60],
-            "warnings": [str(w)[:80] for w in result.get("warnings", [])[:4]],
-            "recommended_targets": result.get("recommended_targets", []),
-            "ai_powered": True,
-        }
-        
-        # Save back to persistent cache
-        import time
-        cache_db[current_hash] = {
-            "timestamp": time.time(),
-            "data": result
-        }
-        
-        # Prune old cache entries to prevent unbounded growth (keep last 50)
-        if len(cache_db) > 50:
-            oldest = min(cache_db.keys(), key=lambda k: cache_db[k]["timestamp"])
-            del cache_db[oldest]
-            
+        # Mark as processing in cache immediately and start thread to bypass NGINX/Cloudflare timeouts
+        import threading, time
+        cache_db = _load_ai_cache()
+        cache_db[current_hash] = {"timestamp": int(time.time()), "data": {"status": "processing"}}
         _save_ai_cache(cache_db)
-
-        return result
-
+        
+        t = threading.Thread(target=_background_ai_task, args=(payload, headers, current_hash))
+        t.start()
+        
+        return {"status": "processing"}
+        
     except Exception as e:
         import logging
-        logger = logging.getLogger("stargazer")
-        logger.warning(f"AI seeing analysis failed ({type(e).__name__}): {e}")
-        # Resilient Fallback: If we have ANY cached data for this location, serve it
-        # Try to find the most recent cache entry for this lat/lon
-        prefix = f"{round(float(lat), 2)}_{round(float(lon), 2)}_"
-        for key in sorted(cache_db.keys(), reverse=True):
-            if key.startswith(prefix) and cache_db[key].get("data"):
-                logger.warning("AI Seeing: Falling back to stale cached response due to LLM failure")
-                return cache_db[key]["data"]
+        logging.getLogger("stargazer").error(f"AI Seeing error: {e}")
         return None
 
 
