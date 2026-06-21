@@ -230,6 +230,9 @@
 
   <main>
     <div id="night-overlay"></div>
+    <div style="position:absolute; top:75px; left:0; right:0; text-align:center; z-index:10; pointer-events:none;">
+      <div style="display:inline-block; font-size: 0.85rem; color: #a855f7; background: rgba(15,23,42,0.8); padding: 4px 12px; border-radius: 12px; border: 1px solid rgba(168,85,247,0.3);">✨ Click on any star to scan it via SIMBAD</div>
+    </div>
     <div id="celestial-container">
       <div id="ac-map-tooltip"></div>
       
@@ -258,11 +261,20 @@
         </div>
         
         <div class="pld-desc" id="pld-desc">
-          Description goes here...
+          Description
         </div>
       </div>
     </div>
   </main>
+
+  <!-- Star Info Modal (Planetarium) -->
+  <div id="star-modal" style="display:none; position:fixed; top:50%; left:50%; transform:translate(-50%, -50%); background:rgba(20,20,30,0.95); border:1px solid rgba(138,43,226,0.4); border-radius:12px; padding:20px; z-index:9999; min-width:300px; box-shadow:0 10px 40px rgba(0,0,0,0.8); backdrop-filter:blur(8px);">
+    <h2 id="star-modal-title" style="margin-top:0; color:#e2e8f0; font-size:1.2rem; margin-bottom:10px;">Star Info</h2>
+    <div id="star-modal-body" style="color:#cbd5e1; font-size:0.9rem; line-height:1.5; margin-bottom:15px; background:rgba(0,0,0,0.3); padding:12px; border-radius:8px; border:1px solid rgba(255,255,255,0.05);">
+      <p style="margin:0; text-align:center;">Loading star data from SIMBAD API...</p>
+    </div>
+    <button id="close-star-btn" style="width:100%; padding:10px; background:rgba(255,255,255,0.1); border:none; color:white; border-radius:6px; cursor:pointer;">Close</button>
+  </div>
 
   <script src="/planetarium.js"></script>
 </body>

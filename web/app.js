@@ -718,10 +718,10 @@ function renderConstellationMap(targets, constInfo) {
   }
 
   // Hook up canvas click
-  d3.select('#ac-map-container canvas').on('click', function(event) {
+  d3.select('#ac-map-container canvas').on('click', function() {
     const proj = Celestial.mapProjection;
     if(!proj) return;
-    const p = d3.pointer(event);
+    const p = d3.mouse(this);
     const coords = proj.invert(p); // [ra_deg, dec_deg]
     if(!coords) return;
     
