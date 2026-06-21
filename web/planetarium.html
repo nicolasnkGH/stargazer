@@ -275,7 +275,10 @@
     </div>
     <button id="close-star-btn" style="width:100%; padding:10px; background:rgba(255,255,255,0.1); border:none; color:white; border-radius:6px; cursor:pointer;">Close</button>
   </div>
-
+  <script src="/translations.js"></script>
+  <script>
+    window.currentLang = localStorage.getItem('stargazer_lang') || 'en';
+  </script>
   <script src="/planetarium.js"></script>
 </body>
 </html>
