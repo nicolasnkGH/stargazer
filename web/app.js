@@ -851,7 +851,14 @@ function renderActiveConstellation(constInfo) {
   }
 
   if (statusBadge) {
-    statusBadge.textContent = statusText || '...';
+    let badgeShort = '...';
+    if (statusText) {
+      if (statusText.includes('EXCELLENT')) badgeShort = dict.const_status_up || 'UP NOW';
+      else if (statusText.includes('VISIBLE')) badgeShort = dict.const_status_low || 'LOW';
+      else badgeShort = dict.const_status_down || 'DOWN';
+    }
+    
+    statusBadge.textContent = badgeShort;
     if (constInfo.current_altitude_deg > 15) {
       statusBadge.style.background = 'rgba(34,197,94,0.15)';
       statusBadge.style.borderColor = 'rgba(34,197,94,0.4)';
@@ -1545,12 +1552,12 @@ window.openFovModal = function(ra_deg, dec_deg, targetName) {
   }
 
   // Draw 1.2 deg FOV ring
-  if (!window.aladinOverlay) {
-    window.aladinOverlay = A.graphicOverlay({color: '#ef4444', lineWidth: 2});
-    aladinInstance.addCatalog(window.aladinOverlay);
-  } else {
-    window.aladinOverlay.removeAll();
+  if (window.aladinOverlay) {
+    aladinInstance.removeCatalog(window.aladinOverlay);
   }
+  window.aladinOverlay = A.graphicOverlay({color: '#ef4444', lineWidth: 2});
+  aladinInstance.addCatalog(window.aladinOverlay);
+  
   window.aladinOverlay.add(A.circle(ra_deg, dec_deg, 0.6)); // 0.6 deg radius = 1.2 deg FOV
 };
 
@@ -1600,7 +1607,28 @@ document.addEventListener('DOMContentLoaded', () => {
     })
     .catch(err => {
       const list = document.getElementById('asteroids-list');
-      if(list) list.innerHTML = '<div style="color:#ef4444; font-size:0.85rem;">Failed to load Asteroid data.</div>';
+      if(list) list.innerHTML = '<div style="color:#ef4444; font-size:0.85rem; padding:10px;">Failed to load Asteroid data. The API might be rate limited.</div>';
+    })
+    .finally(() => {
+      // Add fun facts!
+      const facts = [
+        "Asteroids are rocky remnants left over from the early formation of our solar system about 4.6 billion years ago.",
+        "Most asteroids in our solar system can be found in the main asteroid belt between Mars and Jupiter.",
+        "Some asteroids have their own moons! For example, the asteroid Ida has a tiny moon called Dactyl.",
+        "If all the asteroids in the solar system were combined, their total mass would still be less than that of Earth's Moon.",
+        "Ceres is the largest object in the asteroid belt, and it's so big it's actually classified as a dwarf planet!"
+      ];
+      const randomFact = facts[Math.floor(Math.random() * facts.length)];
+      
+      const list = document.getElementById('asteroids-list');
+      if (list) {
+        list.innerHTML += `
+          <div style="margin-top: 20px; padding: 15px; background: rgba(168, 85, 247, 0.05); border: 1px solid rgba(168, 85, 247, 0.2); border-radius: 8px;">
+            <div style="color: #d8b4fe; font-size: 0.8rem; font-weight: bold; margin-bottom: 5px;">✨ ASTEROID FACT</div>
+            <div style="color: #94a3b8; font-size: 0.8rem; line-height: 1.4;">${randomFact}</div>
+          </div>
+        `;
+      }
     });
 
   // Observation Notes Local Storage
