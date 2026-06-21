@@ -273,6 +273,16 @@ async function fetchAIAnalysis() {
     const res = await fetch(`${API_BASE}/seeing/ai${q}`);
     if (!res.ok) throw new Error('AI API failed');
     const aiData = await res.json();
+    if (aiData.status === 'processing') {
+      // Background AI generation is running, poll every 10s
+      if (explanationEl) {
+        explanationEl.classList.add('ai-loading-glow');
+        const dict = window.i18n[currentLang] || window.i18n['en'];
+        explanationEl.innerHTML = `✨ <span style="font-style:italic;">${dict.ai_analyzing || 'AI is analyzing the atmosphere (this takes a moment)...'}</span>`;
+      }
+      setTimeout(fetchAIAnalysis, 10000);
+      return;
+    }
     
     if (explanationEl) {
       explanationEl.classList.remove('ai-loading-glow');
@@ -1171,7 +1181,7 @@ function renderTargetGrid(targets, liveMap, filter) {
         <div class="tc-footer">
           <button class="btn-fov" onclick="openFovModal(${t.ra_hours * 15}, ${t.dec_degrees}, '${t.name.replace(/'/g, "\\'")}')">Simulate View 🔭</button>
           <span class="tc-equipment">${t.equipment || '🔭 Telescope'}</span>
-          <span class="tc-difficulty ${t.difficulty}">${t.difficulty.replace('_', ' ')}</span>
+          ${t.difficulty !== 'NAKED_EYE' ? `<span class="tc-difficulty ${t.difficulty}">${t.difficulty.replace('_', ' ')}</span>` : ''}
           <span class="tc-eyepiece">🔭 ${t.eyepiece_rec || ''}</span>
           ${altText ? `<span class="tc-altitude">${altText}</span>` : ''}
           ${visibleNow ? '<span class="tc-visible-now"><span style="width:6px;height:6px;border-radius:50%;background:#22c55e;display:inline-block"></span> In view now</span>' : ''}
