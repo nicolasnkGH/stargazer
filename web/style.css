@@ -1076,6 +1076,20 @@ body {
   background: rgba(192, 132, 252, 0.08);
 }
 
+.btn-fov {
+  background: rgba(239, 68, 68, 0.15);
+  color: #fca5a5;
+  border: 1px solid rgba(239, 68, 68, 0.4);
+  padding: 4px 10px;
+  border-radius: 6px;
+  font-size: 0.75rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background 0.2s;
+}
+.btn-fov:hover {
+  background: rgba(239, 68, 68, 0.3);
+}
 .tc-difficulty.naked_eye {
   color: #22c55e;
   border-color: rgba(34, 197, 94, 0.4);

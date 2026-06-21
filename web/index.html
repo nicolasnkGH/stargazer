@@ -35,6 +35,10 @@
   <script src="https://d3js.org/d3.geo.projection.v0.min.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/d3-celestial@0.7.32/celestial.min.js"></script>
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/d3-celestial@0.7.32/celestial.css">
+
+  <!-- Aladin Lite for FOV Simulator -->
+  <link rel="stylesheet" href="https://aladin.u-strasbg.fr/AladinLite/api/v2/latest/aladin.min.css" />
+  <script type="text/javascript" src="https://aladin.u-strasbg.fr/AladinLite/api/v2/latest/aladin.min.js" charset="utf-8"></script>
 </head>
 <body>
 
@@ -94,15 +98,15 @@
           <div class="metric-row">
             <div class="metric" id="m-cloud">
               <div class="metric-val">—</div>
-              <div class="metric-label" data-i18n="m_cloud" title="Percentage of the sky covered by clouds. Ideal is < 20%.">Cloud Cover ℹ️</div>
+              <div class="metric-label"><span data-i18n="m_cloud">Cloud Cover</span> <span title="Percentage of the sky covered by clouds. Ideal is < 20%.">ℹ️</span></div>
             </div>
             <div class="metric" id="m-wind">
               <div class="metric-val">—</div>
-              <div class="metric-label" data-i18n="m_wind" title="High winds vibrate the telescope and ruin the view. Ideal is < 15 km/h.">Wind (km/h) ℹ️</div>
+              <div class="metric-label"><span data-i18n="m_wind">Wind (km/h)</span> <span title="High winds vibrate the telescope and ruin the view. Ideal is < 15 km/h.">ℹ️</span></div>
             </div>
             <div class="metric" id="m-precip">
               <div class="metric-val">—</div>
-              <div class="metric-label" data-i18n="m_rain" title="Probability of precipitation. Ideal is 0%.">Rain Chance ℹ️</div>
+              <div class="metric-label"><span data-i18n="m_rain">Rain Chance</span> <span title="Probability of precipitation. Ideal is 0%.">ℹ️</span></div>
             </div>
           </div>
           <!-- 5-star label + engine badge -->
@@ -147,7 +151,7 @@
           <span class="card-badge" id="moon-illum-badge">—%</span>
         </div>
         <div class="card-body">
-          <div class="moon-phase-name" id="moon-phase-name" title="The current phase of the moon. Full moons wash out faint deep-sky objects.">Loading…</div>
+          <div class="moon-phase-name" id="moon-phase-name"><span data-i18n="card_moon">Loading…</span> <span title="The current phase of the moon. Full moons wash out faint deep-sky objects.">ℹ️</span></div>
           <div class="moon-arc-wrap">
             <div class="moon-arc-bar">
               <div class="moon-arc-fill" id="moon-arc-fill" style="width:0%"></div>
@@ -157,7 +161,7 @@
           <div class="moon-times">
             <div><span class="ti-label" data-i18n="lbl_rise">Rise</span> <span id="moon-rise">—</span></div>
             <div><span class="ti-label" data-i18n="lbl_set">Set</span> <span id="moon-set">—</span></div>
-            <div title="Altitude: How high above the horizon an object is. 90° is straight up."><span class="ti-label" data-i18n="lbl_alt">Alt</span> <span id="moon-alt">—</span> ℹ️</div>
+            <div><span class="ti-label" data-i18n="lbl_alt">Alt</span> <span id="moon-alt">—</span> <span title="Altitude: How high above the horizon an object is. 90° is straight up.">ℹ️</span></div>
           </div>
           <div class="dso-impact" id="dso-impact">Loading…</div>
           <div class="moon-fact" id="moon-fact" style="display:none; font-size: 0.85rem; color: #a1a1aa; margin-top: 10px; font-style: italic; border-top: 1px solid rgba(255,255,255,0.05); padding-top: 10px;"></div>
@@ -577,6 +581,16 @@
   <!-- Scripts -->
   <script src="https://cdn.jsdelivr.net/npm/driver.js@1.0.1/dist/driver.js.iife.js"></script>
   <script async defer src="https://buttons.github.io/buttons.js"></script>
+  <!-- FOV Simulator Modal -->
+  <div id="fov-modal" class="modal hidden">
+    <div class="modal-content" style="max-width: 600px;">
+      <h2 style="font-size: 1.1rem; margin-bottom: 5px; color: white;" id="fov-target-name">FOV Simulator</h2>
+      <p style="font-size: 0.85rem; color: var(--text-secondary); margin-bottom: 15px;">Simulated 1.2° view (130mm telescope with 25mm eyepiece)</p>
+      <div id="aladin-lite-div" style="width:100%; height:400px; background: black; border: 1px solid rgba(255,255,255,0.1); border-radius: 8px;"></div>
+      <button id="close-fov-btn" class="modal-close" style="margin-top: 15px; width: 100%;">Close Simulator</button>
+    </div>
+  </div>
+
   <!-- About Modal -->
   <div id="about-modal" class="modal hidden">
     <div class="modal-content about-modal-content">

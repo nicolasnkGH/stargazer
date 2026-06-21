@@ -1068,6 +1068,7 @@ function renderTargetGrid(targets, liveMap, filter) {
         <div class="tc-desc">${tDesc}</div>
         ${t.horizon_note ? `<div class="tc-horizon-note">${t.horizon_note}</div>` : ''}
         <div class="tc-footer">
+          <button class="btn-fov" onclick="openFovModal(${t.ra_hours * 15}, ${t.dec_degrees}, '${t.name.replace(/'/g, "\\'")}')">Simulate View 🔭</button>
           <span class="tc-equipment">${t.equipment || '🔭 Telescope'}</span>
           <span class="tc-difficulty ${t.difficulty}">${t.difficulty.replace('_', ' ')}</span>
           <span class="tc-eyepiece">🔭 ${t.eyepiece_rec || ''}</span>
@@ -1403,6 +1404,42 @@ function initTour() {
     setTimeout(() => { driver.drive(); }, 1500);
   }
 }
+
+// ── FOV Simulator (Aladin Lite) ──
+let aladinInstance = null;
+
+window.openFovModal = function(ra_deg, dec_deg, targetName) {
+  const modal = document.getElementById('fov-modal');
+  document.getElementById('fov-target-name').textContent = "FOV Simulator: " + targetName;
+  modal.classList.remove('hidden');
+
+  if (!aladinInstance) {
+    aladinInstance = A.aladin('#aladin-lite-div', {
+      survey: "P/DSS2/color",
+      fov: 1.5,
+      target: ra_deg + " " + dec_deg,
+      showReticle: false,
+      showZoomControl: true,
+      showFullscreenControl: false,
+      showLayersControl: false
+    });
+  } else {
+    aladinInstance.gotoRaDec(ra_deg, dec_deg);
+  }
+
+  // Draw 1.2 deg FOV ring
+  if (aladinInstance.view.overlays && aladinInstance.view.overlays.length > 0) {
+    aladinInstance.view.overlays[0].removeAll();
+  } else {
+    var overlay = A.graphicOverlay({color: '#ef4444', lineWidth: 2});
+    aladinInstance.addCatalog(overlay);
+  }
+  aladinInstance.view.overlays[0].add(A.circle(ra_deg, dec_deg, 0.6)); // 0.6 deg radius = 1.2 deg FOV
+};
+
+document.getElementById('close-fov-btn')?.addEventListener('click', () => {
+  document.getElementById('fov-modal').classList.add('hidden');
+});
 
 document.addEventListener('DOMContentLoaded', () => {
   setTimeout(() => initTour(), 500);
