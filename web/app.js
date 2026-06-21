@@ -27,7 +27,7 @@ window.showInfo = function(msg, event) {
   const t = document.getElementById('toast');
   const tm = document.getElementById('toast-msg');
   if (!t || !tm) return;
-  tm.textContent = msg;
+  tm.innerHTML = msg;
   
   if (event) {
     t.style.left = Math.min(event.pageX - 125, window.innerWidth - 260) + 'px';
@@ -725,37 +725,35 @@ function renderConstellationMap(targets, constInfo) {
     const coords = proj.invert(p); // [ra_deg, dec_deg]
     if(!coords) return;
     
-    // Open Star Modal
-    const modal = document.getElementById('star-modal');
-    if(!modal) return;
-    modal.classList.remove('hidden');
-    
-    document.getElementById('star-modal-title').textContent = "Star Info";
-    document.getElementById('star-modal-body').innerHTML = '<p style="margin:0; text-align:center;">Scanning SIMBAD Database...</p>';
+    // Show loading tooltip immediately
+    showInfo('<span style="color:#a855f7;">Scanning SIMBAD Database...</span>', d3.event);
     
     // Convert D3's longitude (-180 to 180 or 0 to 360) to standard RA (0 to 360)
     let ra = coords[0];
     if (ra < 0) ra += 360;
     const dec = coords[1];
 
+    const clickEvent = d3.event; // Capture the event for positioning the async result
+
     fetch(`${API_BASE}/api/star?ra=${ra}&dec=${dec}`)
       .then(r => r.json())
       .then(data => {
         if(data.error) throw new Error();
-        document.getElementById('star-modal-title').textContent = data.name.replace('* ', '');
-        document.getElementById('star-modal-body').innerHTML = `
-          <div style="display:flex; justify-content:space-between; margin-bottom:8px;">
+        const html = `
+          <div style="font-size: 1.05rem; color: #fff; margin-bottom: 6px; font-weight: bold;">${data.name.replace('* ', '')}</div>
+          <div style="display:flex; justify-content:space-between; margin-bottom:4px; gap: 15px;">
             <span style="color:#94a3b8;">Spectral Type</span>
-            <span style="color:#e2e8f0; font-family:var(--font-mono);">${data.spectral_type}</span>
+            <span style="color:#4ade80; font-family:var(--font-mono);">${data.spectral_type}</span>
           </div>
           <div style="display:flex; justify-content:space-between;">
             <span style="color:#94a3b8;">Distance</span>
-            <span style="color:#e2e8f0; font-family:var(--font-mono);">${data.distance}</span>
+            <span style="color:#60a5fa; font-family:var(--font-mono);">${data.distance}</span>
           </div>
         `;
+        showInfo(html, clickEvent);
       })
       .catch(e => {
-        document.getElementById('star-modal-body').innerHTML = '<p style="color:#ef4444; margin:0; text-align:center;">Could not resolve star data at this location.</p>';
+        showInfo('<span style="color:#ef4444;">Could not resolve star data at this location.</span>', clickEvent);
       });
   });
 }
