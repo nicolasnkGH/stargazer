@@ -142,53 +142,50 @@ def get_star(name: Optional[str] = None, ra: Optional[float] = None, dec: Option
     if cache_key in star_cache:
         return JSONResponse(content=star_cache[cache_key])
         
-    script = "format object \"%MAIN_ID | %SP_TYPE | %PLX_VALUE | %FLUX_V\"\n"
+    # Use modern SIMBAD TAP API via ADQL
     if name:
-        script += f"query id {name}"
+        query = f"SELECT main_id, sp_type, plx_value FROM basic WHERE ident = '{name}'"
     elif ra is not None and dec is not None:
-        # SIMBAD expects RA in hours, Dec in degrees. But wait, we receive RA in degrees from D3.
-        # It's easier to format it as degrees: query coo 12.345 -6.789 radius=2m
-        script += f"query coo {ra} {dec} radius=2m"
+        # Search within 2 arcmin (2/60 = 0.033 degrees)
+        query = f"SELECT main_id, sp_type, plx_value FROM basic WHERE 1=CONTAINS(POINT('ICRS', ra, dec), CIRCLE('ICRS', {ra}, {dec}, 0.033))"
     else:
         return JSONResponse(content={"error": "Must provide name or ra/dec"}, status_code=400)
         
-    url = f"http://simbad.cds.unistra.fr/simbad/sim-script?script={urllib.parse.quote(script)}"
+    url = f"http://simbad.u-strasbg.fr/simbad/sim-tap/sync?request=doQuery&lang=adql&query={urllib.parse.quote(query)}&format=json"
     
     try:
         req = urllib.request.Request(url)
         with urllib.request.urlopen(req) as response:  # nosec B310
-            text = response.read().decode().splitlines()
+            data = json.loads(response.read().decode())
             
-            # Parse output
-            for line in text:
-                if "::data::" in line:
-                    data = line.replace("::data::", "").split("|")
-                    if len(data) >= 3:
-                        main_id = data[0].strip()
-                        sp_type = data[1].strip()
-                        plx = data[2].strip()
+            if "data" in data and len(data["data"]) > 0:
+                # Get the first closest match
+                best_match = data["data"][0]
+                main_id = best_match[0]
+                sp_type = best_match[1] if best_match[1] else "Unknown"
+                plx = best_match[2]
+                
+                # Calculate distance in lightyears from parallax (mas)
+                distance_ly = "Unknown"
+                if plx and float(plx) > 0:
+                    try:
+                        d_pc = 1000.0 / float(plx)
+                        distance_ly = f"{round(d_pc * 3.262, 1)} ly"
+                    except:
+                        pass
                         
-                        # Calculate distance in lightyears from parallax (mas)
-                        distance_ly = "Unknown"
-                        if plx and plx != "~":
-                            try:
-                                d_pc = 1000.0 / float(plx)
-                                distance_ly = f"{round(d_pc * 3.262, 1)} ly"
-                            except:
-                                pass
-                                
-                        result = {
-                            "name": main_id or cache_key,
-                            "spectral_type": sp_type or "Unknown",
-                            "distance": distance_ly
-                        }
-                        star_cache[cache_key] = result
-                        return JSONResponse(content=result)
-                        
-            return JSONResponse(content={"name": cache_key, "spectral_type": "Unknown", "distance": "Unknown"})
+                result = {
+                    "name": main_id,
+                    "spectral_type": sp_type,
+                    "distance": distance_ly
+                }
+                star_cache[cache_key] = result
+                return JSONResponse(content=result)
+            else:
+                return JSONResponse(content={"error": "Not found"}, status_code=404)
     except Exception as e:
-        print(f"Error fetching star data: {e}")
-        return JSONResponse(content={"name": cache_key, "spectral_type": "Unknown", "distance": "Unknown"}, status_code=500)
+        print(f"Simbad API error: {e}")
+        return JSONResponse(content={"error": "API error"}, status_code=500)
 
 # ── Tonight ───────────────────────────────────────────────────────────────────
 
