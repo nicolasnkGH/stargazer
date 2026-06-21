@@ -1428,13 +1428,13 @@ window.openFovModal = function(ra_deg, dec_deg, targetName) {
   }
 
   // Draw 1.2 deg FOV ring
-  if (aladinInstance.view.overlays && aladinInstance.view.overlays.length > 0) {
-    aladinInstance.view.overlays[0].removeAll();
+  if (!window.aladinOverlay) {
+    window.aladinOverlay = A.graphicOverlay({color: '#ef4444', lineWidth: 2});
+    aladinInstance.addCatalog(window.aladinOverlay);
   } else {
-    var overlay = A.graphicOverlay({color: '#ef4444', lineWidth: 2});
-    aladinInstance.addCatalog(overlay);
+    window.aladinOverlay.removeAll();
   }
-  aladinInstance.view.overlays[0].add(A.circle(ra_deg, dec_deg, 0.6)); // 0.6 deg radius = 1.2 deg FOV
+  window.aladinOverlay.add(A.circle(ra_deg, dec_deg, 0.6)); // 0.6 deg radius = 1.2 deg FOV
 };
 
 document.getElementById('close-fov-btn')?.addEventListener('click', () => {
