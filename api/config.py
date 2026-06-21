@@ -1,7 +1,7 @@
 """
 StarGazer Configuration
-Columbus, OH — Celestron StarSense Explorer 5" DX
-South-facing 3rd floor porch
+Base settings for the observation environment.
+Values can be overridden using environment variables.
 """
 
 import os
@@ -24,20 +24,16 @@ AI_MODEL    = os.getenv("AI_MODEL",     "")
 AI_TIMEOUT  = int(os.getenv("AI_TIMEOUT", "60"))     # seconds — fall back to rule-based on timeout
 
 
-# Telescope
-TELESCOPE_APERTURE_MM = 130
-TELESCOPE_FOCAL_MM = 650
-BORTLE_CLASS = 8     # Columbus suburban sky
-LIMITING_MAG = 12.5  # visual limiting magnitude
+# Telescope defaults (can be overridden by environment variables)
+TELESCOPE_FOCAL_MM = int(os.getenv("TELESCOPE_FOCAL_MM", "650"))
+LIMITING_MAG = float(os.getenv("LIMITING_MAG", "12.5"))  # visual limiting magnitude
 
-# Horizon constraint — south-facing porch
-# Objects below this altitude are blocked
-MIN_ALTITUDE_DEG = 5
-SOUTH_FACING_BEST_AZ_MIN = 135  # SE
-SOUTH_FACING_BEST_AZ_MAX = 225  # SW
+# Horizon constraints
+# Objects below this altitude are generally blocked by local obstacles or atmosphere
+MIN_ALTITUDE_DEG = int(os.getenv("MIN_ALTITUDE_DEG", "15"))
 
-# Scorpius DSO Target Database
-# Curated for 5" aperture under Bortle 7-8 skies
+# Target Database
+# Example curated targets for amateur telescopes
 SCORPIUS_TARGETS = [
     {
         "id": "antares",

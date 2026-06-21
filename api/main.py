@@ -59,7 +59,7 @@ async def verify_origin(request: Request):
 
 app = FastAPI(
     title="StarGazer API",
-    description="Personal astronomy assistant for Columbus, OH — Celestron 5\" DX",
+    description="Personal astronomy assistant and dashboard API",
     version="1.0.0",
     dependencies=[Depends(verify_origin)]
 )
@@ -78,8 +78,8 @@ def root():
     return {
         "service": "StarGazer API",
         "status": "online",
-        "location": f"{LATITUDE}°N, {abs(LONGITUDE)}°W — Columbus, OH",
-        "telescope": f"Celestron StarSense Explorer 5\" DX ({TELESCOPE_APERTURE_MM}mm)",
+        "location": f"{LATITUDE}°N, {abs(LONGITUDE)}°W",
+        "telescope": f"Telescope ({TELESCOPE_APERTURE_MM}mm)",
         "bortle": BORTLE_CLASS,
         "time": now_local().isoformat(),
         "endpoints": ["/tonight", "/weekly", "/monthly", "/scorpius",

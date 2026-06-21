@@ -31,7 +31,7 @@
     },
     {
       "parameters": {
-        "jsCode": "const r = $input.first().json;\nconst days = r.days || [];\n\nconst lines = [\n  `🔭 *StarGazer — Week Ahead*`,\n  `📅 Week of ${r.week_start}`,\n  ``,\n];\n\ndays.forEach(day => {\n  lines.push(`*${day.date}* ${day.rating}`);\n  lines.push(`  ${day.moon_phase} • ${day.weather}`);\n  (day.highlights || []).forEach(h => lines.push(`  ↳ ${h}`));\n  lines.push('');\n});\n\nconst best = r.best_nights || [];\nif (best.length > 0) {\n  lines.push('*🏆 Best Nights This Week:*');\n  best.forEach(n => lines.push(`• ${n.date}`));\n  lines.push('');\n}\n\nlines.push(`_📡 Celestron 5\" DX | Columbus OH_`);\n\nreturn [{ json: { text: lines.join('\\n') } }];"
+        "jsCode": "const r = $input.first().json;\nconst days = r.days || [];\n\nconst lines = [\n  `🔭 *StarGazer — Week Ahead*`,\n  `📅 Week of ${r.week_start}`,\n  ``,\n];\n\ndays.forEach(day => {\n  lines.push(`*${day.date}* ${day.rating}`);\n  lines.push(`  ${day.moon_phase} • ${day.weather}`);\n  (day.highlights || []).forEach(h => lines.push(`  ↳ ${h}`));\n  lines.push('');\n});\n\nconst best = r.best_nights || [];\nif (best.length > 0) {\n  lines.push('*🏆 Best Nights This Week:*');\n  best.forEach(n => lines.push(`• ${n.date}`));\n  lines.push('');\n}\n\nlines.push(  `_📡 Telescope | ${r.location || 'Local'}_`,);\n\nreturn [{ json: { text: lines.join('\\n') } }];"
       },
       "id": "w3-format",
       "name": "Format Weekly Message",

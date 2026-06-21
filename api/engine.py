@@ -1,6 +1,5 @@
 """
-StarGazer Astronomy Engine
-Columbus, OH — Celestron StarSense Explorer 5" DX
+StarGazer Observation Engine
 
 Uses Skyfield for all ephemeris calculations (NASA JPL DE421).
 No API key required for core calculations.
@@ -67,8 +66,8 @@ def _get_observer(lat=None, lon=None):
     _, eph = _get_skyfield()
     use_lat = lat if lat is not None else LATITUDE
     use_lon = lon if lon is not None else LONGITUDE
-    columbus = wgs84.latlon(use_lat * N, abs(use_lon) * W, elevation_m=ELEVATION_M)
-    return eph["earth"] + columbus, columbus
+    observer_location = wgs84.latlon(use_lat * N, abs(use_lon) * W, elevation_m=ELEVATION_M)
+    return eph["earth"] + observer_location, observer_location
 
 # ── Time utilities ─────────────────────────────────────────────────────────────
 
@@ -84,13 +83,13 @@ def _tonight_window(dt: Optional[date] = None, lat=None, lon=None) -> tuple[date
     tz = ZoneInfo(TIMEZONE)
     d = dt or now_local().date()
     ts, eph = _get_skyfield()
-    _, columbus = _get_observer(lat=lat, lon=lon)
+    _, observer_location = _get_observer(lat=lat, lon=lon)
 
     midnight = datetime(d.year, d.month, d.day, 12, 0, tzinfo=tz)  # noon local
     t0 = ts.from_datetime(midnight)
     t1 = ts.from_datetime(midnight + timedelta(hours=24))
 
-    f = almanac.dark_twilight_day(eph, columbus)
+    f = almanac.dark_twilight_day(eph, observer_location)
     times, events = almanac.find_discrete(t0, t1, f)
 
     dusk = None
@@ -115,7 +114,7 @@ def _tonight_window(dt: Optional[date] = None, lat=None, lon=None) -> tuple[date
 
 def get_moon_info(dt: Optional[datetime] = None, lat=None, lon=None) -> dict:
     ts, eph = _get_skyfield()
-    observer, columbus = _get_observer(lat=lat, lon=lon)
+    observer, observer_location = _get_observer(lat=lat, lon=lon)
     tz = ZoneInfo(TIMEZONE)
     now = dt or now_local()
     t = _sf_time(now)
@@ -155,7 +154,7 @@ def get_moon_info(dt: Optional[datetime] = None, lat=None, lon=None) -> dict:
     midnight = datetime(d.year, d.month, d.day, 0, 0, tzinfo=tz)
     t0 = ts.from_datetime(midnight)
     t1 = ts.from_datetime(midnight + timedelta(hours=36))
-    f = almanac.risings_and_settings(eph, moon, columbus)
+    f = almanac.risings_and_settings(eph, moon, observer_location)
     times, events = almanac.find_discrete(t0, t1, f)
 
     moonrise = moonset = None
@@ -282,7 +281,7 @@ def get_constellation_window(abbr: str, dt: Optional[date] = None, lat=None, lon
         return {"status": "Constellation not found"}
 
     ts, eph = _get_skyfield()
-    observer, columbus = _get_observer(lat=lat, lon=lon)
+    observer, observer_location = _get_observer(lat=lat, lon=lon)
     tz = ZoneInfo(TIMEZONE)
     d = dt or now_local().date()
 
@@ -294,7 +293,7 @@ def get_constellation_window(abbr: str, dt: Optional[date] = None, lat=None, lon
     t1 = ts.from_datetime(midnight + timedelta(hours=36))
 
     # Find rise/set
-    f = almanac.risings_and_settings(eph, proxy, columbus)
+    f = almanac.risings_and_settings(eph, proxy, observer_location)
     try:
         times, events = almanac.find_discrete(t0, t1, f)
     except Exception:
@@ -1165,7 +1164,7 @@ def get_monthly_report(lat=None, lon=None) -> dict:
         "scorpius_note": scorpius_note,
         "bright_planets": bright_planets,
         "highlights": _get_monthly_highlights(year, month),
-        "bortle_note": f"Columbus is Bortle {BORTLE_CLASS} — best nights are new moon ± 5 days",
+        "bortle_note": f"Current Location is Bortle {BORTLE_CLASS} — best nights are new moon ± 5 days",
         "tip_of_month": _get_tip_of_month(month),
     }
 
@@ -1242,7 +1241,7 @@ def format_tonight_telegram(report: dict) -> str:
         f"*⏰ Observing Window*",
         f"• Dark: {r['astronomical_dusk']} → {r['astronomical_dawn']} ({r['observing_window_hours']}h)",
         f"",
-        f"📡 _Celestron 5\" DX | Columbus OH | Bortle {r['telescope']['bortle']}_",
+        f"📡 _Telescope | {LATITUDE}, {LONGITUDE} | Bortle {r['telescope']['bortle']}_",
     ]
     return "\n".join(lines)
 
