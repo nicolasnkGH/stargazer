@@ -618,9 +618,13 @@ function renderConstellationMap(targets, constInfo) {
       type: "raw",
       callback: function(error, json) {
         if (error) return;
+        // Initial setup can be empty since redraw will be called immediately
+      },
+      redraw: function() {
         const proj = Celestial.mapProjection;
         const svg = Celestial.container;
         const tooltip = d3.select('#ac-map-tooltip');
+        const detailsPanel = document.getElementById('ac-details-panel');
 
         const nodes = svg.selectAll('.custom-target')
           .data(window.currentMapTargets, d => d.name);
@@ -690,9 +694,8 @@ function renderConstellationMap(targets, constInfo) {
       }
     });
   } else {
-    // If already initialized, just update the configuration and redraw
+    // If already initialized, just update the configuration
     Celestial.display(config);
-    Celestial.redraw();
   }
 }
 
