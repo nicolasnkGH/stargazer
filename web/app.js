@@ -48,9 +48,10 @@ window.showInfo = function(msg, event) {
 };
 
 // ── Configuration ──────────────────────────────────────────────────────────
-const API_BASE = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1'
+const isIP = /^(?:[0-9]{1,3}\.){3}[0-9]{1,3}$/.test(window.location.hostname);
+const API_BASE = (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1')
   ? 'http://localhost:8181'
-  : 'https://stargazerapi.nick-t.net'; // Nginx Proxy Manager split-DNS URL
+  : (isIP ? `http://${window.location.hostname}:8181` : 'https://stargazerapi.nick-t.net'); // Nginx Proxy Manager split-DNS URL
 
 const DEFAULT_LOCATIONS = [
   { id: 'default', name: 'Mauna Kea Observatory', lat: 19.8206, lon: -155.4681 }
@@ -1329,6 +1330,20 @@ function setLanguage(lang) {
   
   const langSelect = document.getElementById('lang-select');
   if(langSelect) langSelect.value = currentLang;
+  
+  // Translate dropdown options
+  const acSelect = document.getElementById('ac-select');
+  if (acSelect) {
+    Array.from(acSelect.options).forEach(opt => {
+      const abbr = opt.value;
+      const key = `const_${abbr.toLowerCase()}`;
+      if (dict[key]) {
+        const emojiMatch = opt.text.match(/^[^\s]+/);
+        const emoji = emojiMatch ? emojiMatch[0] : '';
+        opt.text = `${emoji} ${dict[key]}`;
+      }
+    });
+  }
   
   // Update dynamic titles
   const targetTitle = document.getElementById('target-db-title');
