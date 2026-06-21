@@ -193,6 +193,24 @@
       border-top: 1px solid rgba(255,255,255,0.1);
       padding-top: 16px;
     }
+
+    /* Night Vision Mode */
+    #night-overlay {
+      display: none;
+      position: fixed;
+      top: 0; left: 0; right: 0; bottom: 0;
+      pointer-events: none;
+      z-index: 9998;
+      backdrop-filter: sepia(100%) hue-rotate(320deg) saturate(500%) brightness(0.8);
+      -webkit-backdrop-filter: sepia(100%) hue-rotate(320deg) saturate(500%) brightness(0.8);
+      background: rgba(5, 0, 0, 0.2);
+    }
+    body.night-mode #night-overlay {
+      display: block;
+    }
+    body.night-mode {
+      background-color: #050000;
+    }
   </style>
 
   <!-- D3.js and d3-celestial for Interactive Star Map -->
@@ -204,10 +222,14 @@
   <header>
     <div class="brand">✨ StarGazer Planetarium</div>
     <div class="constellation-title" id="pl-title">Loading...</div>
-    <button class="btn-close" onclick="window.close()">Close</button>
+    <div style="display: flex; gap: 12px;">
+      <button class="btn-close" id="btn-night-mode">🔴 Night Vision</button>
+      <button class="btn-close" onclick="window.close()">Close</button>
+    </div>
   </header>
 
   <main>
+    <div id="night-overlay"></div>
     <div id="celestial-container">
       <div id="ac-map-tooltip"></div>
       
