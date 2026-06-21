@@ -245,6 +245,14 @@ async function fetchAIAnalysis() {
   const engineBadgeEl = document.getElementById('seeing-engine-badge');
   const moonFactEl = document.getElementById('moon-fact');
 
+  const explanationEl = document.getElementById('seeing-explanation');
+  
+  if (explanationEl) {
+    const dict = window.i18n[currentLang] || window.i18n['en'];
+    explanationEl.innerHTML = `✨ <span style="font-style:italic;">${dict.ai_analyzing || 'AI is analyzing the atmosphere...'}</span>`;
+    explanationEl.classList.add('ai-loading-glow');
+  }
+
   if (aiTargetsCard) {
     aiTargetsCard.style.display = 'none';
   }
@@ -266,6 +274,10 @@ async function fetchAIAnalysis() {
     if (!res.ok) throw new Error('AI API failed');
     const aiData = await res.json();
     
+    if (explanationEl) {
+      explanationEl.classList.remove('ai-loading-glow');
+    }
+    
     // Update the UI with the fresh AI data
     if (aiData.ai_powered) {
       renderSeeing(aiData, null); 
@@ -280,7 +292,15 @@ async function fetchAIAnalysis() {
       engineBadgeEl.className = 'seeing-engine-badge rule';
       engineBadgeEl.title = 'AI could not be reached. Showing rule-based metrics.';
     }
-    if (moonFactEl) {
+    const explanationEl = document.getElementById('seeing-explanation');
+    if (explanationEl) {
+      explanationEl.classList.remove('ai-loading-glow');
+    }
+    const cachedMoonFact = localStorage.getItem(`stargazer_moon_fact_${currentLang}`);
+    if (cachedMoonFact && moonFactEl) {
+      moonFactEl.innerHTML = `✨ <strong>${window.i18n[currentLang]?.moon_fact_title || 'Moon Fact'}:</strong> ${cachedMoonFact}`;
+      moonFactEl.style.display = 'block';
+    } else if (moonFactEl) {
       moonFactEl.style.display = 'none';
     }
   }
@@ -407,6 +427,7 @@ function renderSeeing(seeing, data) {
   // Explanation prose
   const explanationEl = document.getElementById('seeing-explanation');
   if (explanationEl) {
+    explanationEl.classList.remove('ai-loading-glow');
     explanationEl.textContent = seeing.seeing_explanation || '';
     explanationEl.style.display = seeing.seeing_explanation ? '' : 'none';
   }
@@ -415,7 +436,8 @@ function renderSeeing(seeing, data) {
   const moonFactEl = document.getElementById('moon-fact');
   if (moonFactEl) {
     if (seeing.moon_fact) {
-      moonFactEl.innerHTML = `✨ <strong>${window.i18n[currentLang].moon_fact_title || 'Moon Fact'}:</strong> ${seeing.moon_fact}`;
+      localStorage.setItem(`stargazer_moon_fact_${currentLang}`, seeing.moon_fact);
+      moonFactEl.innerHTML = `✨ <strong>${window.i18n[currentLang]?.moon_fact_title || 'Moon Fact'}:</strong> ${seeing.moon_fact}`;
       moonFactEl.style.display = 'block';
     } else {
       moonFactEl.style.display = 'none';

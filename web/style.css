@@ -555,6 +555,27 @@ body {
 
 .ac-select-wrap {
   position: relative;
+  display: inline-block;
+}
+
+@keyframes aiLoadingPulse {
+  0% { background-position: 200% 0; }
+  100% { background-position: -200% 0; }
+}
+
+.ai-loading-glow {
+  background: linear-gradient(90deg, rgba(168,85,247,0.1) 25%, rgba(168,85,247,0.3) 50%, rgba(168,85,247,0.1) 75%);
+  background-size: 200% 100%;
+  animation: aiLoadingPulse 2s infinite linear;
+  color: #d8b4fe !important;
+  border: 1px solid rgba(168,85,247,0.4) !important;
+  box-shadow: 0 0 15px rgba(168,85,247,0.2);
+  border-radius: 6px;
+  padding: 10px;
+}
+
+.ac-select-wrap {
+  position: relative;
   display: inline-flex;
   align-items: center;
   margin-right: auto;
