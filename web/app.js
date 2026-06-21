@@ -556,20 +556,18 @@ function loadActiveConstellation(abbr) {
   });
 }
 
+window.celestialInitialized = false;
+window.currentMapTargets = [];
+
 function renderConstellationMap(targets, constInfo) {
   const container = document.getElementById('ac-map-container');
   const detailsPanel = document.getElementById('ac-details-panel');
   
   if (!container || typeof Celestial === 'undefined') return;
   
-  // Clear previous
-  container.innerHTML = `
-    <button id="btn-map-expand" class="map-expand-btn" onclick="toggleMapFullscreen()" title="Toggle Fullscreen">⤢</button>
-    <div id="ac-map-tooltip" style="position: absolute; opacity: 0; pointer-events: none; background: rgba(15,23,42,0.9); color: #fff; padding: 4px 8px; border-radius: 4px; font-size: 0.75rem; border: 1px solid rgba(168,85,247,0.3); transition: opacity 0.2s; white-space: nowrap; z-index: 10;"></div>
-  `;
+  // Set the global targets so the Celestial callback uses them
+  window.currentMapTargets = targets ? targets.filter(t => t.ra_hours != null && t.dec_degrees != null) : [];
   detailsPanel.style.display = 'none';
-
-  const validTargets = targets ? targets.filter(t => t.ra_hours != null && t.dec_degrees != null) : [];
 
   let centerRa = 0;
   let centerDec = 0;
@@ -577,9 +575,9 @@ function renderConstellationMap(targets, constInfo) {
   if (constInfo && constInfo.ra_hours != null && constInfo.dec_degrees != null) {
     centerRa = constInfo.ra_hours * 15;
     centerDec = constInfo.dec_degrees;
-  } else if (validTargets.length > 0) {
-    centerRa = d3.mean(validTargets, d => d.ra_hours) * 15;
-    centerDec = d3.mean(validTargets, d => d.dec_degrees);
+  } else if (window.currentMapTargets.length > 0) {
+    centerRa = d3.mean(window.currentMapTargets, d => d.ra_hours) * 15;
+    centerDec = d3.mean(window.currentMapTargets, d => d.dec_degrees);
   } else {
     return; // Cannot render without a center
   }
@@ -594,10 +592,10 @@ function renderConstellationMap(targets, constInfo) {
     interactive: true,
     controls: false,
     datapath: "https://cdn.jsdelivr.net/npm/d3-celestial@0.7.32/data/",
-    stars: { show: true, limit: 5.5, colors: true, names: false, size: 4 },
-    dsos: { show: false },
+    stars: { show: true, limit: 5.5, colors: true, names: true, propername: true, size: 4 },
+    dsos: { show: true, limit: 6, names: true },
     constellations: {
-      show: true, names: false, lines: true,
+      show: true, names: true, lines: true,
       lineStyle: { stroke: "#60a5fa", width: 1.5, opacity: 0.4 }
     },
     mw: { show: true, style: { fill: "#ffffff", opacity: 0.08 } },
@@ -605,87 +603,100 @@ function renderConstellationMap(targets, constInfo) {
     background: { fill: "#0a0f1c", stroke: "#1e293b", opacity: 1 }
   };
 
-  Celestial.display(config);
+  if (!window.celestialInitialized) {
+    // Only set up the UI once to avoid breaking Celestial's canvas references
+    container.innerHTML = `
+      <button id="btn-map-expand" class="map-expand-btn" onclick="toggleMapFullscreen()" title="Toggle Fullscreen">⤢</button>
+      <div id="ac-map-tooltip" style="position: absolute; opacity: 0; pointer-events: none; background: rgba(15,23,42,0.9); color: #fff; padding: 4px 8px; border-radius: 4px; font-size: 0.75rem; border: 1px solid rgba(168,85,247,0.3); transition: opacity 0.2s; white-space: nowrap; z-index: 10;"></div>
+    `;
+    
+    Celestial.display(config);
+    window.celestialInitialized = true;
 
-  // Add custom targets
-  Celestial.add({
-    type: "raw",
-    callback: function(error, json) {
-      if (error) return;
-      const ctx = Celestial.context;
-      const proj = Celestial.mapProjection;
-      const svg = Celestial.container;
-      const tooltip = d3.select('#ac-map-tooltip');
+    // Add custom targets layer once
+    Celestial.add({
+      type: "raw",
+      callback: function(error, json) {
+        if (error) return;
+        const proj = Celestial.mapProjection;
+        const svg = Celestial.container;
+        const tooltip = d3.select('#ac-map-tooltip');
 
-      // Draw custom targets on the SVG layer so they are interactive
-      const nodes = svg.selectAll('.custom-target')
-        .data(validTargets);
-        
-      nodes.enter()
-        .append('circle')
-        .attr('class', 'custom-target')
-        .merge(nodes)
-        .attr('cx', d => {
-          const pt = proj([d.ra_hours * 15, d.dec_degrees]);
-          return pt ? pt[0] : -100;
-        })
-        .attr('cy', d => {
-          const pt = proj([d.ra_hours * 15, d.dec_degrees]);
-          return pt ? pt[1] : -100;
-        })
-        .attr('r', d => Math.max(3, 7 - (d.magnitude || 5)/2))
-        .attr('fill', d => {
-            const t = (d.type || '').toLowerCase();
-            if (t.includes('star')) return '#fbbf24';
-            if (t.includes('cluster')) return '#38bdf8';
-            if (t.includes('nebula')) return '#f472b6';
-            if (t.includes('galaxy')) return '#a855f7';
-            return '#cbd5e1';
-        })
-        .style('stroke', 'rgba(255,255,255,0.8)')
-        .style('stroke-width', 1)
-        .style('cursor', 'pointer')
-        .style('filter', 'drop-shadow(0 0 6px rgba(255,255,255,0.5))')
-        .on('mouseover', function(event, d) {
-            d3.select(this).attr('stroke', '#fff').attr('stroke-width', 2);
-            tooltip.style('opacity', 1)
-                   .html(`<strong>${d.name}</strong><br>Mag ${d.magnitude || '?'}`)
-                   .style('left', (event.pageX + 10) + 'px')
-                   .style('top', (event.pageY - 20) + 'px');
-        })
-        .on('mousemove', function(event) {
-            tooltip.style('left', (event.pageX + 10) + 'px')
-                   .style('top', (event.pageY - 20) + 'px');
-        })
-        .on('mouseout', function(event, d) {
-            d3.select(this).attr('stroke', 'rgba(255,255,255,0.8)').attr('stroke-width', 1);
-            tooltip.style('opacity', 0);
-        })
-        .on('click', function(event, d) {
-            detailsPanel.style.display = 'block';
-            document.getElementById('acd-name').textContent = d.name;
-            document.getElementById('acd-type').textContent = `${d.type || 'Object'} • Mag ${d.magnitude || '?'}`;
-            document.getElementById('acd-desc').textContent = d.description || 'No description available.';
-            
-            let diffColor = 'rgba(255,255,255,0.1)';
-            let diffText = '#fff';
-            const diffStr = (d.difficulty || '').toLowerCase();
-            if (diffStr.includes('easy') || diffStr.includes('naked')) { diffColor = 'rgba(34,197,94,0.15)'; diffText = '#4ade80'; }
-            else if (diffStr.includes('medium')) { diffColor = 'rgba(245,158,11,0.15)'; diffText = '#f59e0b'; }
-            else if (diffStr.includes('hard')) { diffColor = 'rgba(248,113,113,0.15)'; diffText = '#f87171'; }
-            
-            const diffEl = document.getElementById('acd-diff');
-            diffEl.textContent = (d.difficulty || 'Unknown').replace('_', ' ');
-            diffEl.style.background = diffColor;
-            diffEl.style.color = diffText;
-            
-            document.getElementById('acd-alt').textContent = d.altitude_deg != null ? `${d.altitude_deg}° ${d.direction} • ${d.visible ? 'In view' : 'Below horizon'}` : '';
-        });
-        
-      nodes.exit().remove();
-    }
-  });
+        const nodes = svg.selectAll('.custom-target')
+          .data(window.currentMapTargets, d => d.name);
+          
+        nodes.enter()
+          .append('circle')
+          .attr('class', 'custom-target')
+          .merge(nodes)
+          .attr('cx', d => {
+            const pt = proj([d.ra_hours * 15, d.dec_degrees]);
+            return pt ? pt[0] : -100;
+          })
+          .attr('cy', d => {
+            const pt = proj([d.ra_hours * 15, d.dec_degrees]);
+            return pt ? pt[1] : -100;
+          })
+          .attr('r', d => Math.max(3, 7 - (d.magnitude || 5)/2))
+          .attr('fill', d => {
+              const t = (d.type || '').toLowerCase();
+              if (t.includes('star')) return '#fbbf24';
+              if (t.includes('cluster')) return '#38bdf8';
+              if (t.includes('nebula')) return '#f472b6';
+              if (t.includes('galaxy')) return '#a855f7';
+              return '#cbd5e1';
+          })
+          .style('stroke', 'rgba(255,255,255,0.8)')
+          .style('stroke-width', 1)
+          .style('cursor', 'pointer')
+          .style('filter', 'drop-shadow(0 0 6px rgba(255,255,255,0.5))')
+          .on('mouseover', function(event, d) {
+              d3.select(this).attr('stroke', '#fff').attr('stroke-width', 2);
+              tooltip.style('opacity', 1)
+                     .html(`<strong>${d.name}</strong><br>Mag ${d.magnitude || '?'}`)
+                     .style('left', (event.pageX + 10) + 'px')
+                     .style('top', (event.pageY - 20) + 'px');
+          })
+          .on('mousemove', function(event) {
+              tooltip.style('left', (event.pageX + 10) + 'px')
+                     .style('top', (event.pageY - 20) + 'px');
+          })
+          .on('mouseout', function(event, d) {
+              d3.select(this).attr('stroke', 'rgba(255,255,255,0.8)').attr('stroke-width', 1);
+              tooltip.style('opacity', 0);
+          })
+          .on('click', function(event, d) {
+              detailsPanel.style.display = 'block';
+              document.getElementById('acd-name').textContent = d.name;
+              document.getElementById('acd-type').textContent = `${d.type || 'Object'} • Mag ${d.magnitude || '?'}`;
+              document.getElementById('acd-desc').textContent = d.description || 'No description available.';
+              
+              let diffColor = 'rgba(255,255,255,0.1)';
+              let diffText = '#fff';
+              const diffStr = (d.difficulty || '').toLowerCase();
+              if (diffStr.includes('easy') || diffStr.includes('naked')) { diffColor = 'rgba(34,197,94,0.15)'; diffText = '#4ade80'; }
+              else if (diffStr.includes('medium')) { diffColor = 'rgba(245,158,11,0.15)'; diffText = '#f59e0b'; }
+              else if (diffStr.includes('hard')) { diffColor = 'rgba(248,113,113,0.15)'; diffText = '#f87171'; }
+              
+              const diffEl = document.getElementById('acd-diff');
+              diffEl.textContent = (d.difficulty || 'Unknown').replace('_', ' ');
+              diffEl.style.background = diffColor;
+              diffEl.style.color = diffText;
+              
+              document.getElementById('acd-alt').textContent = d.altitude_deg != null ? `${d.altitude_deg}° ${d.direction} • ${d.visible ? 'In view' : 'Below horizon'}` : '';
+          });
+          
+        nodes.exit().remove();
+      }
+    });
+  } else {
+    // If already initialized, just update the configuration and redraw
+    Celestial.display(config);
+    Celestial.redraw();
+  }
 }
+
+
 
 function toggleMapFullscreen() {
   const container = document.getElementById('ac-map-container');
@@ -994,7 +1005,7 @@ async function loadConstellations() {
 }
 
 // ── Render: Target Database ─────────────────────────────────────────────────
-let currentConstellation = 'Sco';
+let currentConstellation = localStorage.getItem('sg_constellation') || 'Sco';
 
 async function loadTargets() {
   await fetchAndRender(`/targets?constellation=${currentConstellation}`, (liveData) => {
@@ -1231,6 +1242,7 @@ async function init() {
       const btn = e.target;
       btn.classList.add('active');
       currentConstellation = btn.dataset.const;
+      localStorage.setItem('sg_constellation', currentConstellation);
       document.getElementById('target-db-title').textContent = `${btn.textContent.trim()} ${window.i18n[currentLang].targets_title_suffix}`;
       loadTargets();
       loadActiveConstellation(currentConstellation);
@@ -1242,6 +1254,7 @@ async function init() {
   if (selectEl) {
     selectEl.addEventListener('change', (e) => {
       currentConstellation = e.target.value;
+      localStorage.setItem('sg_constellation', currentConstellation);
       
       // Update the active tab if it exists
       document.querySelectorAll('.const-tab').forEach(b => b.classList.remove('active'));
