@@ -1,0 +1,618 @@
+[
+  {
+    "name": "Andromeda",
+    "abbr": "And",
+    "ra": 0.81,
+    "dec": 37.43,
+    "description": "Andromeda is one of the 48 constellations listed by the 2nd-century Greco-Roman astronomer Ptolemy,  and one of the 88 modern constellations. Located in the northern celestial hemisphere, it is named for Andromeda, daughter of Cassiopeia, in the Greek myth, who was chained to a rock to be eaten by the sea monster Cetus. Andromeda is most prominent during autumn evenings in the Northern Hemisphere, along with several other constellations named for characters in the Perseus myth. Because of its northern declination, Andromeda is visible only north of 40\u00b0 south latitude; for observers farther south, it always lies below the horizon. It is one of the largest constellations, with an area of 722 square degrees. This is over 1,400 times the size of the full moon, 55% of the size of the largest constellation, Hydra, and over 10 times the size of the smallest constellation, Crux."
+  },
+  {
+    "name": "Antlia",
+    "abbr": "Ant",
+    "ra": 10.28,
+    "dec": -32.48,
+    "description": ""
+  },
+  {
+    "name": "Apus",
+    "abbr": "Aps",
+    "ra": 16.14,
+    "dec": -75.3,
+    "description": ""
+  },
+  {
+    "name": "Aquarius",
+    "abbr": "Aqr",
+    "ra": 22.29,
+    "dec": -10.78,
+    "description": "Aquarius is an equatorial constellation of the zodiac, between Capricornus and Pisces. Its name is Latin for \"water-carrier\" or \"cup-carrier\", and its traditional astrological symbol is (\u2652\ufe0e), a representation of water. Aquarius is one of the oldest of the recognized constellations along the zodiac (the Sun's apparent path). It was one of the 48 constellations listed by the 2nd century astronomer Ptolemy, and it remains one of the 88 modern constellations. It is found in a region often called the Sea due to its profusion of constellations with watery associations such as Cetus the whale, Pisces the fish, and Eridanus the river."
+  },
+  {
+    "name": "Aquila",
+    "abbr": "Aql",
+    "ra": 19.67,
+    "dec": 3.41,
+    "description": "Aquila is a constellation on the celestial equator. Its name is Latin for 'eagle', and what it represents is mixed; some say it represents the bird that carried Zeus/Jupiter's thunderbolts in Greek-Roman mythology, while others say it was the bird that Zeus ordered to attack Prometheus."
+  },
+  {
+    "name": "Ara",
+    "abbr": "Ara",
+    "ra": 17.39,
+    "dec": -53.97,
+    "description": "Ara (Latin for \"the Altar\") is a southern constellation between Scorpius, Telescopium, Triangulum Australe, and Norma. Under its Greek name \u0392\u03c9\u03bc\u03cc\u03c2, B\u014dm\u01d2s, it was one of the 48 classical constellations described by the 2nd-century astronomer Ptolemy, and it remains one of the 88 modern constellations designated by the International Astronomical Union."
+  },
+  {
+    "name": "Aries",
+    "abbr": "Ari",
+    "ra": 2.64,
+    "dec": 20.81,
+    "description": "Aries  is one of the constellations of the zodiac. It is located in the Northern celestial hemisphere between Pisces to the west and Taurus to the east. The name Aries is Latin for ram. Its traditional astrological symbol is  (\u2648\ufe0e). It is one of the 48 constellations described by the 2nd century astronomer Ptolemy, and remains one of the 88 modern constellations.  It is a mid-sized constellation ranking 39th in overall size, with an area of 441 square degrees (1.1% of the celestial sphere)."
+  },
+  {
+    "name": "Auriga",
+    "abbr": "Aur",
+    "ra": 6.02,
+    "dec": 42.03,
+    "description": ""
+  },
+  {
+    "name": "Bo\u00f6tes",
+    "abbr": "Boo",
+    "ra": 14.71,
+    "dec": 31.2,
+    "description": ""
+  },
+  {
+    "name": "Caelum",
+    "abbr": "Cae",
+    "ra": 4.7,
+    "dec": -37.88,
+    "description": ""
+  },
+  {
+    "name": "Camelopardalis",
+    "abbr": "Cam",
+    "ra": 5.75,
+    "dec": 68.65,
+    "description": ""
+  },
+  {
+    "name": "Cancer",
+    "abbr": "Cnc",
+    "ra": 8.65,
+    "dec": 19.8,
+    "description": "Cancer is one of the twelve constellations of the zodiac and is located in the northern celestial hemisphere. Its name is Latin for crab and it is commonly represented as one. Cancer is a medium-size constellation with an area of 506 square degrees and its stars are rather faint, its brightest star Beta Cancri having an apparent magnitude of 3.5. It contains ten stars with known planets, including 55 Cancri, which has five: one super-Earth and four gas giants, one of which is in the habitable zone and as such has expected temperatures similar to Earth. At the (angular) heart of this sector of our celestial sphere is Praesepe (Messier 44), one of the closest open clusters to Earth and a popular target for amateur astronomers."
+  },
+  {
+    "name": "Canes Venatici",
+    "abbr": "CVn",
+    "ra": 13.11,
+    "dec": 40.11,
+    "description": ""
+  },
+  {
+    "name": "Canis Major",
+    "abbr": "CMa",
+    "ra": 6.83,
+    "dec": -22.13,
+    "description": ""
+  },
+  {
+    "name": "Canis Minor",
+    "abbr": "CMi",
+    "ra": 7.65,
+    "dec": 6.43,
+    "description": ""
+  },
+  {
+    "name": "Capricornus",
+    "abbr": "Cap",
+    "ra": 21.05,
+    "dec": -18.02,
+    "description": ""
+  },
+  {
+    "name": "Carina",
+    "abbr": "Car",
+    "ra": 8.7,
+    "dec": -63.3,
+    "description": "Carina ( k\u0259-RY-n\u0259, -\u2060REE-) is a constellation in the southern sky. Its name is Latin for the keel of a ship, and it was the southern foundation of the larger constellation of Argo Navis (the ship Argo) until it was divided into three pieces, the other two being Puppis (the poop deck), and Vela (the sails of the ship)."
+  },
+  {
+    "name": "Cassiopeia",
+    "abbr": "Cas",
+    "ra": 1.32,
+    "dec": 62.18,
+    "description": "Cassiopeia () is a constellation and asterism in the northern sky named after the vain queen Cassiopeia, mother of Andromeda, in Greek mythology, who boasted about her unrivaled beauty. Cassiopeia was one of the 48 constellations listed by the 2nd-century Greek astronomer Ptolemy, and it remains one of the 88 modern constellations today. It is easily recognizable due to its distinctive 'W' shape, formed by five bright stars."
+  },
+  {
+    "name": "Centaurus",
+    "abbr": "Cen",
+    "ra": 13.07,
+    "dec": -47.34,
+    "description": ""
+  },
+  {
+    "name": "Cepheus",
+    "abbr": "Cep",
+    "ra": 22.0,
+    "dec": 71.0,
+    "description": ""
+  },
+  {
+    "name": "Cetus",
+    "abbr": "Cet",
+    "ra": 1.67,
+    "dec": -7.18,
+    "description": ""
+  },
+  {
+    "name": "Chamaeleon",
+    "abbr": "Cha",
+    "ra": 10.69,
+    "dec": -79.2,
+    "description": ""
+  },
+  {
+    "name": "Circinus",
+    "abbr": "Cir",
+    "ra": 14.58,
+    "dec": -63.03,
+    "description": ""
+  },
+  {
+    "name": "Columba",
+    "abbr": "Col",
+    "ra": 5.86,
+    "dec": -35.09,
+    "description": ""
+  },
+  {
+    "name": "Coma Berenices",
+    "abbr": "Com",
+    "ra": 12.79,
+    "dec": 23.31,
+    "description": ""
+  },
+  {
+    "name": "Corona Australis",
+    "abbr": "CrA",
+    "ra": 18.65,
+    "dec": -41.08,
+    "description": ""
+  },
+  {
+    "name": "Corona Borealis",
+    "abbr": "CrB",
+    "ra": 15.84,
+    "dec": 32.62,
+    "description": ""
+  },
+  {
+    "name": "Corvus",
+    "abbr": "Crv",
+    "ra": 12.44,
+    "dec": -18.44,
+    "description": ""
+  },
+  {
+    "name": "Crater",
+    "abbr": "Crt",
+    "ra": 11.4,
+    "dec": -15.93,
+    "description": ""
+  },
+  {
+    "name": "Crux",
+    "abbr": "Cru",
+    "ra": 12.45,
+    "dec": -60.18,
+    "description": ""
+  },
+  {
+    "name": "Cygnus",
+    "abbr": "Cyg",
+    "ra": 20.59,
+    "dec": 44.54,
+    "description": ""
+  },
+  {
+    "name": "Delphinus",
+    "abbr": "Del",
+    "ra": 20.69,
+    "dec": 11.67,
+    "description": ""
+  },
+  {
+    "name": "Dorado",
+    "abbr": "Dor",
+    "ra": 5.24,
+    "dec": -59.42,
+    "description": ""
+  },
+  {
+    "name": "Draco",
+    "abbr": "Dra",
+    "ra": 17.03,
+    "dec": 65.4,
+    "description": ""
+  },
+  {
+    "name": "Equuleus",
+    "abbr": "Equ",
+    "ra": 21.19,
+    "dec": 7.76,
+    "description": ""
+  },
+  {
+    "name": "Eridanus",
+    "abbr": "Eri",
+    "ra": 3.3,
+    "dec": -29.0,
+    "description": ""
+  },
+  {
+    "name": "Fornax",
+    "abbr": "For",
+    "ra": 2.8,
+    "dec": -31.63,
+    "description": ""
+  },
+  {
+    "name": "Gemini",
+    "abbr": "Gem",
+    "ra": 7.07,
+    "dec": 22.6,
+    "description": ""
+  },
+  {
+    "name": "Grus",
+    "abbr": "Gru",
+    "ra": 22.46,
+    "dec": -46.35,
+    "description": ""
+  },
+  {
+    "name": "Hercules",
+    "abbr": "Her",
+    "ra": 17.39,
+    "dec": 27.5,
+    "description": ""
+  },
+  {
+    "name": "Horologium",
+    "abbr": "Hor",
+    "ra": 3.28,
+    "dec": -53.33,
+    "description": ""
+  },
+  {
+    "name": "Hydra",
+    "abbr": "Hya",
+    "ra": 11.61,
+    "dec": -14.48,
+    "description": ""
+  },
+  {
+    "name": "Hydrus",
+    "abbr": "Hyi",
+    "ra": 2.34,
+    "dec": -70.0,
+    "description": ""
+  },
+  {
+    "name": "Indus",
+    "abbr": "Ind",
+    "ra": 21.97,
+    "dec": -59.71,
+    "description": ""
+  },
+  {
+    "name": "Lacerta",
+    "abbr": "Lac",
+    "ra": 22.46,
+    "dec": 46.04,
+    "description": ""
+  },
+  {
+    "name": "Leo",
+    "abbr": "Leo",
+    "ra": 10.67,
+    "dec": 13.14,
+    "description": ""
+  },
+  {
+    "name": "Leo Minor",
+    "abbr": "LMi",
+    "ra": 10.24,
+    "dec": 32.08,
+    "description": ""
+  },
+  {
+    "name": "Lepus",
+    "abbr": "Lep",
+    "ra": 5.56,
+    "dec": -19.04,
+    "description": ""
+  },
+  {
+    "name": "Libra",
+    "abbr": "Lib",
+    "ra": 15.2,
+    "dec": -15.23,
+    "description": ""
+  },
+  {
+    "name": "Lupus",
+    "abbr": "Lup",
+    "ra": 15.22,
+    "dec": -42.7,
+    "description": ""
+  },
+  {
+    "name": "Lynx",
+    "abbr": "Lyn",
+    "ra": 7.99,
+    "dec": 47.47,
+    "description": ""
+  },
+  {
+    "name": "Lyra",
+    "abbr": "Lyr",
+    "ra": 18.85,
+    "dec": 36.77,
+    "description": ""
+  },
+  {
+    "name": "Mensa",
+    "abbr": "Men",
+    "ra": 5.42,
+    "dec": -77.5,
+    "description": ""
+  },
+  {
+    "name": "Microscopium",
+    "abbr": "Mic",
+    "ra": 20.96,
+    "dec": -36.27,
+    "description": ""
+  },
+  {
+    "name": "Monoceros",
+    "abbr": "Mon",
+    "ra": 7.06,
+    "dec": -5.92,
+    "description": ""
+  },
+  {
+    "name": "Musca",
+    "abbr": "Mus",
+    "ra": 12.46,
+    "dec": -70.15,
+    "description": ""
+  },
+  {
+    "name": "Norma",
+    "abbr": "Nor",
+    "ra": 15.9,
+    "dec": -51.35,
+    "description": ""
+  },
+  {
+    "name": "Octans",
+    "abbr": "Oct",
+    "ra": 22.0,
+    "dec": -82.0,
+    "description": ""
+  },
+  {
+    "name": "Ophiuchus",
+    "abbr": "Oph",
+    "ra": 17.39,
+    "dec": -7.9,
+    "description": ""
+  },
+  {
+    "name": "Orion",
+    "abbr": "Ori",
+    "ra": 5.58,
+    "dec": 5.94,
+    "description": ""
+  },
+  {
+    "name": "Pavo",
+    "abbr": "Pav",
+    "ra": 19.61,
+    "dec": -65.78,
+    "description": ""
+  },
+  {
+    "name": "Pegasus",
+    "abbr": "Peg",
+    "ra": 22.69,
+    "dec": 19.46,
+    "description": ""
+  },
+  {
+    "name": "Perseus",
+    "abbr": "Per",
+    "ra": 3.18,
+    "dec": 45.01,
+    "description": ""
+  },
+  {
+    "name": "Phoenix",
+    "abbr": "Phe",
+    "ra": 0.93,
+    "dec": -48.58,
+    "description": ""
+  },
+  {
+    "name": "Pictor",
+    "abbr": "Pic",
+    "ra": 5.71,
+    "dec": -53.47,
+    "description": ""
+  },
+  {
+    "name": "Pisces",
+    "abbr": "Psc",
+    "ra": 0.48,
+    "dec": 13.69,
+    "description": ""
+  },
+  {
+    "name": "Piscis Austrinus",
+    "abbr": "PsA",
+    "ra": 22.28,
+    "dec": -30.65,
+    "description": ""
+  },
+  {
+    "name": "Puppis",
+    "abbr": "Pup",
+    "ra": 7.26,
+    "dec": -31.18,
+    "description": ""
+  },
+  {
+    "name": "Pyxis",
+    "abbr": "Pyx",
+    "ra": 8.95,
+    "dec": -27.35,
+    "description": ""
+  },
+  {
+    "name": "Reticulum",
+    "abbr": "Ret",
+    "ra": 3.92,
+    "dec": -60.0,
+    "description": ""
+  },
+  {
+    "name": "Sagitta",
+    "abbr": "Sge",
+    "ra": 19.65,
+    "dec": 18.86,
+    "description": ""
+  },
+  {
+    "name": "Sagittarius",
+    "abbr": "Sgr",
+    "ra": 19.09,
+    "dec": -28.47,
+    "description": ""
+  },
+  {
+    "name": "Scorpius",
+    "abbr": "Sco",
+    "ra": 16.89,
+    "dec": -27.03,
+    "description": ""
+  },
+  {
+    "name": "Sculptor",
+    "abbr": "Scl",
+    "ra": 0.44,
+    "dec": -32.09,
+    "description": ""
+  },
+  {
+    "name": "Scutum",
+    "abbr": "Sct",
+    "ra": 18.67,
+    "dec": -9.88,
+    "description": ""
+  },
+  {
+    "name": "Serpens",
+    "abbr": "Ser",
+    "ra": 16.95,
+    "dec": 6.12,
+    "description": ""
+  },
+  {
+    "name": "Sextans",
+    "abbr": "Sex",
+    "ra": 10.27,
+    "dec": -2.61,
+    "description": ""
+  },
+  {
+    "name": "Taurus",
+    "abbr": "Tau",
+    "ra": 4.63,
+    "dec": 14.88,
+    "description": ""
+  },
+  {
+    "name": "Telescopium",
+    "abbr": "Tel",
+    "ra": 19.32,
+    "dec": -51.04,
+    "description": ""
+  },
+  {
+    "name": "Triangulum",
+    "abbr": "Tri",
+    "ra": 2.18,
+    "dec": 31.48,
+    "description": ""
+  },
+  {
+    "name": "Triangulum Australe",
+    "abbr": "TrA",
+    "ra": 16.08,
+    "dec": -65.39,
+    "description": ""
+  },
+  {
+    "name": "Tucana",
+    "abbr": "Tuc",
+    "ra": 23.77,
+    "dec": -65.83,
+    "description": ""
+  },
+  {
+    "name": "Ursa Major",
+    "abbr": "UMa",
+    "ra": 11.31,
+    "dec": 50.72,
+    "description": ""
+  },
+  {
+    "name": "Ursa Minor",
+    "abbr": "UMi",
+    "ra": 15.0,
+    "dec": 77.53,
+    "description": ""
+  },
+  {
+    "name": "Vela",
+    "abbr": "Vel",
+    "ra": 9.58,
+    "dec": -47.16,
+    "description": ""
+  },
+  {
+    "name": "Virgo",
+    "abbr": "Vir",
+    "ra": 13.41,
+    "dec": -4.16,
+    "description": ""
+  },
+  {
+    "name": "Volans",
+    "abbr": "Vol",
+    "ra": 7.79,
+    "dec": -69.8,
+    "description": ""
+  },
+  {
+    "name": "Vulpecula",
+    "abbr": "Vul",
+    "ra": 20.23,
+    "dec": 24.44,
+    "description": ""
+  }
+]

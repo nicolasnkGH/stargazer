@@ -714,8 +714,51 @@ function renderConstellationMap(targets, constInfo) {
           Celestial.redraw();
         };
       });
+      });
     }
   }
+
+  // Hook up canvas click
+  d3.select('#ac-map-container canvas').on('click', function(event) {
+    const proj = Celestial.mapProjection;
+    if(!proj) return;
+    const p = d3.pointer(event);
+    const coords = proj.invert(p); // [ra_deg, dec_deg]
+    if(!coords) return;
+    
+    // Open Star Modal
+    const modal = document.getElementById('star-modal');
+    if(!modal) return;
+    modal.classList.remove('hidden');
+    
+    document.getElementById('star-modal-title').textContent = "Star Info";
+    document.getElementById('star-modal-body').innerHTML = '<p style="margin:0; text-align:center;">Scanning SIMBAD Database...</p>';
+    
+    // Convert D3's longitude (-180 to 180 or 0 to 360) to standard RA (0 to 360)
+    let ra = coords[0];
+    if (ra < 0) ra += 360;
+    const dec = coords[1];
+
+    fetch(`/api/star?ra=${ra}&dec=${dec}`)
+      .then(r => r.json())
+      .then(data => {
+        if(data.error) throw new Error();
+        document.getElementById('star-modal-title').textContent = data.name.replace('* ', '');
+        document.getElementById('star-modal-body').innerHTML = `
+          <div style="display:flex; justify-content:space-between; margin-bottom:8px;">
+            <span style="color:#94a3b8;">Spectral Type</span>
+            <span style="color:#e2e8f0; font-family:var(--font-mono);">${data.spectral_type}</span>
+          </div>
+          <div style="display:flex; justify-content:space-between;">
+            <span style="color:#94a3b8;">Distance</span>
+            <span style="color:#e2e8f0; font-family:var(--font-mono);">${data.distance}</span>
+          </div>
+        `;
+      })
+      .catch(e => {
+        document.getElementById('star-modal-body').innerHTML = '<p style="color:#ef4444; margin:0; text-align:center;">Could not resolve star data at this location.</p>';
+      });
+  });
 }
 
 function toggleMapFullscreen() {
@@ -1441,8 +1484,44 @@ document.getElementById('close-fov-btn')?.addEventListener('click', () => {
   document.getElementById('fov-modal').classList.add('hidden');
 });
 
+document.getElementById('close-star-btn')?.addEventListener('click', () => {
+  document.getElementById('star-modal').classList.add('hidden');
+});
+
 document.addEventListener('DOMContentLoaded', () => {
   setTimeout(() => initTour(), 500);
+  
+  // Fetch Asteroids
+  fetch('/api/asteroids')
+    .then(r => r.json())
+    .then(data => {
+      const list = document.getElementById('asteroids-list');
+      if (!list) return;
+      if (!data || data.length === 0) {
+        list.innerHTML = '<div style="color:#94a3b8; font-size:0.85rem; padding:10px; text-align:center;">No major asteroids tonight.</div>';
+        return;
+      }
+      
+      list.innerHTML = '';
+      data.forEach(a => {
+        const haz = a.is_hazardous ? '<span style="color:#ef4444; font-size:0.75rem;">⚠️ HAZARDOUS</span>' : '';
+        list.innerHTML += `
+          <div style="background: rgba(255,255,255,0.05); padding: 10px; border-radius: 6px; display: flex; justify-content: space-between; align-items: center;">
+            <div>
+              <div style="color: #e2e8f0; font-weight: bold; font-size: 0.9rem;">${a.name} ${haz}</div>
+              <div style="color: #94a3b8; font-size: 0.75rem;">Diameter: ~${a.diameter_m}m • Speed: ${a.velocity_kmh.toLocaleString()} km/h</div>
+            </div>
+            <div style="text-align: right; color: #a855f7; font-size: 0.85rem; font-family: var(--font-mono);">
+              ${(a.miss_distance_km).toLocaleString()} km
+            </div>
+          </div>
+        `;
+      });
+    })
+    .catch(err => {
+      const list = document.getElementById('asteroids-list');
+      if(list) list.innerHTML = '<div style="color:#ef4444; font-size:0.85rem;">Failed to load Asteroid data.</div>';
+    });
 
   // Observation Notes Local Storage
   const obsNotes = document.getElementById('observation-notes');
