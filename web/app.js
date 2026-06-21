@@ -707,7 +707,7 @@ function renderConstellationMap(targets, constInfo) {
       const currentRot = proj.rotate();
       const targetRot = [-centerRa, -centerDec, 0];
       
-      d3.transition().duration(1200).tween("rotate", function() {
+      d3.select('#celestial-map').transition().duration(1200).tween("rotate", function() {
         const r = d3.interpolate(currentRot, targetRot);
         return function(t) {
           proj.rotate(r(t));
@@ -893,9 +893,15 @@ async function loadWeekly() {
       let highlights = (d.highlights || []).slice(0, 2);
       highlights = highlights.map(h => {
         let res = h;
-        if (res.includes('Clear skies')) res = res.replace('Clear skies (no major events)', dict.clear_skies || 'Clear skies (no major events)');
+        if (res.includes('Clear skies')) {
+            res = res.replace('✨ Clear skies (no major events)', dict.clear_skies || '✨ Clear skies (no major events)');
+        }
         return res;
       });
+      
+      const tempStr = d.temp_c != null ? `${Math.round(d.temp_c)}°C / ${Math.round(d.temp_c * 9/5 + 32)}°F` : '';
+      const cloudStr = d.cloud_pct != null ? `${Math.round(d.cloud_pct)}% Clouds` : '';
+
       return `
         <div class="day-card ${isToday ? 'today' : ''}">
           <div class="day-name">${dDate}</div>
@@ -903,6 +909,8 @@ async function loadWeekly() {
           <div class="day-rating">${dRatingRaw}</div>
           <div class="day-moon">${moonEmoji}</div>
           <div class="day-weather">${dWeatherRaw}</div>
+          <div style="font-size: 0.8rem; color: #cbd5e1; margin-top: 4px; text-align: center;">${tempStr}</div>
+          <div style="font-size: 0.75rem; color: #64748b; margin-top: 2px; text-align: center;">${cloudStr}</div>
           ${highlights.length > 0 ? `
           <div style="margin-top: 12px; border-top: 1px solid rgba(255,255,255,0.05); padding-top: 8px;">
             <marquee scrollamount="2" scrolldelay="100" style="width: 100%; font-size: 0.75rem; color: var(--accent-scorpius);">
