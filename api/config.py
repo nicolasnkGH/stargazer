@@ -6,10 +6,12 @@ South-facing 3rd floor porch
 
 import os
 
-# Observer location
-LATITUDE = float(os.getenv("OBSERVER_LAT", "39.9612"))   # Default to general Columbus, OH
-LONGITUDE = float(os.getenv("OBSERVER_LON", "-82.9988"))
-ELEVATION_M = int(os.getenv("OBSERVER_ELEVATION_M", "240"))   # meters above sea level
+# --- StarGazer Configuration ---
+LATITUDE = float(os.getenv("LATITUDE", "40.0638"))
+LONGITUDE = float(os.getenv("LONGITUDE", "-83.0457"))
+BORTLE_CLASS = int(os.getenv("BORTLE_CLASS", "6"))
+TELESCOPE_APERTURE_MM = int(os.getenv("TELESCOPE_APERTURE_MM", "130"))
+ELEVATION_M = int(os.getenv("ELEVATION_M", "250"))
 TIMEZONE = os.getenv("OBSERVER_TIMEZONE", "America/New_York")
 
 # Network
