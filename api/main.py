@@ -8,7 +8,7 @@ Serves tonight, weekly, monthly, and event reports.
 from dotenv import load_dotenv
 load_dotenv()
 
-from fastapi import FastAPI, Query
+from fastapi import FastAPI, Query, Depends, HTTPException, Header
 from typing import Optional
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse, PlainTextResponse
@@ -35,11 +35,33 @@ from engine import (
     NEARBY_TARGETS,
 )
 from config import LATITUDE, LONGITUDE, BORTLE_CLASS, TELESCOPE_APERTURE_MM, ELEVATION_M
+import re
+from fastapi import Request
+
+async def verify_origin(request: Request):
+    if request.url.path in ["/", "/health"]:
+        return
+        
+    origin = request.headers.get("origin") or request.headers.get("referer", "")
+    if not origin:
+        raise HTTPException(status_code=403, detail="Direct API access is blocked.")
+        
+    allowed_domains = ["stargazer.nick-t.net", "localhost", "127.0.0.1", "10.", "192.168.", ".local"]
+    
+    if any(domain in origin for domain in allowed_domains):
+        return
+        
+    # Check for other private IPs like 172.16.x.x
+    if re.search(r"https?://(?:172\.(?:1[6-9]|2[0-9]|3[0-1])\.)", origin):
+        return
+        
+    raise HTTPException(status_code=403, detail="Unauthorized Origin.")
 
 app = FastAPI(
     title="StarGazer API",
     description="Personal astronomy assistant for Columbus, OH — Celestron 5\" DX",
     version="1.0.0",
+    dependencies=[Depends(verify_origin)]
 )
 
 app.add_middleware(
