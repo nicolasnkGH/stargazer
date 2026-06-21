@@ -98,10 +98,45 @@ async function initPlanetarium() {
           return pt ? pt[1] : -100;
         })
         .attr('r', d => Math.max(4, 8 - (d.magnitude || 5)/2))
-        .style('fill', '#a855f7')
-        .style('stroke', '#fff')
-        .style('stroke-width', '1px')
+        .attr('fill', d => {
+            const t = (d.type || '').toLowerCase();
+            if (t.includes('star')) return '#fbbf24';
+            if (t.includes('cluster')) return '#38bdf8';
+            if (t.includes('nebula')) return '#f472b6';
+            if (t.includes('galaxy')) return '#a855f7';
+            return '#cbd5e1';
+        })
+        .style('stroke', 'rgba(255,255,255,0.8)')
+        .style('stroke-width', 1.5)
         .style('cursor', 'pointer')
+        .style('filter', 'drop-shadow(0 0 8px rgba(255,255,255,0.6))')
+        .on('mouseover', function(d, i) {
+            d3.select(this).attr('stroke', '#fff').attr('stroke-width', 2.5);
+            tooltip.style('opacity', 1)
+                   .html(`<strong>${d.name}</strong><br>Mag ${d.magnitude || '?'}`)
+                   .style('left', (d3.event.pageX + 15) + 'px')
+                   .style('top', (d3.event.pageY - 25) + 'px');
+        })
+        .on('mousemove', function(d, i) {
+            tooltip.style('left', (d3.event.pageX + 15) + 'px')
+                   .style('top', (d3.event.pageY - 25) + 'px');
+        })
+        .on('mouseout', function(d, i) {
+            d3.select(this).attr('stroke', 'rgba(255,255,255,0.8)').attr('stroke-width', 1.5);
+            tooltip.style('opacity', 0);
+        })
+        .on('click', function(d, i) {
+            const panel = document.getElementById('pl-details-panel');
+            panel.style.display = 'block';
+            
+            document.getElementById('pld-name').textContent = d.name;
+            document.getElementById('pld-type').textContent = d.type || 'Object';
+            document.getElementById('pld-mag').textContent = d.magnitude || 'Unknown';
+            
+            // Format RA/Dec nicely
+            const raStr = d.ra_hours != null ? `${d.ra_hours.toFixed(2)}h` : '?';
+            const decStr = d.dec_degrees != null ? `${d.dec_degrees.toFixed(2)}°` : '?';
+            document.getElementById('pld-radec').textContent = `${raStr} / ${decStr}`;
             
             // Format Difficulty with color
             const diffEl = document.getElementById('pld-diff');
@@ -121,6 +156,56 @@ async function initPlanetarium() {
         
       nodes.exit().remove();
     }
+  });
+  
+  // Star click handler for SIMBAD
+  d3.select('#celestial-container canvas').on('click', function() {
+    const proj = Celestial.mapProjection;
+    if(!proj) return;
+    const p = d3.mouse(this);
+    const coords = proj.invert(p); // [ra_deg, dec_deg]
+    if(!coords) return;
+    
+    // Check if pl-details-panel is open, if so, don't trigger the star modal! (We clicked a known target)
+    if(document.getElementById('pl-details-panel').style.display === 'block') {
+      // Actually, if we clicked the map but NOT a target, we want to hide it or show star modal.
+      // D3 mouse events on the canvas itself trigger if we didn't hit a target.
+    }
+    
+    const modal = document.getElementById('star-modal');
+    if(!modal) return;
+    modal.style.display = 'block';
+    
+    document.getElementById('star-modal-title').textContent = "Star Info";
+    document.getElementById('star-modal-body').innerHTML = '<p style="margin:0; text-align:center;">Scanning SIMBAD Database...</p>';
+    
+    let ra = coords[0];
+    if (ra < 0) ra += 360;
+    const dec = coords[1];
+
+    fetch(`/api/star?ra=${ra}&dec=${dec}`)
+      .then(r => r.json())
+      .then(data => {
+        if(data.error) throw new Error();
+        document.getElementById('star-modal-title').textContent = data.name.replace('* ', '');
+        document.getElementById('star-modal-body').innerHTML = `
+          <div style="display:flex; justify-content:space-between; margin-bottom:8px;">
+            <span style="color:#94a3b8;">Spectral Type</span>
+            <span style="color:#e2e8f0; font-family:monospace;">${data.spectral_type}</span>
+          </div>
+          <div style="display:flex; justify-content:space-between;">
+            <span style="color:#94a3b8;">Distance</span>
+            <span style="color:#e2e8f0; font-family:monospace;">${data.distance}</span>
+          </div>
+        `;
+      })
+      .catch(e => {
+        document.getElementById('star-modal-body').innerHTML = '<p style="color:#ef4444; margin:0; text-align:center;">Could not resolve star data at this location.</p>';
+      });
+  });
+  
+  document.getElementById('close-star-btn')?.addEventListener('click', () => {
+    document.getElementById('star-modal').style.display = 'none';
   });
 }
 
