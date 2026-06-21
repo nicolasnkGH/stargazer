@@ -122,7 +122,11 @@ const translations = {
     "simbad_spectral": "Spectral Type",
     "simbad_dist": "Distance",
     "simbad_unknown": "Unknown",
-    "simbad_error": "Could not resolve star data at this location."
+    "simbad_error": "Could not resolve star data at this location.",
+    "info_weather": "Data powered by Open-Meteo API",
+    "info_moon": "Calculated locally via Skyfield Ephemeris",
+    "info_planets": "Calculated locally via Skyfield Ephemeris",
+    "info_ai": "Target recommendations curated by Qwen3.5-9B AI"
   },
   es: {
     "const_uma": "Osa Mayor",
@@ -405,7 +409,11 @@ const translations = {
     "simbad_spectral": "Tipo Espectral",
     "simbad_dist": "Distancia",
     "simbad_unknown": "Desconocido",
-    "simbad_error": "No se pudo resolver los datos de la estrella en esta ubicación."
+    "simbad_error": "No se pudo resolver datos estelares en esta ubicación.",
+    "info_weather": "Datos proporcionados por Open-Meteo API",
+    "info_moon": "Calculado localmente vía Efemérides Skyfield",
+    "info_planets": "Calculado localmente vía Efemérides Skyfield",
+    "info_ai": "Recomendaciones curadas por la IA Qwen3.5-9B"
   },
   pt: {
     "const_uma": "Ursa Maior",
@@ -691,7 +699,11 @@ const translations = {
     "simbad_spectral": "Tipo Espectral",
     "simbad_dist": "Distância",
     "simbad_unknown": "Desconhecido",
-    "simbad_error": "Não foi possível resolver os dados da estrela neste local."
+    "simbad_error": "Não foi possível resolver dados estelares neste local.",
+    "info_weather": "Dados fornecidos por Open-Meteo API",
+    "info_moon": "Calculado localmente via Efemérides Skyfield",
+    "info_planets": "Calculado localmente via Efemérides Skyfield",
+    "info_ai": "Recomendações curadas pela IA Qwen3.5-9B"
   }
 };
 
