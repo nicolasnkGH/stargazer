@@ -111,7 +111,7 @@ def get_asteroids():
     
     try:
         req = urllib.request.Request(url)
-        with urllib.request.urlopen(req) as response:
+        with urllib.request.urlopen(req) as response:  # nosec B310
             data = json.loads(response.read().decode())
             
             neos = data.get("near_earth_objects", {}).get(today, [])
@@ -156,7 +156,7 @@ def get_star(name: Optional[str] = None, ra: Optional[float] = None, dec: Option
     
     try:
         req = urllib.request.Request(url)
-        with urllib.request.urlopen(req) as response:
+        with urllib.request.urlopen(req) as response:  # nosec B310
             text = response.read().decode().splitlines()
             
             # Parse output

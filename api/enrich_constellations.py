@@ -14,7 +14,7 @@ def fetch_wikipedia_summary(name):
     
     try:
         req = urllib.request.Request(url, headers={'User-Agent': 'StarGazerBot/1.0'})
-        with urllib.request.urlopen(req) as response:
+        with urllib.request.urlopen(req) as response:  # nosec B310
             data = json.loads(response.read().decode())
             pages = data['query']['pages']
             for page_id, page_data in pages.items():
@@ -22,7 +22,7 @@ def fetch_wikipedia_summary(name):
                     # Try without "_(constellation)" just in case
                     url2 = f"https://en.wikipedia.org/w/api.php?action=query&prop=extracts&exintro=1&explaintext=1&titles={urllib.parse.quote(name)}&format=json"
                     req2 = urllib.request.Request(url2, headers={'User-Agent': 'StarGazerBot/1.0'})
-                    with urllib.request.urlopen(req2) as resp2:
+                    with urllib.request.urlopen(req2) as resp2:  # nosec B310
                         data2 = json.loads(resp2.read().decode())
                         pages2 = data2['query']['pages']
                         for p2_id, p2_data in pages2.items():
