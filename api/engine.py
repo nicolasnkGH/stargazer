@@ -9,6 +9,56 @@ from __future__ import annotations
 import json
 import math
 import requests
+
+def _background_ai_task(payload, headers, current_hash):
+    import requests, json, time
+    try:
+        resp = requests.post(AI_API_URL, json=payload, headers=headers, timeout=AI_TIMEOUT)
+        resp.raise_for_status()
+        msg = resp.json()["choices"][0]["message"]
+        content = msg.get("content", "").strip()
+        reasoning = msg.get("reasoning_content", "").strip()
+        raw = content if content else reasoning
+        
+        result = None
+        if "```json" in raw:
+            block = raw.split("```json")[-1]
+            if "```" in block:
+                block = block.split("```")[0]
+            try:
+                result = json.loads(block.strip())
+            except Exception:
+                pass
+        if result is None:
+            first_brace = raw.find('{')
+            if first_brace != -1:
+                candidate = raw[first_brace:].strip()
+                for suffix in ["", "}", "]}", '"]}', '"}']:
+                    try:
+                        result = json.loads(candidate + suffix)
+                        break
+                    except Exception:
+                        pass
+                    try:
+                        result = json.loads(candidate + '"' + suffix)
+                        break
+                    except Exception:
+                        pass
+        
+        if result and "score" in result:
+            db = _load_ai_cache()
+            db[current_hash] = {"timestamp": int(time.time()), "data": result}
+            _save_ai_cache(db)
+        else:
+            db = _load_ai_cache()
+            if current_hash in db and db[current_hash].get("data", {}).get("status") == "processing":
+                del db[current_hash]
+                _save_ai_cache(db)
+    except Exception:
+        db = _load_ai_cache()
+        if current_hash in db and db[current_hash].get("data", {}).get("status") == "processing":
+            del db[current_hash]
+            _save_ai_cache(db)
 from datetime import datetime, timedelta, date
 from typing import Optional
 import pytz
@@ -530,19 +580,139 @@ def get_iss_passes(count: int = 3, lat=None, lon=None) -> list[dict]:
 
 
 
+def _ai_seeing_analysis(weather: dict, moon_illum: float, moon_alt: float, visible_targets: list = None, window_label: str = "averaged 8 PM – 4 AM local time", lat: float = 0.0, lon: float = 0.0, lang: str = "en") -> Optional[dict]:
+    """
+    Call Qwen3.5-9B with a structured astronomy seeing prompt.
+    Returns dict with score (1-10), label, explanation, best_window, warnings[].
+    Returns None on timeout or any failure — caller falls back to rule-based scorer.
+    """
+    if not AI_API_URL or not AI_MODEL:
+        raise ValueError("AI_API_URL or AI_MODEL is not configured in .env")
 
-def _background_ai_task(payload, headers, current_hash):
-    import requests, json, time
-    # Mark as processing in cache immediately and start thread
-    import time, threading
-    cache_db = _load_ai_cache()
-    cache_db[current_hash] = {"timestamp": int(time.time()), "data": {"status": "processing"}}
-    _save_ai_cache(cache_db)
-
-    t = threading.Thread(target=_background_ai_task, args=(payload, headers, current_hash))
-    t.start()
+    # Cache key: lat, lon, and a 3-hour time block (10800 seconds)
+    # This ensures stability across minor weather float changes and page refreshes.
+    import time
+    time_block = int(time.time()) // 10800
+    current_hash = f"{round(float(lat), 2)}_{round(float(lon), 2)}_{time_block}_{lang}"
     
-    return {"status": "processing"}
+    # Cache Hit
+    cache_db = _load_ai_cache()
+    if current_hash in cache_db:
+        entry = cache_db[current_hash]
+        import logging
+        logging.getLogger("stargazer").info("AI Seeing: Returning fresh cached response from disk")
+        return entry["data"]
+            
+    if visible_targets:
+        # Just grab the top 15 highest altitude targets so we don't blow up the prompt context
+        targets_str = ", ".join([f"{t['name']} (Mag {t.get('magnitude', '?')})" for t in visible_targets[:15]])
+        target_prompt = f"\n- Top visible deep-sky targets tonight: {targets_str}\nSelect up to 3 of these as 'recommended_targets' considering the moon and weather."
+    else:
+        target_prompt = ""
+
+    lang_instruction = f"\nCRITICAL: All string values in your JSON response (label, explanation, moon_fact, warnings, recommended_targets names and reasons) MUST be written in the ISO language code '{lang}'. Do not use English unless '{lang}' is 'en'." if lang != "en" else ""
+
+    prompt = f"""You are an expert astronomical seeing forecaster helping amateur astronomers decide whether to observe tonight.
+
+Tonight's atmospheric data ({window_label}):
+- Cloud cover: {weather.get('cloud_total', '?')}% (low: {weather.get('cloud_low', '?')}%, mid: {weather.get('cloud_mid', '?')}%, high/cirrus: {weather.get('cloud_high', '?')}%)
+- Surface wind: {weather.get('wind_surface', '?')} km/h
+- Upper-atmosphere wind (500hPa jet stream proxy): {weather.get('wind_upper', '?')} km/h
+- Precipitation probability: {weather.get('precip', '?')}%
+- Relative humidity: {weather.get('humidity', '?')}%
+- Dew point spread (temp − dewpoint): {weather.get('dew_spread', '?')}°C  [<3°C = fogging risk]
+- Surface pressure: {weather.get('pressure', '?')} hPa
+- Visibility: {weather.get('visibility_km', '?')} km
+- High cirrus clouds present: {'Yes' if (weather.get('cloud_high') or 0) > 20 else 'No'}
+- Moon: {moon_illum:.0f}% illuminated, currently {moon_alt:.1f}° above horizon{target_prompt}
+
+Rate the astronomical seeing quality on a scale of 1–10 (10 = perfect, 1 = stay inside).
+Consider: transparency (cloud/humidity/cirrus), atmospheric stability (jet stream), dew risk, moon interference, and overall observing potential.
+
+Respond ONLY with valid JSON — no markdown, no explanation outside the JSON:
+{{"score": <int 1-10>, "label": "<short label e.g. Exceptional transparency>", "explanation": "<2 sentences for a beginner astronomer>", "moon_fact": "<1 short interesting sentence about the moon's phase tonight>", "best_window": "<e.g. 10 PM – Midnight or All night>", "warnings": [<list of short warning strings, empty list if none>], "recommended_targets": [{{"name": "<Target Name>", "reason": "<Why it's good tonight>"}}]}}{lang_instruction}"""
+
+    headers = {"Content-Type": "application/json"}
+    if AI_API_KEY:
+        headers["Authorization"] = f"Bearer {AI_API_KEY}"
+
+    payload = {
+        "model": AI_MODEL,
+        "messages": [
+            {"role": "system", "content": f"You are a precise astronomical seeing forecaster. Always respond with valid JSON only. CRITICAL: All string values in your JSON response must be written in the ISO language code: '{lang}'."},
+            {"role": "user", "content": prompt},
+        ],
+        "temperature": 0.1,
+        "max_tokens": 4000,
+        "stream": False,
+    }
+
+    try:
+        # 2. If no valid block found, find the first JSON-like structure
+        if result is None:
+            first_brace = raw.find('{')
+            if first_brace != -1:
+                candidate = raw[first_brace:].strip()
+                # Attempt to parse, appending closing syntax if it was truncated by max_tokens
+                for suffix in ["", "}", "]}", '"]}', '"}']:
+                    try:
+                        result = json.loads(candidate + suffix)
+                        break
+                    except Exception:
+                        pass
+                    try:
+                        result = json.loads(candidate + '"' + suffix)
+                        break
+                    except Exception:
+                        pass
+        
+        if result is None:
+            raise ValueError("Could not extract valid JSON from AI response")
+
+        # Validate required fields
+        score = int(result.get("score", 0))
+        if not (1 <= score <= 10):
+            raise ValueError(f"Score out of range: {score}")
+
+        result = {
+            "score": score,
+            "label": str(result.get("label", ""))[:60],
+            "explanation": str(result.get("explanation", ""))[:300],
+            "moon_fact": str(result.get("moon_fact", ""))[:150],
+            "best_window": str(result.get("best_window", "Check conditions"))[:60],
+            "warnings": [str(w)[:80] for w in result.get("warnings", [])[:4]],
+            "recommended_targets": result.get("recommended_targets", []),
+            "ai_powered": True,
+        }
+        
+        # Save back to persistent cache
+        import time
+        cache_db[current_hash] = {
+            "timestamp": time.time(),
+            "data": result
+        }
+        
+        # Prune old cache entries to prevent unbounded growth (keep last 50)
+        if len(cache_db) > 50:
+            oldest = min(cache_db.keys(), key=lambda k: cache_db[k]["timestamp"])
+            del cache_db[oldest]
+            
+        _save_ai_cache(cache_db)
+
+        return result
+
+    except Exception as e:
+        import logging
+        logger = logging.getLogger("stargazer")
+        logger.warning(f"AI seeing analysis failed ({type(e).__name__}): {e}")
+        # Resilient Fallback: If we have ANY cached data for this location, serve it
+        # Try to find the most recent cache entry for this lat/lon
+        prefix = f"{round(float(lat), 2)}_{round(float(lon), 2)}_"
+        for key in sorted(cache_db.keys(), reverse=True):
+            if key.startswith(prefix) and cache_db[key].get("data"):
+                logger.warning("AI Seeing: Falling back to stale cached response due to LLM failure")
+                return cache_db[key]["data"]
+        return None
 
 
 def _rule_based_seeing_score(weather: dict, moon_illum: float, moon_alt: float) -> dict:
