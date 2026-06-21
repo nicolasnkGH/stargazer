@@ -321,10 +321,12 @@ body {
   display: flex;
   flex-wrap: wrap;
   gap: 20px;
+  justify-content: center;
 }
 
 .card-row > * {
-  flex: 0 1 calc(33.333% - 14px);
+  flex: 1 1 calc(33.333% - 14px);
+  max-width: calc(50% - 10px);
   min-width: 300px;
 }
 
