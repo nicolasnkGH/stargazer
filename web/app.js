@@ -631,9 +631,9 @@ function renderConstellationMap(targets, constInfo) {
           
         nodes.enter()
           .append('circle')
-          .attr('class', 'custom-target')
-          .merge(nodes)
-          .attr('cx', d => {
+          .attr('class', 'custom-target');
+          
+        nodes.attr('cx', d => {
             const pt = proj([d.ra_hours * 15, d.dec_degrees]);
             return pt ? pt[0] : -100;
           })
