@@ -741,7 +741,8 @@ function renderConstellationMap(targets, constInfo) {
     if(!coords) return;
     
     // Show loading tooltip immediately
-    showInfo('<span style="color:#a855f7;">Scanning SIMBAD Database...</span>', d3.event);
+    const dict = window.i18n[currentLang] || window.i18n['en'];
+    showInfo(`<span style="color:#a855f7;">${dict.simbad_scanning || 'Scanning SIMBAD Database...'}</span>`, d3.event);
     
     // Convert D3's longitude (-180 to 180 or 0 to 360) to standard RA (0 to 360)
     let ra = coords[0];
@@ -754,21 +755,27 @@ function renderConstellationMap(targets, constInfo) {
       .then(r => r.json())
       .then(data => {
         if(data.error) throw new Error();
+        const dict = window.i18n[currentLang] || window.i18n['en'];
+        
+        let spType = data.spectral_type === 'Unknown' ? (dict.simbad_unknown || 'Unknown') : data.spectral_type;
+        let dist = data.distance === 'Unknown' ? (dict.simbad_unknown || 'Unknown') : data.distance;
+        
         const html = `
           <div style="font-size: 1.05rem; color: #fff; margin-bottom: 6px; font-weight: bold;">${data.name.replace('* ', '')}</div>
           <div style="display:flex; justify-content:space-between; margin-bottom:4px; gap: 15px;">
-            <span style="color:#94a3b8;">Spectral Type</span>
-            <span style="color:#4ade80; font-family:var(--font-mono);">${data.spectral_type}</span>
+            <span style="color:#94a3b8;">${dict.simbad_spectral || 'Spectral Type'}</span>
+            <span style="color:#4ade80; font-family:var(--font-mono);">${spType}</span>
           </div>
           <div style="display:flex; justify-content:space-between;">
-            <span style="color:#94a3b8;">Distance</span>
-            <span style="color:#60a5fa; font-family:var(--font-mono);">${data.distance}</span>
+            <span style="color:#94a3b8;">${dict.simbad_dist || 'Distance'}</span>
+            <span style="color:#60a5fa; font-family:var(--font-mono);">${dist}</span>
           </div>
         `;
         showInfo(html, clickEvent, true);
       })
       .catch(e => {
-        showInfo('<span style="color:#ef4444;">Could not resolve star data at this location.</span>', clickEvent, true);
+        const dict = window.i18n[currentLang] || window.i18n['en'];
+        showInfo(`<span style="color:#ef4444;">${dict.simbad_error || 'Could not resolve star data at this location.'}</span>`, clickEvent, true);
       });
   });
 }
@@ -1509,19 +1516,25 @@ document.addEventListener('DOMContentLoaded', () => {
     .then(data => {
       const list = document.getElementById('asteroids-list');
       if (!list) return;
+      const dict = window.i18n[currentLang] || window.i18n['en'];
+      
       if (!data || data.length === 0) {
-        list.innerHTML = '<div style="color:#94a3b8; font-size:0.85rem; padding:10px; text-align:center;">No major asteroids tonight.</div>';
+        list.innerHTML = `<div style="color:#94a3b8; font-size:0.85rem; padding:10px; text-align:center;" data-i18n="asteroid_none">${dict.asteroid_none || 'No near-Earth asteroids detected tonight.'}</div>`;
         return;
       }
       
       list.innerHTML = '';
       data.forEach(a => {
-        const haz = a.is_hazardous ? '<span style="color:#ef4444; font-size:0.75rem;">⚠️ HAZARDOUS</span>' : '';
+        const hazardText = dict.asteroid_hazard || 'POTENTIALLY HAZARDOUS';
+        const diamText = dict.asteroid_diam || 'Diameter:';
+        const speedText = dict.asteroid_speed || 'Speed:';
+        
+        const haz = a.is_hazardous ? `<span style="color:#ef4444; font-size:0.75rem;">⚠️ ${hazardText}</span>` : '';
         list.innerHTML += `
           <div style="background: rgba(255,255,255,0.05); padding: 10px; border-radius: 6px; display: flex; justify-content: space-between; align-items: center;">
             <div>
               <div style="color: #e2e8f0; font-weight: bold; font-size: 0.9rem;">${a.name} ${haz}</div>
-              <div style="color: #94a3b8; font-size: 0.75rem;">Diameter: ~${a.diameter_m}m • Speed: ${a.velocity_kmh.toLocaleString()} km/h</div>
+              <div style="color: #94a3b8; font-size: 0.75rem;">${diamText} ~${a.diameter_m}m • ${speedText} ${a.velocity_kmh.toLocaleString()} km/h</div>
             </div>
             <div style="text-align: right; color: #a855f7; font-size: 0.85rem; font-family: var(--font-mono);">
               ${(a.miss_distance_km).toLocaleString()} km
