@@ -913,6 +913,7 @@ def get_seeing_forecast(lat=None, lon=None, ai_enabled: bool = False, lang: str 
         idx_e = idx_s + 8
         day_cloud  = avg("cloudcover", idx_s, idx_e)
         day_precip = avg("precipitation_probability", idx_s, idx_e)
+        day_temp = avg("temperature_2m", idx_s, idx_e)
         label = "🟢 Clear" if (day_cloud or 100) < 30 else ("🟡 Partly Cloudy" if (day_cloud or 100) < 70 else "🔴 Cloudy")
         from datetime import date as _date
         day_date = (_date.today() + timedelta(days=i)).strftime("%a %b %d")
@@ -920,6 +921,7 @@ def get_seeing_forecast(lat=None, lon=None, ai_enabled: bool = False, lang: str 
             "date":        day_date,
             "cloud_pct":   day_cloud,
             "precip_prob": day_precip,
+            "temp":        day_temp,
             "status":      label,
         })
 
@@ -1054,6 +1056,7 @@ def get_weekly_report(lat=None, lon=None) -> dict:
             "moon_illumination": moon["illumination_pct"],
             "weather": weather_day.get("status", "N/A"),
             "cloud_pct": weather_day.get("cloud_pct"),
+            "temp_c": weather_day.get("temp"),
             "highlights": highlights,
             "rating": _rate_night(moon["illumination_pct"], weather_day.get("cloud_pct", 50)),
         })
