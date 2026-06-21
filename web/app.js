@@ -48,10 +48,9 @@ window.showInfo = function(msg, event) {
 };
 
 // ── Configuration ──────────────────────────────────────────────────────────
-const isIP = /^(?:[0-9]{1,3}\.){3}[0-9]{1,3}$/.test(window.location.hostname);
-const API_BASE = (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1')
-  ? 'http://localhost:8181'
-  : (isIP ? `http://${window.location.hostname}:8181` : 'https://stargazerapi.nick-t.net'); // Nginx Proxy Manager split-DNS URL
+const API_BASE = window.location.hostname.includes('nick-t.net')
+  ? 'https://stargazerapi.nick-t.net'
+  : `http://${window.location.hostname}:8181`; // Fallback for any LAN IP, localhost, or .local
 
 const DEFAULT_LOCATIONS = [
   { id: 'default', name: 'Mauna Kea Observatory', lat: 19.8206, lon: -155.4681 }
