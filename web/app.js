@@ -1068,6 +1068,7 @@ function renderTargetGrid(targets, liveMap, filter) {
         <div class="tc-desc">${tDesc}</div>
         ${t.horizon_note ? `<div class="tc-horizon-note">${t.horizon_note}</div>` : ''}
         <div class="tc-footer">
+          <span class="tc-equipment">${t.equipment || '🔭 Telescope'}</span>
           <span class="tc-difficulty ${t.difficulty}">${t.difficulty.replace('_', ' ')}</span>
           <span class="tc-eyepiece">🔭 ${t.eyepiece_rec || ''}</span>
           ${altText ? `<span class="tc-altitude">${altText}</span>` : ''}
@@ -1405,4 +1406,20 @@ function initTour() {
 
 document.addEventListener('DOMContentLoaded', () => {
   setTimeout(() => initTour(), 500);
+
+  // Observation Notes Local Storage
+  const obsNotes = document.getElementById('observation-notes');
+  if (obsNotes) {
+    const savedNotes = localStorage.getItem('stargazer_obs_notes');
+    if (savedNotes) obsNotes.value = savedNotes;
+    
+    // Save on input with simple debounce
+    let timeoutId;
+    obsNotes.addEventListener('input', () => {
+      clearTimeout(timeoutId);
+      timeoutId = setTimeout(() => {
+        localStorage.setItem('stargazer_obs_notes', obsNotes.value);
+      }, 500);
+    });
+  }
 });

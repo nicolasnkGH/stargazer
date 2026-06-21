@@ -379,7 +379,19 @@ def get_visible_targets(dt: Optional[datetime] = None, lat=None, lon=None, const
         observable = bool(visible and in_limiting_mag)
 
         result = {**target}
+        
+        equipment = target.get("equipment")
+        if not equipment:
+            diff = target.get("difficulty", "")
+            if diff == "naked_eye":
+                equipment = "👀 Naked Eye"
+            elif diff == "easy":
+                equipment = "🔭 Binoculars"
+            else:
+                equipment = "🔭 Telescope"
+
         result.update({
+            "equipment": equipment,
             "ra_hours": ra_h,
             "dec_degrees": dec_deg,
             "altitude_deg": round(alt.degrees, 1),

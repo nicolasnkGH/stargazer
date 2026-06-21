@@ -908,6 +908,21 @@ body {
   white-space: nowrap;
   transition: all 0.2s;
 }
+.tc-difficulty, .tc-equipment {
+  display: inline-block;
+  padding: 2px 8px;
+  border-radius: 12px;
+  font-size: 0.7rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.tc-equipment {
+  background: rgba(138, 43, 226, 0.15);
+  color: #b19cd9;
+  border: 1px solid rgba(138, 43, 226, 0.4);
+}
 .const-tab:hover { background: rgba(255, 255, 255, 0.1); color: white; }
 .const-tab.active {
   background: rgba(168, 85, 247, 0.2);
@@ -1046,13 +1061,19 @@ body {
   flex-wrap: wrap;
 }
 
-.tc-difficulty {
+.tc-difficulty, .tc-equipment {
   font-size: 0.68rem;
   text-transform: uppercase;
   letter-spacing: 0.08em;
   padding: 2px 8px;
   border-radius: 10px;
   border: 1px solid;
+}
+
+.tc-equipment {
+  color: #c084fc;
+  border-color: rgba(192, 132, 252, 0.4);
+  background: rgba(192, 132, 252, 0.08);
 }
 
 .tc-difficulty.naked_eye {
