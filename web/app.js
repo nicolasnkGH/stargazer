@@ -168,7 +168,9 @@ setInterval(updateClock, 1000);
 const subtitle = document.getElementById('logo-sub');
 if (subtitle) {
   subtitle.removeAttribute('data-i18n');
-  subtitle.textContent = `${activeLoc.name} · ${activeLoc.lat.toFixed(3)}°N, ${activeLoc.lon.toFixed(3)}°W`;
+  const latStr = Math.abs(activeLoc.lat).toFixed(3) + (activeLoc.lat >= 0 ? '°N' : '°S');
+  const lonStr = Math.abs(activeLoc.lon).toFixed(3) + (activeLoc.lon >= 0 ? '°E' : '°W');
+  subtitle.textContent = `${activeLoc.name} · ${latStr}, ${lonStr}`;
 }
 
 async function fetchAPI(path, fallback = null) {
@@ -249,8 +251,9 @@ async function fetchAIAnalysis() {
   
   if (explanationEl) {
     const dict = window.i18n[currentLang] || window.i18n['en'];
-    explanationEl.innerHTML = `✨ <span style="font-style:italic;">${dict.ai_analyzing || 'AI is analyzing the atmosphere...'}</span>`;
+    explanationEl.innerHTML = `✨ <span style="font-style:italic;">${dict.ai_analyzing || 'AI is analyzing the atmosphere (this takes a moment)...'}</span>`;
     explanationEl.classList.add('ai-loading-glow');
+    explanationEl.style.display = 'block';
   }
 
   if (aiTargetsCard) {
@@ -279,6 +282,7 @@ async function fetchAIAnalysis() {
         explanationEl.classList.add('ai-loading-glow');
         const dict = window.i18n[currentLang] || window.i18n['en'];
         explanationEl.innerHTML = `✨ <span style="font-style:italic;">${dict.ai_analyzing || 'AI is analyzing the atmosphere (this takes a moment)...'}</span>`;
+        explanationEl.style.display = 'block';
       }
       setTimeout(fetchAIAnalysis, 10000);
       return;

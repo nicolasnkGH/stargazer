@@ -844,8 +844,18 @@ def get_tonight_report(lat=None, lon=None, lang: str = "en") -> dict:
         best_c = consts[0]
         must_see.append(f"{best_c['emoji']} {best_c['name']} is UP — 🟢 EXCELLENT")
 
+    planet_facts = {
+        "Venus": "look for its phases through a telescope!",
+        "Jupiter": "spot the 4 Galilean moons!",
+        "Saturn": "the rings are spectacular right now!",
+        "Mars": "look for the polar ice caps!",
+        "Mercury": "catch it quickly before it sets!",
+        "Uranus": "a tiny blue-green disc in binoculars!",
+        "Neptune": "a faint blue dot, needs a telescope!"
+    }
     for p in visible_planets[:3]:
-        must_see.append(f"{p['emoji']} {p['name']} at {p['altitude_deg']}° {p['direction']}")
+        fact = planet_facts.get(p['name'], "a great target tonight!")
+        must_see.append(f"{p['emoji']} {p['name']} at {p['altitude_deg']}° {p['direction']} — {fact}")
     if moon["illumination_pct"] < 15:
         must_see.append("🌑 New Moon tonight — best DSO conditions of the month!")
 
