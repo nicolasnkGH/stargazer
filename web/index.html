@@ -54,13 +54,15 @@
         <div class="logo-wrap">
         <div class="logo-main" data-i18n="app_title">✨ StarGazer</div>
         <div id="logo-slogan" class="logo-slogan" data-i18n="app_slogan">Astronomy made simple. Why we built this ›</div>
-        <div id="logo-sub" class="logo-sub" data-i18n="loading_loc">Loading location...</div>
+        <div style="display: flex; align-items: center; gap: 8px;">
+          <div id="logo-sub" class="logo-sub" data-i18n="loading_loc">Loading location...</div>
+          <button id="btn-location" class="location-btn" title="Set Location" data-i18n="set_loc_btn" style="width: 24px; height: 24px; font-size: 0.8rem; margin-top: 6px;">📍</button>
+        </div>
       </div>
       </div>
       <div class="header-meta">
         <select id="lang-select" class="lang-select"><option value="en">🇺🇸 EN</option><option value="es">🇪🇸 ES</option><option value="pt">🇧🇷 PT</option></select>
         <button id="btn-about" class="about-btn" title="About StarGazer" data-i18n="about_btn">ℹ️</button>
-        <button id="btn-location" class="location-btn" title="Set Location" data-i18n="set_loc_btn">📍</button>
         
         <div style="position: relative;">
           <button id="btn-menu" class="menu-btn" title="Navigation">☰</button>
@@ -103,7 +105,7 @@
         <div class="card-header">
           <span class="card-icon">🌤️</span>
           <h2 class="card-title" data-i18n="card_conditions">Conditions</h2>
-          <span class="info-icon" style="cursor:pointer; opacity:0.6; font-size: 0.85rem; margin-left:8px;" onclick="showInfo('Data powered by Open-Meteo API', event)">ℹ️</span>
+          <span class="info-icon" style="cursor:pointer; opacity:0.6; font-size: 0.85rem; margin-left:8px;" onclick="showInfo(window.i18n[window.currentLang]?.info_weather || 'Data powered by Open-Meteo API', event)">ℹ️</span>
           <span class="card-badge" id="seeing-score-badge">—</span>
         </div>
         <div class="card-body">
@@ -159,7 +161,7 @@
         <div class="card-header">
           <span class="card-icon" id="moon-phase-icon">🌙</span>
           <h2 class="card-title" data-i18n="card_moon">Moon</h2>
-          <span class="info-icon" style="cursor:pointer; opacity:0.6; font-size: 0.85rem; margin-left:8px;" onclick="showInfo('Calculated locally via Skyfield Ephemeris', event)">ℹ️</span>
+          <span class="info-icon" style="cursor:pointer; opacity:0.6; font-size: 0.85rem; margin-left:8px;" onclick="showInfo(window.i18n[window.currentLang]?.info_moon || 'Calculated locally via Skyfield Ephemeris', event)">ℹ️</span>
           <span class="card-badge" id="moon-illum-badge">—%</span>
         </div>
         <div class="card-body">
@@ -199,25 +201,25 @@
         <div class="card-header">
           <div class="ac-select-wrap">
             <select id="ac-select" class="ac-select">
-              <option value="Sco">🦂 Scorpius</option>
-              <option value="UMa">🐻 Ursa Major</option>
-              <option value="Ori">🏹 Orion</option>
-              <option value="Cas">👑 Cassiopeia</option>
-              <option value="Cyg">🦢 Cygnus</option>
-              <option value="Cru">✝️ Crux</option>
-              <option value="CMa">🐕 Canis Major</option>
-              <option value="Cen">🐎 Centaurus</option>
-              <option value="Ari">♈ Aries</option>
-              <option value="Tau">♉ Taurus</option>
-              <option value="Gem">♊ Gemini</option>
-              <option value="Cnc">♋ Cancer</option>
-              <option value="Leo">♌ Leo</option>
-              <option value="Vir">♍ Virgo</option>
-              <option value="Lib">♎ Libra</option>
-              <option value="Sgr">♐ Sagittarius</option>
-              <option value="Cap">♑ Capricornus</option>
-              <option value="Aqr">♒ Aquarius</option>
-              <option value="Psc">♓ Pisces</option>
+              <option value="Sco" data-i18n="const_sco">🦂 Scorpius</option>
+              <option value="UMa" data-i18n="const_uma">🐻 Ursa Major</option>
+              <option value="Ori" data-i18n="const_ori">🏹 Orion</option>
+              <option value="Cas" data-i18n="const_cas">👑 Cassiopeia</option>
+              <option value="Cyg" data-i18n="const_cyg">🦢 Cygnus</option>
+              <option value="Cru" data-i18n="const_cru">✝️ Crux</option>
+              <option value="CMa" data-i18n="const_cma">🐕 Canis Major</option>
+              <option value="Cen" data-i18n="const_cen">🐎 Centaurus</option>
+              <option value="Ari" data-i18n="const_ari">♈ Aries</option>
+              <option value="Tau" data-i18n="const_tau">♉ Taurus</option>
+              <option value="Gem" data-i18n="const_gem">♊ Gemini</option>
+              <option value="Cnc" data-i18n="const_cnc">♋ Cancer</option>
+              <option value="Leo" data-i18n="const_leo">♌ Leo</option>
+              <option value="Vir" data-i18n="const_vir">♍ Virgo</option>
+              <option value="Lib" data-i18n="const_lib">♎ Libra</option>
+              <option value="Sgr" data-i18n="const_sgr">♐ Sagittarius</option>
+              <option value="Cap" data-i18n="const_cap">♑ Capricornus</option>
+              <option value="Aqr" data-i18n="const_aqr">♒ Aquarius</option>
+              <option value="Psc" data-i18n="const_psc">♓ Pisces</option>
             </select>
           </div>
           <span class="card-badge" id="ac-status-badge">...</span>
@@ -266,7 +268,7 @@
         <div class="card-header" style="border-bottom: 1px solid rgba(138, 43, 226, 0.2); padding-bottom: 10px; margin-bottom: 15px;">
           <span class="card-icon" style="filter: drop-shadow(0 0 5px rgba(138,43,226,0.5));">🤖</span>
           <h2 class="card-title" style="color: #d8b4fe;">AI Recommended</h2>
-          <span class="info-icon" style="cursor:pointer; opacity:0.6; font-size: 0.85rem; margin-left:8px;" onclick="showInfo('Target recommendations curated by Qwen3.5-9B AI', event)">ℹ️</span>
+          <span class="info-icon" style="cursor:pointer; opacity:0.6; font-size: 0.85rem; margin-left:8px;" onclick="showInfo(window.i18n[window.currentLang]?.info_ai || 'Target recommendations curated by Qwen3.5-9B AI', event)">ℹ️</span>
         </div>
         <div class="card-body">
           <p style="font-size: 0.85rem; color: #a1a1aa; margin-top: -5px; margin-bottom: 15px; font-style: italic; display:flex; align-items:center; gap:6px;">
@@ -284,7 +286,7 @@
         <div class="card-header">
           <span class="card-icon">🪐</span>
           <h2 class="card-title" data-i18n="card_planets">Planets Tonight</h2>
-          <span class="info-icon" style="cursor:pointer; opacity:0.6; font-size: 0.85rem; margin-left:8px;" onclick="showInfo('Calculated locally via Skyfield Ephemeris', event)">ℹ️</span>
+          <span class="info-icon" style="cursor:pointer; opacity:0.6; font-size: 0.85rem; margin-left:8px;" onclick="showInfo(window.i18n[window.currentLang]?.info_planets || 'Calculated locally via Skyfield Ephemeris', event)">ℹ️</span>
         </div>
         <div class="card-body">
           <div class="planet-list" id="planet-list">
@@ -328,7 +330,7 @@
       <div class="card-header">
         <div class="card-icon">🌌</div>
         <div class="card-title" data-i18n="card_const_tonight">Constellations Tonight</div>
-        <span class="info-icon" style="cursor:pointer; opacity:0.6; font-size: 0.85rem; margin-left:8px;" onclick="showInfo('Calculated locally via Skyfield Ephemeris', event)">ℹ️</span>
+        <span class="info-icon" style="cursor:pointer; opacity:0.6; font-size: 0.85rem; margin-left:8px;" onclick="showInfo(window.i18n[window.currentLang]?.info_planets || 'Calculated locally via Skyfield Ephemeris', event)">ℹ️</span>
         <div class="card-badge" style="background: rgba(168, 85, 247, 0.15); color: #a855f7; border-color: rgba(168, 85, 247, 0.3);">
           <span data-i18n="badge_sorted">Sorted by best view</span>
         </div>

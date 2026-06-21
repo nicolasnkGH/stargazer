@@ -1,4 +1,5 @@
 let currentLang = localStorage.getItem('stargazer_lang') || 'en';
+window.currentLang = currentLang;
 
 function translateDate(dateStr) {
   if (!dateStr || currentLang === 'en') return dateStr;
@@ -1403,6 +1404,7 @@ document.addEventListener('DOMContentLoaded', init);
 function setLanguage(lang) {
   if(!window.i18n[lang]) lang = 'en';
   currentLang = lang;
+  window.currentLang = lang;
   localStorage.setItem('stargazer_lang', lang);
   
   const dict = window.i18n[currentLang];
