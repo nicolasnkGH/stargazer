@@ -1673,20 +1673,7 @@ body.night-mode {
   }
 }
 
-/* --- Map Fullscreen Classes --- */
-.map-fullscreen {
-  position: fixed !important;
-  top: 0 !important;
-  left: 0 !important;
-  width: 100vw !important;
-  height: 100vh !important;
-  z-index: 9999 !important;
-  border-radius: 0 !important;
-  margin: 0 !important;
-  background: #0a0f1c !important;
-  max-height: none !important;
-}
-
+/* --- Map Expand Button --- */
 .map-expand-btn {
   position: absolute;
   top: 8px;

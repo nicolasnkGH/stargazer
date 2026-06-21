@@ -654,22 +654,22 @@ function renderConstellationMap(targets, constInfo) {
           .style('stroke-width', 1)
           .style('cursor', 'pointer')
           .style('filter', 'drop-shadow(0 0 6px rgba(255,255,255,0.5))')
-          .on('mouseover', function(event, d) {
+          .on('mouseover', function(d, i) {
               d3.select(this).attr('stroke', '#fff').attr('stroke-width', 2);
               tooltip.style('opacity', 1)
                      .html(`<strong>${d.name}</strong><br>Mag ${d.magnitude || '?'}`)
-                     .style('left', (event.pageX + 10) + 'px')
-                     .style('top', (event.pageY - 20) + 'px');
+                     .style('left', (d3.event.pageX + 10) + 'px')
+                     .style('top', (d3.event.pageY - 20) + 'px');
           })
-          .on('mousemove', function(event) {
-              tooltip.style('left', (event.pageX + 10) + 'px')
-                     .style('top', (event.pageY - 20) + 'px');
+          .on('mousemove', function(d, i) {
+              tooltip.style('left', (d3.event.pageX + 10) + 'px')
+                     .style('top', (d3.event.pageY - 20) + 'px');
           })
-          .on('mouseout', function(event, d) {
+          .on('mouseout', function(d, i) {
               d3.select(this).attr('stroke', 'rgba(255,255,255,0.8)').attr('stroke-width', 1);
               tooltip.style('opacity', 0);
           })
-          .on('click', function(event, d) {
+          .on('click', function(d, i) {
               detailsPanel.style.display = 'block';
               document.getElementById('acd-name').textContent = d.name;
               document.getElementById('acd-type').textContent = `${d.type || 'Object'} • Mag ${d.magnitude || '?'}`;
@@ -691,6 +691,12 @@ function renderConstellationMap(targets, constInfo) {
           });
           
         nodes.exit().remove();
+      },
+      redraw: function() {
+        const proj = Celestial.mapProjection;
+        d3.selectAll('.custom-target')
+          .attr('cx', d => { const pt = proj([d.ra_hours * 15, d.dec_degrees]); return pt ? pt[0] : -100; })
+          .attr('cy', d => { const pt = proj([d.ra_hours * 15, d.dec_degrees]); return pt ? pt[1] : -100; });
       }
     });
   } else {
@@ -698,7 +704,6 @@ function renderConstellationMap(targets, constInfo) {
     const proj = Celestial.mapProjection;
     if (proj) {
       const currentRot = proj.rotate();
-      // D3 geo projection rotation is usually [-lon, -lat, roll]
       const targetRot = [-centerRa, -centerDec, 0];
       
       d3.transition().duration(1200).tween("rotate", function() {
@@ -712,39 +717,9 @@ function renderConstellationMap(targets, constInfo) {
   }
 }
 
-
-
 function toggleMapFullscreen() {
-  const container = document.getElementById('ac-map-container');
-  if (!container) return;
-  
-  const isFullscreen = container.classList.contains('map-fullscreen');
-  
-  if (!isFullscreen) {
-    // Going to fullscreen: move to document body to avoid clipping
-    window.originalMapParent = container.parentNode;
-    window.originalMapNextSibling = container.nextSibling;
-    document.body.appendChild(container);
-    container.classList.add('map-fullscreen');
-    document.body.style.overflow = 'hidden';
-  } else {
-    // Reverting from fullscreen
-    container.classList.remove('map-fullscreen');
-    if (window.originalMapParent) {
-      window.originalMapParent.insertBefore(container, window.originalMapNextSibling);
-    }
-    document.body.style.overflow = '';
-  }
-
-  const btn = document.getElementById('btn-map-expand');
-  if (container.classList.contains('map-fullscreen')) {
-    if (btn) btn.innerHTML = '⤓'; // minimize icon
-  } else {
-    if (btn) btn.innerHTML = '⤢'; // maximize icon
-  }
-  if (typeof Celestial !== 'undefined' && Celestial.resize) {
-    Celestial.resize();
-  }
+  const abbr = currentConstellation || 'Sco';
+  window.open(`/planetarium.html?c=${abbr}`, '_blank');
 }
 
 function renderActiveConstellation(s) {
