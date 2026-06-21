@@ -174,7 +174,7 @@
         <div class="card-header">
           <span class="card-icon">☄️</span>
           <h2 class="card-title">Asteroid Tracker</h2>
-          <span class="ux-tooltip" data-tooltip="Near-Earth Objects (NEOs) passing by Earth tonight. Data from NASA NeoWs API.">ℹ️</span>
+          <span class="info-icon" style="cursor:pointer; opacity:0.6; font-size: 0.85rem; margin-left:8px;" onclick="showInfo('Near-Earth Objects (NEOs) passing by Earth tonight. Data from NASA NeoWs API.', event)">ℹ️</span>
         </div>
         <div class="card-body">
           <div id="asteroids-list" style="display:flex; flex-direction:column; gap:10px;">
@@ -212,7 +212,8 @@
           <span class="card-badge" id="ac-status-badge">...</span>
         </div>
         <div class="card-body" style="padding-bottom: 8px;">
-          <div class="ac-status" id="ac-status" style="margin-bottom: 12px;">Loading constellation map...</div>
+          <div class="ac-status" id="ac-status" style="margin-bottom: 4px;">Loading constellation map...</div>
+          <div style="font-size: 0.75rem; color: #a855f7; margin-bottom: 12px;">✨ Click on any star to scan it via SIMBAD</div>
           
           <!-- Interactive D3 Map Container -->
           <div id="ac-map-container" style="width: 100%; height: 200px; background: rgba(0,0,0,0.2); border-radius: 8px; border: 1px solid rgba(255,255,255,0.05); position: relative; overflow: hidden; margin-bottom: 12px;">
