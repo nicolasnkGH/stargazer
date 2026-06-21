@@ -714,7 +714,6 @@ function renderConstellationMap(targets, constInfo) {
           Celestial.redraw();
         };
       });
-      });
     }
   }
 
