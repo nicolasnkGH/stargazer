@@ -23,12 +23,8 @@ async function initPlanetarium() {
   
   const targets = (targetRes && targetRes.targets) ? targetRes.targets : [];
   
-  // Set title
-  if (constRes && constRes.name) {
-    document.getElementById('pl-title').textContent = `${constRes.emoji || '✨'} ${constRes.name}`;
-  } else {
-    document.getElementById('pl-title').textContent = `Constellation: ${abbr}`;
-  }
+  // Set title to a static instruction since the user can pan around
+  document.getElementById('pl-title').textContent = `Interactive Sky Map`;
   
   const validTargets = targets.filter(t => t.ra_hours != null && t.dec_degrees != null);
   
@@ -56,8 +52,9 @@ async function initPlanetarium() {
     stars: { show: true, limit: 6.0, colors: true, names: true, propername: true, size: 5 },
     dsos: { show: true, limit: 6, names: true, size: 5 },
     constellations: {
-      show: true, names: true, lines: true,
-      lineStyle: { stroke: "#60a5fa", width: 1.5, opacity: 0.5 }
+      show: true, names: true, namesType: "la", lines: true,
+      lineStyle: { stroke: "#60a5fa", width: 1.5, opacity: 0.5 },
+      nameStyle: { fill: "#94a3b8", align: "center", baseline: "middle", font: ["14px Space Grotesk, sans-serif"] }
     },
     mw: { show: true, style: { fill: "#ffffff", opacity: 0.1 } },
     lines: { graticule: { show: false }, equatorial: { show: false } },

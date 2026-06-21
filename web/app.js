@@ -595,8 +595,9 @@ function renderConstellationMap(targets, constInfo) {
     stars: { show: true, limit: 5.5, colors: true, names: true, propername: true, size: 4 },
     dsos: { show: true, limit: 6, names: true },
     constellations: {
-      show: true, names: true, lines: true,
-      lineStyle: { stroke: "#60a5fa", width: 1.5, opacity: 0.4 }
+      show: true, names: true, namesType: "la", lines: true,
+      lineStyle: { stroke: "#60a5fa", width: 1.5, opacity: 0.5 },
+      nameStyle: { fill: "#94a3b8", align: "center", baseline: "middle", font: ["12px Space Grotesk, sans-serif"] }
     },
     mw: { show: true, style: { fill: "#ffffff", opacity: 0.08 } },
     lines: { graticule: { show: false }, equatorial: { show: false } },
