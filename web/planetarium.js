@@ -172,40 +172,71 @@ async function initPlanetarium() {
       // D3 mouse events on the canvas itself trigger if we didn't hit a target.
     }
     
-    const modal = document.getElementById('star-modal');
-    if(!modal) return;
-    modal.style.display = 'block';
+    // Show loading tooltip immediately
+    const tooltip = document.getElementById('toast');
+    const toastMsg = document.getElementById('toast-msg');
     
-    document.getElementById('star-modal-title').textContent = "Star Info";
-    document.getElementById('star-modal-body').innerHTML = '<p style="margin:0; text-align:center;">Scanning SIMBAD Database...</p>';
+    // Fallback if toast doesn't exist in planetarium.html: we'll create a simple absolute div
+    let infoDiv = document.getElementById('simbad-info');
+    if (!infoDiv) {
+      infoDiv = document.createElement('div');
+      infoDiv.id = 'simbad-info';
+      infoDiv.style.position = 'absolute';
+      infoDiv.style.background = 'rgba(20, 20, 30, 0.95)';
+      infoDiv.style.color = '#e2e8f0';
+      infoDiv.style.padding = '12px 16px';
+      infoDiv.style.borderRadius = '8px';
+      infoDiv.style.zIndex = '9999';
+      infoDiv.style.border = '1px solid rgba(138, 43, 226, 0.4)';
+      infoDiv.style.boxShadow = '0 8px 24px rgba(0,0,0,0.8)';
+      infoDiv.style.fontSize = '0.9rem';
+      infoDiv.style.pointerEvents = 'none';
+      infoDiv.style.backdropFilter = 'blur(8px)';
+      infoDiv.style.transition = 'opacity 0.2s ease';
+      document.body.appendChild(infoDiv);
+    }
+    
+    const pageX = d3.event.pageX;
+    const pageY = d3.event.pageY;
+    
+    function showInfoSleek(html) {
+      infoDiv.innerHTML = html;
+      infoDiv.style.left = Math.min(pageX + 15, window.innerWidth - 200) + 'px';
+      infoDiv.style.top = (pageY - 15) + 'px';
+      infoDiv.style.opacity = '1';
+      infoDiv.style.display = 'block';
+      setTimeout(() => {
+        infoDiv.style.opacity = '0';
+        setTimeout(() => infoDiv.style.display = 'none', 200);
+      }, 4000);
+    }
+    
+    showInfoSleek('<span style="color:#a855f7;">Scanning SIMBAD Database...</span>');
     
     let ra = coords[0];
     if (ra < 0) ra += 360;
     const dec = coords[1];
 
-    fetch(`/api/star?ra=${ra}&dec=${dec}`)
+    fetch(`${API_BASE}/api/star?ra=${ra}&dec=${dec}`)
       .then(r => r.json())
       .then(data => {
         if(data.error) throw new Error();
-        document.getElementById('star-modal-title').textContent = data.name.replace('* ', '');
-        document.getElementById('star-modal-body').innerHTML = `
-          <div style="display:flex; justify-content:space-between; margin-bottom:8px;">
+        const html = `
+          <div style="font-size: 1.05rem; color: #fff; margin-bottom: 6px; font-weight: bold;">${data.name.replace('* ', '')}</div>
+          <div style="display:flex; justify-content:space-between; margin-bottom:4px; gap: 15px;">
             <span style="color:#94a3b8;">Spectral Type</span>
-            <span style="color:#e2e8f0; font-family:monospace;">${data.spectral_type}</span>
+            <span style="color:#4ade80; font-family:monospace;">${data.spectral_type}</span>
           </div>
           <div style="display:flex; justify-content:space-between;">
             <span style="color:#94a3b8;">Distance</span>
-            <span style="color:#e2e8f0; font-family:monospace;">${data.distance}</span>
+            <span style="color:#60a5fa; font-family:monospace;">${data.distance}</span>
           </div>
         `;
+        showInfoSleek(html);
       })
       .catch(e => {
-        document.getElementById('star-modal-body').innerHTML = '<p style="color:#ef4444; margin:0; text-align:center;">Could not resolve star data at this location.</p>';
+        showInfoSleek('<span style="color:#ef4444;">Could not resolve star data at this location.</span>');
       });
-  });
-  
-  document.getElementById('close-star-btn')?.addEventListener('click', () => {
-    document.getElementById('star-modal').style.display = 'none';
   });
 }
 
