@@ -107,7 +107,7 @@ def get_asteroids():
         return JSONResponse(content=asteroid_cache["data"])
         
     today = datetime.now(ZoneInfo("UTC")).strftime("%Y-%m-%d")
-    api_key = os.getenv("NASA_API_KEY", "DEMO_KEY")
+    api_key = os.getenv("NASA_APOD_KEY", os.getenv("NASA_API_KEY", "DEMO_KEY"))
     url = f"https://api.nasa.gov/neo/rest/v1/feed?start_date={today}&end_date={today}&api_key={api_key}"
     
     try:
