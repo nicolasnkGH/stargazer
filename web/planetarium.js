@@ -1,4 +1,6 @@
-const API_BASE = window.location.origin === 'http://localhost:5500' ? 'http://127.0.0.1:8000' : '';
+const API_BASE = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1'
+  ? 'http://localhost:8181'
+  : 'https://stargazerapi.nick-t.net';
 
 async function fetchAPI(path) {
   try {
