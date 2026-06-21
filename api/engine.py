@@ -589,7 +589,7 @@ Respond ONLY with valid JSON — no markdown, no explanation outside the JSON:
     payload = {
         "model": AI_MODEL,
         "messages": [
-            {"role": "system", "content": "You are a precise astronomical seeing forecaster. Always respond with valid JSON only."},
+            {"role": "system", "content": f"You are a precise astronomical seeing forecaster. Always respond with valid JSON only. CRITICAL: All string values in your JSON response must be written in the ISO language code: '{lang}'."},
             {"role": "user", "content": prompt},
         ],
         "temperature": 0.1,

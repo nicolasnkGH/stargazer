@@ -27,6 +27,8 @@
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;400;500;600;700&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet" />
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/controls/OrbitControls.js"></script>
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/driver.js@1.0.1/dist/driver.css" />
   <link rel="stylesheet" href="style.css?v=24" />
   
@@ -140,15 +142,15 @@
 
           <!-- Pre-Flight Checklist -->
           <div class="checklist-container" id="pre-flight-checklist" style="margin-top: 15px; padding-top: 15px; border-top: 1px solid rgba(255,255,255,0.1);">
-            <h3 style="font-size: 0.85rem; margin-bottom: 8px; color: var(--text-primary);">✅ Pre-Flight Checklist</h3>
+            <h3 style="margin-top:0; font-size: 1rem; color: #fff;"><span style="color:#22c55e;">✅</span> <span data-i18n="preflight_title">Pre-Flight Checklist</span></h3>
             <label style="display: flex; align-items: center; gap: 8px; font-size: 0.8rem; color: var(--text-secondary); margin-bottom: 5px;">
-              <input type="checkbox" style="accent-color: var(--accent-blue);"> Put telescope outside to cool down (30m)
+              <input type="checkbox" style="accent-color: var(--accent-blue);"> <span data-i18n="preflight_1">Put telescope outside to cool down (30m)</span>
             </label>
             <label style="display: flex; align-items: center; gap: 8px; font-size: 0.8rem; color: var(--text-secondary); margin-bottom: 5px;">
-              <input type="checkbox" style="accent-color: var(--accent-blue);"> Turn off all porch lights
+              <input type="checkbox" style="accent-color: var(--accent-blue);"> <span data-i18n="preflight_2">Turn off all porch lights</span>
             </label>
             <label style="display: flex; align-items: center; gap: 8px; font-size: 0.8rem; color: var(--text-secondary);">
-              <input type="checkbox" style="accent-color: var(--accent-blue);"> Switch phone screen to red mode
+              <input type="checkbox" style="accent-color: var(--accent-blue);"> <span data-i18n="preflight_3">Switch phone screen to red mode</span>
             </label>
           </div>
         </div>
@@ -166,12 +168,14 @@
         </div>
         <div class="card-body">
           <div class="moon-phase-name" id="moon-phase-name"><span data-i18n="card_moon">Loading…</span> <span class="ux-tooltip" data-tooltip="The current phase of the moon. Full moons wash out faint deep-sky objects.">ℹ️</span></div>
-          <div class="moon-arc-wrap">
+          <div class="moon-arc-wrap" style="display:none;">
             <div class="moon-arc-bar">
               <div class="moon-arc-fill" id="moon-arc-fill" style="width:0%"></div>
             </div>
             <span class="moon-arc-label" id="moon-arc-label">0%</span>
           </div>
+          
+          <div id="moon-3d-container" style="width: 100%; height: 180px; margin-top: 15px; margin-bottom: 15px; border-radius: 8px; overflow: hidden; background: radial-gradient(circle at center, rgba(30, 40, 60, 0.3) 0%, transparent 70%); cursor: grab;" title="Drag to rotate, scroll to zoom"></div>
           <div class="moon-times">
             <div><span class="ti-label" data-i18n="lbl_rise">Rise</span> <span id="moon-rise">—</span></div>
             <div><span class="ti-label" data-i18n="lbl_set">Set</span> <span id="moon-set">—</span></div>
@@ -201,25 +205,25 @@
         <div class="card-header">
           <div class="ac-select-wrap">
             <select id="ac-select" class="ac-select">
-              <option value="Sco" data-i18n="const_sco">🦂 Scorpius</option>
-              <option value="UMa" data-i18n="const_uma">🐻 Ursa Major</option>
-              <option value="Ori" data-i18n="const_ori">🏹 Orion</option>
-              <option value="Cas" data-i18n="const_cas">👑 Cassiopeia</option>
-              <option value="Cyg" data-i18n="const_cyg">🦢 Cygnus</option>
-              <option value="Cru" data-i18n="const_cru">✝️ Crux</option>
-              <option value="CMa" data-i18n="const_cma">🐕 Canis Major</option>
-              <option value="Cen" data-i18n="const_cen">🐎 Centaurus</option>
-              <option value="Ari" data-i18n="const_ari">♈ Aries</option>
-              <option value="Tau" data-i18n="const_tau">♉ Taurus</option>
-              <option value="Gem" data-i18n="const_gem">♊ Gemini</option>
-              <option value="Cnc" data-i18n="const_cnc">♋ Cancer</option>
-              <option value="Leo" data-i18n="const_leo">♌ Leo</option>
-              <option value="Vir" data-i18n="const_vir">♍ Virgo</option>
-              <option value="Lib" data-i18n="const_lib">♎ Libra</option>
-              <option value="Sgr" data-i18n="const_sgr">♐ Sagittarius</option>
-              <option value="Cap" data-i18n="const_cap">♑ Capricornus</option>
-              <option value="Aqr" data-i18n="const_aqr">♒ Aquarius</option>
-              <option value="Psc" data-i18n="const_psc">♓ Pisces</option>
+              <option value="Sco">🦂 Scorpius</option>
+              <option value="UMa">🐻 Ursa Major</option>
+              <option value="Ori">🏹 Orion</option>
+              <option value="Cas">👑 Cassiopeia</option>
+              <option value="Cyg">🦢 Cygnus</option>
+              <option value="Cru">✝️ Crux</option>
+              <option value="CMa">🐕 Canis Major</option>
+              <option value="Cen">🐎 Centaurus</option>
+              <option value="Ari">♈ Aries</option>
+              <option value="Tau">♉ Taurus</option>
+              <option value="Gem">♊ Gemini</option>
+              <option value="Cnc">♋ Cancer</option>
+              <option value="Leo">♌ Leo</option>
+              <option value="Vir">♍ Virgo</option>
+              <option value="Lib">♎ Libra</option>
+              <option value="Sgr">♐ Sagittarius</option>
+              <option value="Cap">♑ Capricornus</option>
+              <option value="Aqr">♒ Aquarius</option>
+              <option value="Psc">♓ Pisces</option>
             </select>
           </div>
           <span class="card-badge" id="ac-status-badge">...</span>
@@ -273,7 +277,7 @@
         <div class="card-body">
           <p style="font-size: 0.85rem; color: #a1a1aa; margin-top: -5px; margin-bottom: 15px; font-style: italic; display:flex; align-items:center; gap:6px;">
             <span style="display:inline-block; width:8px; height:8px; background:#a855f7; border-radius:50%; box-shadow: 0 0 8px #a855f7;"></span>
-            Curated for tonight's conditions
+            <span data-i18n="ai_curated">Curated for tonight's conditions</span>
           </p>
           <div id="ai-targets-list" style="display:flex; flex-direction: column; gap: 12px;">
             <!-- Rendered via JS -->
@@ -653,6 +657,7 @@
   </div>
 
   <script src="translations.js"></script>
+  <script src="moon3d.js"></script>
   <script src="app.js?v=24"></script>
 </body>
 </html>

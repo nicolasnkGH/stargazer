@@ -369,15 +369,18 @@ function renderSeeing(seeing, data) {
   document.getElementById('m-precip').querySelector('.metric-val').textContent =
     seeing.tonight_precip_prob != null ? `${seeing.tonight_precip_prob}%` : '—';
 
-  // Seeing label (5-star text)
-  let sl = seeing.seeing_label || '—';
-  if (sl !== '—') {
-    const dict = window.i18n[currentLang] || window.i18n['en'];
-    if (sl.includes('Excellent')) sl = sl.replace('Excellent', dict.excellent || 'Excellent');
-    else if (sl.includes('Good')) sl = sl.replace('Good', dict.good || 'Good');
-    else if (sl.includes('Fair')) sl = sl.replace('Fair', dict.fair || 'Fair');
-    else if (sl.includes('Poor')) sl = sl.replace('Poor', dict.poor || 'Poor');
-  }
+  // Format Seeing Label
+  let sl = seeing.seeing_label || 'Unknown';
+  if (sl.includes('Exceptional')) sl = sl.replace('Exceptional', window.i18n[currentLang].seeing_exceptional || 'Exceptional');
+  else if (sl.includes('Good')) sl = sl.replace('Good', window.i18n[currentLang].seeing_good || 'Good');
+  else if (sl.includes('Average')) sl = sl.replace('Average', window.i18n[currentLang].seeing_average || 'Average');
+  else if (sl.includes('Poor')) sl = sl.replace('Poor', window.i18n[currentLang].seeing_poor || 'Poor');
+  else if (sl.includes('Bad — stay in')) sl = sl.replace('Bad — stay in', window.i18n[currentLang].bad_stay_in || 'Bad — stay in');
+
+  const conditionsDesc = seeing.conditions_desc || '';
+  let condFinal = conditionsDesc;
+  if (conditionsDesc === 'Cloudy / Poor') condFinal = window.i18n[currentLang].cloudy_poor || 'Cloudy / Poor';
+
   document.getElementById('seeing-label').textContent = sl;
 
   // ── AI-powered extras ─────────────────────────────────────────────────────
@@ -412,7 +415,7 @@ function renderSeeing(seeing, data) {
   const moonFactEl = document.getElementById('moon-fact');
   if (moonFactEl) {
     if (seeing.moon_fact) {
-      moonFactEl.innerHTML = `✨ <strong>Moon Fact:</strong> ${seeing.moon_fact}`;
+      moonFactEl.innerHTML = `✨ <strong>${window.i18n[currentLang].moon_fact_title || 'Moon Fact'}:</strong> ${seeing.moon_fact}`;
       moonFactEl.style.display = 'block';
     } else {
       moonFactEl.style.display = 'none';
@@ -437,9 +440,13 @@ function renderSeeing(seeing, data) {
     const warnings = seeing.warnings || [];
     if (warnings.length > 0) {
       warnings.forEach(w => {
+        const text = w.text || w;
+        let translatedText = text;
+        if (text.includes('100% cloud cover blocks all views')) translatedText = window.i18n[currentLang].cloud_cover_100 || text;
+        else if (text.includes('High cirrus clouds reduce transparency')) translatedText = window.i18n[currentLang].high_cirrus_transparency || text;
         const chip = document.createElement('span');
         chip.className = 'seeing-warning-chip';
-        chip.textContent = `⚠️ ${w}`;
+        chip.textContent = `⚠️ ${translatedText}`;
         warningsEl.appendChild(chip);
       });
       warningsEl.style.display = '';
@@ -786,26 +793,33 @@ function toggleMapFullscreen() {
   window.open(`/planetarium.html?c=${abbr}`, '_blank');
 }
 
-function renderActiveConstellation(s) {
+function renderActiveConstellation(constInfo) {
+  const statusBadge = document.getElementById('ac-status-badge');
   const statusEl = document.getElementById('ac-status');
   
-  if (!s || s.error) {
+  if (!constInfo || constInfo.error) {
     if (statusEl) statusEl.textContent = 'Could not load data';
     return;
   }
   
+  const dict = window.i18n[currentLang] || window.i18n['en'];
+  let statusText = constInfo.status;
+  if (statusText) {
+    if (statusText.includes('EXCELLENT')) {
+      statusText = `🟢 ${dict.const_status_excellent || 'EXCELLENT'} — ${dict['const_'+constInfo.abbr.toLowerCase()] || constInfo.name} ${dict.const_status_high || 'is high and well-placed'}`;
+    } else if (statusText.includes('VISIBLE')) {
+      statusText = `🟡 ${dict.const_status_visible || 'VISIBLE'} — ${dict['const_'+constInfo.abbr.toLowerCase()] || constInfo.name} ${dict.const_status_low || 'is above horizon (low)'}`;
+    } else if (statusText.includes('NOT VISIBLE')) {
+      statusText = `🔴 ${dict.const_status_hidden || 'NOT VISIBLE'} — ${dict.const_status_below || 'Below horizon or in twilight'}`;
+    }
+  }
+  
   if (statusEl) {
-    let rawStat = s.status || '—';
-    const dict = window.i18n[currentLang] || window.i18n['en'];
-    if (rawStat.includes('NOT VISIBLE')) rawStat = `🔴 ${dict.not_vis || 'NOT VISIBLE'} — ${dict.not_vis_sub || 'Below horizon or in twilight'}`;
-    else if (rawStat.includes('VISIBLE NOW')) rawStat = `🟢 ${dict.vis_now || 'VISIBLE NOW'} — ${dict.highest_at || 'Highest point at'} ${s.culmination_time}`;
-    else if (rawStat.includes('LOW')) rawStat = `🟡 ${dict.low_vis || 'LOW'} — ${dict.best_later || 'Visible, but best later at'} ${s.culmination_time}`;
-    
-    statusEl.innerHTML = rawStat;
-    if (s.current_altitude_deg > 15) {
+    statusEl.innerHTML = statusText || '...';
+    if (constInfo.current_altitude_deg > 15) {
       statusEl.style.borderColor = 'rgba(34,197,94,0.4)';
       statusEl.style.color = '#22c55e';
-    } else if (s.current_altitude_deg > 0) {
+    } else if (constInfo.current_altitude_deg > 0) {
       statusEl.style.borderColor = 'rgba(245,158,11,0.4)';
       statusEl.style.color = '#f59e0b';
     } else {
@@ -814,53 +828,48 @@ function renderActiveConstellation(s) {
     }
   }
 
-  const badgeEl = document.getElementById('ac-status-badge');
-  if (badgeEl) {
-    const dict = window.i18n[currentLang] || window.i18n['en'];
-    if (s.current_altitude_deg > 15) {
-      badgeEl.textContent = dict.up_now || 'UP NOW';
-      badgeEl.style.background = 'rgba(34,197,94,0.15)';
-      badgeEl.style.borderColor = 'rgba(34,197,94,0.4)';
-      badgeEl.style.color = '#22c55e';
-    } else if (s.current_altitude_deg > 0) {
-      badgeEl.textContent = dict.low || 'LOW';
-      badgeEl.style.background = 'rgba(245,158,11,0.15)';
-      badgeEl.style.borderColor = 'rgba(245,158,11,0.4)';
-      badgeEl.style.color = '#f59e0b';
+  if (statusBadge) {
+    statusBadge.textContent = statusText || '...';
+    if (constInfo.current_altitude_deg > 15) {
+      statusBadge.style.background = 'rgba(34,197,94,0.15)';
+      statusBadge.style.borderColor = 'rgba(34,197,94,0.4)';
+      statusBadge.style.color = '#22c55e';
+    } else if (constInfo.current_altitude_deg > 0) {
+      statusBadge.style.background = 'rgba(245,158,11,0.15)';
+      statusBadge.style.borderColor = 'rgba(245,158,11,0.4)';
+      statusBadge.style.color = '#f59e0b';
     } else {
-      badgeEl.textContent = dict.down || 'DOWN';
-      badgeEl.style.background = 'rgba(248,113,113,0.15)';
-      badgeEl.style.borderColor = 'rgba(248,113,113,0.4)';
-      badgeEl.style.color = '#f87171';
+      statusBadge.style.background = 'rgba(248,113,113,0.15)';
+      statusBadge.style.borderColor = 'rgba(248,113,113,0.4)';
+      statusBadge.style.color = '#f87171';
     }
   }
 
-  document.getElementById('ac-rise').textContent = s.rise_time || '—';
+  document.getElementById('ac-rise').textContent = constInfo.rise_time || '—';
   
   // Set time (using set if available, else derive from best_time loosely or NA)
-  document.getElementById('ac-set').textContent = s.set_time || '—';
+  document.getElementById('ac-set').textContent = constInfo.set_time || '—';
   
   // Calculate Arc progress
   const fillEl = document.getElementById('ac-arc-fill');
   const labelEl = document.getElementById('ac-arc-label');
-  if (fillEl && labelEl && s.current_altitude_deg != null && s.culmination_altitude_deg != null) {
+  if (fillEl && labelEl && constInfo.current_altitude_deg != null && constInfo.culmination_altitude_deg != null) {
       let pct = 0;
-      if (s.current_altitude_deg > 0) {
-          pct = Math.min(100, Math.max(0, (s.current_altitude_deg / s.culmination_altitude_deg) * 100));
+      if (constInfo.current_altitude_deg > 0) {
+          pct = Math.min(100, Math.max(0, (constInfo.current_altitude_deg / constInfo.culmination_altitude_deg) * 100));
       }
       fillEl.style.width = `${pct}%`;
-      labelEl.textContent = `${s.current_altitude_deg}°`;
+      labelEl.textContent = `${constInfo.current_altitude_deg}°`;
   }
     
-  const dict = window.i18n[currentLang] || window.i18n['en'];
-  const constName = dict[`const_${s.abbr ? s.abbr.toLowerCase() : ''}`] || s.name;
+  const constName = dict[`const_${constInfo.abbr ? constInfo.abbr.toLowerCase() : ''}`] || constInfo.name;
   
   const lblBestTime = dict.best_viewing || 'Best viewing time for';
   const lblTonightAround = dict.tonight_around || 'tonight is around';
   
   const noteEl = document.getElementById('ac-note');
   if (noteEl) {
-    noteEl.innerHTML = `💡 ${lblBestTime} <strong>${constName}</strong> ${lblTonightAround} <strong>${s.best_time}</strong>.`;
+    noteEl.innerHTML = `💡 ${lblBestTime} <strong>${constName}</strong> ${lblTonightAround} <strong>${constInfo.best_time}</strong>.`;
   }
 }
 
@@ -1587,4 +1596,7 @@ document.addEventListener('DOMContentLoaded', () => {
       }, 500);
     });
   }
+
+  // Initialize 3D Moon if present
+  if (window.initMoon3D) setTimeout(window.initMoon3D, 500);
 });
