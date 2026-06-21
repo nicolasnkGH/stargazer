@@ -1334,15 +1334,17 @@ function initLocationUI() {
     activateLocation(newLoc.id);
   });
 
-  document.getElementById('btn-city-search')?.addEventListener('click', () => {
-    const cityInput = document.getElementById('input-city-search');
+  let citySearchTimeout = null;
+  const cityInput = document.getElementById('input-city-search');
+  const btnCitySearch = document.getElementById('btn-city-search');
+  
+  const performCitySearch = () => {
     const query = cityInput.value.trim();
     if (!query) return;
     
-    const btn = document.getElementById('btn-city-search');
-    const oldText = btn.textContent;
-    btn.textContent = '⏳';
-    btn.disabled = true;
+    const oldText = btnCitySearch.textContent;
+    btnCitySearch.textContent = '⏳';
+    btnCitySearch.disabled = true;
     
     fetch(`https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(query)}&limit=1`)
       .then(res => res.json())
@@ -1359,20 +1361,24 @@ function initLocationUI() {
           } else {
              inputName.value = parts[0].trim();
           }
-          
-          cityInput.value = ''; // clear search
-        } else {
-          alert('City not found. Please try a different name or enter coordinates manually.');
         }
       })
       .catch(err => {
         console.error("Geocoding failed:", err);
-        alert('Failed to search city. Please try again or enter manually.');
       })
       .finally(() => {
-        btn.textContent = oldText;
-        btn.disabled = false;
+        btnCitySearch.textContent = oldText;
+        btnCitySearch.disabled = false;
       });
+  };
+
+  btnCitySearch?.addEventListener('click', performCitySearch);
+  
+  cityInput?.addEventListener('input', () => {
+    clearTimeout(citySearchTimeout);
+    if (cityInput.value.trim().length > 2) {
+       citySearchTimeout = setTimeout(performCitySearch, 800);
+    }
   });
 
   document.getElementById('btn-gps').addEventListener('click', () => {
