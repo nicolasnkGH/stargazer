@@ -738,7 +738,7 @@ function renderConstellationMap(targets, constInfo) {
     if (ra < 0) ra += 360;
     const dec = coords[1];
 
-    fetch(`/api/star?ra=${ra}&dec=${dec}`)
+    fetch(`${API_BASE}/api/star?ra=${ra}&dec=${dec}`)
       .then(r => r.json())
       .then(data => {
         if(data.error) throw new Error();
@@ -1491,7 +1491,7 @@ document.addEventListener('DOMContentLoaded', () => {
   setTimeout(() => initTour(), 500);
   
   // Fetch Asteroids
-  fetch('/api/asteroids')
+  fetch(`${API_BASE}/api/asteroids`)
     .then(r => r.json())
     .then(data => {
       const list = document.getElementById('asteroids-list');
