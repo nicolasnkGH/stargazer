@@ -94,15 +94,15 @@
           <div class="metric-row">
             <div class="metric" id="m-cloud">
               <div class="metric-val">—</div>
-              <div class="metric-label" data-i18n="m_cloud">Cloud Cover</div>
+              <div class="metric-label" data-i18n="m_cloud" title="Percentage of the sky covered by clouds. Ideal is < 20%.">Cloud Cover ℹ️</div>
             </div>
             <div class="metric" id="m-wind">
               <div class="metric-val">—</div>
-              <div class="metric-label" data-i18n="m_wind">Wind (km/h)</div>
+              <div class="metric-label" data-i18n="m_wind" title="High winds vibrate the telescope and ruin the view. Ideal is < 15 km/h.">Wind (km/h) ℹ️</div>
             </div>
             <div class="metric" id="m-precip">
               <div class="metric-val">—</div>
-              <div class="metric-label" data-i18n="m_rain">Rain Chance</div>
+              <div class="metric-label" data-i18n="m_rain" title="Probability of precipitation. Ideal is 0%.">Rain Chance ℹ️</div>
             </div>
           </div>
           <!-- 5-star label + engine badge -->
@@ -119,6 +119,20 @@
           <!-- Warning chips -->
           <div class="seeing-warnings" id="seeing-warnings" style="display:none"></div>
           <div class="dark-window" id="dark-window">Dark window: loading…</div>
+
+          <!-- Pre-Flight Checklist -->
+          <div class="checklist-container" id="pre-flight-checklist" style="margin-top: 15px; padding-top: 15px; border-top: 1px solid rgba(255,255,255,0.1);">
+            <h3 style="font-size: 0.85rem; margin-bottom: 8px; color: var(--text-primary);">✅ Pre-Flight Checklist</h3>
+            <label style="display: flex; align-items: center; gap: 8px; font-size: 0.8rem; color: var(--text-secondary); margin-bottom: 5px;">
+              <input type="checkbox" style="accent-color: var(--accent-blue);"> Put telescope outside to cool down (30m)
+            </label>
+            <label style="display: flex; align-items: center; gap: 8px; font-size: 0.8rem; color: var(--text-secondary); margin-bottom: 5px;">
+              <input type="checkbox" style="accent-color: var(--accent-blue);"> Turn off all porch lights
+            </label>
+            <label style="display: flex; align-items: center; gap: 8px; font-size: 0.8rem; color: var(--text-secondary);">
+              <input type="checkbox" style="accent-color: var(--accent-blue);"> Switch phone screen to red mode
+            </label>
+          </div>
         </div>
       </div>
 
@@ -133,7 +147,7 @@
           <span class="card-badge" id="moon-illum-badge">—%</span>
         </div>
         <div class="card-body">
-          <div class="moon-phase-name" id="moon-phase-name">Loading…</div>
+          <div class="moon-phase-name" id="moon-phase-name" title="The current phase of the moon. Full moons wash out faint deep-sky objects.">Loading…</div>
           <div class="moon-arc-wrap">
             <div class="moon-arc-bar">
               <div class="moon-arc-fill" id="moon-arc-fill" style="width:0%"></div>
@@ -143,7 +157,7 @@
           <div class="moon-times">
             <div><span class="ti-label" data-i18n="lbl_rise">Rise</span> <span id="moon-rise">—</span></div>
             <div><span class="ti-label" data-i18n="lbl_set">Set</span> <span id="moon-set">—</span></div>
-            <div><span class="ti-label" data-i18n="lbl_alt">Alt</span> <span id="moon-alt">—</span></div>
+            <div title="Altitude: How high above the horizon an object is. 90° is straight up."><span class="ti-label" data-i18n="lbl_alt">Alt</span> <span id="moon-alt">—</span> ℹ️</div>
           </div>
           <div class="dso-impact" id="dso-impact">Loading…</div>
           <div class="moon-fact" id="moon-fact" style="display:none; font-size: 0.85rem; color: #a1a1aa; margin-top: 10px; font-style: italic; border-top: 1px solid rgba(255,255,255,0.05); padding-top: 10px;"></div>
@@ -430,6 +444,17 @@
             <div class="resource-desc">Astronomy-optimized weather for your exact coordinates</div>
           </div>
         </a>
+      </div>
+    </section>
+    <!-- ── Observation Log ── -->
+    <section class="card" id="card-obs-log" style="margin-top: 24px;">
+      <div class="card-header">
+        <span class="card-icon">📓</span>
+        <h2 class="card-title">Observation Log</h2>
+      </div>
+      <div class="card-body">
+        <p style="font-size: 0.85rem; color: var(--text-secondary); margin-bottom: 12px;">Use this space to jot down what you observed tonight. These notes are saved locally in your browser.</p>
+        <textarea id="observation-notes" style="width: 100%; height: 120px; background: rgba(0,0,0,0.2); border: 1px solid rgba(255,255,255,0.1); color: var(--text-primary); border-radius: 8px; padding: 12px; font-family: inherit; font-size: 0.9rem; resize: vertical;" placeholder="Type your observations here..."></textarea>
       </div>
     </section>
 
