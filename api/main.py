@@ -134,7 +134,7 @@ def get_asteroids():
             return JSONResponse(content=results)
     except Exception as e:
         print(f"Error fetching asteroids: {e}")
-        return JSONResponse(content=[], status_code=500)
+        return JSONResponse(content=[])
 
 @app.get("/api/star")
 def get_star(name: Optional[str] = None, ra: Optional[float] = None, dec: Optional[float] = None):
