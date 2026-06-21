@@ -1225,6 +1225,28 @@ function initLocationUI() {
   const openAbout = () => aboutModal.classList.remove('hidden');
   
   document.getElementById('btn-about').addEventListener('click', openAbout);
+  
+  // Navigation Menu Toggle
+  const btnMenu = document.getElementById('btn-menu');
+  const navDropdown = document.getElementById('nav-dropdown');
+  if (btnMenu && navDropdown) {
+    btnMenu.addEventListener('click', (e) => {
+      e.stopPropagation();
+      navDropdown.classList.toggle('hidden');
+    });
+    // Close dropdown when clicking outside
+    document.addEventListener('click', (e) => {
+      if (!btnMenu.contains(e.target) && !navDropdown.contains(e.target)) {
+        navDropdown.classList.add('hidden');
+      }
+    });
+    // Close dropdown when clicking a link
+    navDropdown.querySelectorAll('a').forEach(link => {
+      link.addEventListener('click', () => {
+        navDropdown.classList.add('hidden');
+      });
+    });
+  }
   document.getElementById('logo-slogan').addEventListener('click', openAbout);
   
   document.getElementById('close-about-btn').addEventListener('click', () => {
