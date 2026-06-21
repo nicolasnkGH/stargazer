@@ -98,45 +98,10 @@ async function initPlanetarium() {
           return pt ? pt[1] : -100;
         })
         .attr('r', d => Math.max(4, 8 - (d.magnitude || 5)/2))
-        .attr('fill', d => {
-            const t = (d.type || '').toLowerCase();
-            if (t.includes('star')) return '#fbbf24';
-            if (t.includes('cluster')) return '#38bdf8';
-            if (t.includes('nebula')) return '#f472b6';
-            if (t.includes('galaxy')) return '#a855f7';
-            return '#cbd5e1';
-        })
-        .style('stroke', 'rgba(255,255,255,0.8)')
-        .style('stroke-width', 1.5)
+        .style('fill', '#a855f7')
+        .style('stroke', '#fff')
+        .style('stroke-width', '1px')
         .style('cursor', 'pointer')
-        .style('filter', 'drop-shadow(0 0 8px rgba(255,255,255,0.6))')
-        .on('mouseover', function(d, i) {
-            d3.select(this).attr('stroke', '#fff').attr('stroke-width', 2.5);
-            tooltip.style('opacity', 1)
-                   .html(`<strong>${d.name}</strong><br>Mag ${d.magnitude || '?'}`)
-                   .style('left', (d3.event.pageX + 15) + 'px')
-                   .style('top', (d3.event.pageY - 25) + 'px');
-        })
-        .on('mousemove', function(d, i) {
-            tooltip.style('left', (d3.event.pageX + 15) + 'px')
-                   .style('top', (d3.event.pageY - 25) + 'px');
-        })
-        .on('mouseout', function(d, i) {
-            d3.select(this).attr('stroke', 'rgba(255,255,255,0.8)').attr('stroke-width', 1.5);
-            tooltip.style('opacity', 0);
-        })
-        .on('click', function(d, i) {
-            const panel = document.getElementById('pl-details-panel');
-            panel.style.display = 'block';
-            
-            document.getElementById('pld-name').textContent = d.name;
-            document.getElementById('pld-type').textContent = d.type || 'Object';
-            document.getElementById('pld-mag').textContent = d.magnitude || 'Unknown';
-            
-            // Format RA/Dec nicely
-            const raStr = d.ra_hours != null ? `${d.ra_hours.toFixed(2)}h` : '?';
-            const decStr = d.dec_degrees != null ? `${d.dec_degrees.toFixed(2)}°` : '?';
-            document.getElementById('pld-radec').textContent = `${raStr} / ${decStr}`;
             
             // Format Difficulty with color
             const diffEl = document.getElementById('pld-diff');
