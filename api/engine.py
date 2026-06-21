@@ -269,7 +269,7 @@ def get_constellation_window(abbr: str, dt: Optional[date] = None, lat=None, lon
     """Calculate constellation rise/culmination/set and best observing window."""
     import json
     import os
-    file_path = os.path.join(os.path.dirname(__file__), 'constellations.json')
+    file_path = os.path.join(os.path.dirname(__file__), 'constellations_enriched.json')
     try:
         with open(file_path, 'r') as f:
             const_data = json.load(f)
@@ -1083,7 +1083,7 @@ def get_weekly_report(lat=None, lon=None) -> dict:
 def get_constellations(lat=None, lon=None, filter_famous=False) -> list[dict]:
     import json
     import os
-    file_path = os.path.join(os.path.dirname(__file__), 'constellations.json')
+    file_path = os.path.join(os.path.dirname(__file__), 'constellations_enriched.json')
     try:
         with open(file_path, 'r') as f:
             const_data = json.load(f)

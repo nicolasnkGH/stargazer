@@ -91,6 +91,105 @@ def root():
 def health():
     return {"status": "ok", "time": now_local().isoformat()}
 
+# ── Dynamic API Proxies (NASA & SIMBAD) ──────────────────────────────────────
+
+import urllib.request
+import urllib.parse
+import json
+
+asteroid_cache = {"timestamp": 0, "data": None}
+star_cache = {}
+
+@app.get("/api/asteroids")
+def get_asteroids():
+    now = datetime.now(ZoneInfo("UTC")).timestamp()
+    if now - asteroid_cache["timestamp"] < 43200 and asteroid_cache["data"]: # 12 hours
+        return JSONResponse(content=asteroid_cache["data"])
+        
+    today = datetime.now(ZoneInfo("UTC")).strftime("%Y-%m-%d")
+    url = f"https://api.nasa.gov/neo/rest/v1/feed?start_date={today}&end_date={today}&api_key=DEMO_KEY"
+    
+    try:
+        req = urllib.request.Request(url)
+        with urllib.request.urlopen(req) as response:  # nosec B310
+            data = json.loads(response.read().decode())
+            
+            neos = data.get("near_earth_objects", {}).get(today, [])
+            
+            # Sort by miss_distance ascending
+            neos.sort(key=lambda x: float(x["close_approach_data"][0]["miss_distance"]["kilometers"]))
+            
+            results = []
+            for neo in neos[:4]:
+                results.append({
+                    "name": neo["name"],
+                    "diameter_m": round(neo["estimated_diameter"]["meters"]["estimated_diameter_max"], 1),
+                    "miss_distance_km": round(float(neo["close_approach_data"][0]["miss_distance"]["kilometers"])),
+                    "velocity_kmh": round(float(neo["close_approach_data"][0]["relative_velocity"]["kilometers_per_hour"])),
+                    "is_hazardous": neo["is_potentially_hazardous_asteroid"]
+                })
+                
+            asteroid_cache["timestamp"] = now
+            asteroid_cache["data"] = results
+            return JSONResponse(content=results)
+    except Exception as e:
+        print(f"Error fetching asteroids: {e}")
+        return JSONResponse(content=[], status_code=500)
+
+@app.get("/api/star")
+def get_star(name: Optional[str] = None, ra: Optional[float] = None, dec: Optional[float] = None):
+    cache_key = name if name else f"{ra},{dec}"
+    if cache_key in star_cache:
+        return JSONResponse(content=star_cache[cache_key])
+        
+    script = "format object \"%MAIN_ID | %SP_TYPE | %PLX_VALUE | %FLUX_V\"\n"
+    if name:
+        script += f"query id {name}"
+    elif ra is not None and dec is not None:
+        # SIMBAD expects RA in hours, Dec in degrees. But wait, we receive RA in degrees from D3.
+        # It's easier to format it as degrees: query coo 12.345 -6.789 radius=2m
+        script += f"query coo {ra} {dec} radius=2m"
+    else:
+        return JSONResponse(content={"error": "Must provide name or ra/dec"}, status_code=400)
+        
+    url = f"http://simbad.cds.unistra.fr/simbad/sim-script?script={urllib.parse.quote(script)}"
+    
+    try:
+        req = urllib.request.Request(url)
+        with urllib.request.urlopen(req) as response:  # nosec B310
+            text = response.read().decode().splitlines()
+            
+            # Parse output
+            for line in text:
+                if "::data::" in line:
+                    data = line.replace("::data::", "").split("|")
+                    if len(data) >= 3:
+                        main_id = data[0].strip()
+                        sp_type = data[1].strip()
+                        plx = data[2].strip()
+                        
+                        # Calculate distance in lightyears from parallax (mas)
+                        distance_ly = "Unknown"
+                        if plx and plx != "~":
+                            try:
+                                d_pc = 1000.0 / float(plx)
+                                distance_ly = f"{round(d_pc * 3.262, 1)} ly"
+                            except:
+                                pass
+                                
+                        result = {
+                            "name": main_id or cache_key,
+                            "spectral_type": sp_type or "Unknown",
+                            "distance": distance_ly
+                        }
+                        star_cache[cache_key] = result
+                        return JSONResponse(content=result)
+                        
+            return JSONResponse(content={"name": cache_key, "spectral_type": "Unknown", "distance": "Unknown"})
+    except Exception as e:
+        print(f"Error fetching star data: {e}")
+        return JSONResponse(content={"name": cache_key, "spectral_type": "Unknown", "distance": "Unknown"}, status_code=500)
+
 # ── Tonight ───────────────────────────────────────────────────────────────────
 
 @app.get("/constellations")
