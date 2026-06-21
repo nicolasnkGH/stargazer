@@ -1574,16 +1574,33 @@ document.addEventListener('DOMContentLoaded', () => {
   
   // Fetch Asteroids
   fetch(`${API_BASE}/api/asteroids`)
-    .then(r => r.json())
+    .then(r => {
+      if (!r.ok) throw new Error('API Error');
+      return r.json();
+    })
+    .catch(err => {
+      console.warn("Asteroid API failed, falling back to cache.", err);
+      return [];
+    })
     .then(data => {
       const list = document.getElementById('asteroids-list');
       if (!list) return;
       const dict = window.i18n[currentLang] || window.i18n['en'];
       
       if (!data || data.length === 0) {
-        list.innerHTML = `<div style="color:#94a3b8; font-size:0.85rem; padding:10px; text-align:center;" data-i18n="asteroid_none">${dict.asteroid_none || 'No near-Earth asteroids detected tonight.'}</div>`;
+        const cachedStr = localStorage.getItem('stargazer_asteroids_cache');
+        if (cachedStr) {
+          try { data = JSON.parse(cachedStr); } catch(e) {}
+        }
+      }
+      
+      if (!data || data.length === 0) {
+        list.innerHTML = `<div style="color:#ef4444; font-size:0.85rem; padding:10px;">Failed to load Asteroid data. The API might be rate limited.</div>`;
         return;
       }
+      
+      // Save valid data to cache
+      localStorage.setItem('stargazer_asteroids_cache', JSON.stringify(data));
       
       list.innerHTML = '';
       data.forEach(a => {
@@ -1604,10 +1621,6 @@ document.addEventListener('DOMContentLoaded', () => {
           </div>
         `;
       });
-    })
-    .catch(err => {
-      const list = document.getElementById('asteroids-list');
-      if(list) list.innerHTML = '<div style="color:#ef4444; font-size:0.85rem; padding:10px;">Failed to load Asteroid data. The API might be rate limited.</div>';
     })
     .finally(() => {
       // Add fun facts!
