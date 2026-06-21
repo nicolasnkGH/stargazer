@@ -103,7 +103,26 @@ const translations = {
     
     // Fallback/Misc
     "offline_badge": "CACHED",
-    "live_badge": "LIVE"
+    "live_badge": "LIVE",
+    
+    // Asteroid Tracker
+    "asteroid_title": "Asteroid Tracker",
+    "asteroid_info": "Near-Earth Objects (NEOs) passing by Earth tonight. Data from NASA NeoWs API.",
+    "asteroid_scanning": "Scanning NASA Database...",
+    "asteroid_found": "Asteroids found tonight:",
+    "asteroid_none": "No near-Earth asteroids detected tonight.",
+    "asteroid_diam": "Diameter:",
+    "asteroid_speed": "Speed:",
+    "asteroid_miss": "Miss Distance:",
+    "asteroid_hazard": "POTENTIALLY HAZARDOUS",
+    
+    // SIMBAD
+    "simbad_instruction": "✨ Click on any star to scan it via SIMBAD",
+    "simbad_scanning": "Scanning SIMBAD Database...",
+    "simbad_spectral": "Spectral Type",
+    "simbad_dist": "Distance",
+    "simbad_unknown": "Unknown",
+    "simbad_error": "Could not resolve star data at this location."
   },
   es: {
     "const_uma": "Osa Mayor",
@@ -367,7 +386,26 @@ const translations = {
 
     // Fallback/Misc
     "offline_badge": "CACHÉ",
-    "live_badge": "EN VIVO"
+    "live_badge": "EN VIVO",
+    
+    // Asteroid Tracker
+    "asteroid_title": "Rastreador de Asteroides",
+    "asteroid_info": "Objetos cercanos a la Tierra (NEOs) pasando esta noche. Datos de NASA NeoWs API.",
+    "asteroid_scanning": "Escaneando Base de Datos de la NASA...",
+    "asteroid_found": "Asteroides encontrados esta noche:",
+    "asteroid_none": "No se detectaron asteroides cercanos a la Tierra esta noche.",
+    "asteroid_diam": "Diámetro:",
+    "asteroid_speed": "Velocidad:",
+    "asteroid_miss": "Distancia de paso:",
+    "asteroid_hazard": "POTENCIALMENTE PELIGROSO",
+    
+    // SIMBAD
+    "simbad_instruction": "✨ Haz clic en cualquier estrella para escanearla vía SIMBAD",
+    "simbad_scanning": "Escaneando Base de Datos SIMBAD...",
+    "simbad_spectral": "Tipo Espectral",
+    "simbad_dist": "Distancia",
+    "simbad_unknown": "Desconocido",
+    "simbad_error": "No se pudo resolver los datos de la estrella en esta ubicación."
   },
   pt: {
     "const_uma": "Ursa Maior",
@@ -634,7 +672,26 @@ const translations = {
     
     // Fallback/Misc
     "offline_badge": "CACHE",
-    "live_badge": "AO VIVO"
+    "live_badge": "AO VIVO",
+    
+    // Asteroid Tracker
+    "asteroid_title": "Rastreador de Asteroides",
+    "asteroid_info": "Objetos Próximos à Terra (NEOs) passando esta noite. Dados da NASA NeoWs API.",
+    "asteroid_scanning": "Escaneando Banco de Dados da NASA...",
+    "asteroid_found": "Asteroides encontrados esta noite:",
+    "asteroid_none": "Nenhum asteroide próximo à Terra detectado esta noite.",
+    "asteroid_diam": "Diâmetro:",
+    "asteroid_speed": "Velocidade:",
+    "asteroid_miss": "Distância de Passagem:",
+    "asteroid_hazard": "POTENCIALMENTE PERIGOSO",
+    
+    // SIMBAD
+    "simbad_instruction": "✨ Clique em qualquer estrela para escaneá-la via SIMBAD",
+    "simbad_scanning": "Escaneando Banco de Dados SIMBAD...",
+    "simbad_spectral": "Tipo Espectral",
+    "simbad_dist": "Distância",
+    "simbad_unknown": "Desconhecido",
+    "simbad_error": "Não foi possível resolver os dados da estrela neste local."
   }
 };
 

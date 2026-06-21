@@ -227,7 +227,8 @@ async function initPlanetarium() {
       }
     }
     
-    showInfoSleek('<span style="color:#a855f7;">Scanning SIMBAD Database...</span>');
+    const dict = window.i18n && window.i18n[window.currentLang || 'en'] ? window.i18n[window.currentLang || 'en'] : window.i18n['en'];
+    showInfoSleek(`<span style="color:#a855f7;">${dict.simbad_scanning || 'Scanning SIMBAD Database...'}</span>`);
     
     let ra = coords[0];
     if (ra < 0) ra += 360;
@@ -237,21 +238,27 @@ async function initPlanetarium() {
       .then(r => r.json())
       .then(data => {
         if(data.error) throw new Error();
+        const dict = window.i18n && window.i18n[window.currentLang || 'en'] ? window.i18n[window.currentLang || 'en'] : window.i18n['en'];
+        
+        let spType = data.spectral_type === 'Unknown' ? (dict.simbad_unknown || 'Unknown') : data.spectral_type;
+        let dist = data.distance === 'Unknown' ? (dict.simbad_unknown || 'Unknown') : data.distance;
+        
         const html = `
           <div style="font-size: 1.05rem; color: #fff; margin-bottom: 6px; font-weight: bold;">${data.name.replace('* ', '')}</div>
           <div style="display:flex; justify-content:space-between; margin-bottom:4px; gap: 15px;">
-            <span style="color:#94a3b8;">Spectral Type</span>
-            <span style="color:#4ade80; font-family:monospace;">${data.spectral_type}</span>
+            <span style="color:#94a3b8;">${dict.simbad_spectral || 'Spectral Type'}</span>
+            <span style="color:#4ade80; font-family:monospace;">${spType}</span>
           </div>
           <div style="display:flex; justify-content:space-between;">
-            <span style="color:#94a3b8;">Distance</span>
-            <span style="color:#60a5fa; font-family:monospace;">${data.distance}</span>
+            <span style="color:#94a3b8;">${dict.simbad_dist || 'Distance'}</span>
+            <span style="color:#60a5fa; font-family:monospace;">${dist}</span>
           </div>
         `;
         showInfoSleek(html, true);
       })
       .catch(e => {
-        showInfoSleek('<span style="color:#ef4444;">Could not resolve star data at this location.</span>', true);
+        const dict = window.i18n && window.i18n[window.currentLang || 'en'] ? window.i18n[window.currentLang || 'en'] : window.i18n['en'];
+        showInfoSleek(`<span style="color:#ef4444;">${dict.simbad_error || 'Could not resolve star data at this location.'}</span>`, true);
       });
   });
 }
