@@ -1090,6 +1090,41 @@ body {
 .btn-fov:hover {
   background: rgba(239, 68, 68, 0.3);
 }
+/* Custom Tooltips */
+.ux-tooltip {
+  position: relative;
+  cursor: help;
+  opacity: 0.8;
+}
+.ux-tooltip:hover {
+  opacity: 1;
+}
+.ux-tooltip::after {
+  content: attr(data-tooltip);
+  position: absolute;
+  bottom: 150%;
+  left: 50%;
+  transform: translateX(-50%);
+  background: rgba(15, 23, 42, 0.95);
+  color: white;
+  padding: 8px 12px;
+  border-radius: 6px;
+  font-size: 0.75rem;
+  font-family: 'Inter', sans-serif;
+  width: max-content;
+  max-width: 200px;
+  text-align: center;
+  white-space: normal;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.2s, transform 0.2s;
+  z-index: 100;
+  border: 1px solid rgba(255,255,255,0.1);
+  box-shadow: 0 4px 6px rgba(0,0,0,0.3);
+}
+.ux-tooltip:hover::after {
+  opacity: 1;
+}
 .tc-difficulty.naked_eye {
   color: #22c55e;
   border-color: rgba(34, 197, 94, 0.4);
