@@ -694,8 +694,21 @@ function renderConstellationMap(targets, constInfo) {
       }
     });
   } else {
-    // If already initialized, just update the configuration
-    Celestial.display(config);
+    // If already initialized, smoothly animate the rotation to the new center
+    const proj = Celestial.mapProjection;
+    if (proj) {
+      const currentRot = proj.rotate();
+      // D3 geo projection rotation is usually [-lon, -lat, roll]
+      const targetRot = [-centerRa, -centerDec, 0];
+      
+      d3.transition().duration(1200).tween("rotate", function() {
+        const r = d3.interpolate(currentRot, targetRot);
+        return function(t) {
+          proj.rotate(r(t));
+          Celestial.redraw();
+        };
+      });
+    }
   }
 }
 
