@@ -199,16 +199,32 @@ async function initPlanetarium() {
     const pageX = d3.event.pageX;
     const pageY = d3.event.pageY;
     
-    function showInfoSleek(html) {
-      infoDiv.innerHTML = html;
+    function showInfoSleek(html, sticky = false) {
+      infoDiv.style.pointerEvents = sticky ? 'auto' : 'none';
+      if (sticky) {
+        infoDiv.innerHTML = `
+          <div style="position:relative; padding-right:12px;">
+            <div onclick="document.getElementById('simbad-info').style.opacity='0'; setTimeout(()=>document.getElementById('simbad-info').style.display='none',200)" style="position:absolute; top:-12px; right:-14px; cursor:pointer; color:#94a3b8; font-weight:bold; font-size:1.2rem; padding:4px; z-index:10001;">&times;</div>
+            ${html}
+          </div>
+        `;
+      } else {
+        infoDiv.innerHTML = html;
+      }
       infoDiv.style.left = Math.min(pageX + 15, window.innerWidth - 200) + 'px';
       infoDiv.style.top = (pageY - 15) + 'px';
       infoDiv.style.opacity = '1';
       infoDiv.style.display = 'block';
-      setTimeout(() => {
-        infoDiv.style.opacity = '0';
-        setTimeout(() => infoDiv.style.display = 'none', 200);
-      }, 4000);
+      
+      // Clear any previous timeout
+      if (infoDiv.timeoutId) clearTimeout(infoDiv.timeoutId);
+      
+      if (!sticky) {
+        infoDiv.timeoutId = setTimeout(() => {
+          infoDiv.style.opacity = '0';
+          setTimeout(() => infoDiv.style.display = 'none', 200);
+        }, 4000);
+      }
     }
     
     showInfoSleek('<span style="color:#a855f7;">Scanning SIMBAD Database...</span>');
@@ -232,10 +248,10 @@ async function initPlanetarium() {
             <span style="color:#60a5fa; font-family:monospace;">${data.distance}</span>
           </div>
         `;
-        showInfoSleek(html);
+        showInfoSleek(html, true);
       })
       .catch(e => {
-        showInfoSleek('<span style="color:#ef4444;">Could not resolve star data at this location.</span>');
+        showInfoSleek('<span style="color:#ef4444;">Could not resolve star data at this location.</span>', true);
       });
   });
 }

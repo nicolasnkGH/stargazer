@@ -23,11 +23,24 @@ function translateDate(dateStr) {
  * Simple toast popup function for tooltips
  */
 let toastTimeout;
-window.showInfo = function(msg, event) {
+window.showInfo = function(msg, event, sticky = false) {
   const t = document.getElementById('toast');
   const tm = document.getElementById('toast-msg');
   if (!t || !tm) return;
-  tm.innerHTML = msg;
+  
+  // Allow clicking the close button if sticky
+  t.style.pointerEvents = sticky ? 'auto' : 'none';
+  
+  if (sticky) {
+    tm.innerHTML = `
+      <div style="position:relative; padding-right:12px;">
+        <div onclick="document.getElementById('toast').style.opacity='0'; setTimeout(()=>document.getElementById('toast').style.display='none',200)" style="position:absolute; top:-12px; right:-14px; cursor:pointer; color:#94a3b8; font-weight:bold; font-size:1.2rem; padding:4px; z-index:10001;">&times;</div>
+        ${msg}
+      </div>
+    `;
+  } else {
+    tm.innerHTML = msg;
+  }
   
   if (event) {
     t.style.left = Math.min(event.pageX - 125, window.innerWidth - 260) + 'px';
@@ -41,10 +54,12 @@ window.showInfo = function(msg, event) {
   t.style.display = 'block';
   t.style.opacity = '1';
   clearTimeout(toastTimeout);
-  toastTimeout = setTimeout(() => {
-    t.style.opacity = '0';
-    setTimeout(() => { t.style.display = 'none'; }, 200);
-  }, 3500);
+  if (!sticky) {
+    toastTimeout = setTimeout(() => {
+      t.style.opacity = '0';
+      setTimeout(() => { t.style.display = 'none'; }, 200);
+    }, 3500);
+  }
 };
 
 // ── Configuration ──────────────────────────────────────────────────────────
@@ -750,10 +765,10 @@ function renderConstellationMap(targets, constInfo) {
             <span style="color:#60a5fa; font-family:var(--font-mono);">${data.distance}</span>
           </div>
         `;
-        showInfo(html, clickEvent);
+        showInfo(html, clickEvent, true);
       })
       .catch(e => {
-        showInfo('<span style="color:#ef4444;">Could not resolve star data at this location.</span>', clickEvent);
+        showInfo('<span style="color:#ef4444;">Could not resolve star data at this location.</span>', clickEvent, true);
       });
   });
 }
