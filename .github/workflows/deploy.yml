@@ -82,6 +82,7 @@ jobs:
           docker compose up -d --build
 
       - name: Health Check Verification
+        working-directory: /opt/stargazer
         run: |
           echo "Waiting for API to start..."
           sleep 5
