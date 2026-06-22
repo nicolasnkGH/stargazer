@@ -15,9 +15,27 @@ def _background_ai_task(payload, headers, current_hash):
     import requests, json, time
     try:
         from api.engine import _load_ai_cache, _save_ai_cache
-        from config import AI_API_URL
-        resp = requests.post(AI_API_URL, json=payload, headers=headers, timeout=180)
-        resp.raise_for_status()
+        from config import AI_API_URL, FALLBACK_AI_API_URL, FALLBACK_AI_MODEL
+        import logging
+        
+        try:
+            resp = requests.post(AI_API_URL, json=payload, headers=headers, timeout=180)
+            resp.raise_for_status()
+        except Exception as e:
+            logging.warning(f"Primary AI API failed: {e}. Attempting fallback...")
+            if FALLBACK_AI_API_URL and FALLBACK_AI_MODEL:
+                fallback_payload = payload.copy()
+                fallback_payload["model"] = FALLBACK_AI_MODEL
+                fallback_headers = {k: v for k, v in headers.items() if k.lower() != "authorization"}
+                try:
+                    resp = requests.post(FALLBACK_AI_API_URL, json=fallback_payload, headers=fallback_headers, timeout=180)
+                    resp.raise_for_status()
+                except Exception as fb_e:
+                    logging.error(f"Fallback AI API failed: {fb_e}")
+                    raise fb_e
+            else:
+                raise e
+
         msg = resp.json()["choices"][0]["message"]
         content_txt = msg.get("content", "").strip()
         reasoning = msg.get("reasoning_content", "").strip()
