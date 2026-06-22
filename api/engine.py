@@ -14,7 +14,7 @@ import requests
 def _background_ai_task(payload, headers, current_hash, fallback_args=None):
     import requests, json, time
     try:
-        from api.engine import _load_ai_cache, _save_ai_cache
+        from engine import _load_ai_cache, _save_ai_cache
         from config import AI_API_URL, FALLBACK_AI_API_URL, FALLBACK_AI_MODEL
         import logging
         
@@ -88,12 +88,12 @@ def _background_ai_task(payload, headers, current_hash, fallback_args=None):
     except Exception as e:
         import logging
         logging.error(f"Background AI task completely failed: {e}")
-        from api.engine import _load_ai_cache, _save_ai_cache
+        from engine import _load_ai_cache, _save_ai_cache
         db = _load_ai_cache()
         if current_hash in db and db[current_hash].get("data", {}).get("status") == "processing":
             if fallback_args:
                 weather, moon_illum, moon_alt = fallback_args
-                from api.engine import _rule_based_seeing_score
+                from engine import _rule_based_seeing_score
                 fb = _rule_based_seeing_score(weather, moon_illum, moon_alt)
                 fb["ai_powered"] = False
                 db[current_hash] = {"timestamp": int(time.time()), "data": fb}
