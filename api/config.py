@@ -21,6 +21,8 @@ FRONTEND_URL = os.getenv("FRONTEND_URL", "http://localhost:8181")
 AI_API_URL  = os.getenv("AI_API_URL",   "https://generativelanguage.googleapis.com/v1beta/openai/chat/completions")
 AI_API_KEY  = os.getenv("AI_API_KEY",   "")
 AI_MODEL    = os.getenv("AI_MODEL",     "gemini-2.5-flash")
+FALLBACK_AI_API_URL = os.getenv("FALLBACK_AI_API_URL", "")
+FALLBACK_AI_MODEL   = os.getenv("FALLBACK_AI_MODEL", "")
 AI_TIMEOUT  = int(os.getenv("AI_TIMEOUT", "60"))     # seconds — fall back to rule-based on timeout
 
 
