@@ -11,7 +11,7 @@ import math
 import requests
 
 
-def _background_ai_task(payload, headers, current_hash):
+def _background_ai_task(payload, headers, current_hash, fallback_args=None):
     import requests, json, time
     try:
         from api.engine import _load_ai_cache, _save_ai_cache
@@ -85,12 +85,22 @@ def _background_ai_task(payload, headers, current_hash):
             del db[current_hash]
             _save_ai_cache(db)
             
-    except Exception:
+    except Exception as e:
+        import logging
+        logging.error(f"Background AI task completely failed: {e}")
         from api.engine import _load_ai_cache, _save_ai_cache
         db = _load_ai_cache()
         if current_hash in db and db[current_hash].get("data", {}).get("status") == "processing":
-            del db[current_hash]
-            _save_ai_cache(db)
+            if fallback_args:
+                weather, moon_illum, moon_alt = fallback_args
+                from api.engine import _rule_based_seeing_score
+                fb = _rule_based_seeing_score(weather, moon_illum, moon_alt)
+                fb["ai_powered"] = False
+                db[current_hash] = {"timestamp": int(time.time()), "data": fb}
+                _save_ai_cache(db)
+            else:
+                del db[current_hash]
+                _save_ai_cache(db)
 
 from datetime import datetime, timedelta, date
 from typing import Optional
@@ -105,6 +115,7 @@ from config import (
     SCORPIUS_TARGETS, NEARBY_TARGETS, OTHER_TARGETS,
     MIN_ALTITUDE_DEG, TELESCOPE_APERTURE_MM, BORTLE_CLASS, LIMITING_MAG,
     AI_API_URL, AI_API_KEY, AI_MODEL, AI_TIMEOUT,
+    FALLBACK_AI_API_URL, FALLBACK_AI_MODEL
 )
 
 import time
@@ -687,7 +698,7 @@ Respond ONLY with valid JSON — no markdown, no explanation outside the JSON:
         cache_db[current_hash] = {"timestamp": int(time.time()), "data": {"status": "processing"}}
         _save_ai_cache(cache_db)
         
-        t = threading.Thread(target=_background_ai_task, args=(payload, headers, current_hash))
+        t = threading.Thread(target=_background_ai_task, args=(payload, headers, current_hash, (weather, moon_illum, moon_alt)))
         t.start()
         
         return {"status": "processing"}
