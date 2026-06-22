@@ -17,10 +17,10 @@ TIMEZONE = os.getenv("OBSERVER_TIMEZONE", "America/New_York")
 # Network
 FRONTEND_URL = os.getenv("FRONTEND_URL", "http://localhost:8181")
 
-# AI Seeing Analysis — Qwen3.5-9B on ROCm (10.27.27.145)
-AI_API_URL  = os.getenv("AI_API_URL",   "")
-AI_API_KEY  = os.getenv("AI_API_KEY",   "")          # no auth required on local inference server
-AI_MODEL    = os.getenv("AI_MODEL",     "")
+# AI Seeing Analysis
+AI_API_URL  = os.getenv("AI_API_URL",   "https://generativelanguage.googleapis.com/v1beta/openai/chat/completions")
+AI_API_KEY  = os.getenv("AI_API_KEY",   "")
+AI_MODEL    = os.getenv("AI_MODEL",     "gemini-2.5-flash")
 AI_TIMEOUT  = int(os.getenv("AI_TIMEOUT", "60"))     # seconds — fall back to rule-based on timeout
 
 

@@ -15,7 +15,8 @@ def _background_ai_task(payload, headers, current_hash):
     import requests, json, time
     try:
         from api.engine import _load_ai_cache, _save_ai_cache
-        resp = requests.post("http://10.27.27.145:8083/v1/chat/completions", json=payload, headers=headers, timeout=180)
+        from config import AI_API_URL
+        resp = requests.post(AI_API_URL, json=payload, headers=headers, timeout=180)
         resp.raise_for_status()
         msg = resp.json()["choices"][0]["message"]
         content_txt = msg.get("content", "").strip()
