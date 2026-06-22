@@ -34,7 +34,7 @@ Getting started with astronomy can be overwhelming. Standard astronomy apps are 
 ## ✨ Features
 
 - **🔴 Night Vision Mode**: A built-in toggle that turns the entire UI red to preserve your eyes' dark adaptation while out in the field.
-- **🌤 Live Weather & Seeing**: Aggregates cloud cover, wind, rain probability, and astronomical seeing conditions (via Open-Meteo & ClearOutside) to give a definitive "GO" or "NO GO" rating for the night.
+- **🌤 Live Weather & AI Seeing Analysis**: Aggregates cloud cover, wind, rain probability, and astronomical seeing conditions (via Open-Meteo & ClearOutside). Uses a **multi-tiered AI analysis system** (Google Gemini 2.5 Flash + Local Qwen Fallback via ROCm) to evaluate the atmosphere and give a definitive "GO" or "NO GO" rating.
 - **🎯 Curated Target Database**: Focuses only on "Must-See" targets (like the Orion Nebula or Andromeda Galaxy) specifically chosen for beginners with small telescopes or binoculars.
 - **🪐 Planet Tracker & Moon Phases**: Live altitude and azimuth coordinates for the naked-eye planets.
 - **☄️ Asteroid Tracker**: Uses the NASA NeoWs API to display Near-Earth Objects (NEOs) flying by tonight, highlighting any that are potentially hazardous.
@@ -49,9 +49,10 @@ Getting started with astronomy can be overwhelming. Standard astronomy apps are 
 
 StarGazer is built with a strictly decoupled architecture, optimizing for speed, simplicity, and low hosting costs.
 
-### 1. Backend API (Python / FastAPI)
+### 1. Backend API (Python / FastAPI / Local LLMs)
 The `api/` directory contains a lightning-fast Python API built on **FastAPI**.
 It acts as an engine that calculates ephemerides (using `skyfield`), scrapes seeing conditions, calculates ISS passes, and serves pre-computed target databases.
+- **AI Integration**: The backend employs a highly resilient AI pipeline to analyze weather data. It defaults to the **Google Gemini API** for ultra-fast reasoning, but seamlessly falls back to a **local Qwen LLM** running on AMD ROCm (`llama.cpp`) if the cloud API is unavailable. It gracefully degrades to a deterministic math algorithm if all AI services are unreachable.
 
 ### 2. Frontend Dashboard (Vanilla JS / HTML / CSS)
 The `web/` directory contains a 100% build-free Vanilla JS frontend.
