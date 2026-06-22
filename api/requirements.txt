@@ -1,6 +1,6 @@
-skyfield
-fastapi
-uvicorn[standard]
-requests
-pytz
-python-dotenv
+skyfield==1.44
+fastapi==0.115.0
+uvicorn[standard]==0.30.0
+requests==2.32.3
+pytz==2024.1
+python-dotenv==1.0.1
