@@ -85,6 +85,6 @@ jobs:
         working-directory: /opt/stargazer
         run: |
           echo "Waiting for API to start..."
-          sleep 5
-          docker compose exec -T stargazer-api curl -f http://localhost:8181/health || (echo "Health check failed" && exit 1)
+          sleep 10
+          docker compose exec -T stargazer-api curl -f http://localhost:8181/health || (echo "Health check failed" && docker compose logs && exit 1)
           echo "Deployment successful and healthy!"
