@@ -82,8 +82,16 @@ def _background_ai_task(payload, headers, current_hash, fallback_args=None):
         # If we got here, parsing failed or score was missing
         db = _load_ai_cache()
         if current_hash in db and db[current_hash].get("data", {}).get("status") == "processing":
-            del db[current_hash]
-            _save_ai_cache(db)
+            if fallback_args:
+                weather, moon_illum, moon_alt = fallback_args
+                from engine import _rule_based_seeing_score
+                fb = _rule_based_seeing_score(weather, moon_illum, moon_alt)
+                fb["ai_powered"] = False
+                db[current_hash] = {"timestamp": int(time.time()), "data": fb}
+                _save_ai_cache(db)
+            else:
+                del db[current_hash]
+                _save_ai_cache(db)
             
     except Exception as e:
         import logging
@@ -643,9 +651,16 @@ def _ai_seeing_analysis(weather: dict, moon_illum: float, moon_alt: float, visib
     cache_db = _load_ai_cache()
     if current_hash in cache_db:
         entry = cache_db[current_hash]
-        import logging
-        logging.getLogger("stargazer").info("AI Seeing: Returning fresh cached response from disk")
-        return entry["data"]
+        # Evict stale processing locks (e.g. if the thread died)
+        if entry.get("data", {}).get("status") == "processing" and int(time.time()) - entry.get("timestamp", 0) > 240:
+            import logging
+            logging.getLogger("stargazer").warning("AI Seeing: Found stale processing cache. Evicting.")
+            del cache_db[current_hash]
+            _save_ai_cache(cache_db)
+        else:
+            import logging
+            logging.getLogger("stargazer").info("AI Seeing: Returning fresh cached response from disk")
+            return entry["data"]
             
     if visible_targets:
         # Just grab the top 15 highest altitude targets so we don't blow up the prompt context
