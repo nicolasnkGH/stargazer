@@ -701,18 +701,9 @@ function renderConstellationMap(targets, constInfo) {
         const nodes = svg.selectAll('.custom-target')
           .data(window.currentMapTargets, d => d.name);
           
-        nodes.enter()
+        const nodesEnter = nodes.enter()
           .append('circle')
-          .attr('class', 'custom-target');
-          
-        nodes.attr('cx', d => {
-            const pt = proj([d.ra_hours * 15, d.dec_degrees]);
-            return pt ? pt[0] : -100;
-          })
-          .attr('cy', d => {
-            const pt = proj([d.ra_hours * 15, d.dec_degrees]);
-            return pt ? pt[1] : -100;
-          })
+          .attr('class', 'custom-target')
           .attr('r', d => Math.max(3, 7 - (d.magnitude || 5)/2))
           .attr('fill', d => {
               const t = (d.type || '').toLowerCase();
@@ -762,13 +753,17 @@ function renderConstellationMap(targets, constInfo) {
               document.getElementById('acd-alt').textContent = d.altitude_deg != null ? `${d.altitude_deg}° ${d.direction} • ${d.visible ? 'In view' : 'Below horizon'}` : '';
           });
           
+        nodes.merge(nodesEnter)
+          .attr('cx', d => {
+              const pt = proj([d.ra_hours * 15, d.dec_degrees]);
+              return pt ? pt[0] : -100;
+          })
+          .attr('cy', d => {
+              const pt = proj([d.ra_hours * 15, d.dec_degrees]);
+              return pt ? pt[1] : -100;
+          });
+          
         nodes.exit().remove();
-      },
-      redraw: function() {
-        const proj = Celestial.mapProjection;
-        d3.selectAll('.custom-target')
-          .attr('cx', d => { const pt = proj([d.ra_hours * 15, d.dec_degrees]); return pt ? pt[0] : -100; })
-          .attr('cy', d => { const pt = proj([d.ra_hours * 15, d.dec_degrees]); return pt ? pt[1] : -100; });
       }
     });
   } else {
@@ -778,7 +773,7 @@ function renderConstellationMap(targets, constInfo) {
       const currentRot = proj.rotate();
       const targetRot = [-centerRa, -centerDec, 0];
       
-      d3.select('#celestial-map').transition().duration(1200).tween("rotate", function() {
+      d3.select('#ac-map-container canvas').transition().duration(1200).tween("rotate", function() {
         const r = d3.interpolate(currentRot, targetRot);
         return function(t) {
           proj.rotate(r(t));
