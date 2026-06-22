@@ -65,7 +65,7 @@ window.showInfo = function(msg, event, sticky = false) {
 
 // ── Configuration ──────────────────────────────────────────────────────────
 const API_BASE = window.location.hostname.includes('nick-t.net')
-  ? 'https://stargazerapi.nick-t.net'
+  ? '/api'
   : `http://${window.location.hostname}:8181`; // Fallback for any LAN IP, localhost, or .local
 
 const DEFAULT_LOCATIONS = [
@@ -76,7 +76,8 @@ let savedLocations = DEFAULT_LOCATIONS;
 try {
   const parsed = JSON.parse(localStorage.getItem('stargazer_locations'));
   if (Array.isArray(parsed) && parsed.length > 0) {
-    savedLocations = parsed;
+    const valid = parsed.filter(loc => typeof loc.lat === 'number' && typeof loc.lon === 'number' && loc.name);
+    if (valid.length > 0) savedLocations = valid;
   }
 } catch (e) {
   console.error("Failed to parse saved locations", e);
@@ -182,7 +183,10 @@ async function fetchAPI(path, fallback = null) {
   const cached = localStorage.getItem(cacheKey);
   let parsedCache = null;
   if (cached) {
-    try { parsedCache = JSON.parse(cached); } catch(e) {}
+    try { 
+      const p = JSON.parse(cached); 
+      if (p !== null && typeof p === 'object') parsedCache = p;
+    } catch(e) {}
   }
 
   try {
@@ -205,7 +209,10 @@ async function fetchAndRender(path, renderFn, fallback = null) {
   
   const cached = localStorage.getItem(cacheKey);
   if (cached) {
-    try { renderFn(JSON.parse(cached)); } catch(e) {}
+    try { 
+      const p = JSON.parse(cached); 
+      if (p !== null && typeof p === 'object') renderFn(p); 
+    } catch(e) {}
   }
 
   try {

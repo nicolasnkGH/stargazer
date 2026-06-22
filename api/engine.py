@@ -884,6 +884,8 @@ def get_seeing_forecast(lat=None, lon=None, ai_enabled: bool = False, lang: str 
     if ai_enabled:
         try:
             analysis = _ai_seeing_analysis(weather_snapshot, moon_illum, moon_alt, targets, window_label, lat=use_lat, lon=use_lon, lang=lang)
+            if analysis and analysis.get("status") == "processing":
+                return {"status": "processing"}
         except Exception:
             analysis = None
     else:

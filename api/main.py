@@ -8,7 +8,7 @@ Serves tonight, weekly, monthly, and event reports.
 from dotenv import load_dotenv
 load_dotenv()
 
-from fastapi import FastAPI, Query, Depends, HTTPException, Header
+from fastapi import FastAPI, Query, Depends, HTTPException, Header, Request
 from typing import Optional
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse, PlainTextResponse
@@ -65,6 +65,16 @@ app = FastAPI(
     dependencies=[Depends(verify_origin)]
 )
 
+@app.exception_handler(Exception)
+async def global_exception_handler(request: Request, exc: Exception):
+    import traceback
+    print(f"Unhandled Exception: {exc}")
+    traceback.print_exc()
+    return JSONResponse(
+        status_code=500,
+        content={"detail": "Internal Server Error"},
+    )
+
 app.add_middleware(
     CORSMiddleware,
     allow_origins=["*"],
@@ -90,7 +100,7 @@ def root():
 
 @app.get("/health")
 def health():
-    return {"status": "ok", "time": now_local().isoformat()}
+    return {"status": "ok"}
 
 # ── Dynamic API Proxies (NASA & SIMBAD) ──────────────────────────────────────
 

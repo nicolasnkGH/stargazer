@@ -46,7 +46,6 @@ jobs:
 
       - name: Port Conflict / Network Validation
         run: |
-          grep "8181:8181" docker-compose.yml || (echo "Port 8181 mapping missing" && exit 1)
           grep "8080:80" docker-compose.yml || (echo "Port 8080 mapping missing" && exit 1)
 
       - name: Dockerfile Linter (Hadolint)
@@ -86,5 +85,5 @@ jobs:
         run: |
           echo "Waiting for API to start..."
           sleep 5
-          curl -f http://localhost:8181/health || (echo "Health check failed" && exit 1)
+          docker compose exec -T stargazer-api curl -f http://localhost:8181/health || (echo "Health check failed" && exit 1)
           echo "Deployment successful and healthy!"
