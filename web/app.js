@@ -64,9 +64,14 @@ window.showInfo = function(msg, event, sticky = false) {
 };
 
 // ── Configuration ──────────────────────────────────────────────────────────
-const API_BASE = window.location.hostname.includes('nick-t.net')
-  ? '/api'
-  : `http://${window.location.hostname}:8181`; // Fallback for any LAN IP, localhost, or .local
+let API_BASE;
+if (window.location.hostname.includes('nick-t.net')) {
+  API_BASE = 'https://stargazerapi.nick-t.net';
+} else if (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1') {
+  API_BASE = 'http://localhost:8181';
+} else {
+  API_BASE = '/api'; // Fallback for Docker LAN self-hosting where Nginx is the proxy
+}
 
 const DEFAULT_LOCATIONS = [
   { id: 'default', name: 'Mauna Kea Observatory', lat: 19.8206, lon: -155.4681 }
