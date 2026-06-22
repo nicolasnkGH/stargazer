@@ -701,8 +701,7 @@ function renderConstellationMap(targets, constInfo) {
         const nodes = svg.selectAll('.custom-target')
           .data(window.currentMapTargets, d => d.name);
           
-        const nodesEnter = nodes.enter()
-          .append('circle')
+        nodes.enter().append('circle')
           .attr('class', 'custom-target')
           .attr('r', d => Math.max(3, 7 - (d.magnitude || 5)/2))
           .attr('fill', d => {
@@ -753,8 +752,7 @@ function renderConstellationMap(targets, constInfo) {
               document.getElementById('acd-alt').textContent = d.altitude_deg != null ? `${d.altitude_deg}° ${d.direction} • ${d.visible ? 'In view' : 'Below horizon'}` : '';
           });
           
-        nodes.merge(nodesEnter)
-          .attr('cx', d => {
+        nodes.attr('cx', d => {
               const pt = proj([d.ra_hours * 15, d.dec_degrees]);
               return pt ? pt[0] : -100;
           })
