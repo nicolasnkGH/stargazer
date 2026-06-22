@@ -6,7 +6,7 @@ services:
     container_name: stargazer-api
     restart: unless-stopped
     ports:
-      - "127.0.0.1:8181:8181"
+      - "8181:8181"
     env_file: .env
     volumes:
       - skyfield_data:/app/data
