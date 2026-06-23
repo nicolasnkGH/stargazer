@@ -655,7 +655,7 @@ def _ai_seeing_analysis(weather: dict, moon_illum: float, moon_alt: float, visib
     # This ensures stability across minor weather float changes and page refreshes.
     import time
     time_block = int(time.time()) // 10800
-    current_hash = f"{round(float(lat), 2)}_{round(float(lon), 2)}_{time_block}_{lang}"
+    current_hash = f"{round(float(lat), 2)}_{round(float(lon), 2)}_{time_block}_{lang}_v2"
     
     # Cache Hit
     cache_db = _load_ai_cache()
