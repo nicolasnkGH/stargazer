@@ -1012,26 +1012,49 @@ function renderAlerts(alerts) {
     return;
   }
   list.innerHTML = alerts.map((a, i) => {
-    const dict = window.i18n[currentLang] || window.i18n['en'];
-    let str = a;
-    if (str.includes('is UP')) str = str.replace('is UP', dict.is_up || 'is UP');
-    if (str.includes('EXCELLENT')) str = str.replace('EXCELLENT', dict.excellent || 'EXCELLENT');
-    if (str.includes(' at ')) str = str.replace(' at ', ` ${dict.at || 'at'} `);
-    // Try to translate planets and constellations in the string
-    ['Venus', 'Mars', 'Jupiter', 'Saturn', 'Mercury'].forEach(pl => {
-      if (str.includes(pl)) str = str.replace(pl, dict[`planet_${pl.toLowerCase()}`] || pl);
-    });
-    for (const key in dict) {
-      if (key.startsWith('const_')) {
-        const en_name = window.i18n['en'][key];
-        if (en_name && str.includes(en_name)) {
-          str = str.replace(en_name, dict[key]);
+    // Graceful fallback for old cached strings
+    if (typeof a === 'string') {
+      const dict = window.i18n[currentLang] || window.i18n['en'];
+      let str = a;
+      if (str.includes('is UP')) str = str.replace('is UP', dict.is_up || 'is UP');
+      if (str.includes('EXCELLENT')) str = str.replace('EXCELLENT', dict.excellent || 'EXCELLENT');
+      if (str.includes(' at ')) str = str.replace(' at ', ` ${dict.at || 'at'} `);
+      ['Venus', 'Mars', 'Jupiter', 'Saturn', 'Mercury'].forEach(pl => {
+        if (str.includes(pl)) str = str.replace(pl, dict[`planet_${pl.toLowerCase()}`] || pl);
+      });
+      for (const key in dict) {
+        if (key.startsWith('const_')) {
+          const en_name = window.i18n['en'][key];
+          if (en_name && str.includes(en_name)) {
+            str = str.replace(en_name, dict[key]);
+          }
         }
       }
+      return `
+        <div class="alert-item" style="animation-delay: ${i * 0.08}s">
+          ${str}
+        </div>
+      `;
     }
+
+    // New Structured Object UI
+    const dict = window.i18n[currentLang] || window.i18n['en'];
+    let title = a.title;
+    if (title.includes('is UP')) title = title.replace('is UP', dict.is_up || 'is UP');
+    ['Venus', 'Mars', 'Jupiter', 'Saturn', 'Mercury'].forEach(pl => {
+      if (title.includes(pl)) title = title.replace(pl, dict[`planet_${pl.toLowerCase()}`] || pl);
+    });
+
     return `
-      <div class="alert-item" style="animation-delay: ${i * 0.08}s">
-        ${str}
+      <div class="must-see-item" style="animation-delay: ${i * 0.08}s">
+        <div class="must-see-icon">${a.icon}</div>
+        <div class="must-see-content">
+          <div class="must-see-title-row">
+            <span class="must-see-title">${title}</span>
+            ${a.meta ? `<span class="must-see-meta">${a.meta}</span>` : ''}
+          </div>
+          <div class="must-see-subtitle">${a.subtitle}</div>
+        </div>
       </div>
     `;
   }).join('');
