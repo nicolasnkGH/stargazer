@@ -321,6 +321,13 @@ def get_planet_positions(dt: Optional[datetime] = None, lat=None, lon=None) -> l
             alt, az, dist = apparent.altaz()
 
             visible = bool(alt.degrees > MIN_ALTITUDE_DEG)
+            
+            from skyfield.api import load_constellation_map
+            constellation_at = load_constellation_map()
+            constellation = constellation_at(astrometric)
+            
+            dist_mkm = round(dist.km / 1_000_000, 1)
+            light_time_min = round(dist.au * 8.316746397, 1)
 
             # Magnitude estimates (rough)
             mag_map = {
@@ -337,6 +344,9 @@ def get_planet_positions(dt: Optional[datetime] = None, lat=None, lon=None) -> l
                 "azimuth_deg": round(az.degrees, 1),
                 "direction": direction,
                 "distance_au": round(dist.au, 3),
+                "distance_mkm": dist_mkm,
+                "light_time_minutes": light_time_min,
+                "constellation": constellation,
                 "visible_tonight": visible,
                 "magnitude_approx": mag_map.get(name, "N/A"),
                 "naked_eye": naked_eye,
@@ -689,7 +699,7 @@ Rate the astronomical seeing quality on a scale of 1–10 (10 = perfect, 1 = sta
 Consider: transparency (cloud/humidity/cirrus), atmospheric stability (jet stream), dew risk, moon interference, and overall observing potential.
 
 Respond ONLY with valid JSON — no markdown, no explanation outside the JSON:
-{{"score": <int 1-10>, "label": "<short label e.g. Exceptional transparency>", "explanation": "<2 sentences for a beginner astronomer>", "moon_fact": "<1 short interesting sentence about the moon's phase tonight>", "best_window": "<e.g. 10 PM – Midnight or All night>", "warnings": [<list of short warning strings, empty list if none>], "recommended_targets": [{{"name": "<Target Name>", "reason": "<Why it's good tonight>"}}]}}{lang_instruction}"""
+{{"score": <int 1-10>, "label": "<short label e.g. Exceptional transparency>", "explanation": "<2 sentences for a beginner astronomer>", "moon_fact": "<1 short interesting sentence about the moon's phase tonight>", "best_window": "<e.g. 10 PM – Midnight or All night>", "warnings": [<list of short warning strings, empty list if none>], "recommended_targets": [{{"name": "<Target Name>", "constellation": "<Constellation>", "magnitude": "<e.g., 1.5 or N/A>", "distance_ly": "<e.g., 400 Light Years>", "equipment": "<Naked Eye / Binoculars / Telescope>", "how_to_find": "<1 sentence star-hopping guide>", "reason": "<Why it's good tonight>"}}]}}{lang_instruction}"""
 
     headers = {"Content-Type": "application/json"}
     if AI_API_KEY:
