@@ -243,6 +243,7 @@ async function loadTonightReport() {
       renderAlerts(null);
       return;
     }
+    window.lastTonightData = data;
     renderGoNogo(data);
     renderSeeing(data.seeing, data);
     renderMoon(data.moon);
@@ -306,7 +307,13 @@ async function fetchAIAnalysis() {
     
     // Update the UI with the fresh AI data
     if (aiData.ai_powered) {
-      renderSeeing(aiData, null); 
+      if (window.lastTonightData) {
+        window.lastTonightData.seeing = aiData;
+        renderGoNogo(window.lastTonightData);
+        renderSeeing(aiData, window.lastTonightData);
+      } else {
+        renderSeeing(aiData, null);
+      }
     } else {
       throw new Error('AI returned rule-based fallback');
     }
