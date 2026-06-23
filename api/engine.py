@@ -1033,7 +1033,13 @@ def get_tonight_report(lat=None, lon=None, lang: str = "en") -> dict:
     consts = get_constellations(lat=lat, lon=lon, filter_famous=True)
     if consts and consts[0]["altitude_deg"] > 20:
         best_c = consts[0]
-        must_see.append(f"{best_c['emoji']} {best_c['name']} is UP — 🟢 EXCELLENT")
+        must_see.append({
+            "title": f"{best_c['name']} is UP",
+            "subtitle": "Excellent conditions",
+            "icon": best_c['emoji'],
+            "meta": "Excellent",
+            "type": "constellation"
+        })
 
     planet_facts = {
         "Venus": "look for its phases through a telescope!",
@@ -1046,9 +1052,21 @@ def get_tonight_report(lat=None, lon=None, lang: str = "en") -> dict:
     }
     for p in visible_planets[:3]:
         fact = planet_facts.get(p['name'], "a great target tonight!")
-        must_see.append(f"{p['emoji']} {p['name']} at {p['altitude_deg']}° {p['direction']} — {fact}")
+        must_see.append({
+            "title": p['name'],
+            "subtitle": fact,
+            "icon": p['emoji'],
+            "meta": f"{p['altitude_deg']}° {p['direction']}",
+            "type": "planet"
+        })
     if moon["illumination_pct"] < 15:
-        must_see.append("🌑 New Moon tonight — best DSO conditions of the month!")
+        must_see.append({
+            "title": "New Moon tonight",
+            "subtitle": "Best DSO conditions of the month!",
+            "icon": "🌑",
+            "meta": "",
+            "type": "moon"
+        })
 
     return {
         "date": now.strftime("%A, %B %d, %Y"),

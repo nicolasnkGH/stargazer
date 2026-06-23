@@ -1913,3 +1913,62 @@ body.night-mode {
   color: #c084fc;
   border-color: rgba(168, 85, 247, 0.3);
 }
+
+/* ── Must-See Tonight Premium UI ────────────────────────────────────────── */
+.must-see-item {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  background: rgba(74, 158, 255, 0.05);
+  border: 1px solid rgba(74, 158, 255, 0.2);
+  box-shadow: 0 4px 12px rgba(0,0,0,0.2);
+  padding: 14px 18px;
+  border-radius: 10px;
+  margin-bottom: 10px;
+  transition: transform 0.2s ease, background 0.2s ease;
+  cursor: default;
+}
+
+.must-see-item:hover {
+  background: rgba(74, 158, 255, 0.1);
+  transform: translateY(-2px);
+  border-color: rgba(74, 158, 255, 0.4);
+}
+
+.must-see-icon {
+  font-size: 1.6rem;
+}
+
+.must-see-content {
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+}
+
+.must-see-title-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 4px;
+}
+
+.must-see-title {
+  font-weight: 600;
+  font-size: 1.05rem;
+  color: #e2e8f0;
+}
+
+.must-see-meta {
+  font-family: var(--font-mono);
+  font-size: 0.75rem;
+  color: var(--accent-blue);
+  background: rgba(74, 158, 255, 0.1);
+  padding: 2px 8px;
+  border-radius: 12px;
+}
+
+.must-see-subtitle {
+  font-size: 0.85rem;
+  color: #94a3b8;
+  line-height: 1.4;
+}
