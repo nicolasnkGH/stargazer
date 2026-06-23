@@ -1761,6 +1761,7 @@ document.addEventListener('DOMContentLoaded', () => {
         const hazardText = dict.asteroid_hazard || 'POTENTIALLY HAZARDOUS';
         const diamText = dict.asteroid_diam || 'Diameter:';
         const speedText = dict.asteroid_speed || 'Speed:';
+        const missDistText = dict.asteroid_miss_distance || 'Miss Distance';
         
         const haz = a.is_hazardous ? `<span style="color:#ef4444; font-size:0.75rem;">⚠️ ${hazardText}</span>` : '';
         list.innerHTML += `
@@ -1770,6 +1771,7 @@ document.addEventListener('DOMContentLoaded', () => {
               <div style="color: #94a3b8; font-size: 0.75rem;">${diamText} ~${a.diameter_m}m • ${speedText} ${a.velocity_kmh.toLocaleString()} km/h</div>
             </div>
             <div style="text-align: right; color: #a855f7; font-size: 0.85rem; font-family: var(--font-mono);">
+              <div style="font-size: 0.6rem; color: #94a3b8; font-family: var(--font-sans); text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 2px;">${missDistText}</div>
               ${(a.miss_distance_km).toLocaleString()} km
             </div>
           </div>
