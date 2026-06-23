@@ -247,7 +247,7 @@ async function loadTonightReport() {
     renderGoNogo(data);
     renderSeeing(data.seeing, data);
     renderMoon(data.moon);
-    renderPlanets(data.visible_planets || []);
+    renderPlanets(data.visible_planets || [], data.planet_fact);
     renderAlerts(data.must_see || []);
     
     // Fire off async AI fetch now that the UI is rendered
@@ -978,7 +978,7 @@ function renderActiveConstellation(constInfo) {
   }
 }
 
-function renderPlanets(planets) {
+function renderPlanets(planets, factStr) {
   const list = document.getElementById('planet-list');
   if (!planets) {
     list.innerHTML = '<div class="no-data">Could not load planet data — API may be offline</div>';
@@ -989,7 +989,7 @@ function renderPlanets(planets) {
     return;
   }
 
-  list.innerHTML = planets.map(p => {
+  let html = planets.map(p => {
     const dict = window.i18n[currentLang] || window.i18n['en'];
     const pName = dict[`planet_${p.name.toLowerCase()}`] || p.name;
     return `
@@ -1010,6 +1010,23 @@ function renderPlanets(planets) {
       </div>
     `;
   }).join('');
+
+  if (factStr) {
+    html += `
+      <div style="margin-top: auto; padding: 12px; background: rgba(255,255,255,0.03); border: 1px solid rgba(168, 85, 247, 0.2); border-radius: 6px; color: #cbd5e1; font-size: 0.85rem; line-height: 1.5; align-self: flex-end; width: 100%; box-sizing: border-box;">
+        <div style="color: #d8b4fe; font-weight: bold; margin-bottom: 4px; font-size: 0.75rem; text-transform: uppercase; letter-spacing: 0.05em;">✨ Planet Fact</div>
+        ${factStr}
+      </div>
+    `;
+  }
+
+  // Ensure the planet-list itself can push the fact down via flex
+  list.style.display = 'flex';
+  list.style.flexDirection = 'column';
+  list.style.height = '100%';
+  list.style.gap = '8px';
+
+  list.innerHTML = html;
 }
 
 function renderAlerts(alerts) {

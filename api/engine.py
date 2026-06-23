@@ -1068,6 +1068,25 @@ def get_tonight_report(lat=None, lon=None, lang: str = "en") -> dict:
             "type": "moon"
         })
 
+    import random
+    planet_facts_list = [
+        "A day on Venus is longer than a year on Venus.",
+        "Jupiter's Great Red Spot is a storm that has been raging for over 300 years.",
+        "Saturn's rings are mostly made of chunks of ice and rock.",
+        "Uranus rotates on its side, making it unique among the planets.",
+        "Neptune has the strongest winds in the solar system, reaching 2,100 km/h.",
+        "Mars has the largest volcano in the solar system, Olympus Mons.",
+        "Mercury is the closest planet to the Sun, but Venus is hotter.",
+        "Jupiter is so large that all the other planets in the solar system could fit inside it.",
+        "Saturn is the only planet in our solar system that is less dense than water.",
+        "A year on Mercury is just 88 Earth days long.",
+        "Venus spins backward compared to most other planets.",
+        "Mars has two tiny moons, Phobos and Deimos, which are likely captured asteroids.",
+        "Uranus was the first planet discovered using a telescope (in 1781).",
+        "Neptune was discovered through mathematical predictions rather than regular observation.",
+        "Earth is the only planet not named after a mythological god or goddess."
+    ]
+
     return {
         "date": now.strftime("%A, %B %d, %Y"),
         "time_generated": now.strftime("%I:%M %p %Z"),
@@ -1079,6 +1098,7 @@ def get_tonight_report(lat=None, lon=None, lang: str = "en") -> dict:
         "visible_planets": visible_planets,
         "best_targets_tonight": best_targets,
         "must_see": must_see,
+        "planet_fact": random.choice(planet_facts_list),
         "telescope": {
             "aperture_mm": TELESCOPE_APERTURE_MM,
             "bortle": BORTLE_CLASS,
