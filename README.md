@@ -35,8 +35,8 @@ Getting started with astronomy can be overwhelming. Standard astronomy apps are 
 
 - **🔴 Night Vision Mode**: A built-in toggle that turns the entire UI red to preserve your eyes' dark adaptation while out in the field.
 - **🌤 Live Weather & AI Seeing Analysis**: Aggregates cloud cover, wind, rain probability, and astronomical seeing conditions (via Open-Meteo & ClearOutside). Uses a **multi-tiered AI analysis system** (Google Gemini 2.5 Flash + Local Qwen Fallback via ROCm) to evaluate the atmosphere and give a definitive "GO" or "NO GO" rating.
-- **🎯 Curated Target Database**: Focuses only on "Must-See" targets (like the Orion Nebula or Andromeda Galaxy) specifically chosen for beginners with small telescopes or binoculars.
-- **🪐 Planet Tracker & Moon Phases**: Live altitude and azimuth coordinates for the naked-eye planets.
+- **🎯 Curated Target Database**: Focuses only on "Must-See" targets (like the Orion Nebula or Andromeda Galaxy) specifically chosen for beginners with small telescopes or binoculars. AI Recommendations include smart badges (Equipment, Distance, Magnitude) and contextual Star-Hopping Guides.
+- **🪐 Planet Tracker & Moon Phases**: Live altitude and azimuth coordinates for the naked-eye planets, enriched with live Constellation Tracking, Apparent Magnitude, and precise Distance calculations (including light travel time).
 - **☄️ Asteroid Tracker**: Uses the NASA NeoWs API to display Near-Earth Objects (NEOs) flying by tonight, highlighting any that are potentially hazardous.
 - **🛰 ISS Tracker**: Calculates exactly when the International Space Station will fly over your specific coordinates in the next 10 days.
 - **🌌 Interactive Planetarium**: Includes a fullscreen dynamic star map using D3-Celestial. Click on any star to instantly scan it via the professional SIMBAD astronomical database to pull live Spectral and Distance data.
