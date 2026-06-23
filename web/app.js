@@ -521,21 +521,71 @@ function renderSeeing(seeing, data) {
         wrap.onmouseover = () => { wrap.style.background = 'rgba(168, 85, 247, 0.1)'; wrap.style.transform = 'translateY(-2px)'; wrap.style.border = '1px solid rgba(168, 85, 247, 0.4)'; };
         wrap.onmouseout = () => { wrap.style.background = 'rgba(168, 85, 247, 0.05)'; wrap.style.transform = 'none'; wrap.style.border = '1px solid rgba(168, 85, 247, 0.2)'; };
         
+        const titleRow = document.createElement('div');
+        titleRow.style.display = 'flex';
+        titleRow.style.justifyContent = 'space-between';
+        titleRow.style.alignItems = 'center';
+        titleRow.style.marginBottom = '6px';
+        
         const title = document.createElement('div');
         title.style.fontWeight = '600';
         title.style.color = '#e2e8f0';
         title.style.fontSize = '1.05rem';
         title.innerHTML = `✨ ${t.name}`;
         
+        const badgeContainer = document.createElement('div');
+        badgeContainer.style.display = 'flex';
+        badgeContainer.style.gap = '6px';
+        badgeContainer.style.flexWrap = 'wrap';
+        
+        if (t.constellation) {
+            const constBadge = document.createElement('span');
+            constBadge.className = 'ai-badge const-badge';
+            constBadge.textContent = t.constellation;
+            badgeContainer.appendChild(constBadge);
+        }
+        if (t.equipment) {
+            const equipBadge = document.createElement('span');
+            equipBadge.className = 'ai-badge equip-badge';
+            equipBadge.textContent = t.equipment;
+            badgeContainer.appendChild(equipBadge);
+        }
+        if (t.magnitude && t.magnitude !== "N/A") {
+            const magBadge = document.createElement('span');
+            magBadge.className = 'ai-badge mag-badge';
+            magBadge.textContent = `Mag: ${t.magnitude}`;
+            badgeContainer.appendChild(magBadge);
+        }
+        if (t.distance_ly) {
+            const distBadge = document.createElement('span');
+            distBadge.className = 'ai-badge dist-badge';
+            distBadge.textContent = t.distance_ly;
+            badgeContainer.appendChild(distBadge);
+        }
+
+        titleRow.appendChild(title);
+        titleRow.appendChild(badgeContainer);
+        
         const reason = document.createElement('div');
         reason.style.fontSize = '0.85rem';
         reason.style.color = '#94a3b8';
-        reason.style.marginTop = '6px';
         reason.style.lineHeight = '1.4';
         reason.textContent = t.reason;
         
-        wrap.appendChild(title);
+        wrap.appendChild(titleRow);
         wrap.appendChild(reason);
+        
+        if (t.how_to_find) {
+            const howTo = document.createElement('div');
+            howTo.style.fontSize = '0.8rem';
+            howTo.style.color = '#cbd5e1';
+            howTo.style.marginTop = '8px';
+            howTo.style.paddingTop = '8px';
+            howTo.style.borderTop = '1px dashed rgba(168, 85, 247, 0.2)';
+            howTo.innerHTML = `<strong>📍 How to find it:</strong> ${t.how_to_find}`;
+            wrap.appendChild(howTo);
+        }
+        
         aiTargetsList.appendChild(wrap);
       });
       aiTargetsCard.style.display = 'block';
@@ -939,9 +989,17 @@ function renderPlanets(planets) {
       <div class="planet-item ${p.visible_tonight ? '' : 'not-visible'}">
         <div class="planet-vis-dot ${p.visible_tonight ? 'visible' : 'hidden'}"></div>
         <span class="planet-emoji">${p.emoji}</span>
-        <span class="planet-name">${pName}</span>
-        <span class="planet-alt">${p.altitude_deg}°</span>
-        <span class="planet-dir">${p.direction}</span>
+        <div class="planet-info-col">
+          <div class="planet-name-row">
+            <span class="planet-name">${pName}</span>
+            <span class="planet-const-pill" title="Current Constellation">${p.constellation || ''}</span>
+          </div>
+          <div class="planet-meta-row">
+            <span class="planet-alt">${p.altitude_deg}° ${p.direction}</span>
+            <span class="planet-mag">Mag: ${p.magnitude_approx}</span>
+            <span class="planet-dist" title="Light Travel Time">${p.distance_mkm ? p.distance_mkm + 'M km' : ''} ${p.light_time_minutes ? '(' + p.light_time_minutes + ' lt-min)' : ''}</span>
+          </div>
+        </div>
       </div>
     `;
   }).join('');
