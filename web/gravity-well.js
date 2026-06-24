@@ -11,9 +11,9 @@
   const scene = new THREE.Scene();
   scene.fog = new THREE.FogExp2(0x0f172a, 0.002); // Fade into background
 
-  const camera = new THREE.PerspectiveCamera(60, section.clientWidth / section.clientHeight, 0.1, 1000);
-  camera.position.set(0, 50, 100);
-  camera.lookAt(0, -20, 0);
+  const camera = new THREE.PerspectiveCamera(45, section.clientWidth / section.clientHeight, 0.1, 1000);
+  camera.position.set(0, 75, 140);
+  camera.lookAt(0, -10, 0);
 
   const renderer = new THREE.WebGLRenderer({ canvas: canvas, alpha: true, antialias: true });
   renderer.setSize(section.clientWidth, section.clientHeight);
@@ -123,12 +123,17 @@
   }
 
   // Handle Resize
-  window.addEventListener('resize', () => {
-    if (!section || !camera || !renderer) return;
-    camera.aspect = section.clientWidth / section.clientHeight;
-    camera.updateProjectionMatrix();
-    renderer.setSize(section.clientWidth, section.clientHeight);
+  const resizeObserver = new ResizeObserver(entries => {
+    for (let entry of entries) {
+      if (!camera || !renderer) return;
+      const { width, height } = entry.contentRect;
+      if (width === 0 || height === 0) return;
+      camera.aspect = width / height;
+      camera.updateProjectionMatrix();
+      renderer.setSize(width, height);
+    }
   });
+  resizeObserver.observe(section);
 
   animate();
 })();

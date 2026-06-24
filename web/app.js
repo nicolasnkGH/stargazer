@@ -1,6 +1,8 @@
 let currentLang = localStorage.getItem('stargazer_lang') || 'en';
 window.currentLang = currentLang;
 
+let isMetric = localStorage.getItem('stargazer_units') !== 'imperial';
+
 function translateDate(dateStr) {
   if (!dateStr || currentLang === 'en') return dateStr;
   const dict = window.i18n[currentLang];
@@ -169,11 +171,8 @@ function updateClock() {
   const t = now.toLocaleTimeString(currentLang, optionsTime);
   const d = now.toLocaleDateString(currentLang, optionsDate);
   
-  const clockEl = document.getElementById('clock');
-  const dateEl = document.getElementById('date-display');
-  
-  if (clockEl) clockEl.textContent = t;
-  if (dateEl) dateEl.textContent = d;
+  document.querySelectorAll('.clock-display').forEach(el => el.textContent = t);
+  document.querySelectorAll('.date-display').forEach(el => el.textContent = d);
 }
 updateClock();
 setInterval(updateClock, 1000);
@@ -437,8 +436,12 @@ function renderSeeing(seeing, data) {
   if (cloudEl) cloudEl.querySelector('.metric-val').textContent =
     seeing.tonight_cloud_pct != null ? `${seeing.tonight_cloud_pct}%` : '—';
   const windEl = document.getElementById('m-wind');
-  if (windEl) windEl.querySelector('.metric-val').textContent =
-    seeing.tonight_wind_kmh != null ? `${seeing.tonight_wind_kmh}` : '—';
+  if (windEl) {
+    const wVal = seeing.tonight_wind_kmh;
+    windEl.querySelector('.metric-val').textContent = wVal != null ? (isMetric ? `${wVal}` : `${Math.round(wVal * 0.621371)}`) : '—';
+    const windLbl = document.querySelector('#m-wind .metric-label span[data-i18n="m_wind"]');
+    if (windLbl) windLbl.textContent = isMetric ? 'Wind (km/h)' : 'Wind (mph)';
+  }
   const precipEl = document.getElementById('m-precip');
   if (precipEl) precipEl.querySelector('.metric-val').textContent =
     seeing.tonight_precip_prob != null ? `${seeing.tonight_precip_prob}%` : '—';
@@ -446,8 +449,10 @@ function renderSeeing(seeing, data) {
   // Update HUD
   const hudWeather = document.getElementById('hud-weather');
   if (hudWeather) {
-    const tempStr = seeing.tonight_temp_c != null ? `${seeing.tonight_temp_c}°C` : '--°C';
-    const windStr = seeing.tonight_wind_kmh != null ? `${seeing.tonight_wind_kmh} km/h` : '-- km/h';
+    const tVal = seeing.tonight_temp_c;
+    const tempStr = tVal != null ? (isMetric ? `${tVal}°C` : `${Math.round(tVal * 9/5 + 32)}°F`) : '--';
+    const wVal = seeing.tonight_wind_kmh;
+    const windStr = wVal != null ? (isMetric ? `${wVal} km/h` : `${Math.round(wVal * 0.621371)} mph`) : '--';
     hudWeather.textContent = `🌡️ ${tempStr} | 💨 ${windStr}`;
   }
 
@@ -1205,7 +1210,8 @@ async function loadWeekly() {
         return res;
       });
       
-      const tempStr = d.temp_c != null ? `${Math.round(d.temp_c)}°C / ${Math.round(d.temp_c * 9/5 + 32)}°F` : '';
+      const tVal = d.temp_c;
+      const tempStr = tVal != null ? (isMetric ? `${Math.round(tVal)}°C` : `${Math.round(tVal * 9/5 + 32)}°F`) : '';
       const cloudStr = d.cloud_pct != null ? `${Math.round(d.cloud_pct)}% Clouds` : '';
 
       return `
@@ -1705,8 +1711,19 @@ function setLanguage(lang) {
     }
   });
   
-  const langSelect = document.getElementById('lang-select');
-  if(langSelect) langSelect.value = currentLang;
+  document.querySelectorAll('.lang-select').forEach(langSelect => {
+    langSelect.value = currentLang;
+  });
+  
+  const unitBtn = document.getElementById('btn-unit-toggle');
+  if (unitBtn) {
+    unitBtn.textContent = isMetric ? '°C / km' : '°F / mi';
+    unitBtn.addEventListener('click', () => {
+      isMetric = !isMetric;
+      localStorage.setItem('stargazer_units', isMetric ? 'metric' : 'imperial');
+      window.location.reload();
+    });
+  }
   
   // Translate dropdown options
   const acSelect = document.getElementById('ac-select');
@@ -1732,13 +1749,12 @@ function setLanguage(lang) {
 
 document.addEventListener('DOMContentLoaded', () => {
     setTimeout(() => {
-        const langSelect = document.getElementById('lang-select');
-        if(langSelect) {
+        document.querySelectorAll('.lang-select').forEach(langSelect => {
             langSelect.addEventListener('change', (e) => {
                 setLanguage(e.target.value);
                 window.location.reload();
             });
-        }
+        });
         setLanguage(currentLang);
     }, 100);
 });
@@ -1866,11 +1882,11 @@ document.addEventListener('DOMContentLoaded', () => {
           <div style="background: rgba(255,255,255,0.05); padding: 10px; border-radius: 6px; display: flex; justify-content: space-between; align-items: center;">
             <div>
               <div style="color: #e2e8f0; font-weight: bold; font-size: 0.9rem;">${a.name} ${haz}</div>
-              <div style="color: #94a3b8; font-size: 0.75rem;">${diamText} ~${a.diameter_m}m • ${speedText} ${a.velocity_kmh.toLocaleString()} km/h</div>
+              <div style="color: #94a3b8; font-size: 0.75rem;">${diamText} ~${isMetric ? a.diameter_m : Math.round(a.diameter_m * 3.28084)}${isMetric ? 'm' : 'ft'} • ${speedText} ${isMetric ? a.velocity_kmh.toLocaleString() : Math.round(a.velocity_kmh * 0.621371).toLocaleString()} ${isMetric ? 'km/h' : 'mph'}</div>
             </div>
             <div style="text-align: right; color: #a855f7; font-size: 0.85rem; font-family: var(--font-mono);">
               <div style="font-size: 0.6rem; color: #94a3b8; font-family: var(--font-sans); text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 2px;">${missDistText}</div>
-              ${(a.miss_distance_km).toLocaleString()} km
+              ${isMetric ? a.miss_distance_km.toLocaleString() : Math.round(a.miss_distance_km * 0.621371).toLocaleString()} ${isMetric ? 'km' : 'mi'}
             </div>
           </div>
         `;
