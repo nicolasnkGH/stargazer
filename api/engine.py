@@ -973,6 +973,7 @@ def get_seeing_forecast(lat=None, lon=None, ai_enabled: bool = False, lang: str 
         "dew_spread":  dew_spread,
         "pressure":    pressure,
         "visibility_km": visibility_km,
+        "tonight_temp_c": temp,
     }
 
     # Moon context for AI/fallback scoring
@@ -1056,6 +1057,7 @@ def get_seeing_forecast(lat=None, lon=None, ai_enabled: bool = False, lang: str 
         "tonight_humidity":      humidity,
         "tonight_dew_spread":    dew_spread,
         "tonight_visibility_km": visibility_km,
+        "tonight_temp_c":        temp,
         # Go/No-Go
         "go_nogo":  go_nogo,
         "source":   "Open-Meteo + Qwen3.5-9B" if analysis["ai_powered"] else "Open-Meteo (rule-based fallback)",

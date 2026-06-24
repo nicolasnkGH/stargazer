@@ -180,11 +180,15 @@ setInterval(updateClock, 1000);
 
 // Set Dynamic Subtitle
 const subtitle = document.getElementById('logo-sub');
+const coords = document.getElementById('logo-coords');
 if (subtitle) {
   subtitle.removeAttribute('data-i18n');
+  subtitle.textContent = activeLoc.name;
+}
+if (coords) {
   const latStr = Math.abs(activeLoc.lat).toFixed(3) + (activeLoc.lat >= 0 ? '°N' : '°S');
   const lonStr = Math.abs(activeLoc.lon).toFixed(3) + (activeLoc.lon >= 0 ? '°E' : '°W');
-  subtitle.textContent = `${activeLoc.name} · ${latStr}, ${lonStr}`;
+  coords.textContent = `${latStr}, ${lonStr}`;
 }
 
 async function fetchAPI(path, fallback = null) {
@@ -429,12 +433,23 @@ function renderSeeing(seeing, data) {
   scoreEl.style.color        = isGood ? textGreen   : isAvg ? textBlue  : textRed;
 
   // Weather metrics
-  document.getElementById('m-cloud').querySelector('.metric-val').textContent =
+  const cloudEl = document.getElementById('m-cloud');
+  if (cloudEl) cloudEl.querySelector('.metric-val').textContent =
     seeing.tonight_cloud_pct != null ? `${seeing.tonight_cloud_pct}%` : '—';
-  document.getElementById('m-wind').querySelector('.metric-val').textContent =
+  const windEl = document.getElementById('m-wind');
+  if (windEl) windEl.querySelector('.metric-val').textContent =
     seeing.tonight_wind_kmh != null ? `${seeing.tonight_wind_kmh}` : '—';
-  document.getElementById('m-precip').querySelector('.metric-val').textContent =
+  const precipEl = document.getElementById('m-precip');
+  if (precipEl) precipEl.querySelector('.metric-val').textContent =
     seeing.tonight_precip_prob != null ? `${seeing.tonight_precip_prob}%` : '—';
+
+  // Update HUD
+  const hudWeather = document.getElementById('hud-weather');
+  if (hudWeather) {
+    const tempStr = seeing.tonight_temp_c != null ? `${seeing.tonight_temp_c}°C` : '--°C';
+    const windStr = seeing.tonight_wind_kmh != null ? `${seeing.tonight_wind_kmh} km/h` : '-- km/h';
+    hudWeather.textContent = `🌡️ ${tempStr} | 💨 ${windStr}`;
+  }
 
   // Format Seeing Label
   let sl = seeing.seeing_label || 'Unknown';
@@ -655,6 +670,13 @@ function renderMoon(moon) {
   }
   document.getElementById('moon-phase-name').textContent = pName;
   document.getElementById('moon-illum-badge').textContent = `${moon.illumination_pct ?? '?'}%`;
+  
+  const hudMoon = document.getElementById('hud-moon');
+  if (hudMoon) {
+    const icon = moon.phase_name ? moon.phase_name.split(' ')[0] : '🌙';
+    const phaseNameOnly = pName.replace(icon, '').trim();
+    hudMoon.textContent = `${icon} ${phaseNameOnly} (~${moon.illumination_pct ?? '?'}%)`;
+  }
   document.getElementById('moon-arc-fill').style.width = `${moon.illumination_pct || 0}%`;
   document.getElementById('moon-arc-label').textContent = `${moon.illumination_pct ?? 0}%`;
   document.getElementById('moon-rise').textContent = moon.moonrise || '—';
