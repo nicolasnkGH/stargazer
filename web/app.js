@@ -281,7 +281,9 @@ async function fetchAIAnalysis() {
   }
 
   if (aiTargetsCard) {
-    aiTargetsCard.style.display = 'none';
+    // DO NOT hide the card, because it contains Must-See targets too!
+    // Just ensure we update it.
+    updateUnifiedCard();
   }
   
   if (engineBadgeEl) {
@@ -330,7 +332,8 @@ async function fetchAIAnalysis() {
     }
   } catch(e) {
     console.warn("AI Fetch failed", e);
-    if (aiTargetsCard) aiTargetsCard.style.display = 'none';
+    window.lastAIHTML = '';
+    updateUnifiedCard();
     if (engineBadgeEl) {
       engineBadgeEl.textContent = 'Fallback: Rule-based';
       engineBadgeEl.className = 'seeing-engine-badge rule';
