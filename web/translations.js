@@ -51,7 +51,7 @@ const translations = {
     "target_disclaimer": "🔭 Visibility depends on local sky conditions, light pollution, and your equipment. This database highlights the most prominent targets for amateur stargazers and beginners.",
     
     // ISS
-    "iss_title": "ISS Pass Tracker",
+    "iss_title": "ISS Pass Monitor",
     "iss_next_pass": "Next pass:",
     "iss_duration": "Duration:",
     "iss_max_alt": "Max Alt:",
@@ -106,7 +106,7 @@ const translations = {
     "live_badge": "LIVE",
     
     // Asteroid Tracker
-    "asteroid_title": "Asteroid Tracker",
+    "asteroid_title": "Asteroid Radar",
     "asteroid_info": "Near-Earth Objects (NEOs) passing by Earth tonight. Data from NASA NeoWs API.",
     "asteroid_scanning": "Scanning NASA Database...",
     "asteroid_found": "Asteroids found tonight:",
