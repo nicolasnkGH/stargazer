@@ -1976,39 +1976,39 @@ body.night-mode {
 /* ── Unified Scroll List & Animations ────────────────────────────────────── */
 .unified-scroll-list {
   display: flex;
-  flex-direction: column;
-  gap: 12px;
-  overflow-y: auto;
-  max-height: 800px;
-  padding-right: 8px; /* Room for scrollbar */
+  flex-direction: row;
+  gap: 16px;
+  overflow-x: auto;
+  overflow-y: hidden;
+  padding-bottom: 16px;
+  scroll-snap-type: x mandatory;
 }
 
-/* On mobile/tablets, switch to horizontal carousel */
-@media (max-width: 1024px) {
-  .unified-scroll-list {
-    flex-direction: row;
-    overflow-x: auto;
-    overflow-y: hidden;
-    max-height: none;
-    scroll-snap-type: x mandatory;
-    padding-bottom: 12px;
-    padding-right: 0;
-  }
-  .unified-scroll-list > div {
-    min-width: 300px; /* or a fixed width */
-    flex-shrink: 0;
-    scroll-snap-align: start;
-  }
+.unified-scroll-list > div {
+  min-width: 320px;
+  flex-shrink: 0;
+  scroll-snap-align: start;
 }
 
-/* Hide scrollbar for Chrome, Safari and Opera */
+/* Beautiful visible scrollbar */
 .unified-scroll-list::-webkit-scrollbar {
-  display: none;
+  height: 10px;
 }
-/* Hide scrollbar for IE, Edge and Firefox */
+.unified-scroll-list::-webkit-scrollbar-track {
+  background: rgba(255, 255, 255, 0.05);
+  border-radius: 8px;
+  margin: 0 10px;
+}
+.unified-scroll-list::-webkit-scrollbar-thumb {
+  background: rgba(168, 85, 247, 0.5);
+  border-radius: 8px;
+}
+.unified-scroll-list::-webkit-scrollbar-thumb:hover {
+  background: rgba(168, 85, 247, 0.8);
+}
 .unified-scroll-list {
-  -ms-overflow-style: none;  /* IE and Edge */
-  scrollbar-width: none;  /* Firefox */
+  scrollbar-width: thin;
+  scrollbar-color: rgba(168, 85, 247, 0.5) rgba(255, 255, 255, 0.05);
 }
 
 @keyframes float {
