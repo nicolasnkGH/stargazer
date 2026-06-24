@@ -238,6 +238,7 @@ body {
   font-size: 0.82rem;
   color: var(--text-secondary);
   line-height: 1.8;
+  padding-right: 80px;
 }
 
 /* ── Cards ─────────────────────────────────────────────────────────────── */
@@ -2096,7 +2097,11 @@ body.night-mode {
 }
 
 .hero-content {
-  position: relative;
+  position: absolute;
+  top: 60%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  width: 100%;
   z-index: 999;
   text-align: center;
   pointer-events: none;
