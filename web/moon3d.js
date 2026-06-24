@@ -16,7 +16,7 @@ function initMoon3D() {
 
   const renderer = new THREE.WebGLRenderer({ alpha: true, antialias: true });
   renderer.setSize(width, height);
-  renderer.setPixelRatio(window.devicePixelRatio);
+  renderer.setPixelRatio(Math.min(window.devicePixelRatio, 1.5));
   container.appendChild(renderer.domElement);
 
   const controls = new THREE.OrbitControls(camera, renderer.domElement);
@@ -24,14 +24,24 @@ function initMoon3D() {
   controls.enableZoom = true;
   controls.minDistance = 1.5;
   controls.maxDistance = 6;
-  controls.autoRotate = true;
+  controls.autoRotate = false; // off by default
   controls.autoRotateSpeed = 0.5;
+
+  // Re-enable rotation briefly after user interaction
+  let _moonRotateTimer = null;
+  renderer.domElement.addEventListener('pointerdown', () => {
+    controls.autoRotate = false;
+    clearTimeout(_moonRotateTimer);
+  });
+  renderer.domElement.addEventListener('pointerup', () => {
+    _moonRotateTimer = setTimeout(() => { controls.autoRotate = true; }, 2000);
+  });
 
   const textureLoader = new THREE.TextureLoader();
   const diffuseMap = textureLoader.load('/assets/moon_texture.jpg');
   const bumpMap = textureLoader.load('/assets/moon_bump.jpg');
 
-  const geometry = new THREE.SphereGeometry(1, 64, 64);
+  const geometry = new THREE.SphereGeometry(1, 32, 32);
   const material = new THREE.MeshStandardMaterial({
     map: diffuseMap,
     bumpMap: bumpMap,
@@ -56,13 +66,23 @@ function initMoon3D() {
   rimLight.position.set(-5, 0, -5);
   scene.add(rimLight);
 
-  function animate() {
+  // Page visibility pause
+  let _moonPageVisible = !document.hidden;
+  document.addEventListener('visibilitychange', () => {
+    _moonPageVisible = !document.hidden;
+  });
+
+  let lastTime = 0;
+  function animate(time) {
     requestAnimationFrame(animate);
+    if (!_moonPageVisible) return;
+    if (time - lastTime < 33) return; // 30 FPS cap
+    lastTime = time;
     controls.update();
     renderer.render(scene, camera);
   }
 
-  animate();
+  animate(performance.now());
 
   // Handle Resize
   const resizeObserver = new ResizeObserver(entries => {

@@ -330,6 +330,24 @@ def get_planet_positions(dt: Optional[datetime] = None, lat=None, lon=None, dusk
     t = _sf_time(obs_time)
     results = []
 
+    # Pre-calculate sunset for bounding visibility start
+    tz = _get_tz(lat, lon)
+    d = now.date()
+    midnight = datetime(d.year, d.month, d.day, 12, 0, tzinfo=tz) # Noon local
+    t0 = ts.from_datetime(midnight)
+    t1 = ts.from_datetime(midnight + timedelta(hours=24))
+    sunset_dt = dusk # Fallback
+    try:
+        f_sun = almanac.sunrise_sunset(eph, observer_location)
+        times_sun, events_sun = almanac.find_discrete(t0, t1, f_sun)
+        for t_ev, ev in zip(times_sun, events_sun):
+            dt_local = t_ev.utc_datetime().replace(tzinfo=ZoneInfo("UTC")).astimezone(tz)
+            if ev == 0 and sunset_dt == dusk: # First sunset
+                sunset_dt = dt_local
+    except Exception as e:
+        import logging
+        logging.error(f"Error computing sunset: {e}")
+
     for name, body_key in PLANETS.items():
         try:
             body = eph[body_key]
@@ -376,11 +394,16 @@ def get_planet_positions(dt: Optional[datetime] = None, lat=None, lon=None, dusk
                 if ev == 0 and set_time_dt is None:
                     set_time_dt = dt_local
 
-            # Bound by dusk/dawn for optical visibility
-            if rise_time_dt and dusk and rise_time_dt < dusk:
-                rise_time_dt = dusk
+            # Bound by sunset/dawn for optical visibility
+            if rise_time_dt and sunset_dt and rise_time_dt < sunset_dt:
+                rise_time_dt = sunset_dt
             if set_time_dt and dawn and set_time_dt > dawn:
                 set_time_dt = dawn
+
+            # If it sets before our clamped rise time, the optical window is invalid
+            if rise_time_dt and set_time_dt and set_time_dt <= rise_time_dt:
+                rise_time_dt = None
+                set_time_dt = None
 
             rise_time = rise_time_dt.strftime("%I:%M %p") if rise_time_dt else "N/A"
             set_time = set_time_dt.strftime("%I:%M %p") if set_time_dt else "N/A"
@@ -1258,6 +1281,7 @@ def get_constellations(lat=None, lon=None, filter_famous=False) -> list[dict]:
             "abbr": c["abbr"],
             "emoji": FAMOUS_CONSTELLATIONS.get(c["abbr"], "✨"),
             "altitude_deg": round(alt.degrees, 1),
+            "azimuth_deg": round(az.degrees, 1),
             "direction": _az_to_direction(az.degrees),
             "visible": bool(alt.degrees > 0)
         })

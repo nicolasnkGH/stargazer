@@ -235,8 +235,16 @@ async function fetchAndRender(path, renderFn, fallback = null) {
     const resp = await fetch(`${API_BASE}${finalPath}`, { signal: AbortSignal.timeout(75000) });
     if (!resp.ok) throw new Error(`HTTP ${resp.status}`);
     const data = await resp.json();
-    localStorage.setItem(cacheKey, JSON.stringify(data));
-    renderFn(data); // Re-render with fresh data
+    
+    // Only re-render if data has changed
+    const freshString = JSON.stringify(data);
+    if (!cached || cached !== freshString) {
+      localStorage.setItem(cacheKey, freshString);
+      renderFn(data); // Re-render with fresh data
+    } else {
+      // Data unchanged, no need to touch the DOM
+      localStorage.setItem(cacheKey, freshString);
+    }
   } catch (e) {
     console.warn(`API ${path} failed:`, e.message);
     if (!cached) renderFn(fallback);
@@ -491,12 +499,21 @@ function renderSeeing(seeing, data) {
     aiLabelEl.style.display = seeing.seeing_label_ai ? '' : 'none';
   }
 
-  // Explanation prose
+  // Explanation prose (Seeing card)
   const explanationEl = document.getElementById('seeing-explanation');
   if (explanationEl) {
     explanationEl.classList.remove('ai-loading-glow');
     explanationEl.textContent = seeing.seeing_explanation || '';
     explanationEl.style.display = seeing.seeing_explanation ? '' : 'none';
+  }
+
+  // Also surface the AI explanation as the Observer's Briefing in the Must-See card
+  if (seeing.seeing_explanation && seeing.ai_powered) {
+    window.lastBriefing = {
+      text: seeing.seeing_explanation,
+      bestWindow: seeing.best_window || null,
+    };
+    updateUnifiedCard();
   }
 
   // Moon Fact
@@ -1033,26 +1050,31 @@ function renderPlanets(planets, factStr) {
     return;
   }
 
-  let html = planets.map(p => {
+  const html = planets.map(p => {
     const dict = window.i18n[currentLang] || window.i18n['en'];
     const pName = dict[`planet_${p.name.toLowerCase()}`] || p.name;
+    const altColor = p.altitude_deg > 30 ? '#22c55e' : p.altitude_deg > 10 ? '#f59e0b' : '#f87171';
+    const altLabel = p.altitude_deg > 30 ? 'High in sky' : p.altitude_deg > 10 ? 'Low in sky' : 'Near horizon';
+    const magNote  = p.magnitude_approx < 0 ? ' (extremely bright)' : p.magnitude_approx < 3 ? ' (naked eye)' : p.magnitude_approx < 6 ? ' (binoculars)' : ' (telescope)';
+    const azimuthStr = (p.azimuth_deg != null && !isNaN(p.azimuth_deg)) ? ` · Azimuth ${Math.round(p.azimuth_deg)}°` : '';
     return `
-      <div class="planet-item ${p.visible_tonight ? '' : 'not-visible'}">
-        <div class="planet-vis-dot ${p.visible_tonight ? 'visible' : 'hidden'}"></div>
-        <span class="planet-emoji">${p.emoji}</span>
+      <div class="planet-3d-card ${p.visible_tonight ? '' : 'not-visible'}">
+        <div class="planet-3d-canvas-container" data-planet="${p.name}"></div>
         <div class="planet-info-col">
           <div class="planet-name-row">
-            <span class="planet-name">${pName}</span>
-            <span class="planet-const-pill" title="Current Constellation">${p.constellation || ''}</span>
+            <span class="planet-name">${p.emoji} ${pName}</span>
+            <span class="planet-const-pill" title="Currently in this constellation">${p.constellation || ''}</span>
           </div>
-          <div class="planet-meta-row">
-            <span class="planet-alt">${p.altitude_deg}° ${p.direction} (${Math.round(p.azimuth_deg)}°)</span>
-            <span class="planet-mag">Mag: ${p.magnitude_approx}</span>
-            <span class="planet-dist" title="Light Travel Time">${p.distance_mkm ? p.distance_mkm + 'M km' : ''} ${p.light_time_minutes ? '(' + p.light_time_minutes + ' lt-min)' : ''}</span>
+          <div class="planet-meta-row" style="flex-wrap: wrap; gap: 6px; margin-top: 8px;">
+            <span class="planet-alt" style="color:${altColor}" title="How high above the horizon">📐 Altitude: ${p.altitude_deg}° — ${altLabel}</span>
+            <span class="planet-alt" style="color:#94a3b8" title="Compass direction to look">🧭 ${p.direction}${azimuthStr}</span>
+            <span class="planet-mag" style="color:#cbd5e1" title="Brightness scale: lower = brighter; negative = extremely bright">💡 Magnitude ${p.magnitude_approx}${magNote}</span>
+            ${p.distance_mkm ? `<span class="planet-dist" title="Current distance from Earth">📏 ${p.distance_mkm}M km from Earth</span>` : ''}
+            ${p.light_time_minutes ? `<span class="planet-dist" title="How long light takes to travel from this planet to us right now">⚡ Light travel: ${p.light_time_minutes} min</span>` : ''}
           </div>
           <div style="font-size: 0.8rem; color: #cbd5e1; margin-top: 8px; padding-top: 8px; border-top: 1px dashed rgba(168, 85, 247, 0.2);">
-             <div style="color: #d8b4fe; font-weight: bold; margin-bottom: 4px;">🔭 Visible: ${p.rise_time || '?'} – ${p.set_time || '?'}</div>
-             <div><strong>📍 How to find it:</strong> ${p.how_to_find || ''}</div>
+            ${(p.rise_time && p.set_time && p.rise_time !== 'N/A' && p.set_time !== 'N/A') ? `<div style="color: #d8b4fe; font-weight: bold; margin-bottom: 4px;">🔭 Visible window: ${p.rise_time} – ${p.set_time}</div>` : ''}
+            <div><strong>📍 How to find it:</strong> ${p.how_to_find || ''}</div>
           </div>
         </div>
       </div>
@@ -1060,21 +1082,16 @@ function renderPlanets(planets, factStr) {
   }).join('');
 
   if (factStr) {
-    html += `
-      <div style="margin-top: auto; padding: 12px; background: rgba(255,255,255,0.03); border: 1px solid rgba(168, 85, 247, 0.2); border-radius: 6px; color: #cbd5e1; font-size: 0.85rem; line-height: 1.5; align-self: flex-end; width: 100%; box-sizing: border-box;">
-        <div style="color: #d8b4fe; font-weight: bold; margin-bottom: 4px; font-size: 0.75rem; text-transform: uppercase; letter-spacing: 0.05em;">✨ Planet Fact</div>
-        ${factStr}
-      </div>
-    `;
+    window.lastPlanetFact = factStr;
+    updateUnifiedCard();
   }
 
-  // Ensure the planet-list itself can push the fact down via flex
-  list.style.display = 'flex';
-  list.style.flexDirection = 'column';
-  list.style.height = '100%';
-  list.style.gap = '8px';
-
   list.innerHTML = html;
+  
+  // Initialize 3D planets if available
+  if (window.initPlanets3D) {
+    window.initPlanets3D();
+  }
 }
 
 function updateUnifiedCard() {
@@ -1084,6 +1101,8 @@ function updateUnifiedCard() {
   
   const alertsHtml = window.lastAlertsHTML || '';
   const aiHtml = window.lastAIHTML || '';
+  const factStr = window.lastPlanetFact || '';
+  const briefing = window.lastBriefing || null;
   
   card.style.display = 'flex';
   card.style.flexDirection = 'column';
@@ -1094,13 +1113,28 @@ function updateUnifiedCard() {
   if (astroGlow) {
     const seeing = window.lastTonightData?.seeing?.go_nogo || 'MARGINAL';
     const isNoGo = seeing === 'NO GO';
-    
     if (isNoGo) {
       astroGlow.style.background = 'radial-gradient(circle, rgba(168,85,247,0.2) 0%, transparent 70%)';
     } else {
       astroGlow.style.background = 'radial-gradient(circle, rgba(45,212,191,0.2) 0%, transparent 70%)';
     }
   }
+
+  // Observer's Briefing — AI-generated prose at the top
+  const briefingHtml = briefing ? `
+    <div class="observer-briefing">
+      <div class="observer-briefing-label">🤖 Observer's Briefing</div>
+      <div class="observer-briefing-text">${briefing.text}</div>
+      ${briefing.bestWindow ? `<div class="observer-briefing-window">🔭 Best window: <strong>${briefing.bestWindow}</strong></div>` : ''}
+    </div>
+  ` : '';
+
+  const factHtml = factStr ? `
+    <div class="planet-fact-strip">
+      <span class="planet-fact-label">✨ Did You Know?</span>
+      <span class="planet-fact-text">${factStr}</span>
+    </div>
+  ` : '';
   
   if (!alertsHtml && !aiHtml) {
     const fallbackMsg = `
@@ -1108,9 +1142,9 @@ function updateUnifiedCard() {
         No targets visible right now. Conditions might be poor, or it's daytime!
       </div>
     `;
-    list.innerHTML = fallbackMsg;
+    list.innerHTML = briefingHtml + fallbackMsg + factHtml;
   } else {
-    list.innerHTML = alertsHtml + aiHtml;
+    list.innerHTML = briefingHtml + alertsHtml + aiHtml + factHtml;
   }
 }
 
@@ -1294,21 +1328,58 @@ async function loadConstellations() {
 
     list.innerHTML = '';
     visibleConst.forEach(c => {
+      const alt = c.altitude_deg;
+      const az  = c.azimuth_deg;
+      const azStr = (az != null && !isNaN(az)) ? ` (${Math.round(az)}°)` : '';
+      const color = alt > 30 ? '#22c55e' : alt > 10 ? '#f59e0b' : '#f87171';
+      const barPct = Math.min(100, Math.max(0, Math.round((alt / 90) * 100)));
+      const barColor = alt > 30 ? '#22c55e' : alt > 10 ? '#f59e0b' : '#ef4444';
+
+      const qualityLabel = alt > 30 ? 'High in sky' : alt > 10 ? 'Low in sky' : 'Near horizon';
+      const qualityIcon  = alt > 30 ? '🟢' : alt > 10 ? '🟡' : '🔴';
+
       const div = document.createElement('div');
-      const color = c.altitude_deg > 15 ? '#22c55e' : c.altitude_deg > 0 ? '#f59e0b' : '#f87171';
       div.className = 'const-card';
       div.dataset.const = c.abbr;
+      div.setAttribute('aria-label', `${c.name} — ${qualityLabel}. Click to explore targets.`);
       div.innerHTML = `
-        <div class="c-name">${c.emoji || '✨'} ${c.name}</div>
-        <div class="c-abbr">${c.abbr}</div>
-        <div class="c-alt" style="color: ${color}">● ${c.altitude_deg}° ${c.direction} (${Math.round(c.azimuth_deg)}°)</div>
+        <div class="c-name">${c.emoji || '✨'} ${c.name} <span class="c-abbr-inline">${c.abbr}</span></div>
+        <div class="c-alt-header">
+          <span class="c-alt-label">Altitude above horizon</span>
+          <span class="c-alt-value" style="color:${color}">${alt}°</span>
+        </div>
+        <div class="c-alt-bar-wrap">
+          <div class="c-alt-bar" style="width:${barPct}%; background:${barColor};"></div>
+        </div>
+        <div class="c-meta">
+          <span style="color:${color}">${qualityIcon} ${qualityLabel}</span>
+          <span class="c-direction">${c.direction}${azStr}</span>
+        </div>
       `;
       div.addEventListener('click', () => {
-        // Find corresponding tab and click it
+        // 1. Set the active constellation
+        currentConstellation = c.abbr;
+        localStorage.setItem('sg_constellation', c.abbr);
+
+        // 2. Sync the tab bar (if this constellation has a tab)
+        document.querySelectorAll('.const-tab').forEach(b => b.classList.remove('active'));
         const tab = document.querySelector(`.const-tab[data-const="${c.abbr}"]`);
-        if (tab) tab.click();
-        
-        // Scroll target database into view
+        if (tab) tab.classList.add('active');
+
+        // 3. Sync the dropdown
+        const selectEl = document.getElementById('ac-select');
+        if (selectEl) selectEl.value = c.abbr;
+
+        // 4. Update the section title
+        const titleEl = document.getElementById('target-db-title');
+        const suffix = window.i18n[currentLang].targets_title_suffix || 'Targets';
+        if (titleEl) titleEl.textContent = `${c.emoji || ''} ${c.name} ${suffix}`;
+
+        // 5. Load targets for this constellation
+        loadTargets();
+        if (typeof loadActiveConstellation === 'function') loadActiveConstellation(c.abbr);
+
+        // 6. Scroll the target card into view
         document.getElementById('card-targets').scrollIntoView({ behavior: 'smooth' });
       });
       list.appendChild(div);

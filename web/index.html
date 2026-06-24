@@ -34,7 +34,7 @@
   <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/controls/OrbitControls.js"></script>
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/driver.js@1.0.1/dist/driver.css" integrity="sha384-bovbcpDBo0pTIhd7ws6ebPh1PG31ubAHcX2pv8Tcu5EtFHNl5FBciYFtS/e2SN66" crossorigin="anonymous" />
-  <link rel="stylesheet" href="style.css?v=45" />
+  <link rel="stylesheet" href="style.css?v=54" />
   
   <!-- D3.js and d3-celestial for Interactive Star Map -->
   <script src="https://d3js.org/d3.v3.min.js"></script>
@@ -285,18 +285,28 @@
               <option value="Cyg">🦢 Cygnus</option>
               <option value="Cru">✝️ Crux</option>
               <option value="CMa">🐕 Canis Major</option>
+              <option value="CMi">🐩 Canis Minor</option>
               <option value="Cen">🐎 Centaurus</option>
               <option value="Ari">♈ Aries</option>
               <option value="Tau">♉ Taurus</option>
               <option value="Gem">♊ Gemini</option>
+              <option value="Aur">🔶 Auriga</option>
+              <option value="Per">⚔️ Perseus</option>
               <option value="Cnc">♋ Cancer</option>
               <option value="Leo">♌ Leo</option>
+              <option value="LMi">🦁 Leo Minor</option>
               <option value="Vir">♍ Virgo</option>
               <option value="Lib">♎ Libra</option>
               <option value="Sgr">♐ Sagittarius</option>
               <option value="Cap">♑ Capricornus</option>
               <option value="Aqr">♒ Aquarius</option>
               <option value="Psc">♓ Pisces</option>
+              <option value="Mon">🦄 Monoceros</option>
+              <option value="Lyn">🐱 Lynx</option>
+              <option value="Lep">🐇 Lepus</option>
+              <option value="Cam">🦒 Camelopardalis</option>
+              <option value="Pup">⛵ Puppis</option>
+              <option value="Col">🕊️ Columba</option>
             </select>
           </div>
           <span class="card-badge" id="ac-status-badge">...</span>
@@ -388,18 +398,28 @@
         <button class="const-tab" data-const="Cyg">Cygnus</button>
         <button class="const-tab" data-const="Cru">Crux</button>
         <button class="const-tab" data-const="CMa">Canis Major</button>
+        <button class="const-tab" data-const="CMi">Canis Minor</button>
         <button class="const-tab" data-const="Cen">Centaurus</button>
         <button class="const-tab" data-const="Ari">Aries</button>
         <button class="const-tab" data-const="Tau">Taurus</button>
         <button class="const-tab" data-const="Gem">Gemini</button>
+        <button class="const-tab" data-const="Aur">Auriga</button>
+        <button class="const-tab" data-const="Per">Perseus</button>
         <button class="const-tab" data-const="Cnc">Cancer</button>
         <button class="const-tab" data-const="Leo">Leo</button>
+        <button class="const-tab" data-const="LMi">Leo Minor</button>
         <button class="const-tab" data-const="Vir">Virgo</button>
         <button class="const-tab" data-const="Lib">Libra</button>
         <button class="const-tab" data-const="Sgr">Sagittarius</button>
         <button class="const-tab" data-const="Cap">Capricornus</button>
         <button class="const-tab" data-const="Aqr">Aquarius</button>
         <button class="const-tab" data-const="Psc">Pisces</button>
+        <button class="const-tab" data-const="Mon">Monoceros</button>
+        <button class="const-tab" data-const="Lyn">Lynx</button>
+        <button class="const-tab" data-const="Lep">Lepus</button>
+        <button class="const-tab" data-const="Cam">Camelopardalis</button>
+        <button class="const-tab" data-const="Pup">Puppis</button>
+        <button class="const-tab" data-const="Col">Columba</button>
       </div>
 
       <div class="targets-scope-note">
@@ -688,8 +708,9 @@
   </div>
 
   <script src="translations.js"></script>
-  <script src="moon3d.js?v=3"></script>
-  <script src="app.js?v=41"></script>
-  <script src="gravity-well.js?v=44"></script>
+  <script src="moon3d.js?v=5"></script>
+  <script src="planets3d.js?v=3"></script>
+  <script src="app.js?v=49"></script>
+  <script src="gravity-well.js?v=45"></script>
 </body>
 </html>

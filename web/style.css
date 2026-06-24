@@ -662,50 +662,80 @@ body {
 
 /* ── Planet List ────────────────────────────────────────────────────────── */
 .planet-list {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(min(280px, 100%), 1fr));
+  gap: 16px;
+  width: 100%;
+  box-sizing: border-box;
+}
+
+.planet-3d-card {
   display: flex;
   flex-direction: column;
-  gap: 8px;
-}
-
-.planet-item {
-  display: flex;
-  align-items: center;
-  gap: 12px;
-  padding: 10px 14px;
-  border-radius: 10px;
   background: var(--bg-glass);
   border: 1px solid var(--border);
+  border-radius: 12px;
+  overflow: hidden;
   transition: all 0.2s ease;
+  height: auto;
+  min-height: 100%;
+  padding-bottom: 16px;
 }
 
-.planet-item:hover {
+.planet-3d-card:hover {
   background: rgba(74, 158, 255, 0.06);
-  border-color: rgba(74, 158, 255, 0.2);
+  border-color: rgba(74, 158, 255, 0.3);
+  transform: translateY(-2px);
 }
 
-.planet-item.not-visible {
+.planet-3d-card.not-visible {
   opacity: 0.45;
 }
 
-.planet-emoji { font-size: 1.3rem; }
+.planet-3d-canvas-container {
+  width: 100%;
+  height: 200px;
+  background: radial-gradient(circle at center, rgba(30, 40, 60, 0.4) 0%, rgba(10, 15, 30, 0.8) 100%);
+  position: relative;
+  cursor: grab;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  overflow: hidden;
+}
+
+.planet-3d-canvas-container canvas {
+  display: block;
+  max-width: 100%;
+  height: auto !important;
+  outline: none;
+}
+
+.planet-3d-canvas-container:active {
+  cursor: grabbing;
+}
 
 .planet-info-col {
+  padding: 16px;
   display: flex;
   flex-direction: column;
   flex: 1;
-  gap: 4px;
+  gap: 8px;
 }
 
 .planet-name-row {
   display: flex;
   align-items: center;
-  gap: 8px;
+  justify-content: space-between;
 }
 
 .planet-name {
   font-weight: 600;
-  font-size: 0.95rem;
-  color: #f1f5f9;
+  font-size: 1.1rem;
+  color: var(--text-primary);
+  display: flex;
+  align-items: center;
+  gap: 8px;
 }
 
 .planet-const-pill {
@@ -1246,6 +1276,111 @@ body {
   grid-template-columns: repeat(7, 1fr);
   gap: 10px;
   overflow-x: auto;
+}
+
+/* ── Constellations Grid override ──────────────────────────────────────── */
+#constellations-grid.weekly-grid {
+  grid-template-columns: repeat(auto-fill, minmax(130px, 1fr));
+  overflow-x: unset;
+}
+
+.const-card {
+  background: var(--bg-glass);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 10px 12px 8px;
+  cursor: pointer;
+  transition: background 0.15s ease, border-color 0.15s ease, transform 0.15s ease;
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+}
+
+.const-card:hover {
+  background: rgba(74, 158, 255, 0.07);
+  border-color: rgba(74, 158, 255, 0.35);
+  transform: translateY(-2px);
+}
+
+.c-name {
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: var(--text-primary);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  display: flex;
+  align-items: baseline;
+  gap: 5px;
+}
+
+.c-abbr-inline {
+  font-size: 0.65rem;
+  color: var(--text-muted);
+  font-weight: 400;
+  letter-spacing: 0.04em;
+  flex-shrink: 0;
+}
+
+.c-alt-bar-wrap {
+  height: 3px;
+  background: rgba(255,255,255,0.07);
+  border-radius: 2px;
+  margin: 4px 0 2px;
+  overflow: hidden;
+}
+
+.c-alt-bar {
+  height: 100%;
+  border-radius: 2px;
+  transition: width 0.4s ease;
+}
+
+.c-alt-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-top: 4px;
+}
+
+.c-alt-label {
+  font-size: 0.62rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: var(--text-muted);
+}
+
+.c-alt-value {
+  font-size: 0.65rem;
+  font-family: var(--font-mono);
+}
+
+.c-meta {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-top: 3px;
+  flex-wrap: wrap;
+  gap: 2px;
+}
+
+.c-direction {
+  font-size: 0.65rem;
+  color: var(--text-muted);
+}
+
+.c-cta {
+  font-size: 0.62rem;
+  color: rgba(74, 158, 255, 0.6);
+  margin-top: 5px;
+  text-align: center;
+  letter-spacing: 0.03em;
+  transition: color 0.15s ease;
+}
+
+.const-card:hover .c-cta {
+  color: rgba(74, 158, 255, 1);
 }
 
 .day-card {
@@ -1946,6 +2081,50 @@ body.night-mode {
     margin-top: 5px;
     width: 100%;
   }
+
+  /* ── Planet 3D Cards — Mobile Layout ── */
+  .planet-list {
+    display: flex !important;
+    flex-direction: column !important;
+    gap: 16px !important;
+    width: 100% !important;
+    box-sizing: border-box !important;
+  }
+
+  .planet-3d-card {
+    width: 100% !important;
+    max-width: 100% !important;
+    min-width: 0 !important;
+    box-sizing: border-box !important;
+    flex-shrink: 0;
+  }
+
+  .planet-3d-canvas-container {
+    width: 100% !important;
+    min-width: 0 !important;
+    box-sizing: border-box !important;
+    overflow: hidden !important;
+  }
+
+  .planet-3d-canvas-container canvas {
+    width: 100% !important;
+    max-width: 100% !important;
+    height: auto !important;
+    display: block !important;
+  }
+
+  .planet-info-col {
+    width: 100% !important;
+    min-width: 0 !important;
+    box-sizing: border-box !important;
+    overflow-wrap: break-word !important;
+    word-break: break-word !important;
+  }
+
+  .planet-meta-row {
+    flex-wrap: wrap !important;
+    gap: 6px !important;
+  }
 }
 
 /* --- Map Expand Button --- */
@@ -2065,6 +2244,81 @@ body.night-mode {
   font-size: 0.85rem;
   color: #94a3b8;
   line-height: 1.4;
+}
+
+/* ── Observer's Briefing (AI-generated, top of Must-See card) ───────────── */
+.observer-briefing {
+  width: 100%;
+  box-sizing: border-box;
+  padding: 14px 18px;
+  margin-bottom: 4px;
+  background: linear-gradient(135deg, rgba(45, 212, 191, 0.06) 0%, rgba(168, 85, 247, 0.06) 100%);
+  border: 1px solid rgba(45, 212, 191, 0.2);
+  border-left: 3px solid #2dd4bf;
+  border-radius: 10px;
+  position: relative;
+  animation: briefingFadeIn 0.6s ease forwards;
+}
+
+@keyframes briefingFadeIn {
+  from { opacity: 0; transform: translateY(-6px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+.observer-briefing-label {
+  font-size: 0.68rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  color: #2dd4bf;
+  margin-bottom: 6px;
+}
+
+.observer-briefing-text {
+  font-size: 0.92rem;
+  color: #e2e8f0;
+  line-height: 1.6;
+  font-style: italic;
+}
+
+.observer-briefing-window {
+  margin-top: 8px;
+  font-size: 0.8rem;
+  color: #94a3b8;
+}
+
+.observer-briefing-window strong {
+  color: #cbd5e1;
+}
+
+/* ── Planet Fun Fact Strip (inside Must-See card) ──────────────────────── */
+.planet-fact-strip {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  margin-top: 4px;
+  padding: 12px 16px;
+  background: rgba(168, 85, 247, 0.06);
+  border-top: 1px dashed rgba(168, 85, 247, 0.25);
+  border-radius: 0 0 10px 10px;
+  width: 100%;
+  box-sizing: border-box;
+}
+
+.planet-fact-label {
+  flex-shrink: 0;
+  font-size: 0.7rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.07em;
+  color: #c084fc;
+  padding-top: 1px;
+}
+
+.planet-fact-text {
+  font-size: 0.85rem;
+  color: #cbd5e1;
+  line-height: 1.5;
 }
 
 /* ── Unified Layout (Responsive Grid) ────────────────────────────────────── */
@@ -2219,6 +2473,29 @@ body.night-mode {
   letter-spacing: 0.05em;
   text-transform: uppercase;
   text-align: center;
-  padding-left: 0.05em; /* optical centering for letter-spacing */
+  padding-left: 0.05em;
   pointer-events: auto;
+}
+
+/* ── Performance: compositing hints ─────────────────────────────────────── */
+.planet-3d-canvas-container canvas,
+#moon-3d-container canvas,
+#gravity-well-canvas {
+  will-change: contents;
+  contain: strict;
+}
+
+/* ── Accessibility: respect system reduced-motion preference ─────────────── */
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+  /* Disable 3D auto-rotation via CSS hint (JS also checks this) */
+  .planet-3d-canvas-container,
+  #moon-3d-container,
+  #gravity-well-canvas {
+    will-change: auto;
+  }
 }
