@@ -695,25 +695,31 @@ body {
 .planet-3d-canvas-container {
   width: 100%;
   height: 200px;
-  background: radial-gradient(circle at center, rgba(30, 40, 60, 0.4) 0%, rgba(10, 15, 30, 0.8) 100%);
+  background: radial-gradient(circle at center, rgba(20,30,50,0.5) 0%, rgba(5,10,20,0.9) 100%);
   position: relative;
-  cursor: grab;
   display: flex;
   justify-content: center;
   align-items: center;
   overflow: hidden;
 }
 
-.planet-3d-canvas-container canvas {
-  display: block;
-  max-width: 100%;
-  height: auto !important;
-  outline: none;
+/* Planet orb wrapper — centres the orb div */
+.planet-orb-wrap {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  width: 100%;
+  height: 100%;
+  /* Slow float animation */
+  animation: planetFloat 6s ease-in-out infinite;
 }
 
-.planet-3d-canvas-container:active {
-  cursor: grabbing;
+@keyframes planetFloat {
+  0%, 100% { transform: translateY(0px); }
+  50%       { transform: translateY(-6px); }
 }
+
+/* CSS orbs don't use a canvas element */
 
 .planet-info-col {
   padding: 16px;
@@ -2674,6 +2680,17 @@ body.night-mode {
   z-index: 1;
 }
 
+/* ── Glow overlay canvas ─────────────────────────────────────────────────── */
+#hero-glow-canvas {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  z-index: 2;           /* above WebGL grid, below text */
+  pointer-events: none;
+}
+
 #gravity-well-canvas {
   position: absolute;
   top: 0;
@@ -2681,66 +2698,73 @@ body.night-mode {
   width: 100%;
   height: 100%;
   z-index: 0;
-  opacity: 0.85;
-  /* Fade top edge for seamless nav merge */
-  mask-image: linear-gradient(to bottom, rgba(0,0,0,0.4) 0%, black 25%, black 65%, transparent 100%);
-  -webkit-mask-image: linear-gradient(to bottom, rgba(0,0,0,0.4) 0%, black 25%, black 65%, transparent 100%);
+  opacity: 0.88;
+  mask-image: linear-gradient(to bottom, rgba(0,0,0,0.5) 0%, black 20%, black 62%, transparent 100%);
+  -webkit-mask-image: linear-gradient(to bottom, rgba(0,0,0,0.5) 0%, black 20%, black 62%, transparent 100%);
   pointer-events: auto;
 }
 
 .hero-content {
   position: absolute;
-  top: 58%;
+  top: 22%;             /* title sits in upper quarter, well above spheres */
   left: 50%;
-  transform: translate(-50%, -50%);
+  transform: translateX(-50%);
   width: 100%;
   z-index: 10;
   text-align: center;
   pointer-events: none;
 }
 
+/* Eyebrow label above title */
+.hero-eyebrow {
+  font-family: var(--font-mono);
+  font-size: clamp(0.65rem, 1.1vw, 0.8rem);
+  letter-spacing: 0.28em;
+  text-transform: uppercase;
+  color: rgba(56, 189, 248, 0.75);
+  margin-bottom: 0.75rem;
+  pointer-events: auto;
+}
+
 .hero-title {
   font-family: var(--font-heading);
-  font-size: clamp(2.8rem, 5.5vw, 5.5rem);
+  font-size: clamp(3rem, 6.5vw, 6.5rem);
   font-weight: 700;
   margin: 0;
   letter-spacing: -0.03em;
-  line-height: 1.05;
-  /* Gradient text for premium feel */
-  background: linear-gradient(135deg,
-    #ffffff 0%,
-    #e2e8f0 35%,
-    #a5b4fc 65%,
-    #38bdf8 100%);
+  line-height: 1.0;
+  background: linear-gradient(135deg, #ffffff 0%, #e8edf8 40%, #a5b4fc 70%, #38bdf8 100%);
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
   background-clip: text;
-  /* Soft glow behind text */
-  filter: drop-shadow(0 0 24px rgba(56, 189, 248, 0.18));
+  filter: drop-shadow(0 0 28px rgba(56,189,248,0.20));
   pointer-events: auto;
 }
 
 .hero-subtitle {
   font-family: var(--font-mono);
-  font-size: clamp(0.72rem, 1.4vw, 0.92rem);
-  color: rgba(148, 163, 184, 0.7);
-  margin: 1.1rem auto 0 auto;
-  letter-spacing: 0.22em;
+  font-size: clamp(0.72rem, 1.3vw, 0.88rem);
+  color: rgba(148, 163, 184, 0.65);
+  margin: 0.9rem auto 0 auto;
+  letter-spacing: 0.24em;
   text-transform: uppercase;
-  text-align: center;
   pointer-events: auto;
-  /* Subtle underline accent */
   display: inline-block;
-  padding-bottom: 2px;
-  border-bottom: 1px solid rgba(56, 189, 248, 0.2);
+  padding-bottom: 3px;
+  border-bottom: 1px solid rgba(56, 189, 248, 0.18);
 }
 
 /* ── Performance: compositing hints ─────────────────────────────────────── */
-.planet-3d-canvas-container canvas,
 #moon-3d-container canvas,
-#gravity-well-canvas {
+#gravity-well-canvas,
+#hero-glow-canvas {
   will-change: contents;
   contain: strict;
+}
+
+/* Planet orbs — contain layout to prevent reflow */
+.planet-orb-wrap {
+  contain: layout style;
 }
 
 /* ── Accessibility: respect system reduced-motion preference ─────────────── */
@@ -2751,9 +2775,11 @@ body.night-mode {
     transition-duration: 0.01ms !important;
   }
   /* Disable 3D auto-rotation via CSS hint (JS also checks this) */
-  .planet-3d-canvas-container,
+  .planet-orb-wrap,
   #moon-3d-container,
-  #gravity-well-canvas {
+  #gravity-well-canvas,
+  #hero-glow-canvas {
     will-change: auto;
+    animation: none !important;
   }
 }

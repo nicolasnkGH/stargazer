@@ -1,135 +1,184 @@
-// gravity-well.js
-// 3D Gravity Well Hero Background — CPU-optimized
+// gravity-well.js — Elegant Hero (unabyss-inspired)
+// Three.js grid deformation + 2D canvas radial-gradient glow overlay
+// Capped at 15fps, fully paused when off-screen / tab hidden
 
 (function initGravityWell() {
-  const canvas = document.getElementById('gravity-well-canvas');
+  const canvas     = document.getElementById('gravity-well-canvas');
+  const glowCanvas = document.getElementById('hero-glow-canvas');
   if (!canvas) return;
 
   const section = document.getElementById('hero-section');
+  const w = section.clientWidth;
+  const h = section.clientHeight;
 
-  // Scene, Camera, Renderer
-  const scene = new THREE.Scene();
-  scene.fog = new THREE.FogExp2(0x0f172a, 0.002);
+  // ── 2D glow overlay ───────────────────────────────────────────────────────
+  let glowCtx = null;
+  if (glowCanvas) {
+    glowCanvas.width  = w;
+    glowCanvas.height = h;
+    glowCtx = glowCanvas.getContext('2d');
+  }
 
-  const camera = new THREE.PerspectiveCamera(45, section.clientWidth / section.clientHeight, 0.1, 1000);
-  camera.position.set(0, 75, 140);
-  camera.lookAt(0, -10, 0);
+  // ── Three.js ──────────────────────────────────────────────────────────────
+  const scene  = new THREE.Scene();
+  const camera = new THREE.PerspectiveCamera(50, w / h, 0.1, 1000);
+  camera.position.set(0, 90, 160);
+  camera.lookAt(0, -25, 0);
 
-  const renderer = new THREE.WebGLRenderer({ canvas: canvas, alpha: true, antialias: false }); // antialias off: big win
-  renderer.setSize(section.clientWidth, section.clientHeight);
-  renderer.setPixelRatio(Math.min(window.devicePixelRatio, 1.5)); // cap retina
+  const renderer = new THREE.WebGLRenderer({ canvas, alpha: true, antialias: false });
+  renderer.setSize(w, h);
+  renderer.setPixelRatio(Math.min(window.devicePixelRatio, 1.0));
 
-  // Reduced geometry: 25 segs instead of 40 (625 verts vs 1681)
-  const planeSize = 400;
-  const planeSegments = 25;
+  // ── Grid — ghostly faint, fewer segments ─────────────────────────────────
+  const planeSize     = 520;
+  const planeSegments = 18;
   const geometry = new THREE.PlaneGeometry(planeSize, planeSize, planeSegments, planeSegments);
   geometry.rotateX(-Math.PI / 2);
 
-  // Pre-compute distance lookup to avoid sqrt every frame
-  const positions = geometry.attributes.position;
+  const positions   = geometry.attributes.position;
   const vertexCount = positions.count;
-  const distances = new Float32Array(vertexCount);
+  const distances   = new Float32Array(vertexCount);
   for (let i = 0; i < vertexCount; i++) {
     const x = positions.getX(i);
     const z = positions.getZ(i);
     distances[i] = Math.sqrt(x * x + z * z);
   }
 
-  const material = new THREE.MeshBasicMaterial({
-    color: 0x64748b,
+  const gridMat = new THREE.MeshBasicMaterial({
+    color: 0xffffff,
     wireframe: true,
     transparent: true,
-    opacity: 0.6
+    opacity: 0.09
   });
-
-  const plane = new THREE.Mesh(geometry, material);
+  const plane = new THREE.Mesh(geometry, gridMat);
   scene.add(plane);
 
-  // Orbiting spheres — use low-poly (8 segs)
-  const spheres = [];
-  const sphereMaterial  = new THREE.MeshBasicMaterial({ color: 0xe2e8f0 });
-  const highlightMaterial = new THREE.MeshBasicMaterial({ color: 0xfde047 });
+  // ── Lighting ──────────────────────────────────────────────────────────────
+  scene.add(new THREE.AmbientLight(0x101828, 1.0));
+  const sunPointLight = new THREE.PointLight(0xffcc66, 4.0, 250);
+  sunPointLight.position.set(0, 10, 0);
+  scene.add(sunPointLight);
 
-  function createSphere(radius, x, z, mat, orbitSpeed, orbitRadius) {
-    const geo  = new THREE.SphereGeometry(radius, 8, 8); // was 32,32
+  // ── Sphere definitions ────────────────────────────────────────────────────
+  const sphereDefs = [
+    { r: 13, ox: 0,   oz: 0,   orbitSpeed: 0,      orbitRadius: 0,
+      color: 0xffaa20, emissive: 0xdd6600, glowColor: [255,150,30],  glowSize: 100, isCenter: true },
+    { r: 4,  ox: 55,  oz: 18,  orbitSpeed: 0.0038,  orbitRadius: 58,
+      color: 0xc8d4e2, emissive: 0x080c18, glowColor: [140,170,210], glowSize: 42 },
+    { r: 6,  ox: -68, oz: -14, orbitSpeed: 0.0022,  orbitRadius: 70,
+      color: 0xb8c8d8, emissive: 0x060a14, glowColor: [110,150,200], glowSize: 56 },
+    { r: 2.5, ox: 28, oz: -38, orbitSpeed: 0.0085, orbitRadius: 38,
+      color: 0xd8e4f0, emissive: 0x0a0e1c, glowColor: [160,190,230], glowSize: 26 },
+  ];
+
+  const sphereObjects = sphereDefs.map(def => {
+    const geo = new THREE.SphereGeometry(def.r, 16, 12);
+    const mat = new THREE.MeshPhongMaterial({
+      color:    def.color,
+      emissive: def.emissive,
+      shininess: def.isCenter ? 60 : 20,
+      specular:  0x223344,
+    });
     const mesh = new THREE.Mesh(geo, mat);
-    mesh.position.set(x, 0, z);
+    mesh.position.set(def.ox, def.isCenter ? -30 : 0, def.oz);
     scene.add(mesh);
-    spheres.push({ mesh, orbitSpeed, orbitRadius, angle: Math.random() * Math.PI * 2 });
-  }
-
-  createSphere(12, 0,    0,   highlightMaterial, 0,      0);
-  createSphere(3,  40,   20,  sphereMaterial,    0.005,  40);
-  createSphere(5,  -60,  -10, sphereMaterial,    0.003,  60);
-  createSphere(2,  20,   -30, sphereMaterial,    0.01,   30);
-  createSphere(4,  -80,  40,  sphereMaterial,    0.002,  80);
-
-  // ── Intersection Observer: pause when hero is off-screen ──────────────────
-  let heroVisible = true;
-  const heroObserver = new IntersectionObserver(entries => {
-    heroVisible = entries[0].isIntersecting;
-  }, { threshold: 0.05 });
-  heroObserver.observe(section);
-
-  // ── Page Visibility: pause when tab is hidden ─────────────────────────────
-  let pageVisible = !document.hidden;
-  document.addEventListener('visibilitychange', () => {
-    pageVisible = !document.hidden;
+    return { mesh, angle: Math.random() * Math.PI * 2, ...def };
   });
 
-  // ── Animation Loop — capped at 20fps (gravity well doesn't need 60fps) ────
-  let time = 0;
-  let lastTime = 0;
-  const FPS_INTERVAL = 1000 / 20; // 20fps
+  // ── Visibility guards ─────────────────────────────────────────────────────
+  let heroVisible = true;
+  new IntersectionObserver(e => { heroVisible = e[0].isIntersecting; }, { threshold: 0.05 }).observe(section);
+  let pageVisible = !document.hidden;
+  document.addEventListener('visibilitychange', () => { pageVisible = !document.hidden; });
+
+  // ── Project 3D → 2D for glow overlay ─────────────────────────────────────
+  const _projVec = new THREE.Vector3();
+  function toScreen(mesh) {
+    _projVec.setFromMatrixPosition(mesh.matrixWorld);
+    _projVec.project(camera);
+    const cw = glowCanvas ? glowCanvas.width  : w;
+    const ch = glowCanvas ? glowCanvas.height : h;
+    return { x: (_projVec.x + 1) / 2 * cw, y: (-_projVec.y + 1) / 2 * ch };
+  }
+
+  function drawGlows() {
+    if (!glowCtx || !glowCanvas) return;
+    glowCtx.clearRect(0, 0, glowCanvas.width, glowCanvas.height);
+    sphereObjects.forEach(s => {
+      const p = toScreen(s.mesh);
+      const r = s.glowSize;
+      const [cr, cg, cb] = s.glowColor;
+      const g = glowCtx.createRadialGradient(p.x, p.y, 0, p.x, p.y, r);
+      if (s.isCenter) {
+        g.addColorStop(0.00, `rgba(${cr},${cg},${cb},1.00)`);
+        g.addColorStop(0.18, `rgba(${cr},${cg},${cb},0.85)`);
+        g.addColorStop(0.42, `rgba(${cr},${cg},${cb},0.40)`);
+        g.addColorStop(0.68, `rgba(${cr},${cg},${cb},0.13)`);
+        g.addColorStop(1.00, `rgba(${cr},${cg},${cb},0.00)`);
+      } else {
+        g.addColorStop(0.00, `rgba(${cr},${cg},${cb},0.95)`);
+        g.addColorStop(0.28, `rgba(${cr},${cg},${cb},0.60)`);
+        g.addColorStop(0.58, `rgba(${cr},${cg},${cb},0.20)`);
+        g.addColorStop(1.00, `rgba(${cr},${cg},${cb},0.00)`);
+      }
+      glowCtx.fillStyle = g;
+      glowCtx.beginPath();
+      glowCtx.arc(p.x, p.y, r, 0, Math.PI * 2);
+      glowCtx.fill();
+    });
+  }
+
+  // ── Animation loop — 15fps ─────────────────────────────────────────────────
+  let time = 0, lastRaf = 0;
+  const FPS_INTERVAL = 1000 / 15;
 
   function animate(now) {
     requestAnimationFrame(animate);
-
-    // Skip if tab hidden or section scrolled out of view
     if (!pageVisible || !heroVisible) return;
-    if (now - lastTime < FPS_INTERVAL) return;
-    lastTime = now;
+    if (now - lastRaf < FPS_INTERVAL) return;
+    lastRaf = now;
+    time += 0.013;
 
-    time += 0.01;
-
-    // Deform grid using pre-computed distances (no sqrt per frame)
     const pos = plane.geometry.attributes.position;
     for (let i = 0; i < vertexCount; i++) {
       const d = distances[i];
-      let y = d < 100 ? -40 * Math.exp(-(d * d) / 1000) : 0;
-      y += Math.sin(d * 0.05 - time * 2) * 2;
+      let y = d < 130 ? -48 * Math.exp(-(d * d) / 1300) : 0;
+      y += Math.sin(d * 0.038 - time * 1.4) * 1.4;
       pos.setY(i, y);
     }
     pos.needsUpdate = true;
-    plane.rotation.y = time * 0.05;
+    plane.rotation.y = time * 0.035;
 
-    spheres.forEach(s => {
+    sphereObjects.forEach(s => {
       if (s.orbitRadius > 0) {
         s.angle += s.orbitSpeed;
         s.mesh.position.x = Math.cos(s.angle) * s.orbitRadius;
         s.mesh.position.z = Math.sin(s.angle) * s.orbitRadius;
-        const d = Math.sqrt(s.mesh.position.x ** 2 + s.mesh.position.z ** 2);
-        s.mesh.position.y = (-40 * Math.exp(-(d * d) / 1000)) + 5;
+        const d2 = Math.sqrt(s.mesh.position.x ** 2 + s.mesh.position.z ** 2);
+        s.mesh.position.y = (-48 * Math.exp(-(d2 * d2) / 1300)) + 8;
       } else {
-        s.mesh.position.y = -35 + Math.sin(time) * 2;
+        s.mesh.position.y = -30 + Math.sin(time * 0.7) * 2;
       }
     });
 
+    const sun = sphereObjects[0];
+    sunPointLight.position.set(sun.mesh.position.x, sun.mesh.position.y + 40, sun.mesh.position.z);
+
     renderer.render(scene, camera);
+    drawGlows();
   }
 
   // ── Resize ────────────────────────────────────────────────────────────────
-  const resizeObserver = new ResizeObserver(entries => {
-    for (let entry of entries) {
-      if (!camera || !renderer) return;
+  new ResizeObserver(entries => {
+    for (const entry of entries) {
       const { width, height } = entry.contentRect;
-      if (width === 0 || height === 0) return;
+      if (!width || !height) return;
       camera.aspect = width / height;
       camera.updateProjectionMatrix();
       renderer.setSize(width, height);
+      if (glowCanvas) { glowCanvas.width = width; glowCanvas.height = height; }
     }
-  });
-  resizeObserver.observe(section);
+  }).observe(section);
 
   animate(performance.now());
 })();
