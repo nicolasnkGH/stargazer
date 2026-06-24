@@ -158,8 +158,16 @@ let currentLon = parseFloat(activeLoc.lon) || -83.037;
 // ── Clock & Subtitle ────────────────────────────────────────────────────────
 function updateClock() {
   const now = new Date();
-  const t = now.toLocaleTimeString(currentLang, { hour: '2-digit', minute: '2-digit', second: '2-digit', hour12: false });
-  const d = now.toLocaleDateString(currentLang, { weekday: 'short', month: 'short', day: 'numeric' });
+  const optionsTime = { hour: '2-digit', minute: '2-digit', second: '2-digit', hour12: false };
+  const optionsDate = { weekday: 'short', month: 'short', day: 'numeric' };
+  
+  if (window.currentLocationTimezone) {
+    optionsTime.timeZone = window.currentLocationTimezone;
+    optionsDate.timeZone = window.currentLocationTimezone;
+  }
+  
+  const t = now.toLocaleTimeString(currentLang, optionsTime);
+  const d = now.toLocaleDateString(currentLang, optionsDate);
   
   const clockEl = document.getElementById('clock');
   const dateEl = document.getElementById('date-display');
@@ -244,6 +252,9 @@ async function loadTonightReport() {
       return;
     }
     window.lastTonightData = data;
+    window.currentLocationTimezone = data.location_timezone || null;
+    updateClock(); // Force immediate update with new timezone
+    
     renderGoNogo(data);
     renderSeeing(data.seeing, data);
     renderMoon(data.moon);
@@ -515,7 +526,8 @@ function renderSeeing(seeing, data) {
   const aiTargetsList = document.getElementById('ai-targets-list');
   if (aiTargetsCard && aiTargetsList) {
     if (seeing.ai_powered && seeing.recommended_targets && seeing.recommended_targets.length > 0) {
-      aiTargetsList.innerHTML = '';
+      window.lastAIHTML = '';
+      const dummyContainer = document.createElement('div');
       seeing.recommended_targets.forEach(t => {
         const wrap = document.createElement('div');
         wrap.style.background = 'rgba(168, 85, 247, 0.05)';
@@ -593,9 +605,11 @@ function renderSeeing(seeing, data) {
             wrap.appendChild(howTo);
         }
         
-        aiTargetsList.appendChild(wrap);
+        dummyContainer.appendChild(wrap);
       });
-      aiTargetsCard.style.display = 'block';
+      window.lastAIHTML = dummyContainer.innerHTML;
+      aiTargetsCard.style.display = 'flex';
+      updateUnifiedCard();
     } else {
       aiTargetsCard.style.display = 'none';
     }
@@ -1033,13 +1047,29 @@ function renderPlanets(planets, factStr) {
   list.innerHTML = html;
 }
 
+function updateUnifiedCard() {
+  const list = document.getElementById('ai-targets-list');
+  const card = document.getElementById('card-ai-targets');
+  if (!list || !card) return;
+  
+  const alertsHtml = window.lastAlertsHTML || '';
+  const aiHtml = window.lastAIHTML || '';
+  
+  if (!alertsHtml && !aiHtml) {
+    card.style.display = 'none';
+  } else {
+    card.style.display = 'flex';
+    list.innerHTML = alertsHtml + aiHtml;
+  }
+}
+
 function renderAlerts(alerts) {
-  const list = document.getElementById('alert-list');
   if (!alerts || alerts.length === 0) {
-    list.innerHTML = '<div class="no-data">No special alerts for tonight</div>';
+    window.lastAlertsHTML = '';
+    updateUnifiedCard();
     return;
   }
-  list.innerHTML = alerts.map((a, i) => {
+  window.lastAlertsHTML = alerts.map((a, i) => {
     // Graceful fallback for old cached strings
     if (typeof a === 'string') {
       const dict = window.i18n[currentLang] || window.i18n['en'];
@@ -1074,7 +1104,7 @@ function renderAlerts(alerts) {
     });
 
     return `
-      <div class="must-see-item" style="animation-delay: ${i * 0.08}s">
+      <div class="must-see-item" style="animation-delay: ${i * 0.08}s; flex-shrink: 0;">
         <div class="must-see-icon">${a.icon}</div>
         <div class="must-see-content">
           <div class="must-see-title-row">
@@ -1086,6 +1116,7 @@ function renderAlerts(alerts) {
       </div>
     `;
   }).join('');
+  updateUnifiedCard();
 }
 
 // ── Render: Weekly ──────────────────────────────────────────────────────────

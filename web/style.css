@@ -1972,3 +1972,47 @@ body.night-mode {
   color: #94a3b8;
   line-height: 1.4;
 }
+
+/* ── Unified Scroll List & Animations ────────────────────────────────────── */
+.unified-scroll-list {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  overflow-y: auto;
+  max-height: 800px;
+  padding-right: 8px; /* Room for scrollbar */
+}
+
+/* On mobile/tablets, switch to horizontal carousel */
+@media (max-width: 1024px) {
+  .unified-scroll-list {
+    flex-direction: row;
+    overflow-x: auto;
+    overflow-y: hidden;
+    max-height: none;
+    scroll-snap-type: x mandatory;
+    padding-bottom: 12px;
+    padding-right: 0;
+  }
+  .unified-scroll-list > div {
+    min-width: 300px; /* or a fixed width */
+    flex-shrink: 0;
+    scroll-snap-align: start;
+  }
+}
+
+/* Hide scrollbar for Chrome, Safari and Opera */
+.unified-scroll-list::-webkit-scrollbar {
+  display: none;
+}
+/* Hide scrollbar for IE, Edge and Firefox */
+.unified-scroll-list {
+  -ms-overflow-style: none;  /* IE and Edge */
+  scrollbar-width: none;  /* Firefox */
+}
+
+@keyframes float {
+  0% { transform: translateY(0px); }
+  50% { transform: translateY(-5px); }
+  100% { transform: translateY(0px); }
+}
