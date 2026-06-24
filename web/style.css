@@ -2706,29 +2706,30 @@ body.night-mode {
 
 .hero-content {
   position: absolute;
-  top: 22%;             /* title sits in upper quarter, well above spheres */
+  top: 0;
   left: 50%;
   transform: translateX(-50%);
   width: 100%;
   z-index: 10;
   text-align: center;
   pointer-events: none;
+  padding-top: 10%;  /* breathe from top edge, stays above all spheres */
 }
 
 /* Eyebrow label above title */
 .hero-eyebrow {
   font-family: var(--font-mono);
-  font-size: clamp(0.65rem, 1.1vw, 0.8rem);
-  letter-spacing: 0.28em;
+  font-size: clamp(0.6rem, 1vw, 0.75rem);
+  letter-spacing: 0.3em;
   text-transform: uppercase;
-  color: rgba(56, 189, 248, 0.75);
-  margin-bottom: 0.75rem;
+  color: rgba(56, 189, 248, 0.70);
+  margin-bottom: 0.6rem;
   pointer-events: auto;
 }
 
 .hero-title {
   font-family: var(--font-heading);
-  font-size: clamp(3rem, 6.5vw, 6.5rem);
+  font-size: clamp(2.6rem, 5.5vw, 5.8rem);
   font-weight: 700;
   margin: 0;
   letter-spacing: -0.03em;
@@ -2743,15 +2744,15 @@ body.night-mode {
 
 .hero-subtitle {
   font-family: var(--font-mono);
-  font-size: clamp(0.72rem, 1.3vw, 0.88rem);
-  color: rgba(148, 163, 184, 0.65);
-  margin: 0.9rem auto 0 auto;
-  letter-spacing: 0.24em;
+  font-size: clamp(0.65rem, 1.1vw, 0.82rem);
+  color: rgba(148, 163, 184, 0.60);
+  margin: 0.7rem auto 0 auto;
+  letter-spacing: 0.26em;
   text-transform: uppercase;
   pointer-events: auto;
   display: inline-block;
   padding-bottom: 3px;
-  border-bottom: 1px solid rgba(56, 189, 248, 0.18);
+  border-bottom: 1px solid rgba(56, 189, 248, 0.15);
 }
 
 /* ── Performance: compositing hints ─────────────────────────────────────── */

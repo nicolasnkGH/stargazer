@@ -22,8 +22,8 @@
   // ── Three.js ──────────────────────────────────────────────────────────────
   const scene  = new THREE.Scene();
   const camera = new THREE.PerspectiveCamera(50, w / h, 0.1, 1000);
-  camera.position.set(0, 90, 160);
-  camera.lookAt(0, -25, 0);
+  camera.position.set(0, 110, 155);
+  camera.lookAt(0, -60, 0);
 
   const renderer = new THREE.WebGLRenderer({ canvas, alpha: true, antialias: false });
   renderer.setSize(w, h);
@@ -80,7 +80,7 @@
       specular:  0x223344,
     });
     const mesh = new THREE.Mesh(geo, mat);
-    mesh.position.set(def.ox, def.isCenter ? -30 : 0, def.oz);
+    mesh.position.set(def.ox, def.isCenter ? -48 : 0, def.oz);
     scene.add(mesh);
     return { mesh, angle: Math.random() * Math.PI * 2, ...def };
   });
@@ -155,14 +155,14 @@
         s.mesh.position.x = Math.cos(s.angle) * s.orbitRadius;
         s.mesh.position.z = Math.sin(s.angle) * s.orbitRadius;
         const d2 = Math.sqrt(s.mesh.position.x ** 2 + s.mesh.position.z ** 2);
-        s.mesh.position.y = (-48 * Math.exp(-(d2 * d2) / 1300)) + 8;
+        s.mesh.position.y = (-48 * Math.exp(-(d2 * d2) / 1300)) + 12;
       } else {
-        s.mesh.position.y = -30 + Math.sin(time * 0.7) * 2;
+        s.mesh.position.y = -48 + Math.sin(time * 0.7) * 2;
       }
     });
 
     const sun = sphereObjects[0];
-    sunPointLight.position.set(sun.mesh.position.x, sun.mesh.position.y + 40, sun.mesh.position.z);
+    sunPointLight.position.set(sun.mesh.position.x, sun.mesh.position.y + 55, sun.mesh.position.z);
 
     renderer.render(scene, camera);
     drawGlows();
