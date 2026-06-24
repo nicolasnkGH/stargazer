@@ -1973,42 +1973,16 @@ body.night-mode {
   line-height: 1.4;
 }
 
-/* ── Unified Scroll List & Animations ────────────────────────────────────── */
+/* ── Unified Layout (Responsive Grid) ────────────────────────────────────── */
 .unified-scroll-list {
-  display: flex;
-  flex-direction: row;
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
   gap: 16px;
-  overflow-x: auto;
-  overflow-y: hidden;
-  padding-bottom: 16px;
-  scroll-snap-type: x mandatory;
+  padding-bottom: 8px;
 }
 
 .unified-scroll-list > div {
-  min-width: 320px;
-  flex-shrink: 0;
-  scroll-snap-align: start;
-}
-
-/* Beautiful visible scrollbar */
-.unified-scroll-list::-webkit-scrollbar {
-  height: 10px;
-}
-.unified-scroll-list::-webkit-scrollbar-track {
-  background: rgba(255, 255, 255, 0.05);
-  border-radius: 8px;
-  margin: 0 10px;
-}
-.unified-scroll-list::-webkit-scrollbar-thumb {
-  background: rgba(168, 85, 247, 0.5);
-  border-radius: 8px;
-}
-.unified-scroll-list::-webkit-scrollbar-thumb:hover {
-  background: rgba(168, 85, 247, 0.8);
-}
-.unified-scroll-list {
-  scrollbar-width: thin;
-  scrollbar-color: rgba(168, 85, 247, 0.5) rgba(255, 255, 255, 0.05);
+  width: 100%;
 }
 
 @keyframes float {
