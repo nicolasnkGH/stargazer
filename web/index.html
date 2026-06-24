@@ -21,8 +21,12 @@
   <!-- Twitter / X Card -->
   <meta name="twitter:card" content="summary_large_image" />
   <meta name="twitter:title" content="StarGazer — Observatory Dashboard" />
-  <meta name="twitter:description" content="Nightly sky conditions, planet tracker, ISS alerts, and target database for amateur astronomers." />
+  <meta name="twitter:description" content="Nightly sky conditions, planet monitor, ISS alerts, and target database for amateur astronomers." />
   <meta name="twitter:image" content="https://stargazer.nick-t.net/og-preview.png" />
+
+  <!-- Favicon Fallback -->
+  <link rel="icon" href="assets/ai_stargazer_mascot.png" type="image/png" />
+  <link rel="shortcut icon" href="assets/ai_stargazer_mascot.png" type="image/png" />
 
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
@@ -72,7 +76,7 @@
             <a href="#card-tonight" data-i18n="nav_tonight" class="nav-link">Tonight's Outlook</a>
             <a href="#card-active-const" data-i18n="nav_active_const" class="nav-link">Active Constellation</a>
             <a href="#card-targets" data-i18n="nav_target_db" class="nav-link">Target Database</a>
-            <a href="#card-iss" data-i18n="nav_iss" class="nav-link">ISS Pass Tracker</a>
+            <a href="#card-iss" data-i18n="nav_iss" class="nav-link">ISS Pass Monitor</a>
             <a href="#card-weekly" data-i18n="nav_weekly" class="nav-link">7-Day Forecast</a>
           </div>
         </div>
@@ -186,11 +190,11 @@
         </div>
       </div>
 
-      <!-- ── Asteroid Tracker (NASA) ────────────────────────────────────────── -->
+      <!-- ── Asteroid Radar (NASA) ────────────────────────────────────────── -->
       <section class="card" id="card-asteroids">
         <div class="card-header">
           <span class="card-icon">☄️</span>
-          <h2 class="card-title" data-i18n="asteroid_title">Asteroid Tracker</h2>
+          <h2 class="card-title" data-i18n="asteroid_title">Asteroid Radar</h2>
           <span class="info-icon" style="cursor:pointer; opacity:0.6; font-size: 0.85rem; margin-left:8px;" onclick="showInfo(window.i18n[currentLang]?.asteroid_info || 'Near-Earth Objects (NEOs) passing by Earth tonight. Data from NASA NeoWs API.', event)">ℹ️</span>
         </div>
         <div class="card-body">
@@ -390,11 +394,11 @@
       </div>
     </section>
 
-    <!-- ── ISS Tracker ── -->
+    <!-- ── ISS Monitor ── -->
     <section class="card card-iss" id="card-iss">
       <div class="card-header">
         <span class="card-icon">🛸</span>
-        <h2 class="card-title" data-i18n="iss_title" data-i18n="nav_iss">ISS Pass Tracker</h2>
+        <h2 class="card-title" data-i18n="iss_title" data-i18n="nav_iss">ISS Pass Monitor</h2>
         <a href="https://heavens-above.com/PassSummary.aspx?satid=25544&lat=40.126&lng=-83.037" target="_blank" class="ext-link">Heavens-Above ↗</a>
       </div>
       <div class="card-body">
@@ -564,7 +568,7 @@
           <li><a href="#card-tonight" data-i18n="nav_tonight">Tonight's Outlook</a></li>
           <li><a href="#card-active-const" data-i18n="nav_active_const">Active Constellation</a></li>
           <li><a href="#card-targets" data-i18n="nav_target_db">Target Database</a></li>
-          <li><a href="#card-iss" data-i18n="nav_iss">ISS Pass Tracker</a></li>
+          <li><a href="#card-iss" data-i18n="nav_iss">ISS Pass Monitor</a></li>
           <li><a href="#card-weekly" data-i18n="nav_weekly">7-Day Forecast</a></li>
         </ul>
       </div>
