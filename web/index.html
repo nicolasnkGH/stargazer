@@ -61,12 +61,15 @@
       <div class="logo">
         <span class="logo-icon">🔭</span>
         <div class="logo-wrap">
-
-        <div style="display: flex; align-items: center; gap: 8px;">
-          <div id="logo-sub" class="logo-sub" data-i18n="loading_loc">Loading location...</div>
-          <button id="btn-location" class="location-btn" title="Set Location" data-i18n="set_loc_btn" style="width: 24px; height: 24px; font-size: 0.8rem; margin-top: 6px;">📍</button>
+        <div class="logo-main" data-i18n="app_title">✨ StarGazer</div>
+        <div id="logo-slogan" class="logo-slogan" data-i18n="app_slogan">Astronomy made simple. Why we built this ›</div>
+        <div style="display: flex; flex-direction: column; align-items: flex-start; gap: 2px; margin-top: 8px;">
+          <div style="display: flex; align-items: center; gap: 6px;">
+            <div id="logo-sub" class="logo-sub" style="font-weight: bold;" data-i18n="loading_loc">Loading location...</div>
+            <button id="btn-location" class="location-btn" title="Set Location" data-i18n="set_loc_btn" style="width: 24px; height: 24px; font-size: 0.8rem;">📍</button>
+          </div>
+          <div id="logo-coords" class="logo-coords" style="font-family: var(--font-mono); font-size: 0.75rem; opacity: 0.6; letter-spacing: 0.05em;">Lat: --, Lon: --</div>
         </div>
-      </div>
       </div>
       <div class="header-meta">
         <select id="lang-select" class="lang-select"><option value="en">🇺🇸 EN</option><option value="es">🇪🇸 ES</option><option value="pt">🇧🇷 PT</option></select>
@@ -81,6 +84,10 @@
             <a href="#card-iss" data-i18n="nav_iss" class="nav-link">ISS Pass Monitor</a>
             <a href="#card-weekly" data-i18n="nav_weekly" class="nav-link">7-Day Forecast</a>
           </div>
+        </div>
+        <div class="header-telemetry" style="display: flex; gap: 12px; margin-right: 12px; border-right: 1px solid rgba(255,255,255,0.1); padding-right: 12px; font-family: var(--font-mono); font-size: 0.75rem; color: #94a3b8; align-items: center;">
+          <div id="hud-moon">🌙 --</div>
+          <div id="hud-weather">🌡️ -- | 💨 --</div>
         </div>
         <div class="live-badge" id="live-badge">
           <span class="pulse-dot"></span> <span data-i18n="live_badge">LIVE</span>
@@ -666,7 +673,7 @@
 
   <script src="translations.js"></script>
   <script src="moon3d.js"></script>
-  <script src="app.js?v=36"></script>
+  <script src="app.js?v=37"></script>
   <script src="gravity-well.js"></script>
 </body>
 </html>
