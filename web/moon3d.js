@@ -65,14 +65,17 @@ function initMoon3D() {
   animate();
 
   // Handle Resize
-  window.addEventListener('resize', () => {
-    if (!container) return;
-    const w = container.clientWidth;
-    const h = container.clientHeight || 200;
-    renderer.setSize(w, h);
-    camera.aspect = w / h;
-    camera.updateProjectionMatrix();
+  const resizeObserver = new ResizeObserver(entries => {
+    for (let entry of entries) {
+      if (!camera || !renderer) return;
+      const { width, height } = entry.contentRect;
+      if (width === 0 || height === 0) return;
+      camera.aspect = width / height;
+      camera.updateProjectionMatrix();
+      renderer.setSize(width, height);
+    }
   });
+  resizeObserver.observe(container);
 }
 
 // Export for app.js

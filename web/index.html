@@ -34,7 +34,7 @@
   <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/controls/OrbitControls.js"></script>
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/driver.js@1.0.1/dist/driver.css" integrity="sha384-bovbcpDBo0pTIhd7ws6ebPh1PG31ubAHcX2pv8Tcu5EtFHNl5FBciYFtS/e2SN66" crossorigin="anonymous" />
-  <link rel="stylesheet" href="style.css?v=36" />
+  <link rel="stylesheet" href="style.css?v=45" />
   
   <!-- D3.js and d3-celestial for Interactive Star Map -->
   <script src="https://d3js.org/d3.v3.min.js"></script>
@@ -62,8 +62,8 @@
         <span class="logo-icon">🔭</span>
         <div class="logo-wrap">
         <div class="logo-main" data-i18n="app_title">✨ StarGazer</div>
-        <div id="logo-slogan" class="logo-slogan" data-i18n="app_slogan">Astronomy made simple. Why we built this ›</div>
-        <div style="display: flex; flex-direction: column; align-items: flex-start; gap: 2px; margin-top: 8px;">
+        <div id="logo-slogan" class="logo-slogan" data-i18n="app_slogan">Astronomy made simple.</div>
+        <div class="location-block" style="display: flex; flex-direction: column; align-items: flex-start; gap: 2px; margin-top: 8px;">
           <div style="display: flex; align-items: center; gap: 6px;">
             <div id="logo-sub" class="logo-sub" style="font-weight: bold;" data-i18n="loading_loc">Loading location...</div>
             <button id="btn-location" class="location-btn" title="Set Location" data-i18n="set_loc_btn" style="width: 24px; height: 24px; font-size: 0.8rem;">📍</button>
@@ -72,28 +72,44 @@
         </div>
       </div>
       <div class="header-meta">
-        <select id="lang-select" class="lang-select"><option value="en">🇺🇸 EN</option><option value="es">🇪🇸 ES</option><option value="pt">🇧🇷 PT</option></select>
-        <button id="btn-about" class="about-btn" title="About StarGazer" data-i18n="about_btn">ℹ️</button>
-        
-        <div style="position: relative;">
-          <button id="btn-menu" class="menu-btn" title="Navigation">☰</button>
-          <div id="nav-dropdown" class="nav-dropdown hidden">
-            <a href="#card-tonight" data-i18n="nav_tonight" class="nav-link">Tonight's Outlook</a>
-            <a href="#card-active-const" data-i18n="nav_active_const" class="nav-link">Active Constellation</a>
-            <a href="#card-targets" data-i18n="nav_target_db" class="nav-link">Target Database</a>
-            <a href="#card-iss" data-i18n="nav_iss" class="nav-link">ISS Pass Monitor</a>
-            <a href="#card-weekly" data-i18n="nav_weekly" class="nav-link">7-Day Forecast</a>
+        <div class="header-telemetry-group" style="display: flex; gap: 28px; align-items: center; border-right: 1px solid rgba(255,255,255,0.1); padding-right: 16px;">
+          <div class="live-badge desktop-only" id="live-badge">
+            <span class="pulse-dot"></span> <span data-i18n="live_badge">LIVE</span>
+          </div>
+          <div class="header-telemetry" style="display: flex; gap: 12px; font-family: var(--font-mono); font-size: 0.75rem; color: #94a3b8; align-items: center;">
+            <div id="hud-moon">🌙 --</div>
+            <div id="hud-weather">🌡️ -- | 💨 --</div>
+          </div>
+          <div class="clock-group desktop-only" style="display: flex; gap: 8px; align-items: center; font-family: var(--font-mono);">
+            <div class="clock-display" id="clock">--:-- --</div>
+            <div class="date-display" id="date-display" style="font-size: 0.75rem; color: var(--text-secondary);">Loading...</div>
           </div>
         </div>
-        <div class="header-telemetry" style="display: flex; gap: 12px; margin-right: 12px; border-right: 1px solid rgba(255,255,255,0.1); padding-right: 12px; font-family: var(--font-mono); font-size: 0.75rem; color: #94a3b8; align-items: center;">
-          <div id="hud-moon">🌙 --</div>
-          <div id="hud-weather">🌡️ -- | 💨 --</div>
+
+        <div class="header-controls" style="display: flex; gap: 8px; align-items: center;">
+          <button id="btn-unit-toggle" class="unit-btn" title="Toggle Units">°C / km</button>
+          <select id="lang-select" class="lang-select desktop-only"><option value="en">🇺🇸 EN</option><option value="es">🇪🇸 ES</option><option value="pt">🇧🇷 PT</option></select>
+          <button id="btn-about" class="about-btn" title="About StarGazer" data-i18n="about_btn">ℹ️</button>
+          
+          <div style="position: relative;">
+            <button id="btn-menu" class="menu-btn" title="Navigation">
+              <span style="font-size: 1.1rem;">☰</span>
+              <span class="menu-label" style="font-size: 0.8rem; font-weight: 600; margin-left: 6px; letter-spacing: 0.05em; text-transform: uppercase;">Menu</span>
+            </button>
+            <div id="nav-dropdown" class="nav-dropdown hidden">
+              <div class="mobile-only" style="padding: 8px 16px; border-bottom: 1px solid rgba(255,255,255,0.1); margin-bottom: 8px; font-family: var(--font-mono); font-size: 0.8rem; color: var(--text-secondary);">
+                <div class="clock-display" style="color: var(--text-primary);">--:-- --</div>
+                <div class="date-display" style="margin-top: 4px;">Loading...</div>
+                <select class="lang-select" style="margin-top: 8px; width: 100%;"><option value="en">🇺🇸 EN</option><option value="es">🇪🇸 ES</option><option value="pt">🇧🇷 PT</option></select>
+              </div>
+              <a href="#card-tonight" data-i18n="nav_tonight" class="nav-link">Tonight's Outlook</a>
+              <a href="#card-active-const" data-i18n="nav_active_const" class="nav-link">Active Constellation</a>
+              <a href="#card-targets" data-i18n="nav_target_db" class="nav-link">Target Database</a>
+              <a href="#card-iss" data-i18n="nav_iss" class="nav-link">ISS Pass Monitor</a>
+              <a href="#card-weekly" data-i18n="nav_weekly" class="nav-link">7-Day Forecast</a>
+            </div>
+          </div>
         </div>
-        <div class="live-badge" id="live-badge">
-          <span class="pulse-dot"></span> <span data-i18n="live_badge">LIVE</span>
-        </div>
-        <div class="clock" id="clock">--:-- --</div>
-        <div class="date-display" id="date-display">Loading...</div>
       </div>
     </div>
   </header>
@@ -105,7 +121,7 @@
       <canvas id="gravity-well-canvas"></canvas>
       <div class="hero-content">
         <h1 class="hero-title" data-i18n="app_title">✨ StarGazer</h1>
-        <div class="hero-subtitle" data-i18n="app_slogan">Astronomy made simple. Why we built this ›</div>
+        <div class="hero-subtitle" data-i18n="app_slogan">Astronomy made simple.</div>
       </div>
     </section>
     <!-- ── Go/No-Go Banner ── -->
@@ -672,8 +688,8 @@
   </div>
 
   <script src="translations.js"></script>
-  <script src="moon3d.js"></script>
-  <script src="app.js?v=39"></script>
-  <script src="gravity-well.js?v=39"></script>
+  <script src="moon3d.js?v=3"></script>
+  <script src="app.js?v=41"></script>
+  <script src="gravity-well.js?v=44"></script>
 </body>
 </html>
