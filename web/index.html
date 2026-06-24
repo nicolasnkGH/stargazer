@@ -34,7 +34,7 @@
   <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/controls/OrbitControls.js"></script>
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/driver.js@1.0.1/dist/driver.css" integrity="sha384-bovbcpDBo0pTIhd7ws6ebPh1PG31ubAHcX2pv8Tcu5EtFHNl5FBciYFtS/e2SN66" crossorigin="anonymous" />
-  <link rel="stylesheet" href="style.css?v=31" />
+  <link rel="stylesheet" href="style.css?v=32" />
   
   <!-- D3.js and d3-celestial for Interactive Star Map -->
   <script src="https://d3js.org/d3.v3.min.js"></script>
@@ -46,6 +46,9 @@
   <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
   <link rel="stylesheet" href="https://aladin.u-strasbg.fr/AladinLite/api/v2/latest/aladin.min.css" />
   <script type="text/javascript" src="https://aladin.u-strasbg.fr/AladinLite/api/v2/latest/aladin.min.js" charset="utf-8"></script>
+  
+  <!-- GSAP for Smooth Animations -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/gsap.min.js"></script>
 </head>
 <body>
 
@@ -266,21 +269,18 @@
       </section>
     </div>
 
-    <!-- ── Row 2: Planets + Must-See + AI Targets ── -->
-    <div class="card-row card-row-2">
-
-      <!-- ── AI & Must-See Targets ───────────────────────────────────────────── -->
-      <section class="card card-ai-targets" id="card-ai-targets" style="display:none; position:relative; overflow:hidden;">
-        <!-- Subtle glow background -->
-        <div style="position:absolute; top:-50px; right:-50px; width:150px; height:150px; background: radial-gradient(circle, rgba(45,212,191,0.15) 0%, transparent 70%); pointer-events:none;"></div>
-        
-        <div class="card-body spaceship-monitor-layout">
-          <div class="spaceship-monitor-left">
-            <div id="astronaut-container"></div>
-            <h2 class="card-title" style="color: #d8b4fe; margin-top: 15px; margin-bottom: 5px; text-align: center;">Must-See & AI Picks</h2>
-            <p style="font-size: 0.85rem; color: #a1a1aa; font-style: italic; text-align: center; margin: 0;">
-              Curated for tonight
-            </p>
+    <!-- ── AI & Must-See Targets ───────────────────────────────────────────── -->
+    <section class="card card-ai-targets" id="card-ai-targets" style="display:none; position:relative; overflow:hidden; margin-bottom: 20px;">
+      <!-- Subtle glow background -->
+      <div id="astro-glow" style="position:absolute; top:-50px; left:-50px; width:300px; height:300px; background: radial-gradient(circle, rgba(45,212,191,0.15) 0%, transparent 70%); pointer-events:none; z-index: 1;"></div>
+      
+      <div class="card-body spaceship-monitor-layout" style="position: relative; z-index: 2;">
+        <div class="spaceship-monitor-left">
+          <img id="astronaut-image" src="assets/sleek_astronaut.png" style="width: 140px; height: auto; filter: drop-shadow(0 0 10px rgba(45,212,191,0.3)); transform-origin: center;" alt="Astronaut" />
+          <h2 class="card-title" style="color: #d8b4fe; margin-top: 15px; margin-bottom: 5px; text-align: center;">Must-See & AI Picks</h2>
+          <p style="font-size: 0.85rem; color: #a1a1aa; font-style: italic; text-align: center; margin: 0;">
+            Curated for tonight
+          </p>
           </div>
           
           <div class="hud-screen">
@@ -289,19 +289,18 @@
             </div>
           </div>
         </div>
-      </section>
+    </section>
 
-      <!-- Planets Tonight -->
-      <div class="card card-planets">
-        <div class="card-header">
-          <span class="card-icon">🪐</span>
-          <h2 class="card-title" data-i18n="card_planets">Planets Tonight</h2>
-          <span class="info-icon" style="cursor:pointer; opacity:0.6; font-size: 0.85rem; margin-left:8px;" onclick="showInfo(window.i18n[window.currentLang]?.info_planets || 'Calculated locally via Skyfield Ephemeris', event)">ℹ️</span>
-        </div>
-        <div class="card-body">
-          <div class="planet-list unified-scroll-list" id="planet-list">
-            <div class="loading-shimmer"></div>
-          </div>
+    <!-- Planets Tonight -->
+    <div class="card card-planets" style="margin-bottom: 20px;">
+      <div class="card-header">
+        <span class="card-icon">🪐</span>
+        <h2 class="card-title" data-i18n="card_planets">Planets Tonight</h2>
+        <span class="info-icon" style="cursor:pointer; opacity:0.6; font-size: 0.85rem; margin-left:8px;" onclick="showInfo(window.i18n[window.currentLang]?.info_planets || 'Calculated locally via Skyfield Ephemeris', event)">ℹ️</span>
+      </div>
+      <div class="card-body">
+        <div class="planet-list unified-scroll-list" id="planet-list">
+          <div class="loading-shimmer"></div>
         </div>
       </div>
     </div>
@@ -661,6 +660,6 @@
 
   <script src="translations.js"></script>
   <script src="moon3d.js"></script>
-  <script src="app.js?v=31"></script>
+  <script src="app.js?v=32"></script>
 </body>
 </html>
