@@ -303,9 +303,11 @@ async function fetchAIAnalysis() {
     engineBadgeEl.className = 'seeing-engine-badge rule';
   }
 
-  if (moonFactEl) {
-    moonFactEl.innerHTML = '<span class="spinner" style="display:inline-block; animation: spin 1s linear infinite;">⚙️</span> 🤖 Generating moon fun fact...';
-    moonFactEl.style.display = 'block';
+  const moonFactWrap = document.getElementById('moon-fact-wrap');
+  const moonFactText = document.getElementById('moon-fact-text');
+  if (moonFactWrap && moonFactText) {
+    moonFactText.textContent = '⚙️ Generating moon fun fact...';
+    moonFactWrap.style.display = 'block';
   }
 
   try {
@@ -2061,22 +2063,27 @@ document.addEventListener('DOMContentLoaded', () => {
       });
     })
     .finally(() => {
-      // Add fun facts!
+      // Add fun facts — standardized fact card
       const facts = [
         "Asteroids are rocky remnants left over from the early formation of our solar system about 4.6 billion years ago.",
         "Most asteroids in our solar system can be found in the main asteroid belt between Mars and Jupiter.",
         "Some asteroids have their own moons! For example, the asteroid Ida has a tiny moon called Dactyl.",
         "If all the asteroids in the solar system were combined, their total mass would still be less than that of Earth's Moon.",
-        "Ceres is the largest object in the asteroid belt, and it's so big it's actually classified as a dwarf planet!"
+        "Ceres is the largest object in the asteroid belt, and it's so big it's actually classified as a dwarf planet!",
+        "Asteroid 433 Eros was the first asteroid to be orbited and landed on by a spacecraft — NASA's NEAR Shoemaker in 2001.",
+        "Some asteroids contain trillions of dollars worth of rare metals like platinum and nickel-iron."
       ];
       const randomFact = facts[Math.floor(Math.random() * facts.length)];
       
       const list = document.getElementById('asteroids-list');
       if (list) {
         list.innerHTML += `
-          <div style="margin-top: 20px; padding: 15px; background: rgba(168, 85, 247, 0.05); border: 1px solid rgba(168, 85, 247, 0.2); border-radius: 8px;">
-            <div style="color: #d8b4fe; font-size: 0.8rem; font-weight: bold; margin-bottom: 5px;">✨ ASTEROID FACT</div>
-            <div style="color: #94a3b8; font-size: 0.8rem; line-height: 1.4;">${randomFact}</div>
+          <div class="motion-facts-wrap" style="margin-top:12px;">
+            <div class="motion-facts-header"><span>☄️ Asteroid Fact</span></div>
+            <div class="motion-fact-card">
+              <span class="motion-fact-icon">🪨</span>
+              <span>${randomFact}</span>
+            </div>
           </div>
         `;
       }

@@ -2648,12 +2648,30 @@ body.night-mode {
   position: relative;
   width: 100%;
   height: 60vh;
-  min-height: 400px;
+  min-height: 420px;
   display: flex;
   justify-content: center;
   align-items: center;
   margin-bottom: 2rem;
   overflow: hidden;
+  /* Subtle radial ambient glow behind canvas */
+  background: radial-gradient(ellipse 80% 60% at 50% 30%,
+    rgba(56, 189, 248, 0.04) 0%,
+    rgba(168, 85, 247, 0.03) 50%,
+    transparent 100%);
+}
+
+/* Bottom fade-out so hero bleeds into cards seamlessly */
+#hero-section::after {
+  content: '';
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  height: 45%;
+  background: linear-gradient(to bottom, transparent 0%, var(--bg-primary, #080d1a) 100%);
+  pointer-events: none;
+  z-index: 1;
 }
 
 #gravity-well-canvas {
@@ -2663,43 +2681,58 @@ body.night-mode {
   width: 100%;
   height: 100%;
   z-index: 0;
-  mask-image: linear-gradient(to bottom, black 60%, transparent 100%);
-  -webkit-mask-image: linear-gradient(to bottom, black 60%, transparent 100%);
+  opacity: 0.85;
+  /* Fade top edge for seamless nav merge */
+  mask-image: linear-gradient(to bottom, rgba(0,0,0,0.4) 0%, black 25%, black 65%, transparent 100%);
+  -webkit-mask-image: linear-gradient(to bottom, rgba(0,0,0,0.4) 0%, black 25%, black 65%, transparent 100%);
   pointer-events: auto;
 }
 
 .hero-content {
   position: absolute;
-  top: 60%;
+  top: 58%;
   left: 50%;
   transform: translate(-50%, -50%);
   width: 100%;
-  z-index: 999;
+  z-index: 10;
   text-align: center;
   pointer-events: none;
 }
 
 .hero-title {
   font-family: var(--font-heading);
-  font-size: clamp(3rem, 6vw, 6rem);
+  font-size: clamp(2.8rem, 5.5vw, 5.5rem);
   font-weight: 700;
-  color: #fff;
   margin: 0;
-  letter-spacing: -0.02em;
-  text-shadow: 0 0 40px rgba(255, 255, 255, 0.2);
+  letter-spacing: -0.03em;
+  line-height: 1.05;
+  /* Gradient text for premium feel */
+  background: linear-gradient(135deg,
+    #ffffff 0%,
+    #e2e8f0 35%,
+    #a5b4fc 65%,
+    #38bdf8 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+  /* Soft glow behind text */
+  filter: drop-shadow(0 0 24px rgba(56, 189, 248, 0.18));
   pointer-events: auto;
 }
 
 .hero-subtitle {
   font-family: var(--font-mono);
-  font-size: clamp(0.9rem, 2vw, 1.2rem);
-  color: #94a3b8;
-  margin: 1rem auto 0 auto;
-  letter-spacing: 0.05em;
+  font-size: clamp(0.72rem, 1.4vw, 0.92rem);
+  color: rgba(148, 163, 184, 0.7);
+  margin: 1.1rem auto 0 auto;
+  letter-spacing: 0.22em;
   text-transform: uppercase;
   text-align: center;
-  padding-left: 0.05em;
   pointer-events: auto;
+  /* Subtle underline accent */
+  display: inline-block;
+  padding-bottom: 2px;
+  border-bottom: 1px solid rgba(56, 189, 248, 0.2);
 }
 
 /* ── Performance: compositing hints ─────────────────────────────────────── */
