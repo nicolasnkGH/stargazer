@@ -34,7 +34,7 @@
   <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/controls/OrbitControls.js"></script>
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/driver.js@1.0.1/dist/driver.css" integrity="sha384-bovbcpDBo0pTIhd7ws6ebPh1PG31ubAHcX2pv8Tcu5EtFHNl5FBciYFtS/e2SN66" crossorigin="anonymous" />
-  <link rel="stylesheet" href="style.css?v=32" />
+  <link rel="stylesheet" href="style.css?v=33" />
   
   <!-- D3.js and d3-celestial for Interactive Star Map -->
   <script src="https://d3js.org/d3.v3.min.js"></script>
@@ -207,66 +207,6 @@
         </div>
       </section>
 
-      <!-- ── Active Constellation Card ────────────────────────────────────────── -->
-      <section class="card" id="card-active-const">
-        <div class="card-header">
-          <div class="ac-select-wrap">
-            <select id="ac-select" class="ac-select">
-              <option value="Sco">🦂 Scorpius</option>
-              <option value="UMa">🐻 Ursa Major</option>
-              <option value="Ori">🏹 Orion</option>
-              <option value="Cas">👑 Cassiopeia</option>
-              <option value="Cyg">🦢 Cygnus</option>
-              <option value="Cru">✝️ Crux</option>
-              <option value="CMa">🐕 Canis Major</option>
-              <option value="Cen">🐎 Centaurus</option>
-              <option value="Ari">♈ Aries</option>
-              <option value="Tau">♉ Taurus</option>
-              <option value="Gem">♊ Gemini</option>
-              <option value="Cnc">♋ Cancer</option>
-              <option value="Leo">♌ Leo</option>
-              <option value="Vir">♍ Virgo</option>
-              <option value="Lib">♎ Libra</option>
-              <option value="Sgr">♐ Sagittarius</option>
-              <option value="Cap">♑ Capricornus</option>
-              <option value="Aqr">♒ Aquarius</option>
-              <option value="Psc">♓ Pisces</option>
-            </select>
-          </div>
-          <span class="card-badge" id="ac-status-badge">...</span>
-        </div>
-        <div class="card-body" style="padding-bottom: 8px;">
-          <div class="ac-status" id="ac-status" style="margin-bottom: 4px;">Loading constellation map...</div>
-          <div style="font-size: 0.75rem; color: #a855f7; margin-bottom: 12px;" data-i18n="simbad_instruction">✨ Click on any star to scan it via SIMBAD</div>
-          
-          <!-- Interactive D3 Map Container -->
-          <div id="ac-map-container" style="width: 100%; height: 200px; background: rgba(0,0,0,0.2); border-radius: 8px; border: 1px solid rgba(255,255,255,0.05); position: relative; overflow: hidden; margin-bottom: 12px;">
-            <button id="btn-map-expand" class="map-expand-btn" onclick="toggleMapFullscreen()" title="Toggle Fullscreen">⤢</button>
-            <div id="ac-map-tooltip" style="position: absolute; opacity: 0; pointer-events: none; background: rgba(15,23,42,0.9); color: #fff; padding: 4px 8px; border-radius: 4px; font-size: 0.75rem; border: 1px solid rgba(168,85,247,0.3); transition: opacity 0.2s; white-space: nowrap; z-index: 10;"></div>
-          </div>
-
-          <!-- Target Details Panel (hidden until clicked) -->
-          <div id="ac-details-panel" style="display: none; background: rgba(168,85,247,0.05); border: 1px solid rgba(168,85,247,0.2); border-radius: 8px; padding: 12px; margin-bottom: 12px;">
-            <div style="display:flex; justify-content:space-between; align-items:flex-start; margin-bottom: 6px;">
-              <div>
-                <h4 id="acd-name" style="margin:0; font-size: 1rem; color: #e2e8f0; font-weight: 600;">Target Name</h4>
-                <div id="acd-type" style="font-size: 0.8rem; color: #94a3b8;">Type • Mag 0.0</div>
-              </div>
-              <button onclick="document.getElementById('ac-details-panel').style.display='none'" style="background:none; border:none; color:#a1a1aa; cursor:pointer; font-size:1.1rem; padding:0;">&times;</button>
-            </div>
-            <div style="font-size: 0.85rem; color: #cbd5e1; margin-bottom: 8px; line-height: 1.4;" id="acd-desc">Description goes here...</div>
-            <div style="display:flex; justify-content:space-between; align-items:center;">
-              <span id="acd-diff" style="background: rgba(34,197,94,0.15); color: #4ade80; padding: 2px 6px; border-radius: 4px; font-size: 0.75rem; font-family: var(--font-mono); text-transform:uppercase;">EASY</span>
-              <span id="acd-alt" style="font-size: 0.8rem; color: #94a3b8;">45.0° SSE • In view</span>
-            </div>
-          </div>
-
-          <div style="font-size: 0.8rem; color: #a1a1aa; display: flex; justify-content: space-between; padding-top: 8px; border-top: 1px solid rgba(255,255,255,0.05);">
-             <span><span data-i18n="lbl_rise" style="opacity: 0.6;">Rise</span> <span id="ac-rise" style="color:#fff;">—</span></span>
-             <span><span data-i18n="lbl_set" style="opacity: 0.6;">Set</span> <span id="ac-set" style="color:#fff;">—</span></span>
-          </div>
-        </div>
-      </section>
     </div>
 
     <!-- ── AI & Must-See Targets ───────────────────────────────────────────── -->
@@ -304,6 +244,67 @@
         </div>
       </div>
     </div>
+
+      <!-- ── Active Constellation Card ────────────────────────────────────────── -->
+      <section class="card" id="card-active-const">
+        <div class="card-header">
+          <div class="ac-select-wrap">
+            <select id="ac-select" class="ac-select">
+              <option value="Sco">🦂 Scorpius</option>
+              <option value="UMa">🐻 Ursa Major</option>
+              <option value="Ori">🏹 Orion</option>
+              <option value="Cas">👑 Cassiopeia</option>
+              <option value="Cyg">🦢 Cygnus</option>
+              <option value="Cru">✝️ Crux</option>
+              <option value="CMa">🐕 Canis Major</option>
+              <option value="Cen">🐎 Centaurus</option>
+              <option value="Ari">♈ Aries</option>
+              <option value="Tau">♉ Taurus</option>
+              <option value="Gem">♊ Gemini</option>
+              <option value="Cnc">♋ Cancer</option>
+              <option value="Leo">♌ Leo</option>
+              <option value="Vir">♍ Virgo</option>
+              <option value="Lib">♎ Libra</option>
+              <option value="Sgr">♐ Sagittarius</option>
+              <option value="Cap">♑ Capricornus</option>
+              <option value="Aqr">♒ Aquarius</option>
+              <option value="Psc">♓ Pisces</option>
+            </select>
+          </div>
+          <span class="card-badge" id="ac-status-badge">...</span>
+        </div>
+        <div class="card-body" style="padding-bottom: 8px;">
+          <div class="ac-status" id="ac-status" style="margin-bottom: 4px;">Loading constellation map...</div>
+          <div style="font-size: 0.75rem; color: #a855f7; margin-bottom: 12px;" data-i18n="simbad_instruction">✨ Click on any star to scan it via SIMBAD</div>
+          
+          <!-- Interactive D3 Map Container -->
+          <div id="ac-map-container" style="width: 100%; aspect-ratio: 1; max-height: 500px; height: auto; background: rgba(0,0,0,0.2); border-radius: 8px; border: 1px solid rgba(255,255,255,0.05); position: relative; overflow: hidden; margin-bottom: 12px;">
+            <button id="btn-map-expand" class="map-expand-btn" onclick="toggleMapFullscreen()" title="Toggle Fullscreen">⤢</button>
+            <div id="ac-map-tooltip" style="position: absolute; opacity: 0; pointer-events: none; background: rgba(15,23,42,0.9); color: #fff; padding: 4px 8px; border-radius: 4px; font-size: 0.75rem; border: 1px solid rgba(168,85,247,0.3); transition: opacity 0.2s; white-space: nowrap; z-index: 10;"></div>
+          </div>
+
+          <!-- Target Details Panel (hidden until clicked) -->
+          <div id="ac-details-panel" style="display: none; background: rgba(168,85,247,0.05); border: 1px solid rgba(168,85,247,0.2); border-radius: 8px; padding: 12px; margin-bottom: 12px;">
+            <div style="display:flex; justify-content:space-between; align-items:flex-start; margin-bottom: 6px;">
+              <div>
+                <h4 id="acd-name" style="margin:0; font-size: 1rem; color: #e2e8f0; font-weight: 600;">Target Name</h4>
+                <div id="acd-type" style="font-size: 0.8rem; color: #94a3b8;">Type • Mag 0.0</div>
+              </div>
+              <button onclick="document.getElementById('ac-details-panel').style.display='none'" style="background:none; border:none; color:#a1a1aa; cursor:pointer; font-size:1.1rem; padding:0;">&times;</button>
+            </div>
+            <div style="font-size: 0.85rem; color: #cbd5e1; margin-bottom: 8px; line-height: 1.4;" id="acd-desc">Description goes here...</div>
+            <div style="display:flex; justify-content:space-between; align-items:center;">
+              <span id="acd-diff" style="background: rgba(34,197,94,0.15); color: #4ade80; padding: 2px 6px; border-radius: 4px; font-size: 0.75rem; font-family: var(--font-mono); text-transform:uppercase;">EASY</span>
+              <span id="acd-alt" style="font-size: 0.8rem; color: #94a3b8;">45.0° SSE • In view</span>
+            </div>
+          </div>
+
+          <div style="font-size: 0.8rem; color: #a1a1aa; display: flex; justify-content: space-between; padding-top: 8px; border-top: 1px solid rgba(255,255,255,0.05);">
+             <span><span data-i18n="lbl_rise" style="opacity: 0.6;">Rise</span> <span id="ac-rise" style="color:#fff;">—</span></span>
+             <span><span data-i18n="lbl_set" style="opacity: 0.6;">Set</span> <span id="ac-set" style="color:#fff;">—</span></span>
+          </div>
+        </div>
+      </section>
 
     <!-- ── Clear Outside Weather Embed ── -->
     <section class="card card-weather">
@@ -660,6 +661,6 @@
 
   <script src="translations.js"></script>
   <script src="moon3d.js"></script>
-  <script src="app.js?v=32"></script>
+  <script src="app.js?v=33"></script>
 </body>
 </html>
