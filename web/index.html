@@ -34,7 +34,7 @@
   <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/controls/OrbitControls.js"></script>
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/driver.js@1.0.1/dist/driver.css" integrity="sha384-bovbcpDBo0pTIhd7ws6ebPh1PG31ubAHcX2pv8Tcu5EtFHNl5FBciYFtS/e2SN66" crossorigin="anonymous" />
-  <link rel="stylesheet" href="style.css?v=34" />
+  <link rel="stylesheet" href="style.css?v=36" />
   
   <!-- D3.js and d3-celestial for Interactive Star Map -->
   <script src="https://d3js.org/d3.v3.min.js"></script>
@@ -61,8 +61,7 @@
       <div class="logo">
         <span class="logo-icon">🔭</span>
         <div class="logo-wrap">
-        <div class="logo-main" data-i18n="app_title">✨ StarGazer</div>
-        <div id="logo-slogan" class="logo-slogan" data-i18n="app_slogan">Astronomy made simple. Why we built this ›</div>
+
         <div style="display: flex; align-items: center; gap: 8px;">
           <div id="logo-sub" class="logo-sub" data-i18n="loading_loc">Loading location...</div>
           <button id="btn-location" class="location-btn" title="Set Location" data-i18n="set_loc_btn" style="width: 24px; height: 24px; font-size: 0.8rem; margin-top: 6px;">📍</button>
@@ -94,6 +93,14 @@
 
   <main class="main">
 
+    <!-- ── 3D Gravity Well Hero Section ── -->
+    <section id="hero-section">
+      <canvas id="gravity-well-canvas"></canvas>
+      <div class="hero-content">
+        <h1 class="hero-title" data-i18n="app_title">✨ StarGazer</h1>
+        <div class="hero-subtitle" data-i18n="app_slogan">Astronomy made simple. Why we built this ›</div>
+      </div>
+    </section>
     <!-- ── Go/No-Go Banner ── -->
     <section id="gonogo-banner" class="gonogo-banner loading-state">
       <div class="gonogo-inner">
@@ -659,6 +666,7 @@
 
   <script src="translations.js"></script>
   <script src="moon3d.js"></script>
-  <script src="app.js?v=34"></script>
+  <script src="app.js?v=36"></script>
+  <script src="gravity-well.js"></script>
 </body>
 </html>
