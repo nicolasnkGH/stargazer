@@ -2046,16 +2046,21 @@ body.night-mode {
   }
 }
 
-.spaceship-monitor-left img {
+#robot-3d-container {
   width: 100%;
+  height: 200px;
   max-width: 200px;
   border-radius: 12px;
   box-shadow: 0 0 20px rgba(168, 85, 247, 0.4);
   border: 1px solid rgba(168, 85, 247, 0.6);
-  animation: float 4s ease-in-out infinite;
+  background: radial-gradient(circle, rgba(168,85,247,0.1) 0%, transparent 70%);
+  cursor: grab;
+}
+#robot-3d-container:active {
+  cursor: grabbing;
 }
 @media (max-width: 800px) {
-  .spaceship-monitor-left img {
+  #robot-3d-container {
     width: 60px;
     height: 60px;
     margin-right: 15px;
