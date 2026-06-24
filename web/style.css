@@ -1435,6 +1435,47 @@ body {
 }
 
 /* ── ISS ────────────────────────────────────────────────────────────────── */
+/* ── Sky Objects in Motion — sub-tabs ───────────────────────────────────── */
+.motion-tabs {
+  display: flex;
+  gap: 6px;
+  padding: 12px 20px 0;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+  margin-bottom: 0;
+}
+
+.motion-tab {
+  background: none;
+  border: none;
+  border-bottom: 2px solid transparent;
+  color: var(--text-muted);
+  font-family: var(--font-sans);
+  font-size: 0.82rem;
+  font-weight: 500;
+  padding: 8px 16px 10px;
+  cursor: pointer;
+  border-radius: 6px 6px 0 0;
+  transition: color 0.2s, border-color 0.2s, background 0.2s;
+  white-space: nowrap;
+}
+
+.motion-tab:hover {
+  color: var(--text-primary);
+  background: rgba(255, 255, 255, 0.04);
+}
+
+.motion-tab.active {
+  color: #38bdf8;
+  border-bottom-color: #38bdf8;
+  background: rgba(56, 189, 248, 0.06);
+}
+
+.motion-panel {
+  padding-top: 12px;
+  animation: fadeInUp 0.25s ease;
+}
+
+/* ── ISS ─────────────────────────────────────────────────────────────────── */
 .iss-tip {
   font-size: 0.82rem;
   color: var(--text-secondary);

@@ -34,7 +34,7 @@
   <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/controls/OrbitControls.js"></script>
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/driver.js@1.0.1/dist/driver.css" integrity="sha384-bovbcpDBo0pTIhd7ws6ebPh1PG31ubAHcX2pv8Tcu5EtFHNl5FBciYFtS/e2SN66" crossorigin="anonymous" />
-  <link rel="stylesheet" href="style.css?v=54" />
+  <link rel="stylesheet" href="style.css?v=55" />
   
   <!-- D3.js and d3-celestial for Interactive Star Map -->
   <script src="https://d3js.org/d3.v3.min.js"></script>
@@ -105,7 +105,7 @@
               <a href="#card-tonight" data-i18n="nav_tonight" class="nav-link">Tonight's Outlook</a>
               <a href="#card-active-const" data-i18n="nav_active_const" class="nav-link">Active Constellation</a>
               <a href="#card-targets" data-i18n="nav_target_db" class="nav-link">Target Database</a>
-              <a href="#card-iss" data-i18n="nav_iss" class="nav-link">ISS Pass Monitor</a>
+              <a href="#card-motion" class="nav-link">Sky Objects in Motion</a>
               <a href="#card-weekly" data-i18n="nav_weekly" class="nav-link">7-Day Forecast</a>
             </div>
           </div>
@@ -224,16 +224,49 @@
       </div>
 
       <!-- ── Asteroid Radar (NASA) ────────────────────────────────────────── -->
-      <section class="card" id="card-asteroids">
+      <!-- ── Sky Objects in Motion (ISS + Asteroids) ─────────────────────── -->
+      <section class="card" id="card-motion">
         <div class="card-header">
-          <span class="card-icon">☄️</span>
-          <h2 class="card-title" data-i18n="asteroid_title">Asteroid Radar</h2>
-          <span class="info-icon" style="cursor:pointer; opacity:0.6; font-size: 0.85rem; margin-left:8px;" onclick="showInfo(window.i18n[currentLang]?.asteroid_info || 'Near-Earth Objects (NEOs) passing by Earth tonight. Data from NASA NeoWs API.', event)">ℹ️</span>
+          <span class="card-icon">🛸</span>
+          <h2 class="card-title">Sky Objects in Motion</h2>
+          <span class="card-badge" style="background:rgba(56,189,248,0.1);color:#38bdf8;border-color:rgba(56,189,248,0.3);">Live Tracking</span>
         </div>
-        <div class="card-body">
-          <div id="asteroids-list" style="display:flex; flex-direction:column; gap:10px;">
-            <div style="color: #94a3b8; font-size: 0.85rem; text-align: center; padding: 10px;" data-i18n="asteroid_scanning">Scanning NASA Database...</div>
+
+        <!-- Sub-tab strip -->
+        <div class="motion-tabs">
+          <button class="motion-tab active" data-panel="motion-iss-panel">
+            🚀 ISS Passes
+          </button>
+          <button class="motion-tab" data-panel="motion-neo-panel">
+            ☄️ Near-Earth Objects
+          </button>
+        </div>
+
+        <div class="card-body" style="padding-top:0;">
+
+          <!-- ISS Panel (default shown) -->
+          <div id="motion-iss-panel" class="motion-panel">
+            <div class="iss-tip">
+              <span>The ISS appears as a very bright, fast-moving star &mdash; no telescope needed! It moves from horizon to horizon in ~6 minutes.</span>
+            </div>
+            <div class="iss-passes" id="iss-passes">
+              <div class="loading-shimmer"></div>
+            </div>
+            <div style="margin-top:10px; text-align:right;">
+              <a href="https://heavens-above.com/PassSummary.aspx?satid=25544&lat=40.126&lng=-83.037" target="_blank" class="ext-link">Heavens-Above ↗</a>
+            </div>
           </div>
+
+          <!-- Asteroids Panel (hidden by default) -->
+          <div id="motion-neo-panel" class="motion-panel" style="display:none;">
+            <div class="iss-tip">
+              <span>Near-Earth Objects passing within 7.5M km tonight. Data from NASA NeoWs API. <span class="info-icon" style="cursor:pointer;opacity:0.7;" onclick="showInfo(window.i18n[currentLang]?.asteroid_info || 'Near-Earth Objects (NEOs) passing by Earth tonight. Data from NASA NeoWs API.', event)">ℹ️</span></span>
+            </div>
+            <div id="asteroids-list" style="display:flex; flex-direction:column; gap:10px;">
+              <div style="color: #94a3b8; font-size: 0.85rem; text-align: center; padding: 10px;" data-i18n="asteroid_scanning">Scanning NASA Database...</div>
+            </div>
+          </div>
+
         </div>
       </section>
 
@@ -442,22 +475,6 @@
       </div>
     </section>
 
-    <!-- ── ISS Monitor ── -->
-    <section class="card card-iss" id="card-iss">
-      <div class="card-header">
-        <span class="card-icon">🛸</span>
-        <h2 class="card-title" data-i18n="iss_title" data-i18n="nav_iss">ISS Pass Monitor</h2>
-        <a href="https://heavens-above.com/PassSummary.aspx?satid=25544&lat=40.126&lng=-83.037" target="_blank" class="ext-link">Heavens-Above ↗</a>
-      </div>
-      <div class="card-body">
-        <div class="iss-tip">
-          <span data-i18n="iss_tip">The ISS appears as a very bright, fast-moving star &mdash; no telescope needed! It moves from horizon to horizon in ~6 minutes.</span>
-        </div>
-        <div class="iss-passes" id="iss-passes">
-          <div class="loading-shimmer"></div>
-        </div>
-      </div>
-    </section>
 
     <!-- ── Resources ── -->
     <section class="card card-resources">
@@ -616,7 +633,7 @@
           <li><a href="#card-tonight" data-i18n="nav_tonight">Tonight's Outlook</a></li>
           <li><a href="#card-active-const" data-i18n="nav_active_const">Active Constellation</a></li>
           <li><a href="#card-targets" data-i18n="nav_target_db">Target Database</a></li>
-          <li><a href="#card-iss" data-i18n="nav_iss">ISS Pass Monitor</a></li>
+          <li><a href="#card-motion">Sky Objects in Motion</a></li>
           <li><a href="#card-weekly" data-i18n="nav_weekly">7-Day Forecast</a></li>
         </ul>
       </div>
@@ -710,7 +727,7 @@
   <script src="translations.js"></script>
   <script src="moon3d.js?v=5"></script>
   <script src="planets3d.js?v=3"></script>
-  <script src="app.js?v=49"></script>
+  <script src="app.js?v=50"></script>
   <script src="gravity-well.js?v=45"></script>
 </body>
 </html>

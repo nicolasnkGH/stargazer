@@ -1311,6 +1311,19 @@ async function loadISS() {
   });
 }
 
+// ── Motion Card Tab Switching ───────────────────────────────────────────────
+function initMotionTabs() {
+  document.querySelectorAll('.motion-tab').forEach(tab => {
+    tab.addEventListener('click', () => {
+      document.querySelectorAll('.motion-tab').forEach(t => t.classList.remove('active'));
+      document.querySelectorAll('.motion-panel').forEach(p => { p.style.display = 'none'; });
+      tab.classList.add('active');
+      const panel = document.getElementById(tab.dataset.panel);
+      if (panel) panel.style.display = 'block';
+    });
+  });
+}
+
 // ── Render: Constellations Tonight ─────────────────────────────────────────
 async function loadConstellations() {
   await fetchAndRender('/constellations?filter_famous=true', (data) => {
@@ -1737,6 +1750,9 @@ async function init() {
     loadTargets(),
     loadActiveConstellation(currentConstellation)
   ]);
+
+  // Wire up the Sky Objects in Motion sub-tabs
+  initMotionTabs();
 
   // Night Mode Toggle
   const nightBtn = document.getElementById('btn-night-mode');
