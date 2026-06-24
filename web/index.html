@@ -34,7 +34,7 @@
   <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/controls/OrbitControls.js"></script>
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/driver.js@1.0.1/dist/driver.css" integrity="sha384-bovbcpDBo0pTIhd7ws6ebPh1PG31ubAHcX2pv8Tcu5EtFHNl5FBciYFtS/e2SN66" crossorigin="anonymous" />
-  <link rel="stylesheet" href="style.css?v=55" />
+  <link rel="stylesheet" href="style.css?v=56" />
   
   <!-- D3.js and d3-celestial for Interactive Star Map -->
   <script src="https://d3js.org/d3.v3.min.js"></script>
@@ -224,7 +224,7 @@
       </div>
 
       <!-- ── Asteroid Radar (NASA) ────────────────────────────────────────── -->
-      <!-- ── Sky Objects in Motion (ISS + Asteroids) ─────────────────────── -->
+      <!-- ── Sky Objects in Motion (ISS + NEO + Comets) ─────────────────── -->
       <section class="card" id="card-motion">
         <div class="card-header">
           <span class="card-icon">🛸</span>
@@ -234,17 +234,14 @@
 
         <!-- Sub-tab strip -->
         <div class="motion-tabs">
-          <button class="motion-tab active" data-panel="motion-iss-panel">
-            🚀 ISS Passes
-          </button>
-          <button class="motion-tab" data-panel="motion-neo-panel">
-            ☄️ Near-Earth Objects
-          </button>
+          <button class="motion-tab active" data-panel="motion-iss-panel">🚀 ISS Passes</button>
+          <button class="motion-tab" data-panel="motion-neo-panel">☄️ Near-Earth Objects</button>
+          <button class="motion-tab" data-panel="motion-comets-panel">🌠 Comets</button>
         </div>
 
         <div class="card-body" style="padding-top:0;">
 
-          <!-- ISS Panel (default shown) -->
+          <!-- ── ISS Panel ───────────────────────────────────────────────── -->
           <div id="motion-iss-panel" class="motion-panel">
             <div class="iss-tip">
               <span>The ISS appears as a very bright, fast-moving star &mdash; no telescope needed! It moves from horizon to horizon in ~6 minutes.</span>
@@ -255,15 +252,121 @@
             <div style="margin-top:10px; text-align:right;">
               <a href="https://heavens-above.com/PassSummary.aspx?satid=25544&lat=40.126&lng=-83.037" target="_blank" class="ext-link">Heavens-Above ↗</a>
             </div>
+
+            <!-- ISS Fun Facts -->
+            <div class="motion-facts-wrap" style="margin-top: 16px;">
+              <div class="motion-facts-header">
+                <span>🛰️ ISS Quick Facts</span>
+                <button class="motion-fact-next" onclick="nextMotionFact('iss')" title="Next fact">→</button>
+              </div>
+              <div id="iss-fact-card" class="motion-fact-card">
+                <span class="motion-fact-icon" id="iss-fact-icon">⚡</span>
+                <span id="iss-fact-text">Loading…</span>
+              </div>
+              <div class="motion-fact-dots" id="iss-fact-dots"></div>
+            </div>
           </div>
 
-          <!-- Asteroids Panel (hidden by default) -->
+          <!-- ── NEO Panel ───────────────────────────────────────────────── -->
           <div id="motion-neo-panel" class="motion-panel" style="display:none;">
             <div class="iss-tip">
-              <span>Near-Earth Objects passing within 7.5M km tonight. Data from NASA NeoWs API. <span class="info-icon" style="cursor:pointer;opacity:0.7;" onclick="showInfo(window.i18n[currentLang]?.asteroid_info || 'Near-Earth Objects (NEOs) passing by Earth tonight. Data from NASA NeoWs API.', event)">ℹ️</span></span>
+              <span>Near-Earth Objects passing within 7.5M km tonight. Data from NASA NeoWs API. <span style="cursor:pointer;opacity:0.7;" onclick="showInfo(window.i18n[currentLang]?.asteroid_info || 'Near-Earth Objects (NEOs) passing by Earth tonight. Data from NASA NeoWs API.', event)">ℹ️</span></span>
             </div>
             <div id="asteroids-list" style="display:flex; flex-direction:column; gap:10px;">
               <div style="color: #94a3b8; font-size: 0.85rem; text-align: center; padding: 10px;" data-i18n="asteroid_scanning">Scanning NASA Database...</div>
+            </div>
+          </div>
+
+          <!-- ── Comets Panel ────────────────────────────────────────────── -->
+          <div id="motion-comets-panel" class="motion-panel" style="display:none;">
+            <div class="iss-tip">
+              <span>Notable comets currently in the inner solar system. Some are visible with binoculars or a small telescope.</span>
+            </div>
+
+            <!-- Curated comet list -->
+            <div class="comet-list" id="comet-list">
+
+              <div class="comet-item">
+                <div class="comet-header">
+                  <span class="comet-name">🌠 C/2023 A3 Tsuchinshan-ATLAS</span>
+                  <span class="comet-badge naked-eye">Naked Eye</span>
+                </div>
+                <div class="comet-meta">
+                  <span>📐 Perihelion: Sep 27, 2024 · Closest approach: Oct 12, 2024</span>
+                </div>
+                <div class="comet-desc">One of the brightest comets in decades — reached magnitude −4.9 at peak. Now fading but still a historic visitor. Expected to return in ~80,000 years.</div>
+                <div class="comet-stats">
+                  <span class="comet-stat">🏎️ Speed: ~68 km/s</span>
+                  <span class="comet-stat">📡 Origin: Oort Cloud</span>
+                  <span class="comet-stat">⭐ Peak Mag: −4.9</span>
+                </div>
+              </div>
+
+              <div class="comet-item">
+                <div class="comet-header">
+                  <span class="comet-name">🌠 12P/Pons-Brooks</span>
+                  <span class="comet-badge binoculars">Binoculars</span>
+                </div>
+                <div class="comet-meta">
+                  <span>📐 Perihelion: Apr 21, 2024 · Period: ~71 years</span>
+                </div>
+                <div class="comet-desc">The "Devil Comet" — famous for its cryo-volcanic outbursts that gave it distinctive horn-shaped coma. Last visible to the naked eye in 1954. Returns ~2095.</div>
+                <div class="comet-stats">
+                  <span class="comet-stat">🏎️ Speed: ~44 km/s</span>
+                  <span class="comet-stat">📡 Short-period</span>
+                  <span class="comet-stat">⭐ Peak Mag: +4.0</span>
+                </div>
+              </div>
+
+              <div class="comet-item">
+                <div class="comet-header">
+                  <span class="comet-name">🌠 67P/Churyumov-Gerasimenko</span>
+                  <span class="comet-badge telescope">Telescope</span>
+                </div>
+                <div class="comet-meta">
+                  <span>📐 Perihelion: ~Nov 2, 2021 · Period: ~6.5 years</span>
+                </div>
+                <div class="comet-desc">The Rosetta Mission target. ESA's Rosetta spacecraft orbited it for 2 years and landed the Philae probe on its surface in 2014 — the first soft comet landing in history.</div>
+                <div class="comet-stats">
+                  <span class="comet-stat">🏎️ Speed: ~34 km/s</span>
+                  <span class="comet-stat">📡 Jupiter-family</span>
+                  <span class="comet-stat">📏 Size: 4.3 × 2.6 km</span>
+                </div>
+              </div>
+
+              <div class="comet-item">
+                <div class="comet-header">
+                  <span class="comet-name">🌠 C/2024 G3 (ATLAS)</span>
+                  <span class="comet-badge naked-eye">Jan 2025</span>
+                </div>
+                <div class="comet-meta">
+                  <span>📐 Perihelion: Jan 13, 2025 · Southern hemisphere favored</span>
+                </div>
+                <div class="comet-desc">Reached potentially spectacular brightness (mag −2 to −3) near perihelion in January 2025, best seen from the southern hemisphere. Likely a dynamically new comet on its first inner solar system pass.</div>
+                <div class="comet-stats">
+                  <span class="comet-stat">📡 Oort Cloud</span>
+                  <span class="comet-stat">⭐ Est. Peak: −3</span>
+                  <span class="comet-stat">🔭 Best: S. Hemisphere</span>
+                </div>
+              </div>
+
+            </div>
+
+            <!-- Comet Fun Facts -->
+            <div class="motion-facts-wrap" style="margin-top: 16px;">
+              <div class="motion-facts-header">
+                <span>💡 Comet Fun Facts</span>
+                <button class="motion-fact-next" onclick="nextMotionFact('comet')" title="Next fact">→</button>
+              </div>
+              <div id="comet-fact-card" class="motion-fact-card">
+                <span class="motion-fact-icon" id="comet-fact-icon">☄️</span>
+                <span id="comet-fact-text">Loading…</span>
+              </div>
+              <div class="motion-fact-dots" id="comet-fact-dots"></div>
+            </div>
+
+            <div style="margin-top:12px; text-align:right;">
+              <a href="https://ssd.jpl.nasa.gov/tools/sbdb_lookup.html" target="_blank" class="ext-link">NASA Small Body DB ↗</a>
             </div>
           </div>
 
@@ -727,7 +830,7 @@
   <script src="translations.js"></script>
   <script src="moon3d.js?v=5"></script>
   <script src="planets3d.js?v=3"></script>
-  <script src="app.js?v=50"></script>
+  <script src="app.js?v=51"></script>
   <script src="gravity-well.js?v=45"></script>
 </body>
 </html>

@@ -1475,6 +1475,158 @@ body {
   animation: fadeInUp 0.25s ease;
 }
 
+/* ── Motion Fact Cards (ISS + Comet facts) ───────────────────────────────── */
+.motion-facts-wrap {
+  border-top: 1px solid rgba(255, 255, 255, 0.06);
+  padding-top: 12px;
+}
+
+.motion-facts-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  font-size: 0.78rem;
+  font-weight: 600;
+  color: #94a3b8;
+  text-transform: uppercase;
+  letter-spacing: 0.07em;
+  margin-bottom: 8px;
+}
+
+.motion-fact-next {
+  background: rgba(255,255,255,0.05);
+  border: 1px solid rgba(255,255,255,0.1);
+  color: #94a3b8;
+  border-radius: 6px;
+  padding: 2px 10px;
+  cursor: pointer;
+  font-size: 1rem;
+  transition: background 0.15s, color 0.15s;
+  line-height: 1.6;
+}
+.motion-fact-next:hover {
+  background: rgba(56,189,248,0.12);
+  color: #38bdf8;
+}
+
+.motion-fact-card {
+  background: rgba(255, 255, 255, 0.03);
+  border: 1px solid rgba(255, 255, 255, 0.07);
+  border-radius: 10px;
+  padding: 12px 14px;
+  font-size: 0.85rem;
+  color: #cbd5e1;
+  line-height: 1.55;
+  display: flex;
+  gap: 10px;
+  align-items: flex-start;
+  min-height: 56px;
+  transition: opacity 0.3s ease;
+}
+
+.motion-fact-icon {
+  font-size: 1.3rem;
+  flex-shrink: 0;
+  margin-top: 1px;
+}
+
+.motion-fact-dots {
+  display: flex;
+  gap: 5px;
+  justify-content: center;
+  margin-top: 8px;
+}
+
+.motion-fact-dot {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: rgba(255,255,255,0.15);
+  transition: background 0.2s;
+  cursor: pointer;
+}
+
+.motion-fact-dot.active {
+  background: #38bdf8;
+}
+
+/* ── Comet List ──────────────────────────────────────────────────────────── */
+.comet-list {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.comet-item {
+  background: rgba(255,255,255,0.02);
+  border: 1px solid rgba(255,255,255,0.07);
+  border-radius: 10px;
+  padding: 12px 14px;
+  transition: border-color 0.2s, background 0.2s;
+}
+
+.comet-item:hover {
+  background: rgba(255,255,255,0.04);
+  border-color: rgba(56,189,248,0.25);
+}
+
+.comet-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 4px;
+}
+
+.comet-name {
+  font-size: 0.88rem;
+  font-weight: 600;
+  color: #e2e8f0;
+}
+
+.comet-badge {
+  font-size: 0.65rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  padding: 2px 7px;
+  border-radius: 5px;
+  flex-shrink: 0;
+}
+
+.comet-badge.naked-eye  { background: rgba(34,197,94,0.15);  color: #4ade80; border: 1px solid rgba(34,197,94,0.3); }
+.comet-badge.binoculars { background: rgba(251,191,36,0.15); color: #fbbf24; border: 1px solid rgba(251,191,36,0.3); }
+.comet-badge.telescope  { background: rgba(168,85,247,0.15); color: #c084fc; border: 1px solid rgba(168,85,247,0.3); }
+
+.comet-meta {
+  font-size: 0.73rem;
+  color: #64748b;
+  margin-bottom: 6px;
+}
+
+.comet-desc {
+  font-size: 0.8rem;
+  color: #94a3b8;
+  line-height: 1.5;
+  margin-bottom: 8px;
+}
+
+.comet-stats {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+.comet-stat {
+  font-size: 0.72rem;
+  background: rgba(255,255,255,0.05);
+  border: 1px solid rgba(255,255,255,0.08);
+  border-radius: 5px;
+  padding: 2px 8px;
+  color: #94a3b8;
+  font-family: var(--font-mono);
+}
+
 /* ── ISS ─────────────────────────────────────────────────────────────────── */
 .iss-tip {
   font-size: 0.82rem;
