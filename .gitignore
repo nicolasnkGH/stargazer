@@ -32,5 +32,12 @@ Leap_Second.dat
 .vscode/
 .idea/
 *.swp
+
+# Dev scratch / test scripts (not part of the app)
 scratch/
 test_planets.py
+test_dt.py
+test_engine.py
+download_textures.py
+api/test_engine.py
+api/test_sun.py
