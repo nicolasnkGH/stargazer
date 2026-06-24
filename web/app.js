@@ -675,7 +675,7 @@ function renderMoon(moon) {
   if (hudMoon) {
     const icon = moon.phase_name ? moon.phase_name.split(' ')[0] : '🌙';
     const phaseNameOnly = pName.replace(icon, '').trim();
-    hudMoon.textContent = `${icon} ${phaseNameOnly} (~${moon.illumination_pct ?? '?'}%)`;
+    hudMoon.textContent = `${icon} ${phaseNameOnly} (${moon.illumination_pct ?? '?'}%)`;
   }
   document.getElementById('moon-arc-fill').style.width = `${moon.illumination_pct || 0}%`;
   document.getElementById('moon-arc-label').textContent = `${moon.illumination_pct ?? 0}%`;

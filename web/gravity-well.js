@@ -28,10 +28,10 @@
   geometry.rotateX(-Math.PI / 2);
 
   const material = new THREE.MeshBasicMaterial({ 
-    color: 0x475569, // Slate 600
+    color: 0x64748b, // Slate 500
     wireframe: true,
     transparent: true,
-    opacity: 0.3
+    opacity: 0.6
   });
 
   const plane = new THREE.Mesh(geometry, material);
