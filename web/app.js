@@ -1061,64 +1061,35 @@ function updateUnifiedCard() {
   card.style.display = 'flex';
   card.style.flexDirection = 'column';
   
-  // Inject Dynamic SVG Mascot
-  const astroContainer = document.getElementById('astronaut-container');
-  if (astroContainer) {
+  // Setup GSAP animation for sleek astronaut
+  const astroImg = document.getElementById('astronaut-image');
+  const astroGlow = document.getElementById('astro-glow');
+  
+  if (astroImg && !astroImg.dataset.gsapInited) {
+    astroImg.dataset.gsapInited = 'true';
+    if (typeof gsap !== 'undefined') {
+      gsap.to(astroImg, {
+        y: -15,
+        rotation: 3,
+        duration: 3,
+        yoyo: true,
+        repeat: -1,
+        ease: 'sine.inOut'
+      });
+    }
+  }
+
+  if (astroGlow) {
     const seeing = window.lastTonightData?.seeing?.go_nogo || 'MARGINAL';
     const isNoGo = seeing === 'NO GO';
     
-    const goSVG = `
-<svg class="astro-svg" viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg">
-  <g class="astro-body">
-    <rect x="35" y="45" width="30" height="35" rx="10" fill="#e2e8f0"/>
-    <rect x="40" y="50" width="20" height="25" rx="5" fill="#cbd5e1"/>
-    <circle cx="50" cy="30" r="18" fill="#e2e8f0"/>
-    <path d="M 36 28 Q 50 35 64 28 Q 64 20 50 18 Q 36 20 36 28" fill="#2dd4bf" opacity="0.9"/>
-    <path d="M 40 25 Q 50 30 60 25" stroke="#fff" stroke-width="2" fill="none" opacity="0.6"/>
-  </g>
-  <g class="astro-arm" transform="translate(65, 55)">
-    <rect x="0" y="-5" width="20" height="10" rx="4" fill="#e2e8f0" transform="rotate(-30)"/>
-    <rect x="15" y="-15" width="25" height="8" rx="2" fill="#0f172a" transform="rotate(-15)"/>
-    <rect x="12" y="-17" width="5" height="12" rx="1" fill="#2dd4bf" transform="rotate(-15)"/>
-    <rect x="38" y="-17" width="5" height="12" rx="1" fill="#2dd4bf" transform="rotate(-15)"/>
-  </g>
-  <g class="astro-arm" transform="translate(35, 55)">
-    <rect x="-20" y="-5" width="20" height="10" rx="4" fill="#e2e8f0" transform="rotate(20)"/>
-  </g>
-  <rect x="40" y="75" width="10" height="15" rx="4" fill="#e2e8f0" transform="rotate(10, 45, 75)"/>
-  <rect x="50" y="75" width="10" height="15" rx="4" fill="#e2e8f0" transform="rotate(-10, 55, 75)"/>
-  <!-- Checkmark signal -->
-  <path d="M 80 15 L 85 25 L 95 5" stroke="#2dd4bf" stroke-width="3" fill="none" stroke-linecap="round" stroke-linejoin="round"/>
-</svg>
-    `;
-    
-    const noGoSVG = `
-<svg class="astro-svg" viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg">
-  <g class="astro-wind" stroke="#a855f7" stroke-width="2" opacity="0.6" stroke-linecap="round">
-    <line x1="-20" y1="20" x2="10" y2="20" />
-    <line x1="-10" y1="40" x2="30" y2="40" />
-    <line x1="-30" y1="70" x2="0" y2="70" />
-  </g>
-  <g class="astro-body" transform="rotate(5, 50, 50)">
-    <rect x="35" y="45" width="30" height="35" rx="10" fill="#94a3b8"/>
-    <rect x="40" y="50" width="20" height="25" rx="5" fill="#64748b"/>
-    <circle cx="50" cy="30" r="18" fill="#94a3b8"/>
-    <path d="M 36 28 Q 50 35 64 28 Q 64 20 50 18 Q 36 20 36 28" fill="#a855f7" opacity="0.9"/>
-    <g class="astro-arm" transform="translate(65, 55)">
-      <rect x="0" y="-5" width="20" height="10" rx="4" fill="#94a3b8" transform="rotate(-60)"/>
-      <line x1="10" y1="-20" x2="30" y2="-60" stroke="#0f172a" stroke-width="2"/>
-      <path d="M 15 -60 Q 35 -80 55 -50 L 15 -60" fill="#a855f7"/>
-    </g>
-    <g class="astro-arm" transform="translate(35, 55)">
-      <rect x="-20" y="-5" width="20" height="10" rx="4" fill="#94a3b8" transform="rotate(40)"/>
-    </g>
-    <rect x="40" y="75" width="10" height="15" rx="4" fill="#94a3b8" transform="rotate(20, 45, 75)"/>
-    <rect x="50" y="75" width="10" height="15" rx="4" fill="#94a3b8" transform="rotate(-5, 55, 75)"/>
-  </g>
-</svg>
-    `;
-    
-    astroContainer.innerHTML = isNoGo ? noGoSVG : goSVG;
+    if (isNoGo) {
+      astroGlow.style.background = 'radial-gradient(circle, rgba(168,85,247,0.2) 0%, transparent 70%)';
+      astroImg.style.filter = 'drop-shadow(0 0 10px rgba(168,85,247,0.4))';
+    } else {
+      astroGlow.style.background = 'radial-gradient(circle, rgba(45,212,191,0.2) 0%, transparent 70%)';
+      astroImg.style.filter = 'drop-shadow(0 0 10px rgba(45,212,191,0.4))';
+    }
   }
   
   if (!alertsHtml && !aiHtml) {
