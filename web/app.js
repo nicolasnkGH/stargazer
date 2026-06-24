@@ -1055,10 +1055,17 @@ function updateUnifiedCard() {
   const alertsHtml = window.lastAlertsHTML || '';
   const aiHtml = window.lastAIHTML || '';
   
+  card.style.display = 'flex';
+  card.style.flexDirection = 'column';
+  
   if (!alertsHtml && !aiHtml) {
-    card.style.display = 'none';
+    const fallbackMsg = `
+      <div style="text-align: center; padding: 20px; color: var(--text-secondary); font-style: italic;">
+        No targets visible right now. Conditions might be poor, or it's daytime!
+      </div>
+    `;
+    list.innerHTML = fallbackMsg;
   } else {
-    card.style.display = 'flex';
     list.innerHTML = alertsHtml + aiHtml;
   }
 }
