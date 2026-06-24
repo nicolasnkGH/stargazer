@@ -355,11 +355,13 @@ async function fetchAIAnalysis() {
       explanationEl.classList.remove('ai-loading-glow');
     }
     const cachedMoonFact = localStorage.getItem(`stargazer_moon_fact_${currentLang}`);
-    if (cachedMoonFact && moonFactEl) {
-      moonFactEl.innerHTML = `✨ <strong>${window.i18n[currentLang]?.moon_fact_title || 'Moon Fact'}:</strong> ${cachedMoonFact}`;
-      moonFactEl.style.display = 'block';
-    } else if (moonFactEl) {
-      moonFactEl.style.display = 'none';
+    const moonWrapEl = document.getElementById('moon-fact-wrap');
+    const moonTextEl = document.getElementById('moon-fact-text');
+    if (cachedMoonFact && moonWrapEl) {
+      if (moonTextEl) moonTextEl.textContent = cachedMoonFact;
+      moonWrapEl.style.display = 'block';
+    } else if (moonWrapEl) {
+      moonWrapEl.style.display = 'none';
     }
   }
 }
@@ -516,15 +518,16 @@ function renderSeeing(seeing, data) {
     updateUnifiedCard();
   }
 
-  // Moon Fact
-  const moonFactEl = document.getElementById('moon-fact');
-  if (moonFactEl) {
+  // Moon Fact — standardized fact card
+  const moonWrap = document.getElementById('moon-fact-wrap');
+  const moonText = document.getElementById('moon-fact-text');
+  if (moonWrap && moonText) {
     if (seeing.moon_fact) {
       localStorage.setItem(`stargazer_moon_fact_${currentLang}`, seeing.moon_fact);
-      moonFactEl.innerHTML = `✨ <strong>${window.i18n[currentLang]?.moon_fact_title || 'Moon Fact'}:</strong> ${seeing.moon_fact}`;
-      moonFactEl.style.display = 'block';
+      moonText.textContent = seeing.moon_fact;
+      moonWrap.style.display = 'block';
     } else {
-      moonFactEl.style.display = 'none';
+      moonWrap.style.display = 'none';
     }
   }
 
