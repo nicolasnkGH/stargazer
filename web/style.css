@@ -2046,23 +2046,49 @@ body.night-mode {
   }
 }
 
-#robot-3d-container {
+#astronaut-container {
   width: 100%;
   height: 200px;
   max-width: 200px;
-  border-radius: 12px;
-  box-shadow: 0 0 20px rgba(168, 85, 247, 0.4);
-  border: 1px solid rgba(168, 85, 247, 0.6);
-  background: radial-gradient(circle, rgba(168,85,247,0.1) 0%, transparent 70%);
-  cursor: grab;
+  display: flex;
+  align-items: center;
+  justify-content: center;
 }
-#robot-3d-container:active {
-  cursor: grabbing;
+.astro-svg {
+  width: 100%;
+  height: 100%;
+  animation: float-astro 6s ease-in-out infinite;
 }
+.astro-arm {
+  transform-origin: center;
+  animation: float-arm 4s ease-in-out infinite alternate;
+}
+.astro-wind {
+  animation: astro-wind 2s linear infinite;
+}
+
+@keyframes float-astro {
+  0% { transform: translateY(0px) rotate(0deg); }
+  33% { transform: translateY(-8px) rotate(2deg); }
+  66% { transform: translateY(5px) rotate(-2deg); }
+  100% { transform: translateY(0px) rotate(0deg); }
+}
+
+@keyframes float-arm {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(10deg); }
+}
+
+@keyframes astro-wind {
+  0% { transform: translateX(100%) opacity(0); }
+  50% { opacity: 0.5; }
+  100% { transform: translateX(-100%) opacity(0); }
+}
+
 @media (max-width: 800px) {
-  #robot-3d-container {
-    width: 60px;
-    height: 60px;
+  #astronaut-container {
+    width: 80px;
+    height: 80px;
     margin-right: 15px;
   }
 }
