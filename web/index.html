@@ -30,7 +30,7 @@
   <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/controls/OrbitControls.js"></script>
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/driver.js@1.0.1/dist/driver.css" integrity="sha384-bovbcpDBo0pTIhd7ws6ebPh1PG31ubAHcX2pv8Tcu5EtFHNl5FBciYFtS/e2SN66" crossorigin="anonymous" />
-  <link rel="stylesheet" href="style.css?v=24" />
+  <link rel="stylesheet" href="style.css?v=27" />
   
   <!-- D3.js and d3-celestial for Interactive Star Map -->
   <script src="https://d3js.org/d3.v3.min.js"></script>
@@ -265,22 +265,24 @@
     <!-- ── Row 2: Planets + Must-See + AI Targets ── -->
     <div class="card-row card-row-2">
 
-      <!-- ── AI Recommended Targets ───────────────────────────────────────────── -->
+      <!-- ── AI & Must-See Targets ───────────────────────────────────────────── -->
       <section class="card card-ai-targets" id="card-ai-targets" style="display:none; position:relative; overflow:hidden;">
         <!-- Subtle glow background -->
         <div style="position:absolute; top:-50px; right:-50px; width:150px; height:150px; background: radial-gradient(circle, rgba(138,43,226,0.15) 0%, transparent 70%); pointer-events:none;"></div>
-        <div class="card-header" style="border-bottom: 1px solid rgba(138, 43, 226, 0.2); padding-bottom: 10px; margin-bottom: 15px;">
-          <span class="card-icon" style="filter: drop-shadow(0 0 5px rgba(138,43,226,0.5));">🤖</span>
-          <h2 class="card-title" style="color: #d8b4fe;">AI Recommended</h2>
-          <span class="info-icon" style="cursor:pointer; opacity:0.6; font-size: 0.85rem; margin-left:8px;" onclick="showInfo(window.i18n[window.currentLang]?.info_ai || 'Target recommendations curated by Qwen3.5-9B AI', event)">ℹ️</span>
+        <div class="card-header" style="border-bottom: 1px solid rgba(138, 43, 226, 0.2); padding-bottom: 10px; margin-bottom: 15px; display: flex; align-items: center; justify-content: space-between;">
+          <div style="display: flex; align-items: center;">
+            <img src="assets/ai_stargazer_mascot.png" alt="AI Mascot" style="width: 40px; height: 40px; border-radius: 50%; border: 2px solid #a855f7; margin-right: 12px; box-shadow: 0 0 10px rgba(168,85,247,0.5); animation: float 3s ease-in-out infinite;">
+            <h2 class="card-title" style="color: #d8b4fe; margin: 0;">Must-See & AI Picks</h2>
+            <span class="info-icon" style="cursor:pointer; opacity:0.6; font-size: 0.85rem; margin-left:8px;" onclick="showInfo(window.i18n[window.currentLang]?.info_ai || 'Target recommendations curated by Qwen3.5-9B AI', event)">ℹ️</span>
+          </div>
         </div>
-        <div class="card-body">
-          <p style="font-size: 0.85rem; color: #a1a1aa; margin-top: -5px; margin-bottom: 15px; font-style: italic; display:flex; align-items:center; gap:6px;">
+        <div class="card-body" style="flex: 1; display: flex; flex-direction: column;">
+          <p style="font-size: 0.85rem; color: #a1a1aa; margin-top: -5px; margin-bottom: 15px; font-style: italic; display:flex; align-items:center; gap:6px; flex-shrink: 0;">
             <span style="display:inline-block; width:8px; height:8px; background:#a855f7; border-radius:50%; box-shadow: 0 0 8px #a855f7;"></span>
             <span data-i18n="ai_curated">Curated for tonight's conditions</span>
           </p>
-          <div id="ai-targets-list" style="display:flex; flex-direction: column; gap: 12px;">
-            <!-- Rendered via JS -->
+          <div id="ai-targets-list" class="unified-scroll-list">
+            <div class="loading-shimmer"></div>
           </div>
         </div>
       </section>
@@ -293,20 +295,7 @@
           <span class="info-icon" style="cursor:pointer; opacity:0.6; font-size: 0.85rem; margin-left:8px;" onclick="showInfo(window.i18n[window.currentLang]?.info_planets || 'Calculated locally via Skyfield Ephemeris', event)">ℹ️</span>
         </div>
         <div class="card-body">
-          <div class="planet-list" id="planet-list">
-            <div class="loading-shimmer"></div>
-          </div>
-        </div>
-      </div>
-
-      <!-- Must-See Alerts -->
-      <div class="card card-mustsee">
-        <div class="card-header">
-          <span class="card-icon">⚡</span>
-          <h2 class="card-title" data-i18n="card_mustsee">Must-See Tonight</h2>
-        </div>
-        <div class="card-body">
-          <div class="alert-list" id="alert-list">
+          <div class="planet-list unified-scroll-list" id="planet-list">
             <div class="loading-shimmer"></div>
           </div>
         </div>
@@ -668,6 +657,6 @@
 
   <script src="translations.js"></script>
   <script src="moon3d.js"></script>
-  <script src="app.js?v=24"></script>
+  <script src="app.js?v=27"></script>
 </body>
 </html>

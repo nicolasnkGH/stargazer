@@ -173,8 +173,25 @@ def _get_observer(lat=None, lon=None):
 
 # ── Time utilities ─────────────────────────────────────────────────────────────
 
-def now_local() -> datetime:
-    return datetime.now(ZoneInfo(TIMEZONE))
+import functools
+
+@functools.lru_cache(maxsize=128)
+def _get_tz(lat=None, lon=None) -> ZoneInfo:
+    if lat is None or lon is None:
+        return ZoneInfo(TIMEZONE)
+    try:
+        from timezonefinder import TimezoneFinder
+        tf = TimezoneFinder()
+        tz_str = tf.timezone_at(lng=lon, lat=lat)
+        if tz_str:
+            return ZoneInfo(tz_str)
+    except Exception:
+        pass
+    return ZoneInfo(TIMEZONE)
+
+def now_local(lat=None, lon=None) -> datetime:
+    """Return the current time in the appropriate timezone."""
+    return datetime.now(_get_tz(lat, lon))
 
 def _sf_time(dt: datetime):
     ts, _ = _get_skyfield()
@@ -182,8 +199,8 @@ def _sf_time(dt: datetime):
 
 def _tonight_window(dt: Optional[date] = None, lat=None, lon=None) -> tuple[datetime, datetime]:
     """Return (astronomical_dusk, astronomical_dawn) for the given date."""
-    tz = ZoneInfo(TIMEZONE)
-    d = dt or now_local().date()
+    tz = _get_tz(lat, lon)
+    d = dt or now_local(lat=lat, lon=lon).date()
     ts, eph = _get_skyfield()
     _, observer_location = _get_observer(lat=lat, lon=lon)
 
@@ -217,8 +234,8 @@ def _tonight_window(dt: Optional[date] = None, lat=None, lon=None) -> tuple[date
 def get_moon_info(dt: Optional[datetime] = None, lat=None, lon=None) -> dict:
     ts, eph = _get_skyfield()
     observer, observer_location = _get_observer(lat=lat, lon=lon)
-    tz = ZoneInfo(TIMEZONE)
-    now = dt or now_local()
+    tz = _get_tz(lat, lon)
+    now = dt or now_local(lat=lat, lon=lon)
     t = _sf_time(now)
     d = now.date()
 
@@ -305,7 +322,7 @@ PLANETS = {
 def get_planet_positions(dt: Optional[datetime] = None, lat=None, lon=None, dusk: Optional[datetime] = None, dawn: Optional[datetime] = None) -> list[dict]:
     ts, eph = _get_skyfield()
     observer, observer_location = _get_observer(lat=lat, lon=lon)
-    now = dt or now_local()
+    now = dt or now_local(lat=lat, lon=lon)
 
     # Always use real-time for planet calculations
     obs_time = now
@@ -339,7 +356,7 @@ def get_planet_positions(dt: Optional[datetime] = None, lat=None, lon=None, dusk
             naked_eye = bool(mag_map.get(name, 5) < 6.5)
 
             # Planet Rise/Set
-            tz = ZoneInfo(TIMEZONE)
+            tz = _get_tz(lat, lon)
             d = now.date()
             midnight = datetime(d.year, d.month, d.day, 0, 0, tzinfo=tz)
             t0 = ts.from_datetime(midnight)
@@ -430,8 +447,8 @@ def get_constellation_window(abbr: str, dt: Optional[date] = None, lat=None, lon
 
     ts, eph = _get_skyfield()
     observer, observer_location = _get_observer(lat=lat, lon=lon)
-    tz = ZoneInfo(TIMEZONE)
-    d = dt or now_local().date()
+    tz = _get_tz(lat, lon)
+    d = dt or now_local(lat=lat, lon=lon).date()
 
     # Use constellation central RA/DEC as proxy
     proxy = Star(ra_hours=c["ra"], dec_degrees=c["dec"])
@@ -469,7 +486,7 @@ def get_constellation_window(abbr: str, dt: Optional[date] = None, lat=None, lon
             best_time_local = check_t
 
     # Current altitude
-    t_now = _sf_time(now_local())
+    t_now = _sf_time(now_local(lat=lat, lon=lon))
     astrometric_now = observer.at(t_now).observe(proxy)
     alt_now, az_now, _ = astrometric_now.apparent().altaz()
 
@@ -504,7 +521,7 @@ def get_visible_targets(dt: Optional[datetime] = None, lat=None, lon=None, const
     """Return targets for a specific constellation with current altitude/visibility."""
     ts, _ = _get_skyfield()
     observer, _ = _get_observer(lat=lat, lon=lon)
-    now = dt or now_local()
+    now = dt or now_local(lat=lat, lon=lon)
     t = _sf_time(now)
 
     results = []
@@ -561,7 +578,7 @@ def get_iss_passes(count: int = 3, lat=None, lon=None) -> list[dict]:
     Predict ISS passes using Skyfield + live TLE from wheretheiss.at.
     """
     ts, _ = _get_skyfield()
-    tz = ZoneInfo(TIMEZONE)
+    tz = _get_tz(lat, lon)
     _lat = float(lat) if lat is not None else LATITUDE
     _lon = float(lon) if lon is not None else LONGITUDE
     observer = wgs84.latlon(_lat * N, abs(_lon) * W, elevation_m=ELEVATION_M)
@@ -632,8 +649,8 @@ def get_iss_passes(count: int = 3, lat=None, lon=None) -> list[dict]:
     # ── Step 2: Build EarthSatellite and find passes ──────────────────────────
     try:
         iss = EarthSatellite(line1, line2, name, ts)
-        now_sf = _sf_time(now_local())
-        end_sf = _sf_time(now_local() + timedelta(days=5))
+        now_sf = _sf_time(now_local(lat=lat, lon=lon))
+        end_sf = _sf_time(now_local(lat=lat, lon=lon) + timedelta(days=5))
 
         t_events, events = iss.find_events(
             observer, now_sf, end_sf, altitude_degrees=10.0
@@ -905,7 +922,7 @@ def get_seeing_forecast(lat=None, lon=None, ai_enabled: bool = False, lang: str 
     daily  = data.get("daily",  {})
 
     # ── Average the overnight observing window (dynamic 8-hour block) ──
-    current_hour = now_local().hour
+    current_hour = now_local(lat=lat, lon=lon).hour
     if current_hour < 12:
         # After midnight: observing right now
         tonight_start = current_hour
@@ -1051,7 +1068,7 @@ def get_seeing_forecast(lat=None, lon=None, ai_enabled: bool = False, lang: str 
 
 def get_tonight_report(lat=None, lon=None, lang: str = "en") -> dict:
     """Aggregate data for tonight's dashboard view."""
-    now = now_local()
+    now = now_local(lat=lat, lon=lon)
     dusk, dawn = _tonight_window(lat=lat, lon=lon)
 
     moon = get_moon_info(now, lat=lat, lon=lon)
@@ -1126,6 +1143,7 @@ def get_tonight_report(lat=None, lon=None, lang: str = "en") -> dict:
     return {
         "date": now.strftime("%A, %B %d, %Y"),
         "time_generated": now.strftime("%I:%M %p %Z"),
+        "location_timezone": str(_get_tz(lat, lon).key),
         "astronomical_dusk": dusk.strftime("%I:%M %p"),
         "astronomical_dawn": dawn.strftime("%I:%M %p"),
         "observing_window_hours": round((dawn - dusk).total_seconds() / 3600, 1),
@@ -1160,11 +1178,11 @@ METEOR_SHOWERS = [
 ]
 
 def get_weekly_report(lat=None, lon=None) -> dict:
-    now = now_local()
+    now = now_local(lat=lat, lon=lon)
     days = []
     for i in range(7):
         d = (now + timedelta(days=i)).date()
-        moon = get_moon_info(datetime(d.year, d.month, d.day, 22, 0, tzinfo=ZoneInfo(TIMEZONE)), lat=lat, lon=lon)
+        moon = get_moon_info(datetime(d.year, d.month, d.day, 22, 0, tzinfo=_get_tz(lat, lon)), lat=lat, lon=lon)
         seeing_data = get_seeing_forecast(lat=lat, lon=lon)
         weather_day = seeing_data.get("week_forecast", [{} for _ in range(7)])[i] if i < 7 else {}
 
@@ -1182,7 +1200,7 @@ def get_weekly_report(lat=None, lon=None) -> dict:
             highlights.append("🌕 Full Moon — planets & moon only")
             
         # Get planets info for this day
-        d_dt = datetime(d.year, d.month, d.day, 22, 0, tzinfo=ZoneInfo(TIMEZONE))
+        d_dt = datetime(d.year, d.month, d.day, 22, 0, tzinfo=_get_tz(lat, lon))
         planets = get_planet_positions(d_dt, lat=lat, lon=lon)
         visible_planets = [p for p in planets if p.get("visible_tonight") and p.get("altitude_deg", 0) > 20]
         if visible_planets:
@@ -1222,7 +1240,7 @@ def get_constellations(lat=None, lon=None, filter_famous=False) -> list[dict]:
         return []
 
     ts, _ = _get_skyfield()
-    t = _sf_time(now_local())
+    t = _sf_time(now_local(lat=lat, lon=lon))
     observer, _ = _get_observer(lat=lat, lon=lon)
 
     results = []
@@ -1259,9 +1277,9 @@ def _rate_night(moon_illum: float, cloud_pct: Optional[float]) -> str:
 # ── Monthly Report ────────────────────────────────────────────────────────────
 
 def get_monthly_report(lat=None, lon=None) -> dict:
-    now = now_local()
+    now = now_local(lat=lat, lon=lon)
     ts, eph = _get_skyfield()
-    tz = ZoneInfo(TIMEZONE)
+    tz = _get_tz(lat, lon)
 
     # Moon phases for the month
     from calendar import monthrange
@@ -1302,6 +1320,7 @@ def get_monthly_report(lat=None, lon=None) -> dict:
 
     return {
         "month": now.strftime("%B %Y"),
+        "location_timezone": str(_get_tz(lat, lon).key),
         "moon_phases": moon_phases,
         "meteor_showers": showers_this_month,
         "scorpius_note": scorpius_note,
