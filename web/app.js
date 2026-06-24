@@ -1859,10 +1859,19 @@ async function init() {
     await loadTonightReport();
     await loadISS();
     await loadActiveConstellation(currentConstellation);
+    // Re-render any new Lucide icons injected by data loads
+    if (window.lucide) lucide.createIcons();
   }, 10 * 60 * 1000);
+
+  // Init Lucide icons after all data has loaded
+  if (window.lucide) lucide.createIcons();
 }
 
-document.addEventListener('DOMContentLoaded', init);
+document.addEventListener('DOMContentLoaded', () => {
+  init();
+  // Fallback: re-run Lucide after a short delay to catch any late-injected icons
+  setTimeout(() => { if (window.lucide) lucide.createIcons(); }, 1500);
+});
 
 
 // ── i18n ────────────────────────────────────────────────────────────────────

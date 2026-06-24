@@ -1,36 +1,48 @@
-/* ── StarGazer Dashboard — Deep Space Theme ─────────────────────────────── */
+/* ── StarGazer Dashboard — Premium Matte Black Design System ────────────── */
 
 :root {
-  --bg-void: #050510;
-  --bg-deep: #08091a;
-  --bg-card: rgba(12, 14, 35, 0.85);
-  --bg-card-hover: rgba(18, 22, 50, 0.95);
-  --bg-glass: rgba(255, 255, 255, 0.04);
-  --border: rgba(100, 120, 220, 0.15);
-  --border-glow: rgba(120, 160, 255, 0.35);
+  /* ── Backgrounds — true matte obsidian ── */
+  --bg-void:        #050508;
+  --bg-deep:        #050508;
+  --bg-card:        rgba(255, 255, 255, 0.018);
+  --bg-card-hover:  rgba(255, 255, 255, 0.032);
+  --bg-glass:       rgba(255, 255, 255, 0.025);
 
-  --accent-blue: #4a9eff;
-  --accent-purple: #a855f7;
-  --accent-gold: #f59e0b;
-  --accent-teal: #14b8a6;
-  --accent-red: #ef4444;
-  --accent-green: #22c55e;
-  --accent-orange: #f97316;
-  --accent-scorpius: #ff6b35;
+  /* ── Borders — ultra-thin white/5 ── */
+  --border:         rgba(255, 255, 255, 0.05);
+  --border-glow:    rgba(56, 189, 248, 0.18);
+  --border-hover:   rgba(255, 255, 255, 0.10);
 
-  --text-primary: #e8ecff;
-  --text-secondary: #8892b0;
-  --text-muted: #4a5568;
-  --text-accent: #a0c4ff;
+  /* ── Accent palette ── */
+  --accent-blue:    #38bdf8;
+  --accent-purple:  #a78bfa;
+  --accent-gold:    #f59e0b;
+  --accent-teal:    #2dd4bf;
+  --accent-red:     #f87171;
+  --accent-green:   #4ade80;
+  --accent-orange:  #fb923c;
+  --accent-scorpius:#ff6b35;
 
-  --font-main: 'Space Grotesk', system-ui, sans-serif;
-  --font-mono: 'Space Mono', 'Courier New', monospace;
+  /* ── Text ── */
+  --text-primary:   #f1f5f9;
+  --text-secondary: #64748b;
+  --text-muted:     #334155;
+  --text-accent:    #38bdf8;
 
-  --radius: 16px;
-  --radius-sm: 10px;
-  --shadow-card: 0 4px 40px rgba(0, 0, 50, 0.6), 0 1px 0 rgba(100, 140, 255, 0.1) inset;
-  --glow-blue: 0 0 30px rgba(74, 158, 255, 0.15);
-  --glow-scorpius: 0 0 30px rgba(255, 107, 53, 0.12);
+  /* ── Typography ── */
+  --font-main:   'Space Grotesk', system-ui, sans-serif;
+  --font-mono:   'Space Mono', 'Courier New', monospace;
+  --font-heading:'Space Grotesk', system-ui, sans-serif;
+
+  /* ── Shape ── */
+  --radius:    14px;
+  --radius-sm: 8px;
+
+  /* ── Shadows & glows ── */
+  --shadow-card:   0 0 0 1px rgba(255,255,255,0.05), 0 8px 40px rgba(0,0,0,0.55);
+  --glow-blue:     0 0 28px rgba(56,189,248,0.12), 0 0 0 1px rgba(56,189,248,0.06);
+  --glow-hover:    0 0 32px rgba(56,189,248,0.14), 0 0 0 1px rgba(56,189,248,0.08), 0 8px 40px rgba(0,0,0,0.55);
+  --glow-scorpius: 0 0 30px rgba(255,107,53,0.10);
 }
 
 /* ── Reset ─────────────────────────────────────────────────────────────── */
@@ -70,10 +82,11 @@ body {
 
 /* ── Header ────────────────────────────────────────────────────────────── */
 .header {
-  background: rgba(5, 5, 20, 0.9);
-  backdrop-filter: blur(20px);
-  border-bottom: 1px solid var(--border);
-  padding: 16px 24px;
+  background: rgba(5, 5, 8, 0.94);
+  backdrop-filter: blur(24px);
+  -webkit-backdrop-filter: blur(24px);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+  padding: 14px 24px;
   position: sticky;
   top: 0;
   z-index: 100;
@@ -242,30 +255,36 @@ body {
   padding-right: 140px;
 }
 
-/* ── Cards ─────────────────────────────────────────────────────────────── */
+/* ── Cards — Glassmorphic ──────────────────────────────────────────────── */
 .card {
-  background: var(--bg-card);
-  border: 1px solid var(--border);
+  /* Near-transparent glass background with subtle top highlight */
+  background:
+    linear-gradient(to bottom, rgba(255,255,255,0.022) 0%, transparent 100%),
+    var(--bg-card);
+  border: 1px solid var(--border);       /* ultra-thin white/5 */
   border-radius: var(--radius);
-  box-shadow: var(--shadow-card);
   backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  box-shadow: var(--shadow-card);
   overflow: hidden;
-  transition: transform 0.2s ease, border-color 0.3s ease, box-shadow 0.3s ease;
+  /* Hardware-accelerated — only composite-layer props change on hover */
+  transition: box-shadow 0.28s ease, border-color 0.28s ease;
+  will-change: box-shadow;
 }
 
 .card:hover {
-  transform: translateY(-2px);
-  border-color: var(--border-glow);
-  box-shadow: var(--shadow-card), var(--glow-blue);
+  border-color: rgba(255, 255, 255, 0.09);
+  box-shadow: var(--glow-hover);
+  /* No translateY — premium SaaS cards don't jump */
 }
 
 .card-header {
   display: flex;
   align-items: center;
-  gap: 12px;
-  padding: 18px 24px;
-  border-bottom: 1px solid var(--border);
-  background: rgba(255, 255, 255, 0.02);
+  gap: 10px;
+  padding: 14px 20px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+  background: rgba(255, 255, 255, 0.018);
 }
 .lang-select {
   background: var(--card-bg);
@@ -282,29 +301,46 @@ body {
   border-color: rgba(255, 255, 255, 0.3);
 }
 
-.card-icon { font-size: 1.4rem; }
+/* ── Card icon — sized for Lucide SVG ── */
+.card-icon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 20px;
+  height: 20px;
+  flex-shrink: 0;
+}
+.card-icon svg, .card-icon i {
+  width: 18px;
+  height: 18px;
+  stroke: #64748b;
+  stroke-width: 1.6;
+  fill: none;
+  display: block;
+}
 
 .card-title {
-  font-size: 1rem;
+  font-size: 0.92rem;
   font-weight: 600;
   color: var(--text-primary);
-  letter-spacing: 0.02em;
+  letter-spacing: 0.01em;
   flex: 1;
 }
 
 .card-badge {
   font-family: var(--font-mono);
-  font-size: 0.8rem;
-  padding: 3px 10px;
+  font-size: 0.72rem;
+  padding: 2px 9px;
   border-radius: 20px;
-  background: rgba(74, 158, 255, 0.15);
-  border: 1px solid rgba(74, 158, 255, 0.3);
+  background: rgba(56, 189, 248, 0.08);
+  border: 1px solid rgba(56, 189, 248, 0.18);
   color: var(--accent-blue);
   white-space: nowrap;
+  letter-spacing: 0.04em;
 }
 
 .card-body {
-  padding: 20px 24px;
+  padding: 18px 20px;
 }
 
 .ext-link {
@@ -1472,8 +1508,8 @@ body {
 
 .motion-tab.active {
   color: #38bdf8;
-  border-bottom-color: #38bdf8;
-  background: rgba(56, 189, 248, 0.06);
+  border-bottom: 2px solid #38bdf8;
+  background: transparent;
 }
 
 .motion-panel {

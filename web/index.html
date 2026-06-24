@@ -34,7 +34,7 @@
   <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/controls/OrbitControls.js"></script>
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/driver.js@1.0.1/dist/driver.css" integrity="sha384-bovbcpDBo0pTIhd7ws6ebPh1PG31ubAHcX2pv8Tcu5EtFHNl5FBciYFtS/e2SN66" crossorigin="anonymous" />
-  <link rel="stylesheet" href="style.css?v=60" />
+  <link rel="stylesheet" href="style.css?v=61" />
   
   <!-- D3.js and d3-celestial for Interactive Star Map -->
   <script src="https://d3js.org/d3.v3.min.js"></script>
@@ -49,6 +49,22 @@
   
   <!-- GSAP for Smooth Animations -->
   <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/gsap.min.js"></script>
+  <!-- Tailwind CSS CDN with custom config -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          colors: {
+            obsidian: '#050508',
+            glass: 'rgba(255,255,255,0.018)',
+          }
+        }
+      }
+    }
+  </script>
+  <!-- Lucide Icons CDN -->
+  <script src="https://unpkg.com/lucide@latest/dist/umd/lucide.js"></script>
 </head>
 <body>
 
@@ -59,14 +75,14 @@
   <header class="header">
     <div class="header-inner">
       <div class="logo">
-        <span class="logo-icon">🔭</span>
+        <span class="logo-icon"><i data-lucide="telescope" style="width:22px;height:22px;stroke:#38bdf8;stroke-width:1.5;"></i></span>
         <div class="logo-wrap">
-        <div class="logo-main" data-i18n="app_title">✨ StarGazer</div>
+        <div class="logo-main" data-i18n="app_title">StarGazer</div>
         <div id="logo-slogan" class="logo-slogan" data-i18n="app_slogan">Astronomy made simple.</div>
         <div class="location-block" style="display: flex; flex-direction: column; align-items: flex-start; gap: 2px; margin-top: 8px;">
           <div style="display: flex; align-items: center; gap: 6px;">
             <div id="logo-sub" class="logo-sub" style="font-weight: bold;" data-i18n="loading_loc">Loading location...</div>
-            <button id="btn-location" class="location-btn" title="Set Location" data-i18n="set_loc_btn" style="width: 24px; height: 24px; font-size: 0.8rem;">📍</button>
+            <button id="btn-location" class="location-btn" title="Set Location" data-i18n="set_loc_btn" style="width: 24px; height: 24px; display:flex;align-items:center;justify-content:center;"><i data-lucide="map-pin" style="width:14px;height:14px;stroke:#38bdf8;stroke-width:1.5;"></i></button>
           </div>
           <div id="logo-coords" class="logo-coords" style="font-family: var(--font-mono); font-size: 0.75rem; opacity: 0.6; letter-spacing: 0.05em;">Lat: --, Lon: --</div>
         </div>
@@ -89,11 +105,11 @@
         <div class="header-controls" style="display: flex; gap: 8px; align-items: center;">
           <button id="btn-unit-toggle" class="unit-btn" title="Toggle Units">°C / km</button>
           <select id="lang-select" class="lang-select desktop-only"><option value="en">🇺🇸 EN</option><option value="es">🇪🇸 ES</option><option value="pt">🇧🇷 PT</option></select>
-          <button id="btn-about" class="about-btn" title="About StarGazer" data-i18n="about_btn">ℹ️</button>
+          <button id="btn-about" class="about-btn" title="About StarGazer" data-i18n="about_btn"><i data-lucide="info" style="width:16px;height:16px;stroke:currentColor;stroke-width:1.5;"></i></button>
           
           <div style="position: relative;">
             <button id="btn-menu" class="menu-btn" title="Navigation">
-              <span style="font-size: 1.1rem;">☰</span>
+              <i data-lucide="menu" style="width:18px;height:18px;stroke:currentColor;stroke-width:1.5;"></i>
               <span class="menu-label" style="font-size: 0.8rem; font-weight: 600; margin-left: 6px; letter-spacing: 0.05em; text-transform: uppercase;">Menu</span>
             </button>
             <div id="nav-dropdown" class="nav-dropdown hidden">
@@ -132,7 +148,7 @@
     <!-- ── Go/No-Go Banner ── -->
     <section id="gonogo-banner" class="gonogo-banner loading-state">
       <div class="gonogo-inner">
-        <span class="gonogo-icon" id="gonogo-icon">⏳</span>
+        <span class="gonogo-icon" id="gonogo-icon"><i data-lucide="clock" style="width:28px;height:28px;stroke:currentColor;stroke-width:1.5;"></i></span>
         <div>
           <div class="gonogo-title" id="gonogo-title" data-i18n="lbl_status_checking">Tonight's Observing Status…</div>
           <div class="gonogo-sub" id="gonogo-sub" data-i18n="gonogo_fetching">Fetching weather and sky data</div>
@@ -147,9 +163,9 @@
       <!-- Seeing Conditions -->
       <div class="card card-seeing" id="card-seeing">
         <div class="card-header">
-          <span class="card-icon">🌤️</span>
+          <span class="card-icon"><i data-lucide="cloud-sun"></i></span>
           <h2 class="card-title" data-i18n="card_conditions">Conditions</h2>
-          <span class="info-icon" style="cursor:pointer; opacity:0.6; font-size: 0.85rem; margin-left:8px;" onclick="showInfo(window.i18n[window.currentLang]?.info_weather || 'Data powered by Open-Meteo API', event)">ℹ️</span>
+          <span class="info-icon" style="cursor:pointer;display:flex;align-items:center;margin-left:6px;" onclick="showInfo(window.i18n[window.currentLang]?.info_weather || 'Data powered by Open-Meteo API', event)"><i data-lucide="info" style="width:14px;height:14px;stroke:rgba(148,163,184,0.6);stroke-width:1.5;"></i></span>
           <span class="card-badge" id="seeing-score-badge">—</span>
         </div>
         <div class="card-body">
@@ -184,7 +200,7 @@
 
           <!-- Pre-Flight Checklist -->
           <div class="checklist-container" id="pre-flight-checklist" style="margin-top: 15px; padding-top: 15px; border-top: 1px solid rgba(255,255,255,0.1);">
-            <h3 style="margin-top:0; font-size: 1rem; color: #fff;"><span style="color:#22c55e;">✅</span> <span data-i18n="preflight_title">Pre-Flight Checklist</span></h3>
+            <h3 style="margin-top:0; font-size: 1rem; color: #fff; display:flex;align-items:center;gap:6px;"><i data-lucide="check-square" style="width:16px;height:16px;stroke:#22c55e;stroke-width:2;"></i> <span data-i18n="preflight_title">Pre-Flight Checklist</span></h3>
             <label style="display: flex; align-items: center; gap: 8px; font-size: 0.8rem; color: var(--text-secondary); margin-bottom: 5px;">
               <input type="checkbox" style="accent-color: var(--accent-blue);"> <span data-i18n="preflight_1">Put telescope outside to cool down (30m)</span>
             </label>
@@ -203,7 +219,7 @@
       <!-- Moon -->
       <div class="card card-moon" id="card-moon">
         <div class="card-header">
-          <span class="card-icon" id="moon-phase-icon">🌙</span>
+          <span class="card-icon" id="moon-phase-icon"><i data-lucide="moon"></i></span>
           <h2 class="card-title" data-i18n="card_moon">Moon</h2>
           <span class="info-icon" style="cursor:pointer; opacity:0.6; font-size: 0.85rem; margin-left:8px;" onclick="showInfo(window.i18n[window.currentLang]?.info_moon || 'Calculated locally via Skyfield Ephemeris', event)">ℹ️</span>
           <span class="card-badge" id="moon-illum-badge">—%</span>
@@ -241,7 +257,7 @@
       <!-- ── Sky Objects in Motion (ISS + NEO + Comets) ─────────────────── -->
       <section class="card" id="card-motion">
         <div class="card-header">
-          <span class="card-icon">🛸</span>
+          <span class="card-icon"><i data-lucide="satellite"></i></span>
           <h2 class="card-title">Sky Objects in Motion</h2>
           <span class="card-badge" style="background:rgba(56,189,248,0.1);color:#38bdf8;border-color:rgba(56,189,248,0.3);">Live Tracking</span>
         </div>
@@ -395,7 +411,7 @@
       <div id="astro-glow" style="position:absolute; top:-50px; left:-50px; width:300px; height:300px; background: radial-gradient(circle, rgba(45,212,191,0.15) 0%, transparent 70%); pointer-events:none; z-index: 1;"></div>
       
       <div class="card-header" style="position: relative; z-index: 2;">
-        <span class="card-icon">🎯</span>
+        <span class="card-icon"><i data-lucide="crosshair"></i></span>
         <h2 class="card-title" style="color: #d8b4fe;">Must-See & AI Picks</h2>
         <span class="card-badge" style="background: rgba(45,212,191,0.1); color: #2dd4bf; border-color: rgba(45,212,191,0.3);">Curated for tonight</span>
       </div>
@@ -412,9 +428,9 @@
     <!-- Planets Tonight -->
     <div class="card card-planets" style="margin-bottom: 20px;">
       <div class="card-header">
-        <span class="card-icon">🪐</span>
+        <span class="card-icon"><i data-lucide="orbit"></i></span>
         <h2 class="card-title" data-i18n="card_planets">Planets Tonight</h2>
-        <span class="info-icon" style="cursor:pointer; opacity:0.6; font-size: 0.85rem; margin-left:8px;" onclick="showInfo(window.i18n[window.currentLang]?.info_planets || 'Calculated locally via Skyfield Ephemeris', event)">ℹ️</span>
+        <span class="info-icon" style="cursor:pointer;display:flex;align-items:center;margin-left:6px;" onclick="showInfo(window.i18n[window.currentLang]?.info_planets || 'Calculated locally via Skyfield Ephemeris', event)"><i data-lucide="info" style="width:14px;height:14px;stroke:rgba(148,163,184,0.6);stroke-width:1.5;"></i></span>
       </div>
       <div class="card-body">
         <div class="planet-list unified-scroll-list" id="planet-list">
@@ -497,7 +513,7 @@
     <!-- ── Clear Outside Weather Embed ── -->
     <section class="card card-weather">
       <div class="card-header">
-        <span class="card-icon">☁️</span>
+        <span class="card-icon"><i data-lucide="cloud"></i></span>
         <h2 class="card-title" data-i18n="card_weather">Clear Outside — Astronomical Weather Forecast</h2>
         <a id="clearoutside-link" href="https://clearoutside.com/forecast/40.126/-83.037" target="_blank" class="ext-link" data-i18n="btn_full_forecast">Open Full Forecast ↗</a>
       </div>
@@ -513,9 +529,9 @@
     <!-- Constellations Tonight -->
     <section class="card" style="margin-bottom: 20px;">
       <div class="card-header">
-        <div class="card-icon">🌌</div>
+        <div class="card-icon"><i data-lucide="star"></i></div>
         <div class="card-title" data-i18n="card_const_tonight">Constellations Tonight</div>
-        <span class="info-icon" style="cursor:pointer; opacity:0.6; font-size: 0.85rem; margin-left:8px;" onclick="showInfo(window.i18n[window.currentLang]?.info_planets || 'Calculated locally via Skyfield Ephemeris', event)">ℹ️</span>
+        <span class="info-icon" style="cursor:pointer;display:flex;align-items:center;margin-left:6px;" onclick="showInfo(window.i18n[window.currentLang]?.info_planets || 'Calculated locally via Skyfield Ephemeris', event)"><i data-lucide="info" style="width:14px;height:14px;stroke:rgba(148,163,184,0.6);stroke-width:1.5;"></i></span>
         <div class="card-badge" style="background: rgba(168, 85, 247, 0.15); color: #a855f7; border-color: rgba(168, 85, 247, 0.3);">
           <span data-i18n="badge_sorted">Sorted by best view</span>
         </div>
@@ -528,7 +544,7 @@
     <!-- ── Dynamic Target Database ── -->
     <section class="card card-targets" id="card-targets">
       <div class="card-header">
-        <div class="card-icon">🎯</div>
+        <div class="card-icon"><i data-lucide="crosshair"></i></div>
         <h2 class="card-title" id="target-db-title">Scorpius Must-See Targets</h2>
         <div class="card-actions">
           <button class="filter-btn active" data-filter="all" data-i18n="filter_all">All</button>
@@ -584,7 +600,7 @@
     <!-- ── Weekly Outlook ── -->
     <section class="card card-weekly" id="card-weekly">
       <div class="card-header">
-        <span class="card-icon">📅</span>
+        <span class="card-icon"><i data-lucide="calendar-days"></i></span>
         <h2 class="card-title" data-i18n="card_weekly">7-Day Outlook</h2>
       </div>
       <div class="weekly-grid" id="weekly-grid">
@@ -596,7 +612,7 @@
     <!-- ── Resources ── -->
     <section class="card card-resources">
       <div class="card-header">
-        <span class="card-icon">🔗</span>
+        <span class="card-icon"><i data-lucide="link"></i></span>
         <h2 class="card-title" data-i18n="card_resources">Resources</h2>
       </div>
       <div class="resource-grid">
@@ -661,7 +677,7 @@
     <!-- ── Observation Log ── -->
     <section class="card" id="card-obs-log" style="margin-top: 24px;">
       <div class="card-header">
-        <span class="card-icon">📓</span>
+        <span class="card-icon"><i data-lucide="notebook-pen"></i></span>
         <h2 class="card-title">Observation Log</h2>
       </div>
       <div class="card-body">
@@ -782,10 +798,10 @@
   <!-- Floating Night Mode Toggle -->
   <div class="night-mode-wrapper">
     <div class="night-tooltip" id="night-tooltip">
-      <span data-i18n="night_tooltip">Toggle Night Vision Mode</span>
+      <span data-i18n="night_tooltip">Night Vision Mode</span>
       <button id="close-night-tooltip" class="close-btn" onclick="document.getElementById('night-tooltip').style.display='none'" style="background:none; border:none; color:#ff4444; margin-left:10px; cursor:pointer; font-weight:bold;">✕</button>
     </div>
-    <button id="btn-night-mode" class="floating-night-btn" title="Toggle Night Vision Mode">
+    <button id="btn-night-mode" class="floating-night-btn" title="Night Vision Mode">
       🔴
     </button>
   </div>
@@ -844,7 +860,7 @@
   <script src="translations.js"></script>
   <script src="moon3d.js?v=5"></script>
   <script src="planets3d.js?v=4"></script>
-  <script src="app.js?v=53"></script>
+  <script src="app.js?v=54"></script>
   <script src="gravity-well.js?v=47"></script>
 </body>
 </html>
