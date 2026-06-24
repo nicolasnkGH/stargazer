@@ -2069,3 +2069,56 @@ body.night-mode {
 .hud-screen .must-see-title { color: #2dd4bf; }
 .hud-screen .must-see-meta { color: rgba(45, 212, 191, 0.7); }
 .hud-screen .must-see-subtitle { color: #94a3b8; }
+
+/* ── Hero Section ────────────────────────────────────── */
+#hero-section {
+  position: relative;
+  width: 100%;
+  height: 60vh;
+  min-height: 400px;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  margin-bottom: 2rem;
+  overflow: hidden;
+}
+
+#gravity-well-canvas {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  z-index: 0;
+  mask-image: linear-gradient(to bottom, black 60%, transparent 100%);
+  -webkit-mask-image: linear-gradient(to bottom, black 60%, transparent 100%);
+  pointer-events: auto;
+}
+
+.hero-content {
+  position: relative;
+  z-index: 999;
+  text-align: center;
+  pointer-events: none;
+}
+
+.hero-title {
+  font-family: var(--font-heading);
+  font-size: clamp(3rem, 6vw, 6rem);
+  font-weight: 700;
+  color: #fff;
+  margin: 0;
+  letter-spacing: -0.02em;
+  text-shadow: 0 0 40px rgba(255, 255, 255, 0.2);
+}
+
+.hero-subtitle {
+  font-family: var(--font-mono);
+  font-size: clamp(0.9rem, 2vw, 1.2rem);
+  color: #94a3b8;
+  margin: 1rem auto 0 auto;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  text-align: center;
+  padding-left: 0.05em; /* optical centering for letter-spacing */
+}
