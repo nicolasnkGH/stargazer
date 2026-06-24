@@ -338,6 +338,30 @@ def get_planet_positions(dt: Optional[datetime] = None, lat=None, lon=None) -> l
             direction = _az_to_direction(az.degrees)
             naked_eye = bool(mag_map.get(name, 5) < 6.5)
 
+            # Planet Rise/Set
+            tz = ZoneInfo(TIMEZONE)
+            d = now.date()
+            midnight = datetime(d.year, d.month, d.day, 0, 0, tzinfo=tz)
+            t0 = ts.from_datetime(midnight)
+            t1 = ts.from_datetime(midnight + timedelta(hours=36))
+            f = almanac.risings_and_settings(eph, body, observer_location)
+            
+            try:
+                times, events = almanac.find_discrete(t0, t1, f)
+            except Exception:
+                times, events = [], []
+
+            rise_time = set_time = None
+            for t_ev, ev in zip(times, events):
+                dt_local = t_ev.utc_datetime().replace(tzinfo=ZoneInfo("UTC")).astimezone(tz)
+                if ev == 1 and rise_time is None and dt_local.date() == d:
+                    rise_time = dt_local.strftime("%I:%M %p")
+                if ev == 0 and set_time is None:
+                    set_time = dt_local.strftime("%I:%M %p")
+
+            mag_str = mag_map.get(name, "N/A")
+            how_to_find = f"Look towards the {direction} ({round(az.degrees)}°). {name} is currently traveling through {constellation} and shines at Mag {mag_str}."
+
             results.append({
                 "name": name,
                 "altitude_deg": round(alt.degrees, 1),
@@ -348,10 +372,13 @@ def get_planet_positions(dt: Optional[datetime] = None, lat=None, lon=None) -> l
                 "light_time_minutes": light_time_min,
                 "constellation": constellation,
                 "visible_tonight": visible,
-                "magnitude_approx": mag_map.get(name, "N/A"),
+                "magnitude_approx": mag_str,
                 "naked_eye": naked_eye,
                 "emoji": _planet_emoji(name),
                 "obs_time": obs_time.strftime("%I:%M %p"),
+                "rise_time": rise_time or "N/A",
+                "set_time": set_time or "N/A",
+                "how_to_find": how_to_find
             })
         except Exception:
             pass
@@ -1056,7 +1083,7 @@ def get_tonight_report(lat=None, lon=None, lang: str = "en") -> dict:
             "title": p['name'],
             "subtitle": fact,
             "icon": p['emoji'],
-            "meta": f"{p['altitude_deg']}° {p['direction']}",
+            "meta": f"{p['altitude_deg']}° {p['direction']} ({p['azimuth_deg']}°)",
             "type": "planet"
         })
     if moon["illumination_pct"] < 15:

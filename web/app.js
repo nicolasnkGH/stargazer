@@ -806,7 +806,7 @@ function renderConstellationMap(targets, constInfo) {
               diffEl.style.background = diffColor;
               diffEl.style.color = diffText;
               
-              document.getElementById('acd-alt').textContent = d.altitude_deg != null ? `${d.altitude_deg}° ${d.direction} • ${d.visible ? 'In view' : 'Below horizon'}` : '';
+              document.getElementById('acd-alt').textContent = d.altitude_deg != null ? `${d.altitude_deg}° ${d.direction} (${Math.round(d.azimuth_deg)}°) • ${d.visible ? 'In view' : 'Below horizon'}` : '';
           });
           
         nodes.attr('cx', d => {
@@ -1002,9 +1002,13 @@ function renderPlanets(planets, factStr) {
             <span class="planet-const-pill" title="Current Constellation">${p.constellation || ''}</span>
           </div>
           <div class="planet-meta-row">
-            <span class="planet-alt">${p.altitude_deg}° ${p.direction}</span>
+            <span class="planet-alt">${p.altitude_deg}° ${p.direction} (${Math.round(p.azimuth_deg)}°)</span>
             <span class="planet-mag">Mag: ${p.magnitude_approx}</span>
             <span class="planet-dist" title="Light Travel Time">${p.distance_mkm ? p.distance_mkm + 'M km' : ''} ${p.light_time_minutes ? '(' + p.light_time_minutes + ' lt-min)' : ''}</span>
+          </div>
+          <div style="font-size: 0.8rem; color: #cbd5e1; margin-top: 8px; padding-top: 8px; border-top: 1px dashed rgba(168, 85, 247, 0.2);">
+             <div style="color: #d8b4fe; font-weight: bold; margin-bottom: 4px;">🔭 Visible: ${p.rise_time || '?'} – ${p.set_time || '?'}</div>
+             <div><strong>📍 How to find it:</strong> ${p.how_to_find || ''}</div>
           </div>
         </div>
       </div>
@@ -1214,7 +1218,7 @@ async function loadConstellations() {
       div.innerHTML = `
         <div class="c-name">${c.emoji || '✨'} ${c.name}</div>
         <div class="c-abbr">${c.abbr}</div>
-        <div class="c-alt" style="color: ${color}">● ${c.altitude_deg}° ${c.direction}</div>
+        <div class="c-alt" style="color: ${color}">● ${c.altitude_deg}° ${c.direction} (${Math.round(c.azimuth_deg)}°)</div>
       `;
       div.addEventListener('click', () => {
         // Find corresponding tab and click it
@@ -1272,7 +1276,7 @@ function renderTargetGrid(targets, liveMap, filter) {
     const live = liveMap[t.id] || {};
     const visibleNow = live.in_fov === true;
     const altText = live.altitude_deg != null
-      ? `${live.altitude_deg}° ${live.direction || ''}`
+      ? `${live.altitude_deg}° ${live.direction || ''} ${live.azimuth_deg ? '(' + Math.round(live.azimuth_deg) + '°)' : ''}`
       : null;
 
     const dict = window.i18n[currentLang] || window.i18n['en'];
