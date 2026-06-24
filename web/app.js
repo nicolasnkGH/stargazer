@@ -1061,23 +1061,8 @@ function updateUnifiedCard() {
   card.style.display = 'flex';
   card.style.flexDirection = 'column';
   
-  // Setup GSAP animation for sleek astronaut
-  const astroImg = document.getElementById('astronaut-image');
+  // Setup GSAP glow
   const astroGlow = document.getElementById('astro-glow');
-  
-  if (astroImg && !astroImg.dataset.gsapInited) {
-    astroImg.dataset.gsapInited = 'true';
-    if (typeof gsap !== 'undefined') {
-      gsap.to(astroImg, {
-        y: -15,
-        rotation: 3,
-        duration: 3,
-        yoyo: true,
-        repeat: -1,
-        ease: 'sine.inOut'
-      });
-    }
-  }
 
   if (astroGlow) {
     const seeing = window.lastTonightData?.seeing?.go_nogo || 'MARGINAL';
@@ -1085,10 +1070,8 @@ function updateUnifiedCard() {
     
     if (isNoGo) {
       astroGlow.style.background = 'radial-gradient(circle, rgba(168,85,247,0.2) 0%, transparent 70%)';
-      astroImg.style.filter = 'drop-shadow(0 0 10px rgba(168,85,247,0.4))';
     } else {
       astroGlow.style.background = 'radial-gradient(circle, rgba(45,212,191,0.2) 0%, transparent 70%)';
-      astroImg.style.filter = 'drop-shadow(0 0 10px rgba(45,212,191,0.4))';
     }
   }
   
