@@ -304,7 +304,7 @@ PLANETS = {
 
 def get_planet_positions(dt: Optional[datetime] = None, lat=None, lon=None) -> list[dict]:
     ts, eph = _get_skyfield()
-    observer, _ = _get_observer(lat=lat, lon=lon)
+    observer, observer_location = _get_observer(lat=lat, lon=lon)
     now = dt or now_local()
 
     # Always use real-time for planet calculations
@@ -380,8 +380,8 @@ def get_planet_positions(dt: Optional[datetime] = None, lat=None, lon=None) -> l
                 "set_time": set_time or "N/A",
                 "how_to_find": how_to_find
             })
-        except Exception:
-            pass
+        except Exception as e:
+            print(f"Error calculating planet {name}: {e}")
 
     results.sort(key=lambda x: -x["altitude_deg"])
     return results
