@@ -302,7 +302,7 @@ PLANETS = {
     "Neptune": "neptune barycenter",
 }
 
-def get_planet_positions(dt: Optional[datetime] = None, lat=None, lon=None) -> list[dict]:
+def get_planet_positions(dt: Optional[datetime] = None, lat=None, lon=None, dusk: Optional[datetime] = None, dawn: Optional[datetime] = None) -> list[dict]:
     ts, eph = _get_skyfield()
     observer, observer_location = _get_observer(lat=lat, lon=lon)
     now = dt or now_local()
@@ -351,13 +351,22 @@ def get_planet_positions(dt: Optional[datetime] = None, lat=None, lon=None) -> l
             except Exception:
                 times, events = [], []
 
-            rise_time = set_time = None
+            rise_time_dt = set_time_dt = None
             for t_ev, ev in zip(times, events):
                 dt_local = t_ev.utc_datetime().replace(tzinfo=ZoneInfo("UTC")).astimezone(tz)
-                if ev == 1 and rise_time is None and dt_local.date() == d:
-                    rise_time = dt_local.strftime("%I:%M %p")
-                if ev == 0 and set_time is None:
-                    set_time = dt_local.strftime("%I:%M %p")
+                if ev == 1 and rise_time_dt is None and dt_local.date() == d:
+                    rise_time_dt = dt_local
+                if ev == 0 and set_time_dt is None:
+                    set_time_dt = dt_local
+
+            # Bound by dusk/dawn for optical visibility
+            if rise_time_dt and dusk and rise_time_dt < dusk:
+                rise_time_dt = dusk
+            if set_time_dt and dawn and set_time_dt > dawn:
+                set_time_dt = dawn
+
+            rise_time = rise_time_dt.strftime("%I:%M %p") if rise_time_dt else "N/A"
+            set_time = set_time_dt.strftime("%I:%M %p") if set_time_dt else "N/A"
 
             mag_str = mag_map.get(name, "N/A")
             how_to_find = f"Look towards the {direction} ({round(az.degrees)}°). {name} is currently traveling through {constellation} and shines at Mag {mag_str}."
@@ -1046,7 +1055,7 @@ def get_tonight_report(lat=None, lon=None, lang: str = "en") -> dict:
     dusk, dawn = _tonight_window(lat=lat, lon=lon)
 
     moon = get_moon_info(now, lat=lat, lon=lon)
-    planets = get_planet_positions(now, lat=lat, lon=lon)
+    planets = get_planet_positions(now, lat=lat, lon=lon, dusk=dusk, dawn=dawn)
     targets = get_visible_targets(now, lat=lat, lon=lon)
     seeing = get_seeing_forecast(lat=lat, lon=lon, lang=lang)
 
