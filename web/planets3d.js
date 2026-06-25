@@ -148,16 +148,15 @@ function initPlanets3D() {
       const size = Math.round(Math.min(cw * 0.76, ch * 0.78));
       const dpr  = Math.min(window.devicePixelRatio || 1, 2);
 
-      // Canvas element
-      const cv = document.createElement('canvas');
-      cv.style.cssText = `width:${size}px;height:${size}px;display:block;margin:0 auto;`;
-      container.appendChild(cv);
-
-      // Three.js renderer
-      const renderer = new THREE.WebGLRenderer({ canvas: cv, antialias: true, alpha: true });
+      // ── Renderer — let Three.js create domElement (mirrors moon3d.js)
+      // Pre-creating canvas manually causes a white opaque background flash
+      const renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true });
       renderer.setPixelRatio(dpr);
       renderer.setSize(size, size);
       renderer.setClearColor(0x000000, 0);
+      // Style the canvas Three.js created and append it
+      renderer.domElement.style.cssText = `width:${size}px;height:${size}px;display:block;margin:0 auto;`;
+      container.appendChild(renderer.domElement);
 
       // Scene & camera
       const scene  = new THREE.Scene();
