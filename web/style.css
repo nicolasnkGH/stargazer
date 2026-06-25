@@ -787,11 +787,15 @@ body {
 /* CSS orbs — no canvas needed */
 
 .planet-info-col {
-  /* Uniform 16px padding on all sides — every child left-edges at 16px */
   padding: 14px 16px 16px;
   display: flex;
   flex-direction: column;
-  gap: 6px;              /* consistent vertical rhythm */
+  gap: 6px;
+  /* Full width + hidden overflow: text can never push the card wider */
+  width: 100%;
+  min-width: 0;
+  overflow: hidden;
+  box-sizing: border-box;
 }
 
 .planet-name-row {
@@ -819,14 +823,26 @@ body {
 }
 
 .planet-meta-row {
-  /* Stack each metric on its own line so they all share the same left edge */
   display: flex;
   flex-direction: column;
   align-items: flex-start;
   gap: 4px;
   font-family: var(--font-mono);
   font-size: 0.75rem;
-  margin: 0;   /* gap on parent handles spacing */
+  margin: 0;
+  /* Full width so child spans have room to be one line */
+  width: 100%;
+}
+
+/* Every data span: full width + never wrap — keeps '24.8° W (277°)' on one line */
+.planet-alt,
+.planet-mag,
+.planet-dist {
+  display: block;
+  width: 100%;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
 .planet-alt {
