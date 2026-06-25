@@ -34,7 +34,7 @@
   <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/controls/OrbitControls.js"></script>
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/driver.js@1.0.1/dist/driver.css" integrity="sha384-bovbcpDBo0pTIhd7ws6ebPh1PG31ubAHcX2pv8Tcu5EtFHNl5FBciYFtS/e2SN66" crossorigin="anonymous" />
-  <link rel="stylesheet" href="style.css?v=62" />
+  <link rel="stylesheet" href="style.css?v=63" />
   
   <!-- D3.js and d3-celestial for Interactive Star Map -->
   <script src="https://d3js.org/d3.v3.min.js"></script>
@@ -76,7 +76,7 @@
 
   <!-- Header -->
   <header class="header">
-    <div class="header-inner">
+    <div class="header-inner" style="padding: 0 8px;">
       <div class="logo">
         <span class="logo-icon"><i data-lucide="telescope" style="width:22px;height:22px;stroke:#38bdf8;stroke-width:1.5;"></i></span>
         <div class="logo-wrap">
@@ -150,7 +150,7 @@
     </section>
     <!-- ── Go/No-Go Banner ── -->
     <section id="gonogo-banner" class="gonogo-banner loading-state">
-      <div class="gonogo-inner">
+      <div class="gonogo-inner" style="padding-left: 8px; padding-right: 8px;">
         <span class="gonogo-icon" id="gonogo-icon"><i data-lucide="clock" style="width:28px;height:28px;stroke:currentColor;stroke-width:1.5;"></i></span>
         <div>
           <div class="gonogo-title" id="gonogo-title" data-i18n="lbl_status_checking">Tonight's Observing Status…</div>
@@ -428,15 +428,16 @@
       </div>
     </section>
 
-    <!-- Planets Tonight -->
-    <div class="card card-planets" style="margin-bottom: 20px;">
+    <!-- Planets Tonight —— isolated card, planet grid below status banner -->
+    <div class="card card-planets">
       <div class="card-header">
         <span class="card-icon"><i data-lucide="orbit"></i></span>
         <h2 class="card-title" data-i18n="card_planets">Planets Tonight</h2>
         <span class="info-icon" style="cursor:pointer;display:flex;align-items:center;margin-left:6px;" onclick="showInfo(window.i18n[window.currentLang]?.info_planets || 'Calculated locally via Skyfield Ephemeris', event)"><i data-lucide="info" style="width:14px;height:14px;stroke:rgba(148,163,184,0.6);stroke-width:1.5;"></i></span>
       </div>
       <div class="card-body">
-        <div class="planet-list unified-scroll-list" id="planet-list">
+        <!-- planet-grid: 4-col CSS grid, isolated block context, static position -->
+        <div class="planet-grid" id="planet-list">
           <div class="loading-shimmer"></div>
         </div>
       </div>

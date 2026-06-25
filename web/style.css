@@ -74,7 +74,8 @@ body {
 .main {
   max-width: 100%;
   margin: 0 auto;
-  padding: 0 40px 80px;
+  /* Defensive horizontal gutter — content never runs flush to browser edge */
+  padding: 0 32px 80px;
   display: flex;
   flex-direction: column;
   gap: 24px;
@@ -354,28 +355,37 @@ body {
 .ext-link:hover { opacity: 1; }
 
 /* ── Card Row ───────────────────────────────────────────────────────────── */
+/* ── Card row — strict 3-column CSS grid ────────────────────────────── */
 .card-row {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 20px;
-  justify-content: center;
-}
-
-.card-row > * {
-  flex: 1 1 calc(33.333% - 14px);
-  max-width: calc(50% - 10px);
-  min-width: 300px;
-}
-
-.card-row-2 > * {
-  flex: 1 1 100%;
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 24px;
+  width: 100%;
 }
 
 @media (max-width: 1100px) {
-  .card-row > * { flex: 1 1 calc(50% - 20px); }
+  .card-row { grid-template-columns: repeat(2, 1fr); }
 }
 @media (max-width: 720px) {
-  .card-row > * { flex: 1 1 100%; }
+  .card-row { grid-template-columns: 1fr; }
+}
+
+/* ── Planet grid — isolated from hero, flows in document order ───────── */
+.planet-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 24px;
+  width: 100%;
+  /* Explicit block context — never inherits positioning from hero section */
+  position: static;
+  isolation: isolate;
+}
+
+@media (max-width: 1200px) {
+  .planet-grid { grid-template-columns: repeat(2, 1fr); }
+}
+@media (max-width: 640px) {
+  .planet-grid { grid-template-columns: 1fr; }
 }
 
 /* ── Seeing Card ────────────────────────────────────────────────────────── */
@@ -696,13 +706,18 @@ body {
   line-height: 1.5;
 }
 
-/* ── Planet List ────────────────────────────────────────────────────────── */
-.planet-list {
+/* ── Planet List / Grid ─────────────────────────────────────────────────── */
+/* .planet-grid is the new class; .planet-list kept as alias for JS compat */
+.planet-list,
+.planet-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(min(280px, 100%), 1fr));
-  gap: 16px;
+  grid-template-columns: repeat(auto-fit, minmax(min(260px, 100%), 1fr));
+  gap: 20px;
   width: 100%;
   box-sizing: border-box;
+  /* Hard static context — never inherits hero positioning */
+  position: static;
+  isolation: isolate;
 }
 
 .planet-3d-card {
@@ -719,9 +734,9 @@ body {
 }
 
 .planet-3d-card:hover {
-  background: rgba(74, 158, 255, 0.06);
-  border-color: rgba(74, 158, 255, 0.3);
-  transform: translateY(-2px);
+  background: rgba(56, 189, 248, 0.04);
+  border-color: rgba(56, 189, 248, 0.18);
+  /* No translateY — keeps grid stable */
 }
 
 .planet-3d-card.not-visible {
@@ -2691,16 +2706,17 @@ body.night-mode {
   width: 100%;
   height: 60vh;
   min-height: 420px;
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  margin-bottom: 2rem;
+  /* Explicit block — does NOT participate in flex/grid of .main */
+  display: block;
   overflow: hidden;
-  /* Subtle radial ambient glow behind canvas */
+  margin-bottom: 0;  /* gap on .main handles spacing */
   background: radial-gradient(ellipse 80% 60% at 50% 30%,
     rgba(56, 189, 248, 0.04) 0%,
     rgba(168, 85, 247, 0.03) 50%,
     transparent 100%);
+  /* Hard isolation: children cannot escape this box */
+  isolation: isolate;
+  contain: layout;
 }
 
 /* Bottom fade-out so hero bleeds into cards seamlessly */
