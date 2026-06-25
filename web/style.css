@@ -722,15 +722,15 @@ body {
 
 .planet-3d-card {
   display: flex;
-  flex-direction: column;
+  flex-direction: column;     /* canvas container on top, text info below */
   background: var(--bg-glass);
   border: 1px solid var(--border);
   border-radius: 12px;
   overflow: hidden;
-  transition: all 0.2s ease;
-  height: auto;
-  min-height: 100%;
-  padding-bottom: 16px;
+  transition: box-shadow 0.2s ease, border-color 0.2s ease;
+  /* CRITICAL: without min-width:0, flex/grid children won't shrink below content width */
+  min-width: 0;
+  width: 100%;
 }
 
 .planet-3d-card:hover {
@@ -744,17 +744,19 @@ body {
 }
 
 .planet-3d-canvas-container {
+  /* Hard bounding box — orbs are clipped to this, never push card boundaries */
   width: 100%;
-  height: 240px;   /* taller to give large orbs breathing room */
-  /* Deep space: near-black with subtle blue nebula hint */
-  background:
-    radial-gradient(ellipse 55% 55% at 48% 42%, rgba(8, 16, 48, 0.85) 0%, rgba(1, 3, 12, 0.98) 100%),
-    linear-gradient(180deg, #01030c 0%, #020510 100%);
+  height: 220px;
+  flex-shrink: 0;      /* never compress below 220px */
+  contain: size layout; /* children cannot expand this box */
+  overflow: hidden;
   position: relative;
   display: flex;
   justify-content: center;
   align-items: center;
-  overflow: hidden;
+  background:
+    radial-gradient(ellipse 55% 55% at 48% 42%, rgba(8, 16, 48, 0.85) 0%, rgba(1, 3, 12, 0.98) 100%),
+    linear-gradient(180deg, #01030c 0%, #020510 100%);
 }
 
 /* Planet orb wrapper — relative so absolute halo child sits behind */

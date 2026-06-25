@@ -200,89 +200,100 @@ function initPlanets3D() {
   const containers = document.querySelectorAll('.planet-3d-canvas-container');
   if (!containers.length) return;
 
-  containers.forEach(container => {
-    container.innerHTML = '';
-    const planetName = (container.dataset.planet || 'mercury').toLowerCase();
-    const cfg = PLANET_CSS[planetName] || PLANET_CSS.mercury;
+  // Use rAF so layout is complete and container.offsetWidth is accurate
+  requestAnimationFrame(() => {
+    containers.forEach(container => {
+      container.innerHTML = '';
+      const planetName = (container.dataset.planet || 'mercury').toLowerCase();
+      const cfg = PLANET_CSS[planetName] || PLANET_CSS.mercury;
 
-    // ── Outer wrap holds everything in center ──
-    const wrap = document.createElement('div');
-    wrap.className = 'planet-orb-wrap';
-    wrap.style.cssText = [
-      'display:flex',
-      'justify-content:center',
-      'align-items:center',
-      'position:relative',
-      'width:100%',
-      'height:100%',
-      `animation:planetFloat ${6 + Math.random() * 2}s ease-in-out infinite`,
-    ].join(';');
+      // ── Compute orb size to fit inside the rendered container ──
+      const cw = container.offsetWidth  || 280;
+      const ch = container.offsetHeight || 220;
+      // Scale to 82% of width or 86% of height — whichever is smaller
+      const maxByWidth  = Math.round(cw * 0.82);
+      const maxByHeight = Math.round(ch * 0.86);
+      const orbSize = Math.min(cfg.size, maxByWidth, maxByHeight);
 
-    // ── Atmospheric halo behind orb ──
-    const halo = document.createElement('div');
-    halo.style.cssText = [
-      `width:${cfg.size + 40}px`,
-      `height:${cfg.size + 40}px`,
-      'border-radius:50%',
-      'position:absolute',
-      'top:50%',
-      'left:50%',
-      'transform:translate(-50%,-50%)',
-      'background:transparent',
-      `box-shadow:${cfg.glow}`,
-      'pointer-events:none',
-      'z-index:0',
-    ].join(';');
+      // ── Outer wrap — full container, centres all children ──
+      const wrap = document.createElement('div');
+      wrap.className = 'planet-orb-wrap';
+      wrap.style.cssText = [
+        'display:flex',
+        'justify-content:center',
+        'align-items:center',
+        'position:relative',
+        'width:100%',
+        'height:100%',
+        `animation:planetFloat ${6 + Math.random() * 2}s ease-in-out infinite`,
+      ].join(';');
 
-    // ── Saturn ring (rendered behind orb) ──
-    if (cfg.hasRing) {
-      const rw  = Math.round(cfg.size * 2.55);
-      const rh  = Math.round(cfg.size * 0.58);
-      const rth = Math.round(cfg.size * 0.14);
-      const ring = document.createElement('div');
-      ring.style.cssText = [
+      // ── Atmospheric halo (absolute, behind orb via z-index:0) ──
+      const halo = document.createElement('div');
+      halo.style.cssText = [
+        `width:${orbSize + 36}px`,
+        `height:${orbSize + 36}px`,
+        'border-radius:50%',
         'position:absolute',
         'top:50%',
         'left:50%',
-        `transform:translate(-50%,-50%) rotateX(68deg)`,
-        `width:${rw}px`,
-        `height:${rh}px`,
-        'border-radius:50%',
-        `border:${rth}px solid rgba(218,186,95,0.68)`,
-        'box-shadow:0 0 18px rgba(210,178,80,0.35), inset 0 0 10px rgba(175,142,55,0.25)',
+        'transform:translate(-50%,-50%)',
+        'background:transparent',
+        `box-shadow:${cfg.glow}`,
         'pointer-events:none',
-        'z-index:1',
+        'z-index:0',
       ].join(';');
-      wrap.appendChild(ring);
-    }
 
-    // ── Main orb ──
-    const orb = document.createElement('div');
-    orb.className = `planet-orb planet-orb-${planetName}`;
-    orb.style.cssText = [
-      `width:${cfg.size}px`,
-      `height:${cfg.size}px`,
-      'border-radius:50%',
-      `background:${cfg.layers.join(', ')}`,
-      'position:relative',
-      'z-index:2',
-      'flex-shrink:0',
-    ].join(';');
+      // ── Saturn ring ──
+      if (cfg.hasRing) {
+        const rw  = Math.round(orbSize * 2.55);
+        const rh  = Math.round(orbSize * 0.58);
+        const rth = Math.round(orbSize * 0.14);
+        const ring = document.createElement('div');
+        ring.style.cssText = [
+          'position:absolute',
+          'top:50%',
+          'left:50%',
+          `transform:translate(-50%,-50%) rotateX(68deg)`,
+          `width:${rw}px`,
+          `height:${rh}px`,
+          'border-radius:50%',
+          `border:${rth}px solid rgba(218,186,95,0.68)`,
+          'box-shadow:0 0 18px rgba(210,178,80,0.35), inset 0 0 10px rgba(175,142,55,0.25)',
+          'pointer-events:none',
+          'z-index:1',
+        ].join(';');
+        wrap.appendChild(ring);
+      }
 
-    // ── Terminator overlay — dark shadow on night-side ──
-    const term = document.createElement('div');
-    term.style.cssText = [
-      'position:absolute',
-      'inset:0',
-      'border-radius:50%',
-      'background:radial-gradient(circle at 70% 65%, rgba(0,0,5,0.0) 22%, rgba(0,0,10,0.45) 58%, rgba(0,0,15,0.80) 100%)',
-      'pointer-events:none',
-    ].join(';');
-    orb.appendChild(term);
+      // ── Main orb div ──
+      const orb = document.createElement('div');
+      orb.className = `planet-orb planet-orb-${planetName}`;
+      orb.style.cssText = [
+        `width:${orbSize}px`,
+        `height:${orbSize}px`,
+        'border-radius:50%',
+        `background:${cfg.layers.join(', ')}`,
+        'position:relative',
+        'z-index:2',
+        'flex-shrink:0',
+      ].join(';');
 
-    wrap.appendChild(halo);
-    wrap.appendChild(orb);
-    container.appendChild(wrap);
+      // Terminator — dark shadow on night-side for 3D depth
+      const term = document.createElement('div');
+      term.style.cssText = [
+        'position:absolute',
+        'inset:0',
+        'border-radius:50%',
+        'background:radial-gradient(circle at 70% 65%, rgba(0,0,5,0.0) 22%, rgba(0,0,10,0.45) 58%, rgba(0,0,15,0.80) 100%)',
+        'pointer-events:none',
+      ].join(';');
+      orb.appendChild(term);
+
+      wrap.appendChild(halo);
+      wrap.appendChild(orb);
+      container.appendChild(wrap);
+    });
   });
 }
 
