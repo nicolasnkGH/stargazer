@@ -1,0 +1,485 @@
+"""Seeing forecast: AI analysis, rule-based scoring, and weather fetching."""
+
+from __future__ import annotations
+
+import logging
+import math
+import requests
+import threading
+import time
+from datetime import date, timedelta
+from typing import Optional
+
+from config import AI_API_KEY, AI_API_URL, AI_MODEL, FALLBACK_AI_API_URL, FALLBACK_AI_MODEL, LATITUDE, LONGITUDE
+
+from .cache import _load_ai_cache, _save_ai_cache
+from .moon import get_moon_info
+from .targets import get_visible_targets
+from .skyfield import now_local
+
+
+def _background_ai_task(payload, headers, current_hash, fallback_args=None):
+    """Run in a background thread: call AI API, parse JSON, save to cache."""
+    try:
+        try:
+            resp = requests.post(AI_API_URL, json=payload, headers=headers, timeout=180)
+            resp.raise_for_status()
+        except Exception as e:
+            logging.warning("Primary AI API failed: %s. Attempting fallback...", e)
+            if FALLBACK_AI_API_URL and FALLBACK_AI_MODEL:
+                fallback_payload = payload.copy()
+                fallback_payload["model"] = FALLBACK_AI_MODEL
+                fallback_headers = {k: v for k, v in headers.items() if k.lower() != "authorization"}
+                try:
+                    resp = requests.post(FALLBACK_AI_API_URL, json=fallback_payload, headers=fallback_headers, timeout=180)
+                    resp.raise_for_status()
+                except Exception as fb_e:
+                    logging.error("Fallback AI API failed: %s", fb_e)
+                    raise fb_e
+            else:
+                raise e
+
+        msg = resp.json()["choices"][0]["message"]
+        content_txt = msg.get("content", "").strip()
+        reasoning = msg.get("reasoning_content", "").strip()
+        raw = content_txt if content_txt else reasoning
+
+        result = None
+        if "```json" in raw:
+            block = raw.split("```json")[-1].split("```")[0]
+            try:
+                result = __import__("json").loads(block.strip())
+            except Exception:
+                pass
+
+        if result is None:
+            first_brace = raw.find("{")
+            if first_brace != -1:
+                candidate = raw[first_brace:].strip()
+                for suffix in ["", "}", "]}", '"]}', '"}']:
+                    try:
+                        result = __import__("json").loads(candidate + suffix)
+                        break
+                    except Exception:
+                        pass
+                    try:
+                        result = __import__("json").loads(candidate + '"' + suffix)
+                        break
+                    except Exception:
+                        pass
+
+        if result and "score" in result:
+            score = int(result.get("score", 0))
+            if 1 <= score <= 10:
+                final_result = {
+                    "score": score,
+                    "label": str(result.get("label", ""))[:60],
+                    "explanation": str(result.get("explanation", ""))[:300],
+                    "moon_fact": str(result.get("moon_fact", ""))[:150],
+                    "best_window": str(result.get("best_window", "Check conditions"))[:60],
+                    "warnings": [str(w)[:80] for w in result.get("warnings", [])[:4]],
+                    "recommended_targets": result.get("recommended_targets", []),
+                    "ai_powered": True,
+                }
+                db = _load_ai_cache()
+                db[current_hash] = {"timestamp": int(time.time()), "data": final_result}
+                _save_ai_cache(db)
+                return
+
+        # If we got here, parsing failed or score was missing
+        db = _load_ai_cache()
+        if current_hash in db and db[current_hash].get("data", {}).get("status") == "processing":
+            if fallback_args:
+                weather, moon_illum, moon_alt = fallback_args
+                fb = _rule_based_seeing_score(weather, moon_illum, moon_alt)
+                fb["ai_powered"] = False
+                db[current_hash] = {"timestamp": int(time.time()), "data": fb}
+                _save_ai_cache(db)
+            else:
+                del db[current_hash]
+                _save_ai_cache(db)
+
+    except Exception as e:
+        logging.error("Background AI task completely failed: %s", e)
+        db = _load_ai_cache()
+        if current_hash in db and db[current_hash].get("data", {}).get("status") == "processing":
+            if fallback_args:
+                weather, moon_illum, moon_alt = fallback_args
+                fb = _rule_based_seeing_score(weather, moon_illum, moon_alt)
+                fb["ai_powered"] = False
+                db[current_hash] = {"timestamp": int(time.time()), "data": fb}
+                _save_ai_cache(db)
+            else:
+                del db[current_hash]
+                _save_ai_cache(db)
+
+
+def _ai_seeing_analysis(weather: dict, moon_illum: float, moon_alt: float, visible_targets: list = None, window_label: str = "averaged 8 PM – 4 AM local time", lat: float = 0.0, lon: float = 0.0, lang: str = "en") -> Optional[dict]:
+    """
+    Call Qwen3.5-9B with a structured astronomy seeing prompt.
+    Returns dict with score (1-10), label, explanation, best_window, warnings[].
+    Returns None on timeout or any failure — caller falls back to rule-based scorer.
+    """
+    if not AI_API_URL or not AI_MODEL:
+        raise ValueError("AI_API_URL or AI_MODEL is not configured in .env")
+
+    # Cache key: lat, lon, and a 3-hour time block (10800 seconds)
+    # This ensures stability across minor weather float changes and page refreshes.
+    import time
+    time_block = int(time.time()) // 10800
+    current_hash = f"{round(float(lat), 2)}_{round(float(lon), 2)}_{time_block}_{lang}_v2"
+    
+    # Cache Hit
+    cache_db = _load_ai_cache()
+    if current_hash in cache_db:
+        entry = cache_db[current_hash]
+        # Evict stale processing locks (e.g. if the thread died)
+        if entry.get("data", {}).get("status") == "processing" and int(time.time()) - entry.get("timestamp", 0) > 240:
+            import logging
+            logging.getLogger("stargazer").warning("AI Seeing: Found stale processing cache. Evicting.")
+            del cache_db[current_hash]
+            _save_ai_cache(cache_db)
+        else:
+            import logging
+            logging.getLogger("stargazer").info("AI Seeing: Returning fresh cached response from disk")
+            return entry["data"]
+            
+    if visible_targets:
+        # Just grab the top 15 highest altitude targets so we don't blow up the prompt context
+        targets_str = ", ".join([f"{t['name']} (Mag {t.get('magnitude', '?')})" for t in visible_targets[:15]])
+        target_prompt = f"\n- Top visible deep-sky targets tonight: {targets_str}\nSelect up to 3 of these as 'recommended_targets' considering the moon and weather."
+    else:
+        target_prompt = ""
+
+    lang_instruction = f"\nCRITICAL: All string values in your JSON response (label, explanation, moon_fact, warnings, recommended_targets names and reasons) MUST be written in the ISO language code '{lang}'. Do not use English unless '{lang}' is 'en'." if lang != "en" else ""
+
+    prompt = f"""You are an expert astronomical seeing forecaster helping amateur astronomers decide whether to observe tonight.
+
+Tonight's atmospheric data ({window_label}):
+- Cloud cover: {weather.get('cloud_total', '?')}% (low: {weather.get('cloud_low', '?')}%, mid: {weather.get('cloud_mid', '?')}%, high/cirrus: {weather.get('cloud_high', '?')}%)
+- Surface wind: {weather.get('wind_surface', '?')} km/h
+- Upper-atmosphere wind (500hPa jet stream proxy): {weather.get('wind_upper', '?')} km/h
+- Precipitation probability: {weather.get('precip', '?')}%
+- Relative humidity: {weather.get('humidity', '?')}%
+- Dew point spread (temp − dewpoint): {weather.get('dew_spread', '?')}°C  [<3°C = fogging risk]
+- Surface pressure: {weather.get('pressure', '?')} hPa
+- Visibility: {weather.get('visibility_km', '?')} km
+- High cirrus clouds present: {'Yes' if (weather.get('cloud_high') or 0) > 20 else 'No'}
+- Moon: {moon_illum:.0f}% illuminated, currently {moon_alt:.1f}° above horizon{target_prompt}
+
+Rate the astronomical seeing quality on a scale of 1–10 (10 = perfect, 1 = stay inside).
+Consider: transparency (cloud/humidity/cirrus), atmospheric stability (jet stream), dew risk, moon interference, and overall observing potential.
+
+Respond ONLY with valid JSON — no markdown, no explanation outside the JSON:
+{{"score": <int 1-10>, "label": "<short label e.g. Exceptional transparency>", "explanation": "<2 sentences for a beginner astronomer>", "moon_fact": "<1 short interesting sentence about the moon's phase tonight>", "best_window": "<e.g. 10 PM – Midnight or All night>", "warnings": [<list of short warning strings, empty list if none>], "recommended_targets": [{{"name": "<Target Name>", "constellation": "<Constellation>", "magnitude": "<e.g., 1.5 or N/A>", "distance_ly": "<e.g., 400 Light Years>", "equipment": "<Naked Eye / Binoculars / Telescope>", "how_to_find": "<1 sentence star-hopping guide>", "reason": "<Why it's good tonight>"}}]}}{lang_instruction}"""
+
+    headers = {"Content-Type": "application/json"}
+    if AI_API_KEY:
+        headers["Authorization"] = f"Bearer {AI_API_KEY}"
+
+    payload = {
+        "model": AI_MODEL,
+        "messages": [
+            {"role": "system", "content": f"You are a precise astronomical seeing forecaster. Always respond with valid JSON only. CRITICAL: All string values in your JSON response must be written in the ISO language code: '{lang}'."},
+            {"role": "user", "content": prompt},
+        ],
+        "temperature": 0.1,
+        "max_tokens": 4000,
+        "stream": False,
+    }
+
+    try:
+        # Mark as processing in cache immediately and start thread to bypass NGINX/Cloudflare timeouts
+        import threading, time
+        cache_db = _load_ai_cache()
+        cache_db[current_hash] = {"timestamp": int(time.time()), "data": {"status": "processing"}}
+        _save_ai_cache(cache_db)
+        
+        t = threading.Thread(target=_background_ai_task, args=(payload, headers, current_hash, (weather, moon_illum, moon_alt)))
+        t.start()
+        
+        return {"status": "processing"}
+        
+    except Exception as e:
+        import logging
+        logging.getLogger("stargazer").error(f"AI Seeing error: {e}")
+        return None
+
+
+def _rule_based_seeing_score(weather: dict, moon_illum: float, moon_alt: float) -> dict:
+    """
+    Improved deterministic fallback scorer on 1–10 scale.
+    Used when Qwen is unreachable or times out.
+    """
+    cloud  = weather.get("cloud_total") or 50
+    wind_s = weather.get("wind_surface") or 0
+    wind_u = weather.get("wind_upper") or 0
+    precip = weather.get("precip") or 0
+    humid  = weather.get("humidity") or 50
+    spread = weather.get("dew_spread")   # may be None
+    cirrus = weather.get("cloud_high") or 0
+
+    score = 10
+
+    # Cloud cover — biggest factor
+    if cloud > 80:   score -= 4
+    elif cloud > 50: score -= 2
+    elif cloud > 20: score -= 1
+
+    # Jet stream / upper wind — seeing turbulence
+    if wind_u > 80:   score -= 2
+    elif wind_u > 50: score -= 1
+
+    # Surface wind
+    if wind_s > 40:   score -= 1
+
+    # Rain risk
+    if precip > 50:   score -= 1
+
+    # Dew / fogging risk
+    if spread is not None and spread < 2:  score -= 2
+    elif spread is not None and spread < 4: score -= 1
+
+    # Humidity
+    if humid > 90:    score -= 1
+
+    # High cirrus — kills transparency
+    if cirrus > 50:   score -= 1
+
+    # Moon interference (only counts when moon is above horizon)
+    if moon_illum > 80 and moon_alt > 20: score -= 1
+
+    score = max(1, min(10, score))
+
+    labels = {
+        10: "Perfect — rare, exceptional night",
+        9:  "Excellent transparency",
+        8:  "Very good conditions",
+        7:  "Good — solid observing night",
+        6:  "Decent — most targets reachable",
+        5:  "Average — bright objects only",
+        4:  "Below average — limiting",
+        3:  "Poor — consider waiting",
+        2:  "Very poor conditions",
+        1:  "Bad — stay in",
+    }
+
+    warnings = []
+    if spread is not None and spread < 4:
+        warnings.append(f"Dew risk — spread only {spread:.1f}°C, bring dew heater")
+    if wind_u > 50:
+        warnings.append(f"Jet stream turbulence likely ({wind_u:.0f} km/h at altitude)")
+    if cirrus > 30:
+        warnings.append(f"High cirrus clouds ({cirrus:.0f}%) — affects transparency")
+    if moon_illum > 60 and moon_alt > 10:
+        warnings.append(f"Moon {moon_illum:.0f}% lit — DSO contrast reduced")
+    if precip > 30:
+        warnings.append(f"Rain chance {precip:.0f}% — watch the sky")
+
+    # Rough best window suggestion
+    if cloud < 30 and precip < 20:
+        best_window = "All night"
+    elif cloud < 60:
+        best_window = "Early evening (8–11 PM)"
+    else:
+        best_window = "Check hourly cloud forecast"
+
+    return {
+        "score": score,
+        "label": labels[score],
+        "explanation": "",   # rule-based doesn't generate prose
+        "moon_fact": "",     # rule-based doesn't generate prose
+        "best_window": best_window,
+        "warnings": warnings,
+        "recommended_targets": [],
+        "ai_powered": False,
+    }
+
+
+def get_seeing_forecast(lat=None, lon=None, ai_enabled: bool = False, lang: str = "en") -> dict:
+    """
+    Fetch astronomical seeing forecast from Open-Meteo (expanded parameters)
+    and conditionally analyse with Qwen3.5-9B AI.
+    """
+    import json as _json
+
+    use_lat = lat if lat is not None else LATITUDE
+    use_lon = lon if lon is not None else LONGITUDE
+
+    url = (
+        f"https://api.open-meteo.com/v1/forecast"
+        f"?latitude={use_lat}&longitude={use_lon}"
+        # Surface
+        f"&hourly=cloudcover,cloudcover_low,cloudcover_mid,cloudcover_high,"
+        f"visibility,windspeed_10m,winddirection_10m,"
+        f"precipitation_probability,temperature_2m,dewpoint_2m,"
+        f"relativehumidity_2m,surface_pressure"
+        # Upper atmosphere (jet stream proxy)
+        f"&hourly=windspeed_500hPa"
+        f"&daily=sunrise,sunset,precipitation_sum"
+        f"&timezone=auto&forecast_days=7"
+    )
+
+    try:
+        resp = requests.get(url, timeout=8)
+        resp.raise_for_status()
+        data = resp.json()
+    except Exception as e:
+        return {
+            "seeing_score": None,
+            "seeing_label": "Could not fetch weather",
+            "seeing_explanation": "",
+            "best_window": "Unknown",
+            "warnings": [],
+            "ai_powered": False,
+            "go_nogo": "❓ UNKNOWN",
+            "clearoutside_embed": f"https://clearoutside.com/forecast_embed/{use_lat}/{use_lon}",
+            "error": str(e),
+        }
+
+    hourly = data.get("hourly", {})
+    daily  = data.get("daily",  {})
+
+    # ── Average the overnight observing window (dynamic 8-hour block) ──
+    current_hour = now_local(lat=lat, lon=lon).hour
+    if current_hour < 12:
+        # After midnight: observing right now
+        tonight_start = current_hour
+    elif current_hour < 20:
+        # Daytime/afternoon: planning for tonight
+        tonight_start = 20
+    else:
+        # Evening: observing right now
+        tonight_start = current_hour
+        
+    tonight_end = tonight_start + 8
+    
+    start_h = tonight_start % 24
+    end_h = tonight_end % 24
+    start_str = f"{start_h % 12 or 12} {'AM' if start_h < 12 else 'PM'}"
+    end_str = f"{end_h % 12 or 12} {'AM' if end_h < 12 else 'PM'}"
+    window_label = f"averaged {start_str} – {end_str} local time"
+
+    def avg(field, start=tonight_start, end=tonight_end):
+        vals = [v for v in (hourly.get(field, []) or [])[start:end] if v is not None]
+        return round(sum(vals) / len(vals), 1) if vals else None
+
+    cloud_total = avg("cloudcover")
+    cloud_low   = avg("cloudcover_low")
+    cloud_mid   = avg("cloudcover_mid")
+    cloud_high  = avg("cloudcover_high")
+    wind_s      = avg("windspeed_10m")
+    wind_u      = avg("windspeed_500hPa")
+    precip      = avg("precipitation_probability")
+    temp        = avg("temperature_2m")
+    dewpoint    = avg("dewpoint_2m")
+    humidity    = avg("relativehumidity_2m")
+    pressure    = avg("surface_pressure")
+    visibility  = avg("visibility")
+
+    dew_spread = round(temp - dewpoint, 1) if (temp is not None and dewpoint is not None) else None
+    visibility_km = round(visibility / 1000, 1) if visibility is not None else None
+
+    weather_snapshot = {
+        "cloud_total": cloud_total,
+        "cloud_low":   cloud_low,
+        "cloud_mid":   cloud_mid,
+        "cloud_high":  cloud_high,
+        "wind_surface": wind_s,
+        "wind_upper":  wind_u,
+        "precip":      precip,
+        "humidity":    humidity,
+        "dew_spread":  dew_spread,
+        "pressure":    pressure,
+        "visibility_km": visibility_km,
+        "tonight_temp_c": temp,
+    }
+
+    # Moon context for AI/fallback scoring
+    try:
+        moon_now = get_moon_info(lat=lat, lon=lon)
+        moon_illum = moon_now.get("illumination_pct", 50)
+        moon_alt   = moon_now.get("altitude_deg", 0)
+    except Exception:
+        moon_illum, moon_alt = 50, 0
+        
+    try:
+        targets = get_visible_targets(constellation="All", lat=lat, lon=lon)
+    except Exception:
+        targets = []
+
+    # ── AI analysis (Qwen3.5-9B) → fallback to rule-based ────────────────────
+    if ai_enabled:
+        try:
+            analysis = _ai_seeing_analysis(weather_snapshot, moon_illum, moon_alt, targets, window_label, lat=use_lat, lon=use_lon, lang=lang)
+            if analysis and analysis.get("status") == "processing":
+                return {"status": "processing"}
+        except Exception:
+            analysis = None
+    else:
+        analysis = None
+
+    if analysis is None:
+        analysis = _rule_based_seeing_score(weather_snapshot, moon_illum, moon_alt)
+
+    score = analysis["score"]
+
+    # Map 1-10 AI score → 1-5 stars for legacy badge compatibility
+    stars = max(1, round(score / 2))
+
+    seeing_labels_5 = {
+        5: "⭐⭐⭐⭐⭐ Exceptional",
+        4: "⭐⭐⭐⭐ Good",
+        3: "⭐⭐⭐ Average",
+        2: "⭐⭐ Poor",
+        1: "⭐ Bad — stay in",
+    }
+
+    go_nogo = "✅ GO" if score >= 6 else ("⚠️ MARGINAL" if score >= 4 else "❌ NO GO")
+
+    # ── 7-day summary (unchanged logic, extended field) ───────────────────────
+    week_summary = []
+    for i in range(7):
+        idx_s = i * 24 + tonight_start
+        idx_e = idx_s + 8
+        day_cloud  = avg("cloudcover", idx_s, idx_e)
+        day_precip = avg("precipitation_probability", idx_s, idx_e)
+        day_temp = avg("temperature_2m", idx_s, idx_e)
+        label = "🟢 Clear" if (day_cloud or 100) < 30 else ("🟡 Partly Cloudy" if (day_cloud or 100) < 70 else "🔴 Cloudy")
+        from datetime import date as _date
+        day_date = (_date.today() + timedelta(days=i)).strftime("%a %b %d")
+        week_summary.append({
+            "date":        day_date,
+            "cloud_pct":   day_cloud,
+            "precip_prob": day_precip,
+            "temp":        day_temp,
+            "status":      label,
+        })
+
+    return {
+        # Core score (1-10) and 5-star display
+        "seeing_score":       stars,          # 1-5 for badge/stars UI
+        "seeing_score_raw":   score,          # 1-10 for display/tooltip
+        "seeing_label":       seeing_labels_5[stars],
+        "seeing_label_ai":    analysis["label"],       # AI's own short label
+        "seeing_explanation": analysis["explanation"], # prose for beginners
+        "moon_fact":          analysis.get("moon_fact", ""), # fun fact
+        "best_window":        analysis["best_window"],
+        "warnings":           analysis["warnings"],
+        "recommended_targets": analysis.get("recommended_targets", []),
+        "ai_powered":         analysis["ai_powered"],
+        # Weather snapshot (kept for frontend metrics)
+        "tonight_cloud_pct":     cloud_total,
+        "tonight_cloud_low_pct": cloud_low,
+        "tonight_wind_kmh":      wind_s,
+        "tonight_precip_prob":   precip,
+        "tonight_humidity":      humidity,
+        "tonight_dew_spread":    dew_spread,
+        "tonight_visibility_km": visibility_km,
+        "tonight_temp_c":        temp,
+        # Go/No-Go
+        "go_nogo":  go_nogo,
+        "source":   "Open-Meteo + Qwen3.5-9B" if analysis["ai_powered"] else "Open-Meteo (rule-based fallback)",
+        "clearoutside_embed": f"https://clearoutside.com/forecast_embed/{use_lat}/{use_lon}",
+        "week_forecast": week_summary,
+    }
