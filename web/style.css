@@ -1,33 +1,33 @@
-/* ── StarGazer Dashboard — Premium Matte Black Design System ────────────── */
+/* ── StarGazer Dashboard — Astronomy Console ─────────────────────── */
 
 :root {
-  /* ── Backgrounds — true matte obsidian ── */
-  --bg-void:        #050508;
-  --bg-deep:        #050508;
-  --bg-card:        rgba(255, 255, 255, 0.018);
-  --bg-card-hover:  rgba(255, 255, 255, 0.032);
-  --bg-glass:       rgba(255, 255, 255, 0.025);
+  /* ── Backgrounds — deep midnight navy / astronomy console ── */
+  --bg-void:        #050510;   /* deepest space black-navy */
+  --bg-deep:        #08091a;   /* dark slate body */
+  --bg-card:        rgba(2, 6, 23, 0.40);    /* slate-950/40 — translucent dark */
+  --bg-card-hover:  rgba(2, 6, 23, 0.65);
+  --bg-glass:       rgba(15, 23, 42, 0.35);  /* slate-900/35 */
 
-  /* ── Borders — ultra-thin white/5 ── */
-  --border:         rgba(255, 255, 255, 0.05);
-  --border-glow:    rgba(56, 189, 248, 0.18);
-  --border-hover:   rgba(255, 255, 255, 0.10);
+  /* ── Borders — subtle midnight blue ── */
+  --border:         rgba(100, 120, 220, 0.14);
+  --border-glow:    rgba(120, 160, 255, 0.30);
+  --border-hover:   rgba(148, 163, 220, 0.28);
 
   /* ── Accent palette ── */
-  --accent-blue:    #38bdf8;
-  --accent-purple:  #a78bfa;
+  --accent-blue:    #4a9eff;
+  --accent-purple:  #a855f7;
   --accent-gold:    #f59e0b;
-  --accent-teal:    #2dd4bf;
-  --accent-red:     #f87171;
-  --accent-green:   #4ade80;
-  --accent-orange:  #fb923c;
+  --accent-teal:    #14b8a6;
+  --accent-red:     #ef4444;
+  --accent-green:   #22c55e;
+  --accent-orange:  #f97316;
   --accent-scorpius:#ff6b35;
 
   /* ── Text ── */
-  --text-primary:   #f1f5f9;
-  --text-secondary: #64748b;
-  --text-muted:     #334155;
-  --text-accent:    #38bdf8;
+  --text-primary:   #e8ecff;
+  --text-secondary: #8892b0;
+  --text-muted:     #4a5568;
+  --text-accent:    #a0c4ff;
 
   /* ── Typography ── */
   --font-main:   'Space Grotesk', system-ui, sans-serif;
@@ -35,14 +35,14 @@
   --font-heading:'Space Grotesk', system-ui, sans-serif;
 
   /* ── Shape ── */
-  --radius:    14px;
-  --radius-sm: 8px;
+  --radius:    16px;
+  --radius-sm: 10px;
 
   /* ── Shadows & glows ── */
-  --shadow-card:   0 0 0 1px rgba(255,255,255,0.05), 0 8px 40px rgba(0,0,0,0.55);
-  --glow-blue:     0 0 28px rgba(56,189,248,0.12), 0 0 0 1px rgba(56,189,248,0.06);
-  --glow-hover:    0 0 32px rgba(56,189,248,0.14), 0 0 0 1px rgba(56,189,248,0.08), 0 8px 40px rgba(0,0,0,0.55);
-  --glow-scorpius: 0 0 30px rgba(255,107,53,0.10);
+  --shadow-card:   0 4px 40px rgba(0, 0, 50, 0.55), 0 1px 0 rgba(100, 140, 255, 0.08) inset;
+  --glow-blue:     0 0 30px rgba(74, 158, 255, 0.14);
+  --glow-hover:    0 0 32px rgba(74, 158, 255, 0.22), 0 4px 40px rgba(0,0,50,0.55);
+  --glow-scorpius: 0 0 30px rgba(255, 107, 53, 0.12);
 }
 
 /* ── Reset ─────────────────────────────────────────────────────────────── */
@@ -83,11 +83,12 @@ body {
 
 /* ── Header ────────────────────────────────────────────────────────────── */
 .header {
-  background: rgba(5, 5, 8, 0.94);
+  background: rgba(5, 5, 16, 0.92);
   backdrop-filter: blur(24px);
   -webkit-backdrop-filter: blur(24px);
-  border-bottom: 1px solid rgba(255, 255, 255, 0.05);
-  padding: 14px 24px;
+  border-bottom: 1px solid rgba(100, 120, 220, 0.14);
+  /* px-8 guardrail — content never clips browser bezel */
+  padding: 14px 32px;
   position: sticky;
   top: 0;
   z-index: 100;
@@ -256,27 +257,22 @@ body {
   padding-right: 140px;
 }
 
-/* ── Cards — Glassmorphic ──────────────────────────────────────────────── */
+/* ── Cards — translucent dark-slate glass ─────────────────────────── */
 .card {
-  /* Near-transparent glass background with subtle top highlight */
-  background:
-    linear-gradient(to bottom, rgba(255,255,255,0.022) 0%, transparent 100%),
-    var(--bg-card);
-  border: 1px solid var(--border);       /* ultra-thin white/5 */
+  background: var(--bg-card);
+  border: 1px solid var(--border);
   border-radius: var(--radius);
-  backdrop-filter: blur(20px);
-  -webkit-backdrop-filter: blur(20px);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
   box-shadow: var(--shadow-card);
   overflow: hidden;
-  /* Hardware-accelerated — only composite-layer props change on hover */
   transition: box-shadow 0.28s ease, border-color 0.28s ease;
   will-change: box-shadow;
 }
 
 .card:hover {
-  border-color: rgba(255, 255, 255, 0.09);
+  border-color: var(--border-hover);
   box-shadow: var(--glow-hover);
-  /* No translateY — premium SaaS cards don't jump */
 }
 
 .card-header {
@@ -284,8 +280,8 @@ body {
   align-items: center;
   gap: 10px;
   padding: 14px 20px;
-  border-bottom: 1px solid rgba(255, 255, 255, 0.05);
-  background: rgba(255, 255, 255, 0.018);
+  border-bottom: 1px solid rgba(100, 120, 220, 0.10);
+  background: rgba(15, 23, 42, 0.25);
 }
 .lang-select {
   background: var(--card-bg);
