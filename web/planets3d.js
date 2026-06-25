@@ -1,300 +1,496 @@
-// planets3d.js — Photorealistic Planet Orbs v6
-// Matches reference: large spheres, rich textures, warm atmospheric glow
-// Pure CSS — no WebGL, no canvas
+// planets3d.js — Three.js textured planets v8
+// Procedural canvas textures + 12fps shared render loop + IntersectionObserver
+// No external assets — all textures generated locally on canvas
 
-const PLANET_CSS = {
+(function () {
+'use strict';
 
-  // ── Sun ─────────────────────────────────────────────────────────────────
-  sun: {
-    layers: [
-      // Brilliant specular hotspot
-      'radial-gradient(ellipse 38% 32% at 28% 22%, rgba(255,255,200,1.0) 0%, rgba(255,230,100,0.70) 25%, transparent 60%)',
-      // Bright limb
-      'radial-gradient(ellipse 20% 55% at 90% 50%, rgba(255,180,50,0.30) 0%, transparent 55%)',
-      // Body gradient — white core → orange → deep red rim
-      'radial-gradient(circle at 42% 40%, #fffff0 0%, #ffe84a 8%, #ffaa00 22%, #ff7700 42%, #cc3a00 62%, #881800 80%, #420800 100%)',
-    ],
-    glow: '0 0 55px 25px rgba(255,150,0,0.70), 0 0 110px 55px rgba(255,90,0,0.32), 0 0 200px 100px rgba(255,60,0,0.12)',
-    size: 185,
-  },
-
-  // ── Mercury ─────────────────────────────────────────────────────────────
-  // Rocky gold-brown — mimics reference Mercury look
-  mercury: {
-    layers: [
-      // Specular hotspot — offset top-left
-      'radial-gradient(ellipse 32% 26% at 34% 27%, rgba(235,215,165,0.95) 0%, rgba(200,170,115,0.50) 38%, transparent 68%)',
-      // Surface texture patches
-      'radial-gradient(ellipse 55% 38% at 22% 65%, rgba(128,82,30,0.48) 0%, transparent 58%)',
-      'radial-gradient(ellipse 42% 30% at 74% 40%, rgba(155,108,48,0.36) 0%, transparent 52%)',
-      'radial-gradient(ellipse 38% 22% at 50% 80%, rgba(100,60,18,0.38) 0%, transparent 52%)',
-      'radial-gradient(ellipse 30% 28% at 65% 20%, rgba(180,138,72,0.28) 0%, transparent 50%)',
-      // Main body — warm gold → dark brown
-      'radial-gradient(circle at 42% 40%, #eed48a 0%, #c8a050 12%, #a07838 28%, #785224 48%, #503212 68%, #2c1806 86%, #120800 100%)',
-    ],
-    glow: '0 0 36px 16px rgba(185,142,62,0.48), 0 0 72px 36px rgba(150,105,35,0.22)',
-    size: 152,
-  },
-
-  // ── Venus ───────────────────────────────────────────────────────────────
-  // Volcanic orange-russet — matches the warm rocky look in reference
-  venus: {
-    layers: [
-      // Primary specular — warm cream
-      'radial-gradient(ellipse 34% 28% at 34% 26%, rgba(255,215,140,0.96) 0%, rgba(240,165,70,0.52) 35%, transparent 65%)',
-      // Cloud texture patches — layered orange-brown swirls
-      'radial-gradient(ellipse 65% 42% at 20% 62%, rgba(168,72,12,0.52) 0%, transparent 58%)',
-      'radial-gradient(ellipse 48% 32% at 72% 44%, rgba(200,108,24,0.42) 0%, transparent 54%)',
-      'radial-gradient(ellipse 55% 28% at 52% 78%, rgba(145,58,8,0.46) 0%, transparent 56%)',
-      'radial-gradient(ellipse 35% 30% at 68% 18%, rgba(215,135,45,0.30) 0%, transparent 50%)',
-      'radial-gradient(ellipse 40% 22% at 30% 82%, rgba(120,45,5,0.38) 0%, transparent 50%)',
-      // Base body — vivid amber-orange core → deep russet → charcoal rim
-      'radial-gradient(circle at 40% 38%, #ffc068 0%, #e87828 12%, #c05018 28%, #963010 48%, #6a1c06 68%, #381000 86%, #180500 100%)',
-    ],
-    glow: '0 0 42px 20px rgba(225,120,28,0.58), 0 0 85px 42px rgba(180,78,10,0.26), 0 0 150px 75px rgba(140,50,5,0.10)',
-    size: 172,
-  },
-
-  // ── Earth ───────────────────────────────────────────────────────────────
-  earth: {
-    layers: [
-      // Polar ice specular
-      'radial-gradient(ellipse 38% 30% at 32% 20%, rgba(225,242,255,0.98) 0%, rgba(145,205,255,0.52) 35%, transparent 65%)',
-      // Cloud layer
-      'radial-gradient(ellipse 60% 30% at 62% 52%, rgba(255,255,255,0.14) 0%, transparent 65%)',
-      'radial-gradient(ellipse 42% 20% at 28% 68%, rgba(255,255,255,0.10) 0%, transparent 55%)',
-      // Landmass hints (green-brown)
-      'radial-gradient(ellipse 45% 28% at 58% 38%, rgba(38,120,40,0.22) 0%, transparent 55%)',
-      // Ocean body
-      'radial-gradient(circle at 42% 38%, #d0eeff 0%, #3898f0 14%, #1262d0 34%, #0844a0 56%, #042270 76%, #010e38 92%, #000410 100%)',
-    ],
-    glow: '0 0 38px 16px rgba(45,145,240,0.46), 0 0 76px 38px rgba(10,90,200,0.22)',
-    size: 160,
-  },
-
-  // ── Mars ─────────────────────────────────────────────────────────────────
-  mars: {
-    layers: [
-      'radial-gradient(ellipse 33% 27% at 33% 26%, rgba(255,185,145,0.94) 0%, rgba(220,118,78,0.48) 36%, transparent 66%)',
-      'radial-gradient(ellipse 55% 35% at 24% 66%, rgba(155,52,18,0.44) 0%, transparent 58%)',
-      'radial-gradient(ellipse 44% 28% at 70% 42%, rgba(185,80,32,0.36) 0%, transparent 52%)',
-      'radial-gradient(ellipse 36% 22% at 52% 78%, rgba(128,38,10,0.38) 0%, transparent 50%)',
-      'radial-gradient(circle at 42% 38%, #ffb08a 0%, #e06030 12%, #b83818 30%, #882010 50%, #5a1008 70%, #2e0602 88%, #130200 100%)',
-    ],
-    glow: '0 0 36px 16px rgba(210,78,34,0.46), 0 0 72px 36px rgba(165,45,12,0.22)',
-    size: 158,
-  },
-
-  // ── Jupiter ─────────────────────────────────────────────────────────────
-  // PROMINENT horizontal band system — the defining feature
-  jupiter: {
-    layers: [
-      // Specular highlight — wide diffuse
-      'radial-gradient(ellipse 44% 24% at 30% 18%, rgba(255,248,220,0.78) 0%, rgba(240,210,130,0.35) 42%, transparent 70%)',
-      // Secondary limb highlight
-      'radial-gradient(ellipse 18% 60% at 92% 48%, rgba(225,185,100,0.22) 0%, transparent 58%)',
-      // ── Cloud band stripes ── repeating horizontal belts
-      `repeating-linear-gradient(177deg,
-        #bf9850  0%,  #cda458  2.5%,
-        #edd898  5%,  #f8e8b0  8%,
-        #a06830  10.5%, #8c5c28 13%,
-        #cc9e4a  15.5%, #daa852 18%,
-        #7e5020  20.5%, #6e4418 23%,
-        #c89848  25.5%, #d4a250 28%,
-        #f5e090  30.5%, #feeea8 33%,
-        #9c6830  35.5%, #8a5c28 38%,
-        #d0a24a  40.5%, #dcac52 43%,
-        #886030  45.5%, #766030 48%,
-        #e2c870  50.5%, #eed27a 53%,
-        #9e7c38  55.5%, #8c6c30 58%,
-        #c49840  60.5%, #cfa448 63%,
-        #ecd88a  65.5%, #f8e89e 68%,
-        #a06830  70.5%, #8c5a28 73%,
-        #cca048  75.5%, #d8ac50 78%,
-        #7e5020  80.5%, #6c4018 83%,
-        #c09040  85.5%, #cca048 88%,
-        #ecd88a  90.5%, #f8e89e 93%,
-        #a46a32  95.5%, #c09848 98%,
-        #edd898  100%)`,
-      // Global spherical shadow overlay — dark rim + bright equator
-      'radial-gradient(ellipse 110% 95% at 50% 50%, transparent 40%, rgba(40,18,0,0.45) 75%, rgba(15,6,0,0.75) 100%)',
-    ],
-    glow: '0 0 42px 18px rgba(198,155,65,0.52), 0 0 85px 42px rgba(155,112,38,0.25), 0 0 150px 75px rgba(120,80,20,0.10)',
-    size: 178,
-  },
-
-  // ── Saturn ──────────────────────────────────────────────────────────────
-  saturn: {
-    layers: [
-      'radial-gradient(ellipse 36% 28% at 32% 24%, rgba(255,248,215,0.90) 0%, rgba(232,192,100,0.50) 36%, transparent 65%)',
-      `repeating-linear-gradient(178deg,
-        #c8a858 0%, #d4b260 4%, #ecda90 8%, #f8eca8 12%,
-        #a88440 15%, #b88e48 19%, #d8b860 23%,
-        #785c28 26%, #886830 30%, #c0a050 34%,
-        #e8d488 37%, #f4e098 41%, #a88440 45%,
-        #c0a250 49%, #d0b058 53%, #8a7030 57%,
-        #c0a850 61%, #ceb458 65%, #e8da88 69%,
-        #f4e898 73%, #a88440 77%, #c0a450 81%,
-        #d8b860 85%, #7e5c28 89%, #c0a050 93%, #e8d888 97%, #f6ec9e 100%)`,
-      'radial-gradient(ellipse 110% 95% at 50% 50%, transparent 42%, rgba(35,18,0,0.42) 75%, rgba(12,6,0,0.72) 100%)',
-    ],
-    glow: '0 0 38px 16px rgba(196,162,68,0.48), 0 0 76px 38px rgba(155,120,42,0.22)',
-    size: 158,
-    hasRing: true,
-  },
-
-  // ── Uranus ──────────────────────────────────────────────────────────────
-  uranus: {
-    layers: [
-      'radial-gradient(ellipse 36% 30% at 32% 24%, rgba(215,248,255,0.96) 0%, rgba(145,225,248,0.55) 35%, transparent 65%)',
-      'radial-gradient(ellipse 55% 30% at 25% 62%, rgba(40,140,185,0.28) 0%, transparent 55%)',
-      'radial-gradient(ellipse 42% 24% at 72% 45%, rgba(30,155,200,0.22) 0%, transparent 50%)',
-      'radial-gradient(circle at 42% 40%, #d2f4ff 0%, #6cd0f0 16%, #32a8da 36%, #1878b0 58%, #0c4872 78%, #04202e 94%, #010810 100%)',
-    ],
-    glow: '0 0 34px 14px rgba(52,168,218,0.40), 0 0 68px 34px rgba(18,110,160,0.20)',
-    size: 150,
-  },
-
-  // ── Neptune ─────────────────────────────────────────────────────────────
-  neptune: {
-    layers: [
-      'radial-gradient(ellipse 34% 28% at 32% 24%, rgba(175,185,255,0.94) 0%, rgba(100,118,242,0.52) 35%, transparent 65%)',
-      'radial-gradient(ellipse 50% 28% at 22% 60%, rgba(40,55,200,0.32) 0%, transparent 55%)',
-      'radial-gradient(ellipse 40% 22% at 70% 42%, rgba(55,70,220,0.24) 0%, transparent 50%)',
-      // Great dark spot hint
-      'radial-gradient(ellipse 22% 18% at 58% 58%, rgba(5,8,60,0.50) 0%, transparent 60%)',
-      'radial-gradient(circle at 42% 40%, #9898ff 0%, #3848e0 16%, #1c28cc 36%, #0c1498 58%, #060a58 78%, #020420 94%, #000108 100%)',
-    ],
-    glow: '0 0 34px 14px rgba(55,70,228,0.44), 0 0 68px 34px rgba(18,30,195,0.20)',
-    size: 150,
-  },
-
-  // ── Moon ────────────────────────────────────────────────────────────────
-  moon: {
-    layers: [
-      'radial-gradient(ellipse 34% 28% at 32% 24%, rgba(248,248,252,0.98) 0%, rgba(212,212,222,0.52) 38%, transparent 66%)',
-      'radial-gradient(ellipse 48% 32% at 22% 65%, rgba(80,80,105,0.35) 0%, transparent 58%)',
-      'radial-gradient(ellipse 38% 22% at 70% 38%, rgba(100,100,130,0.25) 0%, transparent 50%)',
-      'radial-gradient(ellipse 28% 20% at 52% 75%, rgba(60,60,85,0.30) 0%, transparent 48%)',
-      'radial-gradient(circle at 42% 40%, #f4f4f8 0%, #c8c8d4 16%, #989ab0 36%, #686878 56%, #3c3c50 76%, #1c1c28 92%, #080810 100%)',
-    ],
-    glow: '0 0 28px 10px rgba(175,175,200,0.30), 0 0 56px 28px rgba(120,120,155,0.14)',
-    size: 140,
-  },
-
-  // ── Pluto ────────────────────────────────────────────────────────────────
-  pluto: {
-    layers: [
-      'radial-gradient(ellipse 32% 26% at 32% 26%, rgba(215,205,192,0.90) 0%, rgba(175,160,142,0.46) 38%, transparent 66%)',
-      'radial-gradient(ellipse 45% 30% at 24% 64%, rgba(105,82,55,0.38) 0%, transparent 55%)',
-      'radial-gradient(ellipse 36% 22% at 68% 40%, rgba(130,108,80,0.28) 0%, transparent 48%)',
-      'radial-gradient(circle at 42% 40%, #dccec0 0%, #a89080 20%, #7a6050 44%, #524038 66%, #2e2420 85%, #120e0a 100%)',
-    ],
-    glow: '0 0 22px 8px rgba(158,135,108,0.30), 0 0 45px 22px rgba(118,95,68,0.14)',
-    size: 112,
-  },
+/* ── Planet rotation configs ─────────────────────────────────────────────── */
+const CFG = {
+  sun:     { tilt:  7.25, speed: 0.48 },
+  mercury: { tilt:  0.03, speed: 0.017 },
+  venus:   { tilt: 177.4, speed: 0.004 },
+  earth:   { tilt:  23.4, speed: 0.50  },
+  mars:    { tilt:  25.2, speed: 0.24  },
+  jupiter: { tilt:   3.1, speed: 0.45  },
+  saturn:  { tilt:  26.7, speed: 0.38, hasRing: true },
+  uranus:  { tilt:  97.8, speed: 0.23  },
+  neptune: { tilt:  28.3, speed: 0.15  },
+  moon:    { tilt:   1.5, speed: 0.036 },
+  pluto:   { tilt: 122.5, speed: 0.006 },
 };
 
-// ── Render all planet orbs ──────────────────────────────────────────────────
-function initPlanets3D() {
-  const containers = document.querySelectorAll('.planet-3d-canvas-container');
-  if (!containers.length) return;
+/* ── Texture: Jupiter ──────────────────────────────────────────────────────
+   Accurate cloud-belt system: NEB, EZ, SEB, Great Red Spot               */
+function drawJupiter(ctx, W, H) {
+  const belts = [
+    // [y_frac, h_frac, mid_color, edge_color]
+    [0.000, 0.045, '#c0a070', '#a08050'],  // N polar region
+    [0.045, 0.030, '#d8c080', '#b8a060'],  // NNTBs
+    [0.075, 0.030, '#906030', '#703810'],  // NNTB dark
+    [0.105, 0.060, '#dcc888', '#bcaa70'],  // NTZ bright
+    [0.165, 0.040, '#9a6838', '#7a4820'],  // NTB dark
+    [0.205, 0.060, '#e4d090', '#c4b078'],  // NTeZ
+    [0.265, 0.085, '#8c5428', '#6c3410'],  // NEB  ← prominent dark belt
+    [0.350, 0.105, '#f2e2a8', '#d8c888'],  // EZ   ← bright equatorial zone
+    [0.455, 0.095, '#905228', '#702810'],  // SEB  ← prominent dark belt
+    [0.550, 0.060, '#d8c080', '#b8a060'],  // STeZ
+    [0.610, 0.040, '#806030', '#604010'],  // STB dark
+    [0.650, 0.075, '#c8b078', '#a89058'],  // STZ
+    [0.725, 0.055, '#907040', '#706020'],  // SSTB
+    [0.780, 0.100, '#c0a068', '#a08050'],  // S polar region
+    [0.880, 0.120, '#a89060', '#887040'],  // SPZ
+  ];
 
-  // Use rAF so layout is complete and container.offsetWidth is accurate
+  belts.forEach(([y, h, c1, c2]) => {
+    const py = y * H, ph = h * H;
+    const g = ctx.createLinearGradient(0, py, 0, py + ph);
+    g.addColorStop(0, c2); g.addColorStop(0.35, c1);
+    g.addColorStop(0.65, c1); g.addColorStop(1, c2);
+    ctx.fillStyle = g;
+    ctx.fillRect(0, py, W, ph);
+  });
+
+  // Belt-edge turbulence — slight wave at major belt boundaries
+  ctx.save();
+  ctx.globalAlpha = 0.22;
+  [[0.265, '#f0e0a0'], [0.350, '#5a3010'], [0.455, '#f0e0a0'], [0.550, '#5a3010']].forEach(([yf, col]) => {
+    const ey = yf * H;
+    ctx.beginPath(); ctx.moveTo(0, ey);
+    for (let x = 0; x <= W; x += 6)
+      ctx.lineTo(x, ey + Math.sin(x * 0.06 + yf * 10) * 3.5);
+    ctx.strokeStyle = col; ctx.lineWidth = 2; ctx.stroke();
+  });
+  ctx.restore();
+
+  // Great Red Spot — elliptical storm in SEB
+  ctx.save();
+  ctx.translate(W * 0.62, H * 0.495);
+  const grs = ctx.createRadialGradient(0, 0, 0, 0, 0, W * 0.062);
+  grs.addColorStop(0,    '#b03820');
+  grs.addColorStop(0.40, '#c04828');
+  grs.addColorStop(0.75, 'rgba(180,70,28,0.45)');
+  grs.addColorStop(1,    'rgba(150,55,18,0)');
+  ctx.fillStyle = grs;
+  ctx.beginPath();
+  ctx.ellipse(0, 0, W * 0.060, H * 0.046, 0, 0, Math.PI * 2);
+  ctx.fill();
+  // Inner bright swirl
+  ctx.globalAlpha = 0.35;
+  ctx.fillStyle = '#e06040';
+  ctx.beginPath();
+  ctx.ellipse(-2, -1, W * 0.026, H * 0.018, 0.2, 0, Math.PI * 2);
+  ctx.fill();
+  ctx.restore();
+
+  // Fine horizontal streaking
+  ctx.save(); ctx.globalAlpha = 0.07;
+  for (let y = 0; y < H; y += 3) {
+    if (Math.random() > 0.65) {
+      ctx.fillStyle = Math.random() > 0.5 ? '#fff0c0' : '#4a2800';
+      ctx.fillRect(Math.random() * W * 0.4, y, Math.random() * W * 0.45 + 20, 1);
+    }
+  }
+  ctx.restore();
+}
+
+/* ── Texture: Saturn ───────────────────────────────────────────────────── */
+function drawSaturn(ctx, W, H) {
+  const belts = [
+    [0.000, 0.060, '#c8b078', '#a89060'],
+    [0.060, 0.040, '#d8c888', '#b8a870'],
+    [0.100, 0.035, '#907850', '#706030'],
+    [0.135, 0.070, '#e0cc90', '#c0ac78'],
+    [0.205, 0.055, '#a08848', '#806828'],
+    [0.260, 0.120, '#e8d898', '#ccc080'],  // bright equatorial
+    [0.380, 0.090, '#a89050', '#887030'],
+    [0.470, 0.070, '#d8c888', '#b8a868'],
+    [0.540, 0.060, '#908848', '#706828'],
+    [0.600, 0.110, '#ccc080', '#aca060'],
+    [0.710, 0.080, '#a08848', '#806030'],
+    [0.790, 0.120, '#c0a870', '#a08850'],
+    [0.910, 0.090, '#b09868', '#907850'],
+  ];
+  belts.forEach(([y, h, c1, c2]) => {
+    const py = y * H, ph = h * H;
+    const g = ctx.createLinearGradient(0, py, 0, py + ph);
+    g.addColorStop(0, c2); g.addColorStop(0.4, c1); g.addColorStop(0.6, c1); g.addColorStop(1, c2);
+    ctx.fillStyle = g; ctx.fillRect(0, py, W, ph);
+  });
+}
+
+/* ── Texture: Saturn Ring ─────────────────────────────────────────────── */
+function drawSaturnRing(ctx, W, H) {
+  const g = ctx.createLinearGradient(0, 0, W, 0);
+  g.addColorStop(0,    'rgba(0,0,0,0)');
+  g.addColorStop(0.05, 'rgba(175,150,95,0.28)');   // C ring faint
+  g.addColorStop(0.20, 'rgba(210,180,118,0.70)');  // B ring inner
+  g.addColorStop(0.38, 'rgba(230,200,138,0.90)');  // B ring bright
+  g.addColorStop(0.54, 'rgba(195,168,108,0.58)');  // transitional
+  g.addColorStop(0.60, 'rgba(95,80,50,0.18)');     // Cassini division
+  g.addColorStop(0.65, 'rgba(200,174,118,0.75)');  // A ring
+  g.addColorStop(0.82, 'rgba(214,188,128,0.85)');  // A ring bright
+  g.addColorStop(0.90, 'rgba(178,152,98,0.48)');   // A ring outer
+  g.addColorStop(1,    'rgba(0,0,0,0)');
+  ctx.fillStyle = g;
+  ctx.fillRect(0, 0, W, H);
+}
+
+/* ── Texture: Venus ─────────────────────────────────────────────────────── */
+function drawVenus(ctx, W, H) {
+  // Base warm amber
+  ctx.fillStyle = '#c07028'; ctx.fillRect(0, 0, W, H);
+  // Banded cloud system
+  const bands = [
+    [0.00, 0.08, '#d08838', '#a86020'],
+    [0.08, 0.06, '#b86020', '#963808'],
+    [0.14, 0.11, '#dda040', '#bb7828'],
+    [0.25, 0.09, '#c07020', '#a05010'],
+    [0.34, 0.13, '#e0a848', '#c08030'],
+    [0.47, 0.10, '#b87020', '#985010'],
+    [0.57, 0.09, '#d89040', '#b87030'],
+    [0.66, 0.12, '#be6820', '#9c4808'],
+    [0.78, 0.11, '#daa040', '#b87828'],
+    [0.89, 0.11, '#b46828', '#924e18'],
+  ];
+  bands.forEach(([y, h, c1, c2]) => {
+    const py = y * H, ph = h * H;
+    const g = ctx.createLinearGradient(0, py, 0, py + ph);
+    g.addColorStop(0, c2); g.addColorStop(0.4, c1); g.addColorStop(0.6, c1); g.addColorStop(1, c2);
+    ctx.fillStyle = g; ctx.fillRect(0, py, W, ph);
+  });
+  // Swirling cloud streaks
+  ctx.save(); ctx.globalAlpha = 0.22;
+  for (let i = 0; i < 20; i++) {
+    const cy = (i / 20) * H;
+    const bright = i % 3 === 0;
+    ctx.beginPath(); ctx.moveTo(0, cy);
+    for (let x = 0; x <= W; x += 8)
+      ctx.lineTo(x, cy + Math.sin(x * 0.022 + i * 1.4) * 14 + Math.cos(x * 0.008 + i) * 8);
+    ctx.lineTo(W, cy + 22); ctx.lineTo(0, cy + 22); ctx.closePath();
+    ctx.fillStyle = bright ? 'rgba(240,155,55,0.65)' : 'rgba(72,26,0,0.55)';
+    ctx.fill();
+  }
+  ctx.restore();
+  // Polar darkening
+  ['top', 'bottom'].forEach(pos => {
+    const g = ctx.createLinearGradient(0, pos === 'top' ? 0 : H * 0.84, 0, pos === 'top' ? H * 0.14 : H);
+    g.addColorStop(pos === 'top' ? 0 : 1, 'rgba(55,22,4,0.55)');
+    g.addColorStop(pos === 'top' ? 1 : 0, 'rgba(0,0,0,0)');
+    ctx.fillStyle = g; ctx.fillRect(0, pos === 'top' ? 0 : H * 0.84, W, H);
+  });
+}
+
+/* ── Texture: Earth ─────────────────────────────────────────────────────── */
+function drawEarth(ctx, W, H) {
+  // Ocean
+  const og = ctx.createLinearGradient(0, 0, 0, H);
+  og.addColorStop(0, '#0e3870'); og.addColorStop(0.5, '#1a6ab8'); og.addColorStop(1, '#0e3870');
+  ctx.fillStyle = og; ctx.fillRect(0, 0, W, H);
+  // Landmasses (simplified)
+  ctx.fillStyle = '#4a8a3a';
+  // Eurasia
+  ctx.beginPath(); ctx.ellipse(W*0.60, H*0.28, W*0.20, H*0.14, -0.15, 0, Math.PI*2); ctx.fill();
+  // Africa
+  ctx.beginPath(); ctx.ellipse(W*0.55, H*0.52, W*0.07, H*0.22, 0, 0, Math.PI*2); ctx.fill();
+  // N America
+  ctx.beginPath(); ctx.ellipse(W*0.19, H*0.32, W*0.09, H*0.20, 0.1, 0, Math.PI*2); ctx.fill();
+  // S America
+  ctx.fillStyle = '#3a7a2a';
+  ctx.beginPath(); ctx.ellipse(W*0.24, H*0.62, W*0.06, H*0.18, -0.1, 0, Math.PI*2); ctx.fill();
+  // Australia
+  ctx.fillStyle = '#8a7a40';
+  ctx.beginPath(); ctx.ellipse(W*0.79, H*0.66, W*0.066, H*0.09, 0.2, 0, Math.PI*2); ctx.fill();
+  // Polar ice
+  ctx.fillStyle = 'rgba(220,235,255,0.88)';
+  ctx.fillRect(0, 0, W, H * 0.06); ctx.fillRect(0, H * 0.92, W, H);
+  // Clouds
+  ctx.save(); ctx.globalAlpha = 0.44;
+  for (let i = 0; i < 14; i++) {
+    const cy = Math.random() * H;
+    const cg = ctx.createLinearGradient(0, cy - 10, 0, cy + 10);
+    cg.addColorStop(0, 'rgba(255,255,255,0)');
+    cg.addColorStop(0.5, 'rgba(255,255,255,0.65)');
+    cg.addColorStop(1, 'rgba(255,255,255,0)');
+    ctx.fillStyle = cg;
+    ctx.beginPath(); ctx.moveTo(0, cy);
+    for (let x = 0; x <= W; x += 10) ctx.lineTo(x, cy + Math.sin(x * 0.02 + i) * 11);
+    ctx.lineTo(W, cy + 22); ctx.lineTo(0, cy + 22); ctx.closePath(); ctx.fill();
+  }
+  ctx.restore();
+}
+
+/* ── Texture: Mars ───────────────────────────────────────────────────────── */
+function drawMars(ctx, W, H) {
+  const bg = ctx.createLinearGradient(0, 0, 0, H);
+  bg.addColorStop(0, '#b03c10'); bg.addColorStop(0.5, '#c4481a'); bg.addColorStop(1, '#9a3008');
+  ctx.fillStyle = bg; ctx.fillRect(0, 0, W, H);
+  // Dark albedo features
+  [[0.27, 0.55, 0.20, 0.11, '#8a2808', 0.55],   // Syrtis Major
+   [0.57, 0.40, 0.11, 0.07, '#7a2008', 0.48],
+   [0.72, 0.65, 0.13, 0.07, '#922808', 0.42]].forEach(([x, y, rx, ry, c, a]) => {
+    ctx.save(); ctx.globalAlpha = a;
+    ctx.fillStyle = c;
+    ctx.beginPath(); ctx.ellipse(x*W, y*H, rx*W, ry*H, 0.3, 0, Math.PI*2); ctx.fill();
+    ctx.restore();
+  });
+  // Polar ice caps
+  [['top', 0, H*0.10], ['bottom', H*0.90, H]].forEach(([pos, y0, y1]) => {
+    const g = ctx.createLinearGradient(0, y0, 0, y1);
+    if (pos === 'top') { g.addColorStop(0, 'rgba(240,230,215,0.90)'); g.addColorStop(1, 'rgba(240,225,205,0)'); }
+    else               { g.addColorStop(0, 'rgba(238,222,202,0)');    g.addColorStop(1, 'rgba(232,218,205,0.88)'); }
+    ctx.fillStyle = g; ctx.fillRect(0, y0, W, y1 - y0);
+  });
+}
+
+/* ── Texture: Mercury ────────────────────────────────────────────────────── */
+function drawMercury(ctx, W, H) {
+  const bg = ctx.createLinearGradient(0, 0, 0, H);
+  bg.addColorStop(0, '#9a8870'); bg.addColorStop(0.5, '#a89878'); bg.addColorStop(1, '#887860');
+  ctx.fillStyle = bg; ctx.fillRect(0, 0, W, H);
+  // Large impact basins
+  for (let i = 0; i < 7; i++) {
+    const bx = Math.random()*W, by = Math.random()*H, br = W*0.04 + Math.random()*W*0.045;
+    ctx.save(); ctx.globalAlpha = 0.20;
+    ctx.fillStyle = '#5a4838';
+    ctx.beginPath(); ctx.arc(bx, by, br, 0, Math.PI*2); ctx.fill();
+    ctx.restore();
+  }
+  // Smaller craters
+  for (let i = 0; i < 55; i++) {
+    const cx = Math.random()*W, cy = Math.random()*H, r = Math.random()*W*0.025 + W*0.006;
+    ctx.save(); ctx.globalAlpha = 0.22 + Math.random()*0.28;
+    ctx.fillStyle = Math.random() > 0.5 ? '#6a5848' : '#c8b898';
+    ctx.beginPath(); ctx.arc(cx, cy, r, 0, Math.PI*2); ctx.fill();
+    ctx.restore();
+  }
+}
+
+/* ── Texture: Uranus ─────────────────────────────────────────────────────── */
+function drawUranus(ctx, W, H) {
+  const bg = ctx.createLinearGradient(0, 0, 0, H);
+  bg.addColorStop(0, '#52b4c4'); bg.addColorStop(0.5, '#6acce0'); bg.addColorStop(1, '#52b4c4');
+  ctx.fillStyle = bg; ctx.fillRect(0, 0, W, H);
+  [[0.20,0.10,'#5ec4d4',0.32],[0.38,0.14,'#80e0f0',0.28],[0.58,0.10,'#5ec0d0',0.28],[0.73,0.08,'#4cb0c0',0.30]]
+    .forEach(([y,h,c,a]) => { ctx.save(); ctx.globalAlpha=a; ctx.fillStyle=c; ctx.fillRect(0,y*H,W,h*H); ctx.restore(); });
+  // Polar haze
+  ctx.save(); ctx.globalAlpha = 0.38;
+  const pg = ctx.createLinearGradient(0,0,0,H*0.22);
+  pg.addColorStop(0,'#a2e8f8'); pg.addColorStop(1,'rgba(162,232,248,0)');
+  ctx.fillStyle = pg; ctx.fillRect(0,0,W,H*0.22); ctx.restore();
+}
+
+/* ── Texture: Neptune ────────────────────────────────────────────────────── */
+function drawNeptune(ctx, W, H) {
+  const bg = ctx.createLinearGradient(0, 0, 0, H);
+  bg.addColorStop(0, '#1830c0'); bg.addColorStop(0.5, '#2040d8'); bg.addColorStop(1, '#1428b0');
+  ctx.fillStyle = bg; ctx.fillRect(0, 0, W, H);
+  [[0.15,0.08,'#3252e8',0.35],[0.35,0.10,'#1832c0',0.30],[0.55,0.08,'#2842d0',0.32],[0.70,0.07,'#1022a8',0.28]]
+    .forEach(([y,h,c,a]) => { ctx.save(); ctx.globalAlpha=a; ctx.fillStyle=c; ctx.fillRect(0,y*H,W,h*H); ctx.restore(); });
+  // Great Dark Spot
+  ctx.save(); ctx.globalAlpha = 0.50;
+  ctx.fillStyle = 'rgba(5,10,60,0.60)';
+  ctx.beginPath(); ctx.ellipse(W*0.55,H*0.45,W*0.08,H*0.055,0,0,Math.PI*2); ctx.fill();
+  ctx.restore();
+  // Polar glow
+  ctx.save(); ctx.globalAlpha = 0.38;
+  const pg = ctx.createLinearGradient(0,0,0,H*0.20);
+  pg.addColorStop(0,'#5070ff'); pg.addColorStop(1,'rgba(80,112,255,0)');
+  ctx.fillStyle = pg; ctx.fillRect(0,0,W,H*0.20); ctx.restore();
+}
+
+/* ── Texture: Moon ───────────────────────────────────────────────────────── */
+function drawMoon(ctx, W, H) {
+  const bg = ctx.createLinearGradient(0,0,0,H);
+  bg.addColorStop(0,'#909090'); bg.addColorStop(0.5,'#a0a0a0'); bg.addColorStop(1,'#808080');
+  ctx.fillStyle=bg; ctx.fillRect(0,0,W,H);
+  // Mare (dark plains)
+  [[0.50,0.40,0.16,0.10,'#606060',0.60],[0.70,0.35,0.10,0.07,'#686868',0.55],[0.34,0.50,0.08,0.06,'#646464',0.52]]
+    .forEach(([x,y,rx,ry,c,a])=>{
+      ctx.save(); ctx.globalAlpha=a; ctx.fillStyle=c;
+      ctx.beginPath(); ctx.ellipse(x*W,y*H,rx*W,ry*H,0.3,0,Math.PI*2); ctx.fill(); ctx.restore();
+    });
+  // Craters
+  for(let i=0;i<55;i++){
+    const cx=Math.random()*W, cy=Math.random()*H, r=Math.random()*W*0.022+W*0.005;
+    ctx.save(); ctx.globalAlpha=0.28+Math.random()*0.28;
+    ctx.fillStyle=Math.random()>0.5?'#787878':'#c8c8c8';
+    ctx.beginPath(); ctx.arc(cx,cy,r,0,Math.PI*2); ctx.fill(); ctx.restore();
+  }
+}
+
+/* ── Texture: Sun ────────────────────────────────────────────────────────── */
+function drawSun(ctx, W, H) {
+  const bg = ctx.createRadialGradient(W*0.42,H*0.42,0,W*0.5,H*0.5,W*0.55);
+  bg.addColorStop(0,'#fff8d0'); bg.addColorStop(0.3,'#ffe060'); bg.addColorStop(0.7,'#ff8800'); bg.addColorStop(1,'#cc3300');
+  ctx.fillStyle=bg; ctx.fillRect(0,0,W,H);
+  ctx.save(); ctx.globalAlpha=0.12;
+  for(let i=0;i<280;i++){
+    const gx=Math.random()*W, gy=Math.random()*H, gr=Math.random()*8+3;
+    ctx.fillStyle='rgba(255,195,50,0.85)';
+    ctx.beginPath(); ctx.arc(gx,gy,gr,0,Math.PI*2); ctx.fill();
+  }
+  ctx.restore();
+}
+
+/* ── Texture: Pluto ──────────────────────────────────────────────────────── */
+function drawPluto(ctx, W, H) {
+  const bg=ctx.createLinearGradient(0,0,0,H);
+  bg.addColorStop(0,'#987860'); bg.addColorStop(0.5,'#a88870'); bg.addColorStop(1,'#886858');
+  ctx.fillStyle=bg; ctx.fillRect(0,0,W,H);
+  // Tombaugh Regio (heart-shaped nitrogen ice plain)
+  ctx.save(); ctx.globalAlpha=0.55;
+  ctx.fillStyle='#e8ddc0';
+  ctx.beginPath(); ctx.ellipse(W*0.55,H*0.50,W*0.13,H*0.13,0.3,0,Math.PI*2); ctx.fill();
+  ctx.restore();
+  // Craters
+  for(let i=0;i<30;i++){
+    ctx.save(); ctx.globalAlpha=0.22+Math.random()*0.22;
+    ctx.fillStyle=Math.random()>0.5?'#6a5848':'#ccc0a8';
+    ctx.beginPath(); ctx.arc(Math.random()*W,Math.random()*H,Math.random()*W*0.022+W*0.005,0,Math.PI*2); ctx.fill();
+    ctx.restore();
+  }
+}
+
+/* ── Texture dispatcher ───────────────────────────────────────────────────── */
+const DRAWERS = { jupiter:drawJupiter, saturn:drawSaturn, venus:drawVenus, earth:drawEarth,
+  mars:drawMars, mercury:drawMercury, uranus:drawUranus, neptune:drawNeptune,
+  moon:drawMoon, sun:drawSun, pluto:drawPluto };
+
+function makeTexture(name) {
+  const W = 512, H = 256;
+  const cv = document.createElement('canvas');
+  cv.width = W; cv.height = H;
+  const ctx = cv.getContext('2d');
+  (DRAWERS[name] || DRAWERS.mercury)(ctx, W, H);
+  return cv;
+}
+
+function makeSaturnRingCanvas() {
+  const cv = document.createElement('canvas');
+  cv.width = 256; cv.height = 1;
+  const ctx = cv.getContext('2d');
+  drawSaturnRing(ctx, 256, 1);
+  return cv;
+}
+
+/* ── Shared 12fps animation loop ─────────────────────────────────────────── */
+const active = [];
+let rafId = null, lastT = 0;
+const TARGET_FPS = 12, DT = 1000 / TARGET_FPS;
+
+function loop(t) {
+  rafId = requestAnimationFrame(loop);
+  if (t - lastT < DT) return;
+  lastT = t;
+  for (const p of active) {
+    if (p.paused || p.disposed) continue;
+    p.mesh.rotation.y += p.rotSpeed * (DT / 1000);
+    p.renderer.render(p.scene, p.camera);
+  }
+}
+
+/* ── initPlanets3D ───────────────────────────────────────────────────────── */
+function initPlanets3D() {
+  // Cancel old loop & dispose old renderers
+  if (rafId) { cancelAnimationFrame(rafId); rafId = null; }
+  active.forEach(p => {
+    p.disposed = true;
+    if (p.observer) p.observer.disconnect();
+    try { p.renderer.dispose(); } catch(_) {}
+  });
+  active.length = 0;
+
+  const containers = document.querySelectorAll('.planet-3d-canvas-container');
+  if (!containers.length || typeof THREE === 'undefined') return;
+
   requestAnimationFrame(() => {
     containers.forEach(container => {
+      const name = (container.dataset.planet || 'mercury').toLowerCase();
+      const cfg  = CFG[name] || CFG.mercury;
+
       container.innerHTML = '';
-      const planetName = (container.dataset.planet || 'mercury').toLowerCase();
-      const cfg = PLANET_CSS[planetName] || PLANET_CSS.mercury;
 
-      // ── Compute orb size to fit inside the rendered container ──
-      const cw = container.offsetWidth  || 280;
-      const ch = container.offsetHeight || 220;
-      // Scale to 82% of width or 86% of height — whichever is smaller
-      const maxByWidth  = Math.round(cw * 0.82);
-      const maxByHeight = Math.round(ch * 0.86);
-      const orbSize = Math.min(cfg.size, maxByWidth, maxByHeight);
+      // Compute display size from actual rendered container
+      const cw   = container.offsetWidth  || 280;
+      const ch   = container.offsetHeight || 220;
+      const size = Math.round(Math.min(cw * 0.84, ch * 0.88));
+      const dpr  = Math.min(window.devicePixelRatio || 1, 2);
 
-      // ── Outer wrap — full container, centres all children ──
-      const wrap = document.createElement('div');
-      wrap.className = 'planet-orb-wrap';
-      wrap.style.cssText = [
-        'display:flex',
-        'justify-content:center',
-        'align-items:center',
-        'position:relative',
-        'width:100%',
-        'height:100%',
-        `animation:planetFloat ${6 + Math.random() * 2}s ease-in-out infinite`,
-      ].join(';');
+      // ── Canvas element ──
+      const cv = document.createElement('canvas');
+      cv.style.cssText = `width:${size}px;height:${size}px;display:block;margin:0 auto;`;
+      container.appendChild(cv);
 
-      // ── Atmospheric halo (absolute, behind orb via z-index:0) ──
-      const halo = document.createElement('div');
-      halo.style.cssText = [
-        `width:${orbSize + 36}px`,
-        `height:${orbSize + 36}px`,
-        'border-radius:50%',
-        'position:absolute',
-        'top:50%',
-        'left:50%',
-        'transform:translate(-50%,-50%)',
-        'background:transparent',
-        `box-shadow:${cfg.glow}`,
-        'pointer-events:none',
-        'z-index:0',
-      ].join(';');
+      // ── Three.js renderer ──
+      const renderer = new THREE.WebGLRenderer({ canvas: cv, antialias: true, alpha: true });
+      renderer.setPixelRatio(dpr);
+      renderer.setSize(size, size);
+      renderer.setClearColor(0x000000, 0);
 
-      // ── Saturn ring ──
+      // ── Scene & camera ──
+      const scene  = new THREE.Scene();
+      const camera = new THREE.PerspectiveCamera(35, 1, 0.1, 100);
+      camera.position.z = 2.6;
+
+      // ── Lighting: key light from top-left, soft ambient ──
+      const ambient  = new THREE.AmbientLight(0x283040, 0.38);
+      const keyLight = new THREE.DirectionalLight(0xfff5e0, 1.52);
+      keyLight.position.set(-2, 0.8, 2);
+      scene.add(ambient, keyLight);
+
+      // ── Sphere with canvas texture ──
+      const texCanvas = makeTexture(name);
+      const texture   = new THREE.CanvasTexture(texCanvas);
+
+      const geo  = new THREE.SphereGeometry(1, 64, 32);
+      const mat  = new THREE.MeshPhongMaterial({
+        map:       texture,
+        specular:  new THREE.Color(0x0d0d1a),
+        shininess: 14,
+      });
+      const mesh = new THREE.Mesh(geo, mat);
+      mesh.rotation.x = THREE.MathUtils.degToRad(cfg.tilt || 0);
+      scene.add(mesh);
+
+      // ── Saturn ring system ──
       if (cfg.hasRing) {
-        const rw  = Math.round(orbSize * 2.55);
-        const rh  = Math.round(orbSize * 0.58);
-        const rth = Math.round(orbSize * 0.14);
-        const ring = document.createElement('div');
-        ring.style.cssText = [
-          'position:absolute',
-          'top:50%',
-          'left:50%',
-          `transform:translate(-50%,-50%) rotateX(68deg)`,
-          `width:${rw}px`,
-          `height:${rh}px`,
-          'border-radius:50%',
-          `border:${rth}px solid rgba(218,186,95,0.68)`,
-          'box-shadow:0 0 18px rgba(210,178,80,0.35), inset 0 0 10px rgba(175,142,55,0.25)',
-          'pointer-events:none',
-          'z-index:1',
-        ].join(';');
-        wrap.appendChild(ring);
+        const ringGeo = new THREE.RingGeometry(1.26, 2.22, 128);
+        // Remap UVs so texture maps radially
+        const pos = ringGeo.attributes.position;
+        const uv  = ringGeo.attributes.uv;
+        const v3  = new THREE.Vector3();
+        for (let i = 0; i < pos.count; i++) {
+          v3.fromBufferAttribute(pos, i);
+          const r = v3.length();
+          uv.setXY(i, (r - 1.26) / (2.22 - 1.26), 0.5);
+        }
+        uv.needsUpdate = true;
+        const ringCanvas = makeSaturnRingCanvas();
+        const ringTex = new THREE.CanvasTexture(ringCanvas);
+        const ringMat = new THREE.MeshBasicMaterial({
+          map: ringTex, side: THREE.DoubleSide, transparent: true, opacity: 0.90,
+        });
+        const ring = new THREE.Mesh(ringGeo, ringMat);
+        ring.rotation.x = Math.PI / 2;
+        scene.add(ring);
       }
 
-      // ── Main orb div ──
-      const orb = document.createElement('div');
-      orb.className = `planet-orb planet-orb-${planetName}`;
-      orb.style.cssText = [
-        `width:${orbSize}px`,
-        `height:${orbSize}px`,
-        'border-radius:50%',
-        `background:${cfg.layers.join(', ')}`,
-        'position:relative',
-        'z-index:2',
-        'flex-shrink:0',
-      ].join(';');
+      // First render — show immediately without waiting for loop tick
+      renderer.render(scene, camera);
 
-      // Terminator — dark shadow on night-side for 3D depth
-      const term = document.createElement('div');
-      term.style.cssText = [
-        'position:absolute',
-        'inset:0',
-        'border-radius:50%',
-        'background:radial-gradient(circle at 70% 65%, rgba(0,0,5,0.0) 22%, rgba(0,0,10,0.45) 58%, rgba(0,0,15,0.80) 100%)',
-        'pointer-events:none',
-      ].join(';');
-      orb.appendChild(term);
-
-      wrap.appendChild(halo);
-      wrap.appendChild(orb);
-      container.appendChild(wrap);
+      // ── IntersectionObserver: pause off-screen planets ──
+      const entry = { renderer, scene, camera, mesh, rotSpeed: cfg.speed, paused: false, disposed: false, observer: null };
+      const io = new IntersectionObserver(([e]) => { entry.paused = !e.isIntersecting; }, { threshold: 0.05 });
+      io.observe(container);
+      entry.observer = io;
+      active.push(entry);
     });
+
+    if (active.length) rafId = requestAnimationFrame(loop);
   });
 }
 
 window.initPlanets3D = initPlanets3D;
+
+})(); // end IIFE
