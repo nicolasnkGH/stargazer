@@ -1,381 +1,59 @@
-// planets3d.js — Three.js textured planets v8
-// Procedural canvas textures + 12fps shared render loop + IntersectionObserver
-// No external assets — all textures generated locally on canvas
+// planets3d.js — Three.js textured planets v10
+// Mirrors moon3d.js pattern: THREE.TextureLoader from /assets/*.jpg
+// Procedural canvas fallback for planets without texture files (earth, sun, pluto)
+// Shared 12fps throttled loop + IntersectionObserver per card
 
 (function () {
 'use strict';
 
-/* ── Planet rotation configs ─────────────────────────────────────────────── */
+/* ── Planet configs ─────────────────────────────────────────────────────── */
 const CFG = {
   sun:     { tilt:  7.25, speed: 0.48 },
-  mercury: { tilt:  0.03, speed: 0.017 },
-  venus:   { tilt: 177.4, speed: 0.004 },
-  earth:   { tilt:  23.4, speed: 0.50  },
-  mars:    { tilt:  25.2, speed: 0.24  },
-  jupiter: { tilt:   3.1, speed: 0.45  },
-  saturn:  { tilt:  26.7, speed: 0.38, hasRing: true },
-  uranus:  { tilt:  97.8, speed: 0.23  },
-  neptune: { tilt:  28.3, speed: 0.15  },
-  moon:    { tilt:   1.5, speed: 0.036 },
-  pluto:   { tilt: 122.5, speed: 0.006 },
+  mercury: { tilt:  0.03, speed: 0.017, tex: '/assets/mercury.jpg' },
+  venus:   { tilt: 177.4, speed: 0.004, tex: '/assets/venus.jpg'   },
+  earth:   { tilt:  23.4, speed: 0.50  },   // no texture file yet — procedural
+  mars:    { tilt:  25.2, speed: 0.24,  tex: '/assets/mars.jpg'    },
+  jupiter: { tilt:   3.1, speed: 0.45,  tex: '/assets/jupiter.jpg' },
+  saturn:  { tilt:  26.7, speed: 0.38,  tex: '/assets/saturn.jpg', hasRing: true, ringTex: '/assets/saturn_ring_color.jpg' },
+  uranus:  { tilt:  97.8, speed: 0.23,  tex: '/assets/uranus.jpg'  },
+  neptune: { tilt:  28.3, speed: 0.15,  tex: '/assets/neptune.jpg' },
+  moon:    { tilt:   1.5, speed: 0.036, tex: '/assets/moon_texture.jpg' },
+  pluto:   { tilt: 122.5, speed: 0.006 },   // no texture file yet — procedural
 };
 
-/* ── Texture: Jupiter ──────────────────────────────────────────────────────
-   Accurate cloud-belt system: NEB, EZ, SEB, Great Red Spot               */
-function drawJupiter(ctx, W, H) {
-  const belts = [
-    // [y_frac, h_frac, mid_color, edge_color]
-    [0.000, 0.040, '#c8a870', '#a88858'],  // N polar
-    [0.040, 0.030, '#dac890', '#baa870'],  // NNTBs bright
-    [0.070, 0.028, '#7a5228', '#5a3210'],  // NNTB dark
-    [0.098, 0.062, '#e2d095', '#c2b07c'],  // NTZ bright
-    [0.160, 0.038, '#806030', '#604018'],  // NTB dark
-    [0.198, 0.058, '#e6d498', '#c6b47e'],  // NTeZ bright
-    [0.256, 0.090, '#5c3210', '#3c1a04'],  // NEB ← DEEP DARK BROWN
-    [0.346, 0.112, '#f8eccc', '#e4d8a8'],  // EZ  ← BRIGHT CREAM
-    [0.458, 0.096, '#5e3412', '#3e1c06'],  // SEB ← DEEP DARK BROWN
-    [0.554, 0.058, '#dccC90', '#bcac72'],  // STeZ bright
-    [0.612, 0.036, '#785228', '#583210'],  // STB dark
-    [0.648, 0.078, '#cca868', '#ac8850'],  // STZ
-    [0.726, 0.054, '#8a6838', '#6a4820'],  // SSTB
-    [0.780, 0.110, '#c2a262', '#a2824a'],  // S polar
-    [0.890, 0.110, '#a88858', '#888040'],  // SPZ
-  ];
+/* ── Procedural canvas fallbacks (only for planets without .jpg assets) ── */
 
-  belts.forEach(([y, h, c1, c2]) => {
-    const py = y * H, ph = h * H;
-    const g = ctx.createLinearGradient(0, py, 0, py + ph);
-    g.addColorStop(0, c2); g.addColorStop(0.35, c1);
-    g.addColorStop(0.65, c1); g.addColorStop(1, c2);
-    ctx.fillStyle = g;
-    ctx.fillRect(0, py, W, ph);
-  });
-
-  // Belt-edge turbulence — slight wave at major belt boundaries
-  ctx.save();
-  ctx.globalAlpha = 0.22;
-  [[0.265, '#f0e0a0'], [0.350, '#5a3010'], [0.455, '#f0e0a0'], [0.550, '#5a3010']].forEach(([yf, col]) => {
-    const ey = yf * H;
-    ctx.beginPath(); ctx.moveTo(0, ey);
-    for (let x = 0; x <= W; x += 6)
-      ctx.lineTo(x, ey + Math.sin(x * 0.06 + yf * 10) * 3.5);
-    ctx.strokeStyle = col; ctx.lineWidth = 2; ctx.stroke();
-  });
-  ctx.restore();
-
-  // Great Red Spot — elliptical storm in SEB
-  ctx.save();
-  ctx.translate(W * 0.62, H * 0.495);
-  const grs = ctx.createRadialGradient(0, 0, 0, 0, 0, W * 0.062);
-  grs.addColorStop(0,    '#b03820');
-  grs.addColorStop(0.40, '#c04828');
-  grs.addColorStop(0.75, 'rgba(180,70,28,0.45)');
-  grs.addColorStop(1,    'rgba(150,55,18,0)');
-  ctx.fillStyle = grs;
-  ctx.beginPath();
-  ctx.ellipse(0, 0, W * 0.060, H * 0.046, 0, 0, Math.PI * 2);
-  ctx.fill();
-  // Inner bright swirl
-  ctx.globalAlpha = 0.35;
-  ctx.fillStyle = '#e06040';
-  ctx.beginPath();
-  ctx.ellipse(-2, -1, W * 0.026, H * 0.018, 0.2, 0, Math.PI * 2);
-  ctx.fill();
-  ctx.restore();
-
-  // Fine horizontal streaking
-  ctx.save(); ctx.globalAlpha = 0.07;
-  for (let y = 0; y < H; y += 3) {
-    if (Math.random() > 0.65) {
-      ctx.fillStyle = Math.random() > 0.5 ? '#fff0c0' : '#4a2800';
-      ctx.fillRect(Math.random() * W * 0.4, y, Math.random() * W * 0.45 + 20, 1);
-    }
-  }
-  ctx.restore();
-}
-
-/* ── Texture: Saturn ───────────────────────────────────────────────────── */
-function drawSaturn(ctx, W, H) {
-  const belts = [
-    [0.000, 0.060, '#c8b078', '#a89060'],
-    [0.060, 0.040, '#d8c888', '#b8a870'],
-    [0.100, 0.035, '#907850', '#706030'],
-    [0.135, 0.070, '#e0cc90', '#c0ac78'],
-    [0.205, 0.055, '#a08848', '#806828'],
-    [0.260, 0.120, '#e8d898', '#ccc080'],  // bright equatorial
-    [0.380, 0.090, '#a89050', '#887030'],
-    [0.470, 0.070, '#d8c888', '#b8a868'],
-    [0.540, 0.060, '#908848', '#706828'],
-    [0.600, 0.110, '#ccc080', '#aca060'],
-    [0.710, 0.080, '#a08848', '#806030'],
-    [0.790, 0.120, '#c0a870', '#a08850'],
-    [0.910, 0.090, '#b09868', '#907850'],
-  ];
-  belts.forEach(([y, h, c1, c2]) => {
-    const py = y * H, ph = h * H;
-    const g = ctx.createLinearGradient(0, py, 0, py + ph);
-    g.addColorStop(0, c2); g.addColorStop(0.4, c1); g.addColorStop(0.6, c1); g.addColorStop(1, c2);
-    ctx.fillStyle = g; ctx.fillRect(0, py, W, ph);
-  });
-}
-
-/* ── Texture: Saturn Ring ─────────────────────────────────────────────── */
-function drawSaturnRing(ctx, W, H) {
-  const g = ctx.createLinearGradient(0, 0, W, 0);
-  g.addColorStop(0,    'rgba(0,0,0,0)');
-  g.addColorStop(0.05, 'rgba(175,150,95,0.28)');   // C ring faint
-  g.addColorStop(0.20, 'rgba(210,180,118,0.70)');  // B ring inner
-  g.addColorStop(0.38, 'rgba(230,200,138,0.90)');  // B ring bright
-  g.addColorStop(0.54, 'rgba(195,168,108,0.58)');  // transitional
-  g.addColorStop(0.60, 'rgba(95,80,50,0.18)');     // Cassini division
-  g.addColorStop(0.65, 'rgba(200,174,118,0.75)');  // A ring
-  g.addColorStop(0.82, 'rgba(214,188,128,0.85)');  // A ring bright
-  g.addColorStop(0.90, 'rgba(178,152,98,0.48)');   // A ring outer
-  g.addColorStop(1,    'rgba(0,0,0,0)');
-  ctx.fillStyle = g;
-  ctx.fillRect(0, 0, W, H);
-}
-
-/* ── Texture: Venus ─────────────────────────────────────────────────────── */
-function drawVenus(ctx, W, H) {
-  // Base warm amber
-  ctx.fillStyle = '#c07028'; ctx.fillRect(0, 0, W, H);
-  // Banded cloud system
-  const bands = [
-    [0.00, 0.08, '#d08838', '#a86020'],
-    [0.08, 0.06, '#b86020', '#963808'],
-    [0.14, 0.11, '#dda040', '#bb7828'],
-    [0.25, 0.09, '#c07020', '#a05010'],
-    [0.34, 0.13, '#e0a848', '#c08030'],
-    [0.47, 0.10, '#b87020', '#985010'],
-    [0.57, 0.09, '#d89040', '#b87030'],
-    [0.66, 0.12, '#be6820', '#9c4808'],
-    [0.78, 0.11, '#daa040', '#b87828'],
-    [0.89, 0.11, '#b46828', '#924e18'],
-  ];
-  bands.forEach(([y, h, c1, c2]) => {
-    const py = y * H, ph = h * H;
-    const g = ctx.createLinearGradient(0, py, 0, py + ph);
-    g.addColorStop(0, c2); g.addColorStop(0.4, c1); g.addColorStop(0.6, c1); g.addColorStop(1, c2);
-    ctx.fillStyle = g; ctx.fillRect(0, py, W, ph);
-  });
-  // Swirling cloud streaks
-  ctx.save(); ctx.globalAlpha = 0.22;
-  for (let i = 0; i < 20; i++) {
-    const cy = (i / 20) * H;
-    const bright = i % 3 === 0;
-    ctx.beginPath(); ctx.moveTo(0, cy);
-    for (let x = 0; x <= W; x += 8)
-      ctx.lineTo(x, cy + Math.sin(x * 0.022 + i * 1.4) * 14 + Math.cos(x * 0.008 + i) * 8);
-    ctx.lineTo(W, cy + 22); ctx.lineTo(0, cy + 22); ctx.closePath();
-    ctx.fillStyle = bright ? 'rgba(240,155,55,0.65)' : 'rgba(72,26,0,0.55)';
-    ctx.fill();
-  }
-  ctx.restore();
-  // Polar darkening
-  ['top', 'bottom'].forEach(pos => {
-    const g = ctx.createLinearGradient(0, pos === 'top' ? 0 : H * 0.84, 0, pos === 'top' ? H * 0.14 : H);
-    g.addColorStop(pos === 'top' ? 0 : 1, 'rgba(55,22,4,0.55)');
-    g.addColorStop(pos === 'top' ? 1 : 0, 'rgba(0,0,0,0)');
-    ctx.fillStyle = g; ctx.fillRect(0, pos === 'top' ? 0 : H * 0.84, W, H);
-  });
-}
-
-/* ── Texture: Earth ─────────────────────────────────────────────────────── */
 function drawEarth(ctx, W, H) {
-  // Ocean
   const og = ctx.createLinearGradient(0, 0, 0, H);
   og.addColorStop(0, '#0e3870'); og.addColorStop(0.5, '#1a6ab8'); og.addColorStop(1, '#0e3870');
   ctx.fillStyle = og; ctx.fillRect(0, 0, W, H);
-  // Landmasses (simplified)
   ctx.fillStyle = '#4a8a3a';
-  // Eurasia
   ctx.beginPath(); ctx.ellipse(W*0.60, H*0.28, W*0.20, H*0.14, -0.15, 0, Math.PI*2); ctx.fill();
-  // Africa
-  ctx.beginPath(); ctx.ellipse(W*0.55, H*0.52, W*0.07, H*0.22, 0, 0, Math.PI*2); ctx.fill();
-  // N America
-  ctx.beginPath(); ctx.ellipse(W*0.19, H*0.32, W*0.09, H*0.20, 0.1, 0, Math.PI*2); ctx.fill();
-  // S America
+  ctx.beginPath(); ctx.ellipse(W*0.55, H*0.52, W*0.07, H*0.22, 0,    0, Math.PI*2); ctx.fill();
+  ctx.beginPath(); ctx.ellipse(W*0.19, H*0.32, W*0.09, H*0.20, 0.1,  0, Math.PI*2); ctx.fill();
   ctx.fillStyle = '#3a7a2a';
   ctx.beginPath(); ctx.ellipse(W*0.24, H*0.62, W*0.06, H*0.18, -0.1, 0, Math.PI*2); ctx.fill();
-  // Australia
   ctx.fillStyle = '#8a7a40';
   ctx.beginPath(); ctx.ellipse(W*0.79, H*0.66, W*0.066, H*0.09, 0.2, 0, Math.PI*2); ctx.fill();
-  // Polar ice
   ctx.fillStyle = 'rgba(220,235,255,0.88)';
-  ctx.fillRect(0, 0, W, H * 0.06); ctx.fillRect(0, H * 0.92, W, H);
-  // Clouds
+  ctx.fillRect(0, 0, W, H*0.06); ctx.fillRect(0, H*0.92, W, H);
   ctx.save(); ctx.globalAlpha = 0.44;
   for (let i = 0; i < 14; i++) {
     const cy = Math.random() * H;
-    const cg = ctx.createLinearGradient(0, cy - 10, 0, cy + 10);
-    cg.addColorStop(0, 'rgba(255,255,255,0)');
-    cg.addColorStop(0.5, 'rgba(255,255,255,0.65)');
-    cg.addColorStop(1, 'rgba(255,255,255,0)');
+    const cg = ctx.createLinearGradient(0, cy-10, 0, cy+10);
+    cg.addColorStop(0, 'rgba(255,255,255,0)'); cg.addColorStop(0.5, 'rgba(255,255,255,0.65)'); cg.addColorStop(1, 'rgba(255,255,255,0)');
     ctx.fillStyle = cg;
     ctx.beginPath(); ctx.moveTo(0, cy);
-    for (let x = 0; x <= W; x += 10) ctx.lineTo(x, cy + Math.sin(x * 0.02 + i) * 11);
-    ctx.lineTo(W, cy + 22); ctx.lineTo(0, cy + 22); ctx.closePath(); ctx.fill();
+    for (let x = 0; x <= W; x += 10) ctx.lineTo(x, cy + Math.sin(x*0.02+i)*11);
+    ctx.lineTo(W, cy+22); ctx.lineTo(0, cy+22); ctx.closePath(); ctx.fill();
   }
   ctx.restore();
 }
 
-/* ── Texture: Mars ───────────────────────────────────────────────────────── */
-function drawMars(ctx, W, H) {
-  // True iron-oxide rusty red — #c1440e
-  const bg = ctx.createLinearGradient(0, 0, 0, H);
-  bg.addColorStop(0,   '#b63c0e');  // slightly darker at poles
-  bg.addColorStop(0.18,'#c8481a');
-  bg.addColorStop(0.36,'#d4541e'); // brightest equatorial region
-  bg.addColorStop(0.50,'#cc4c1c');
-  bg.addColorStop(0.65,'#c6481a');
-  bg.addColorStop(0.82,'#b63c0e');
-  bg.addColorStop(1,   '#a43008');
-  ctx.fillStyle = bg; ctx.fillRect(0, 0, W, H);
-
-  // High-contrast dark albedo features
-  [[0.27, 0.52, 0.19, 0.10, '#7a1a04', 0.70],  // Syrtis Major — very dark
-   [0.58, 0.38, 0.11, 0.07, '#6a1400', 0.65],  // Mare Acidalium
-   [0.74, 0.62, 0.12, 0.06, '#881e08', 0.58],  // Solis Lacus
-   [0.10, 0.62, 0.08, 0.05, '#881e08', 0.48]   // Minor feature
-  ].forEach(([x,y,rx,ry,c,a]) => {
-    ctx.save(); ctx.globalAlpha = a;
-    ctx.fillStyle = c;
-    ctx.beginPath(); ctx.ellipse(x*W,y*H,rx*W,ry*H,0.3,0,Math.PI*2); ctx.fill();
-    ctx.restore();
-  });
-
-  // Olympus Mons plateau (slight bright bump)
-  ctx.save(); ctx.globalAlpha = 0.22;
-  ctx.fillStyle = '#e06030';
-  ctx.beginPath(); ctx.ellipse(W*0.18,H*0.42,W*0.04,H*0.03,0,0,Math.PI*2); ctx.fill();
-  ctx.restore();
-
-  // North polar ice cap — distinct white
-  const npg = ctx.createLinearGradient(0, 0, 0, H*0.14);
-  npg.addColorStop(0,   'rgba(248,242,232,0.98)');
-  npg.addColorStop(0.55,'rgba(240,232,218,0.80)');
-  npg.addColorStop(1,   'rgba(235,225,212,0)');
-  ctx.fillStyle = npg; ctx.fillRect(0, 0, W, H*0.14);
-
-  // South polar ice cap
-  const spg = ctx.createLinearGradient(0, H*0.86, 0, H);
-  spg.addColorStop(0,   'rgba(232,224,210,0)');
-  spg.addColorStop(0.45,'rgba(240,232,220,0.82)');
-  spg.addColorStop(1,   'rgba(248,242,232,0.96)');
-  ctx.fillStyle = spg; ctx.fillRect(0, H*0.86, W, H);
-}
-
-/* ── Texture: Mercury ────────────────────────────────────────────────────── */
-function drawMercury(ctx, W, H) {
-  // True monochromatic slate gray — #888888
-  const bg = ctx.createLinearGradient(0, 0, 0, H);
-  bg.addColorStop(0,   '#707070');
-  bg.addColorStop(0.5, '#8a8a8a');
-  bg.addColorStop(1,   '#686868');
-  ctx.fillStyle = bg; ctx.fillRect(0, 0, W, H);
-
-  // Caloris Basin — large dark impact basin
-  ctx.save(); ctx.globalAlpha = 0.55;
-  const caloris = ctx.createRadialGradient(W*0.38,H*0.42,0,W*0.38,H*0.42,W*0.22);
-  caloris.addColorStop(0,   '#484848');
-  caloris.addColorStop(0.55,'rgba(65,65,65,0.7)');
-  caloris.addColorStop(1,   'rgba(55,55,55,0)');
-  ctx.fillStyle = caloris;
-  ctx.beginPath(); ctx.ellipse(W*0.38,H*0.42,W*0.22,H*0.18,0.2,0,Math.PI*2); ctx.fill();
-  ctx.restore();
-
-  // Secondary large basin
-  ctx.save(); ctx.globalAlpha = 0.38;
-  ctx.fillStyle = '#525252';
-  ctx.beginPath(); ctx.ellipse(W*0.72,H*0.30,W*0.12,H*0.10,0.15,0,Math.PI*2); ctx.fill();
-  ctx.restore();
-
-  // Medium craters with bright ejecta rims
-  for (let i = 0; i < 55; i++) {
-    const cx = Math.random()*W, cy = Math.random()*H;
-    const r  = Math.random()*W*0.028 + W*0.007;
-    ctx.save();
-    // Dark crater floor
-    ctx.globalAlpha = 0.40 + Math.random()*0.35;
-    ctx.fillStyle = '#484848';
-    ctx.beginPath(); ctx.arc(cx, cy, r, 0, Math.PI*2); ctx.fill();
-    // Bright ejecta rim
-    ctx.globalAlpha = 0.22 + Math.random()*0.22;
-    ctx.strokeStyle = '#c8c8c8';
-    ctx.lineWidth = r * 0.35;
-    ctx.beginPath(); ctx.arc(cx, cy, r * 1.1, 0, Math.PI*2); ctx.stroke();
-    ctx.restore();
-  }
-
-  // Small fresh craters (bright)
-  for (let i = 0; i < 90; i++) {
-    const cx = Math.random()*W, cy = Math.random()*H, r = Math.random()*W*0.010 + W*0.003;
-    ctx.save(); ctx.globalAlpha = 0.25 + Math.random()*0.28;
-    ctx.fillStyle = Math.random() > 0.45 ? '#505050' : '#b8b8b8';
-    ctx.beginPath(); ctx.arc(cx, cy, r, 0, Math.PI*2); ctx.fill();
-    ctx.restore();
-  }
-}
-
-/* ── Texture: Uranus ─────────────────────────────────────────────────────── */
-function drawUranus(ctx, W, H) {
-  const bg = ctx.createLinearGradient(0, 0, 0, H);
-  bg.addColorStop(0, '#52b4c4'); bg.addColorStop(0.5, '#6acce0'); bg.addColorStop(1, '#52b4c4');
-  ctx.fillStyle = bg; ctx.fillRect(0, 0, W, H);
-  [[0.20,0.10,'#5ec4d4',0.32],[0.38,0.14,'#80e0f0',0.28],[0.58,0.10,'#5ec0d0',0.28],[0.73,0.08,'#4cb0c0',0.30]]
-    .forEach(([y,h,c,a]) => { ctx.save(); ctx.globalAlpha=a; ctx.fillStyle=c; ctx.fillRect(0,y*H,W,h*H); ctx.restore(); });
-  // Polar haze
-  ctx.save(); ctx.globalAlpha = 0.38;
-  const pg = ctx.createLinearGradient(0,0,0,H*0.22);
-  pg.addColorStop(0,'#a2e8f8'); pg.addColorStop(1,'rgba(162,232,248,0)');
-  ctx.fillStyle = pg; ctx.fillRect(0,0,W,H*0.22); ctx.restore();
-}
-
-/* ── Texture: Neptune ────────────────────────────────────────────────────── */
-function drawNeptune(ctx, W, H) {
-  const bg = ctx.createLinearGradient(0, 0, 0, H);
-  bg.addColorStop(0, '#1830c0'); bg.addColorStop(0.5, '#2040d8'); bg.addColorStop(1, '#1428b0');
-  ctx.fillStyle = bg; ctx.fillRect(0, 0, W, H);
-  [[0.15,0.08,'#3252e8',0.35],[0.35,0.10,'#1832c0',0.30],[0.55,0.08,'#2842d0',0.32],[0.70,0.07,'#1022a8',0.28]]
-    .forEach(([y,h,c,a]) => { ctx.save(); ctx.globalAlpha=a; ctx.fillStyle=c; ctx.fillRect(0,y*H,W,h*H); ctx.restore(); });
-  // Great Dark Spot
-  ctx.save(); ctx.globalAlpha = 0.50;
-  ctx.fillStyle = 'rgba(5,10,60,0.60)';
-  ctx.beginPath(); ctx.ellipse(W*0.55,H*0.45,W*0.08,H*0.055,0,0,Math.PI*2); ctx.fill();
-  ctx.restore();
-  // Polar glow
-  ctx.save(); ctx.globalAlpha = 0.38;
-  const pg = ctx.createLinearGradient(0,0,0,H*0.20);
-  pg.addColorStop(0,'#5070ff'); pg.addColorStop(1,'rgba(80,112,255,0)');
-  ctx.fillStyle = pg; ctx.fillRect(0,0,W,H*0.20); ctx.restore();
-}
-
-/* ── Texture: Moon ───────────────────────────────────────────────────────── */
-function drawMoon(ctx, W, H) {
-  const bg = ctx.createLinearGradient(0,0,0,H);
-  bg.addColorStop(0,'#909090'); bg.addColorStop(0.5,'#a0a0a0'); bg.addColorStop(1,'#808080');
-  ctx.fillStyle=bg; ctx.fillRect(0,0,W,H);
-  // Mare (dark plains)
-  [[0.50,0.40,0.16,0.10,'#606060',0.60],[0.70,0.35,0.10,0.07,'#686868',0.55],[0.34,0.50,0.08,0.06,'#646464',0.52]]
-    .forEach(([x,y,rx,ry,c,a])=>{
-      ctx.save(); ctx.globalAlpha=a; ctx.fillStyle=c;
-      ctx.beginPath(); ctx.ellipse(x*W,y*H,rx*W,ry*H,0.3,0,Math.PI*2); ctx.fill(); ctx.restore();
-    });
-  // Craters
-  for(let i=0;i<55;i++){
-    const cx=Math.random()*W, cy=Math.random()*H, r=Math.random()*W*0.022+W*0.005;
-    ctx.save(); ctx.globalAlpha=0.28+Math.random()*0.28;
-    ctx.fillStyle=Math.random()>0.5?'#787878':'#c8c8c8';
-    ctx.beginPath(); ctx.arc(cx,cy,r,0,Math.PI*2); ctx.fill(); ctx.restore();
-  }
-}
-
-/* ── Texture: Sun ────────────────────────────────────────────────────────── */
 function drawSun(ctx, W, H) {
   const bg = ctx.createRadialGradient(W*0.42,H*0.42,0,W*0.5,H*0.5,W*0.55);
   bg.addColorStop(0,'#fff8d0'); bg.addColorStop(0.3,'#ffe060'); bg.addColorStop(0.7,'#ff8800'); bg.addColorStop(1,'#cc3300');
-  ctx.fillStyle=bg; ctx.fillRect(0,0,W,H);
+  ctx.fillStyle = bg; ctx.fillRect(0,0,W,H);
   ctx.save(); ctx.globalAlpha=0.12;
   for(let i=0;i<280;i++){
     const gx=Math.random()*W, gy=Math.random()*H, gr=Math.random()*8+3;
@@ -385,17 +63,12 @@ function drawSun(ctx, W, H) {
   ctx.restore();
 }
 
-/* ── Texture: Pluto ──────────────────────────────────────────────────────── */
 function drawPluto(ctx, W, H) {
   const bg=ctx.createLinearGradient(0,0,0,H);
   bg.addColorStop(0,'#987860'); bg.addColorStop(0.5,'#a88870'); bg.addColorStop(1,'#886858');
   ctx.fillStyle=bg; ctx.fillRect(0,0,W,H);
-  // Tombaugh Regio (heart-shaped nitrogen ice plain)
-  ctx.save(); ctx.globalAlpha=0.55;
-  ctx.fillStyle='#e8ddc0';
-  ctx.beginPath(); ctx.ellipse(W*0.55,H*0.50,W*0.13,H*0.13,0.3,0,Math.PI*2); ctx.fill();
-  ctx.restore();
-  // Craters
+  ctx.save(); ctx.globalAlpha=0.55; ctx.fillStyle='#e8ddc0';
+  ctx.beginPath(); ctx.ellipse(W*0.55,H*0.50,W*0.13,H*0.13,0.3,0,Math.PI*2); ctx.fill(); ctx.restore();
   for(let i=0;i<30;i++){
     ctx.save(); ctx.globalAlpha=0.22+Math.random()*0.22;
     ctx.fillStyle=Math.random()>0.5?'#6a5848':'#ccc0a8';
@@ -404,32 +77,36 @@ function drawPluto(ctx, W, H) {
   }
 }
 
-/* ── Texture dispatcher ───────────────────────────────────────────────────── */
-const DRAWERS = { jupiter:drawJupiter, saturn:drawSaturn, venus:drawVenus, earth:drawEarth,
-  mars:drawMars, mercury:drawMercury, uranus:drawUranus, neptune:drawNeptune,
-  moon:drawMoon, sun:drawSun, pluto:drawPluto };
-
-function makeTexture(name) {
-  const W = 512, H = 256;
-  const cv = document.createElement('canvas');
-  cv.width = W; cv.height = H;
-  const ctx = cv.getContext('2d');
-  (DRAWERS[name] || DRAWERS.mercury)(ctx, W, H);
-  return cv;
+function makeProceduralTexture(name) {
+  const W=512, H=256, cv=document.createElement('canvas');
+  cv.width=W; cv.height=H;
+  const ctx=cv.getContext('2d');
+  if (name==='earth') drawEarth(ctx,W,H);
+  else if (name==='sun') drawSun(ctx,W,H);
+  else drawPluto(ctx,W,H);
+  return new THREE.CanvasTexture(cv);
 }
 
-function makeSaturnRingCanvas() {
-  const cv = document.createElement('canvas');
-  cv.width = 256; cv.height = 1;
-  const ctx = cv.getContext('2d');
-  drawSaturnRing(ctx, 256, 1);
-  return cv;
+/* ── Saturn ring texture from /assets/saturn_ring_color.jpg ──────────────── */
+function makeSaturnRingGeo() {
+  const ringGeo = new THREE.RingGeometry(1.26, 2.22, 128);
+  // Remap UVs radially so the texture maps from inner to outer edge
+  const pos = ringGeo.attributes.position;
+  const uv  = ringGeo.attributes.uv;
+  const v3  = new THREE.Vector3();
+  for (let i = 0; i < pos.count; i++) {
+    v3.fromBufferAttribute(pos, i);
+    const r = v3.length();
+    uv.setXY(i, (r - 1.26) / (2.22 - 1.26), 0.5);
+  }
+  uv.needsUpdate = true;
+  return ringGeo;
 }
 
 /* ── Shared 12fps animation loop ─────────────────────────────────────────── */
 const active = [];
 let rafId = null, lastT = 0;
-const TARGET_FPS = 12, DT = 1000 / TARGET_FPS;
+const DT = 1000 / 12; // 12fps
 
 function loop(t) {
   rafId = requestAnimationFrame(loop);
@@ -456,6 +133,8 @@ function initPlanets3D() {
   const containers = document.querySelectorAll('.planet-3d-canvas-container');
   if (!containers.length || typeof THREE === 'undefined') return;
 
+  const loader = new THREE.TextureLoader();
+
   requestAnimationFrame(() => {
     containers.forEach(container => {
       const name = (container.dataset.planet || 'mercury').toLowerCase();
@@ -463,85 +142,97 @@ function initPlanets3D() {
 
       container.innerHTML = '';
 
-      // Compute display size from actual rendered container
+      // Size — fit in container
       const cw   = container.offsetWidth  || 280;
       const ch   = container.offsetHeight || 220;
       const size = Math.round(Math.min(cw * 0.84, ch * 0.88));
       const dpr  = Math.min(window.devicePixelRatio || 1, 2);
 
-      // ── Canvas element ──
+      // Canvas element
       const cv = document.createElement('canvas');
       cv.style.cssText = `width:${size}px;height:${size}px;display:block;margin:0 auto;`;
       container.appendChild(cv);
 
-      // ── Three.js renderer ──
+      // Three.js renderer
       const renderer = new THREE.WebGLRenderer({ canvas: cv, antialias: true, alpha: true });
       renderer.setPixelRatio(dpr);
       renderer.setSize(size, size);
       renderer.setClearColor(0x000000, 0);
 
-      // ── Scene & camera ──
+      // Scene & camera
       const scene  = new THREE.Scene();
       const camera = new THREE.PerspectiveCamera(35, 1, 0.1, 100);
       camera.position.z = 2.6;
 
-      // ── Lighting: deep terminator — low ambient, strong directional ──
-      // AmbientLight very dim so night-side is dark and terminator is cinematic
+      // Lighting — cinematic terminator (same as moon3d.js)
       const ambient  = new THREE.AmbientLight(0x101828, 0.12);
-      // Key light: top-left at -1.8,0.7 x, bright warm white
-      const keyLight = new THREE.DirectionalLight(0xfff8e8, 2.20);
+      const keyLight = new THREE.DirectionalLight(0xfff5e6, 2.0);
       keyLight.position.set(-1.8, 0.7, 1.5);
-      scene.add(ambient, keyLight);
+      const rimLight = new THREE.DirectionalLight(0x4040a0, 0.15);
+      rimLight.position.set(5, 0, -5);
+      scene.add(ambient, keyLight, rimLight);
 
-      // ── Sphere — MeshStandardMaterial for matte, physically-based shading ──
-      const texCanvas = makeTexture(name);
-      const texture   = new THREE.CanvasTexture(texCanvas);
+      // Geometry
+      const geo = new THREE.SphereGeometry(1, 64, 32);
 
-      const geo  = new THREE.SphereGeometry(1, 64, 32);
-      const mat  = new THREE.MeshStandardMaterial({
-        map:       texture,
-        roughness: 0.85,   // very matte — no plastic shine
-        metalness: 0.05,   // near-zero metal
-      });
-      const mesh = new THREE.Mesh(geo, mat);
-      mesh.rotation.x = THREE.MathUtils.degToRad(cfg.tilt || 0);
-      scene.add(mesh);
-
-      // ── Saturn ring system ──
-      if (cfg.hasRing) {
-        const ringGeo = new THREE.RingGeometry(1.26, 2.22, 128);
-        // Remap UVs so texture maps radially
-        const pos = ringGeo.attributes.position;
-        const uv  = ringGeo.attributes.uv;
-        const v3  = new THREE.Vector3();
-        for (let i = 0; i < pos.count; i++) {
-          v3.fromBufferAttribute(pos, i);
-          const r = v3.length();
-          uv.setXY(i, (r - 1.26) / (2.22 - 1.26), 0.5);
-        }
-        uv.needsUpdate = true;
-        const ringCanvas = makeSaturnRingCanvas();
-        const ringTex = new THREE.CanvasTexture(ringCanvas);
-        const ringMat = new THREE.MeshBasicMaterial({
-          map: ringTex, side: THREE.DoubleSide, transparent: true, opacity: 0.90,
+      // Material — created after texture loads
+      function buildSphere(texture) {
+        const mat = new THREE.MeshStandardMaterial({
+          map:       texture,
+          roughness: 0.88,
+          metalness: 0.04,
         });
-        const ring = new THREE.Mesh(ringGeo, ringMat);
-        ring.rotation.x = Math.PI / 2;
-        scene.add(ring);
+        const mesh = new THREE.Mesh(geo, mat);
+        mesh.rotation.x = THREE.MathUtils.degToRad(cfg.tilt || 0);
+        scene.add(mesh);
+
+        // Saturn ring
+        if (cfg.hasRing && cfg.ringTex) {
+          loader.load(cfg.ringTex, ringTex => {
+            const ringMat = new THREE.MeshBasicMaterial({
+              map: ringTex, side: THREE.DoubleSide, transparent: true, opacity: 0.92,
+            });
+            const ring = new THREE.Mesh(makeSaturnRingGeo(), ringMat);
+            ring.rotation.x = Math.PI / 2;
+            scene.add(ring);
+          });
+        } else if (cfg.hasRing) {
+          // Fallback procedural ring if no file
+          const ringMat = new THREE.MeshBasicMaterial({ color: 0xc8b890, side: THREE.DoubleSide, transparent: true, opacity: 0.65 });
+          const ring = new THREE.Mesh(makeSaturnRingGeo(), ringMat);
+          ring.rotation.x = Math.PI / 2;
+          scene.add(ring);
+        }
+
+        // First render immediately
+        renderer.render(scene, camera);
+
+        // IntersectionObserver — pause off-screen planets
+        const entry = { renderer, scene, camera, mesh, rotSpeed: cfg.speed, paused: false, disposed: false, observer: null };
+        const io = new IntersectionObserver(([e]) => { entry.paused = !e.isIntersecting; }, { threshold: 0.05 });
+        io.observe(container);
+        entry.observer = io;
+        active.push(entry);
+
+        // Start shared loop if not running
+        if (!rafId) rafId = requestAnimationFrame(loop);
       }
 
-      // First render — show immediately without waiting for loop tick
-      renderer.render(scene, camera);
-
-      // ── IntersectionObserver: pause off-screen planets ──
-      const entry = { renderer, scene, camera, mesh, rotSpeed: cfg.speed, paused: false, disposed: false, observer: null };
-      const io = new IntersectionObserver(([e]) => { entry.paused = !e.isIntersecting; }, { threshold: 0.05 });
-      io.observe(container);
-      entry.observer = io;
-      active.push(entry);
+      // Load real texture file if available, otherwise procedural
+      if (cfg.tex) {
+        loader.load(
+          cfg.tex,
+          tex => { buildSphere(tex); },          // onLoad
+          undefined,                              // onProgress
+          () => {                                 // onError — fall back to procedural
+            console.warn(`planets3d: failed to load ${cfg.tex}, using procedural`);
+            buildSphere(makeProceduralTexture(name));
+          }
+        );
+      } else {
+        buildSphere(makeProceduralTexture(name));
+      }
     });
-
-    if (active.length) rafId = requestAnimationFrame(loop);
   });
 }
 
