@@ -1,27 +1,27 @@
-// planets3d.js v14 — Each planet gets its own renderer + OrbitControls
-// Identical behavior to moon3d.js: drag to rotate, scroll to zoom, 30fps, IntersectionObserver
+// planets3d.js — Three.js textured planets v10
+// Mirrors moon3d.js pattern: THREE.TextureLoader from /assets/*.jpg
+// Procedural canvas fallback for planets without texture files (earth, sun, pluto)
+// Shared 12fps throttled loop + IntersectionObserver per card
 
 (function () {
 'use strict';
 
+/* ── Planet configs ─────────────────────────────────────────────────────── */
 const CFG = {
-  sun:     { tilt:  7.25 },
-  mercury: { tilt:  0.03, tex: '/assets/mercury.jpg' },
-  venus:   { tilt: 177.4, tex: '/assets/venus.jpg'   },
-  earth:   { tilt:  23.4 },
-  mars:    { tilt:  25.2, tex: '/assets/mars.jpg'    },
-  jupiter: { tilt:   3.1, tex: '/assets/jupiter.jpg' },
-  saturn:  { tilt:  26.7, tex: '/assets/saturn.jpg', hasRing: true, ringTex: '/assets/saturn_ring_color.jpg' },
-  uranus:  { tilt:  97.8, tex: '/assets/uranus.jpg'  },
-  neptune: { tilt:  28.3, tex: '/assets/neptune.jpg' },
-  moon:    { tilt:   1.5, tex: '/assets/moon_texture.jpg' },
-  pluto:   { tilt: 122.5 },
+  sun:     { tilt:  7.25, speed: 0.48 },
+  mercury: { tilt:  0.03, speed: 0.017, tex: '/assets/mercury.jpg' },
+  venus:   { tilt: 177.4, speed: 0.004, tex: '/assets/venus.jpg'   },
+  earth:   { tilt:  23.4, speed: 0.50  },   // no texture file yet — procedural
+  mars:    { tilt:  25.2, speed: 0.24,  tex: '/assets/mars.jpg'    },
+  jupiter: { tilt:   3.1, speed: 0.45,  tex: '/assets/jupiter.jpg' },
+  saturn:  { tilt:  26.7, speed: 0.38,  tex: '/assets/saturn.jpg', hasRing: true, ringTex: '/assets/saturn_ring_color.jpg' },
+  uranus:  { tilt:  97.8, speed: 0.23,  tex: '/assets/uranus.jpg'  },
+  neptune: { tilt:  28.3, speed: 0.15,  tex: '/assets/neptune.jpg' },
+  moon:    { tilt:   1.5, speed: 0.036, tex: '/assets/moon_texture.jpg' },
+  pluto:   { tilt: 122.5, speed: 0.006 },   // no texture file yet — procedural
 };
 
-// Track all instances for cleanup
-const instances = [];
-
-/* ── Procedural fallbacks for planets without texture files ────────────── */
+/* ── Procedural canvas fallbacks (only for planets without .jpg assets) ── */
 
 function drawEarth(ctx, W, H) {
   const og = ctx.createLinearGradient(0, 0, 0, H);
@@ -37,20 +37,44 @@ function drawEarth(ctx, W, H) {
   ctx.beginPath(); ctx.ellipse(W*0.79, H*0.66, W*0.066, H*0.09, 0.2, 0, Math.PI*2); ctx.fill();
   ctx.fillStyle = 'rgba(220,235,255,0.88)';
   ctx.fillRect(0, 0, W, H*0.06); ctx.fillRect(0, H*0.92, W, H);
+  ctx.save(); ctx.globalAlpha = 0.44;
+  for (let i = 0; i < 14; i++) {
+    const cy = Math.random() * H;
+    const cg = ctx.createLinearGradient(0, cy-10, 0, cy+10);
+    cg.addColorStop(0, 'rgba(255,255,255,0)'); cg.addColorStop(0.5, 'rgba(255,255,255,0.65)'); cg.addColorStop(1, 'rgba(255,255,255,0)');
+    ctx.fillStyle = cg;
+    ctx.beginPath(); ctx.moveTo(0, cy);
+    for (let x = 0; x <= W; x += 10) ctx.lineTo(x, cy + Math.sin(x*0.02+i)*11);
+    ctx.lineTo(W, cy+22); ctx.lineTo(0, cy+22); ctx.closePath(); ctx.fill();
+  }
+  ctx.restore();
 }
 
 function drawSun(ctx, W, H) {
   const bg = ctx.createRadialGradient(W*0.42,H*0.42,0,W*0.5,H*0.5,W*0.55);
   bg.addColorStop(0,'#fff8d0'); bg.addColorStop(0.3,'#ffe060'); bg.addColorStop(0.7,'#ff8800'); bg.addColorStop(1,'#cc3300');
   ctx.fillStyle = bg; ctx.fillRect(0,0,W,H);
+  ctx.save(); ctx.globalAlpha=0.12;
+  for(let i=0;i<280;i++){
+    const gx=Math.random()*W, gy=Math.random()*H, gr=Math.random()*8+3;
+    ctx.fillStyle='rgba(255,195,50,0.85)';
+    ctx.beginPath(); ctx.arc(gx,gy,gr,0,Math.PI*2); ctx.fill();
+  }
+  ctx.restore();
 }
 
 function drawPluto(ctx, W, H) {
-  const bg = ctx.createLinearGradient(0,0,0,H);
+  const bg=ctx.createLinearGradient(0,0,0,H);
   bg.addColorStop(0,'#987860'); bg.addColorStop(0.5,'#a88870'); bg.addColorStop(1,'#886858');
-  ctx.fillStyle = bg; ctx.fillRect(0,0,W,H);
+  ctx.fillStyle=bg; ctx.fillRect(0,0,W,H);
   ctx.save(); ctx.globalAlpha=0.55; ctx.fillStyle='#e8ddc0';
   ctx.beginPath(); ctx.ellipse(W*0.55,H*0.50,W*0.13,H*0.13,0.3,0,Math.PI*2); ctx.fill(); ctx.restore();
+  for(let i=0;i<30;i++){
+    ctx.save(); ctx.globalAlpha=0.22+Math.random()*0.22;
+    ctx.fillStyle=Math.random()>0.5?'#6a5848':'#ccc0a8';
+    ctx.beginPath(); ctx.arc(Math.random()*W,Math.random()*H,Math.random()*W*0.022+W*0.005,0,Math.PI*2); ctx.fill();
+    ctx.restore();
+  }
 }
 
 function makeProceduralTexture(name) {
@@ -63,173 +87,148 @@ function makeProceduralTexture(name) {
   return new THREE.CanvasTexture(cv);
 }
 
-/* ── Saturn ring ──────────────────────────────────────────────────────── */
+/* ── Saturn ring texture from /assets/saturn_ring_color.jpg ──────────────── */
 function makeSaturnRingGeo() {
   const ringGeo = new THREE.RingGeometry(1.26, 2.22, 128);
+  // Remap UVs radially so the texture maps from inner to outer edge
   const pos = ringGeo.attributes.position;
   const uv  = ringGeo.attributes.uv;
   const v3  = new THREE.Vector3();
   for (let i = 0; i < pos.count; i++) {
     v3.fromBufferAttribute(pos, i);
-    uv.setXY(i, (v3.length() - 1.26) / (2.22 - 1.26), 0.5);
+    const r = v3.length();
+    uv.setXY(i, (r - 1.26) / (2.22 - 1.26), 0.5);
   }
   uv.needsUpdate = true;
   return ringGeo;
 }
 
-/* ── Build one planet — mirrors initMoon3D() exactly ─────────────────── */
-function buildPlanet(container) {
-  const name = (container.dataset.planet || 'mercury').toLowerCase();
-  const cfg  = CFG[name] || CFG.mercury;
+/* ── Shared 12fps animation loop ─────────────────────────────────────────── */
+const active = [];
+let rafId = null, lastT = 0;
+const DT = 1000 / 12; // 12fps
 
-  container.innerHTML = '';
-
-  const width  = container.clientWidth  || 300;
-  const height = container.clientHeight || 200;
-
-  // ── Scene, camera, renderer — same as moon3d.js ──
-  const scene  = new THREE.Scene();
-  const camera = new THREE.PerspectiveCamera(45, width / height, 0.1, 1000);
-  camera.position.z = 3.5;
-
-  const renderer = new THREE.WebGLRenderer({ alpha: true, antialias: true });
-  renderer.setSize(width, height);
-  renderer.setPixelRatio(Math.min(window.devicePixelRatio, 1.5));
-  container.appendChild(renderer.domElement);
-
-  // ── OrbitControls — same as moon3d.js ──
-  const controls = new THREE.OrbitControls(camera, renderer.domElement);
-  controls.enablePan = false;
-  controls.enableZoom = true;
-  controls.minDistance = 1.5;
-  controls.maxDistance = 6;
-  controls.autoRotate = true;
-  controls.autoRotateSpeed = 0.5;
-
-  // Pause auto-rotate on drag, resume after 2s — same as moon3d.js
-  let _rotateTimer = null;
-  renderer.domElement.addEventListener('pointerdown', () => {
-    controls.autoRotate = false;
-    clearTimeout(_rotateTimer);
-  });
-  renderer.domElement.addEventListener('pointerup', () => {
-    _rotateTimer = setTimeout(() => { controls.autoRotate = true; }, 2000);
-  });
-
-  // ── Lighting — same as moon3d.js ──
-  const ambientLight = new THREE.AmbientLight(0x101828, 0.12);
-  scene.add(ambientLight);
-  const dirLight = new THREE.DirectionalLight(0xfff5e6, 2.0);
-  dirLight.position.set(-1.8, 0.7, 1.5);
-  scene.add(dirLight);
-  const rimLight = new THREE.DirectionalLight(0x4040a0, 0.20);
-  rimLight.position.set(5, 0, -5);
-  scene.add(rimLight);
-
-  // ── Sphere ──
-  const geometry = new THREE.SphereGeometry(1, 48, 48);
-  const loader   = new THREE.TextureLoader();
-
-  function finishSetup(texture) {
-    const material = new THREE.MeshStandardMaterial({
-      map:       texture,
-      roughness: 0.88,
-      metalness: 0.04,
-    });
-    const planet = new THREE.Mesh(geometry, material);
-    planet.rotation.x = THREE.MathUtils.degToRad(cfg.tilt || 0);
-    scene.add(planet);
-
-    // Saturn ring
-    if (cfg.hasRing && cfg.ringTex) {
-      loader.load(cfg.ringTex, ringTex => {
-        const ringMat = new THREE.MeshBasicMaterial({
-          map: ringTex, side: THREE.DoubleSide, transparent: true, opacity: 0.92,
-        });
-        const ring = new THREE.Mesh(makeSaturnRingGeo(), ringMat);
-        ring.rotation.x = Math.PI / 2;
-        scene.add(ring);
-      });
-    } else if (cfg.hasRing) {
-      const ringMat = new THREE.MeshBasicMaterial({ color: 0xc8b890, side: THREE.DoubleSide, transparent: true, opacity: 0.65 });
-      const ring = new THREE.Mesh(makeSaturnRingGeo(), ringMat);
-      ring.rotation.x = Math.PI / 2;
-      scene.add(ring);
-    }
-
-    // ── IntersectionObserver — same as moon3d.js ──
-    let _visible = true;
-    const io = new IntersectionObserver(([e]) => { _visible = e.isIntersecting; }, { threshold: 0.05 });
-    io.observe(container);
-
-    // Page visibility — same as moon3d.js
-    let _pageVisible = !document.hidden;
-    document.addEventListener('visibilitychange', () => { _pageVisible = !document.hidden; });
-
-    // ── 30fps animation loop — same as moon3d.js ──
-    let lastTime = 0;
-    function animate(time) {
-      requestAnimationFrame(animate);
-      if (!_visible || !_pageVisible) return;
-      if (time - lastTime < 33) return; // 30fps cap
-      lastTime = time;
-      controls.update();
-      renderer.render(scene, camera);
-    }
-    animate(performance.now());
-
-    // ── ResizeObserver — same as moon3d.js ──
-    const resizeObserver = new ResizeObserver(entries => {
-      for (const entry of entries) {
-        const { width: w, height: h } = entry.contentRect;
-        if (w === 0 || h === 0) return;
-        camera.aspect = w / h;
-        camera.updateProjectionMatrix();
-        renderer.setSize(w, h);
-      }
-    });
-    resizeObserver.observe(container);
-
-    // Track for cleanup
-    instances.push({ renderer, io, resizeObserver, container });
-  }
-
-  // Load texture or fallback
-  if (cfg.tex) {
-    loader.load(
-      cfg.tex,
-      tex => finishSetup(tex),
-      undefined,
-      () => {
-        console.warn(`planets3d: failed to load ${cfg.tex}, using procedural`);
-        finishSetup(makeProceduralTexture(name));
-      }
-    );
-  } else {
-    finishSetup(makeProceduralTexture(name));
+function loop(t) {
+  rafId = requestAnimationFrame(loop);
+  if (t - lastT < DT) return;
+  lastT = t;
+  for (const p of active) {
+    if (p.paused || p.disposed) continue;
+    p.mesh.rotation.y += p.rotSpeed * (DT / 1000);
+    p.renderer.render(p.scene, p.camera);
   }
 }
 
-/* ── initPlanets3D ───────────────────────────────────────────────────── */
+/* ── initPlanets3D ───────────────────────────────────────────────────────── */
 function initPlanets3D() {
-  // Cleanup previous instances
-  instances.forEach(inst => {
-    if (inst.io) inst.io.disconnect();
-    if (inst.resizeObserver) inst.resizeObserver.disconnect();
-    try { inst.renderer.dispose(); } catch(_) {}
-    inst.container.innerHTML = '';
+  // Cancel old loop & dispose old renderers
+  if (rafId) { cancelAnimationFrame(rafId); rafId = null; }
+  active.forEach(p => {
+    p.disposed = true;
+    if (p.observer) p.observer.disconnect();
+    try { p.renderer.dispose(); } catch(_) {}
   });
-  instances.length = 0;
+  active.length = 0;
 
   const containers = document.querySelectorAll('.planet-3d-canvas-container');
   if (!containers.length || typeof THREE === 'undefined') return;
 
-  // Build each planet independently — same as moon gets built independently
+  const loader = new THREE.TextureLoader();
+
   requestAnimationFrame(() => {
-    containers.forEach(c => buildPlanet(c));
+    containers.forEach(container => {
+      const name = (container.dataset.planet || 'mercury').toLowerCase();
+      const cfg  = CFG[name] || CFG.mercury;
+
+      container.innerHTML = '';
+
+      // ── Renderer — identical to moon3d.js ──
+      // Use full container dimensions (rectangular), not forced square
+      const width  = container.clientWidth  || 300;
+      const height = container.clientHeight || 200;
+
+      const renderer = new THREE.WebGLRenderer({ alpha: true, antialias: true });
+      renderer.setSize(width, height);
+      renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, 1.5));
+      container.appendChild(renderer.domElement);
+
+      // Scene & camera — same FOV/distance as moon3d.js
+      const scene  = new THREE.Scene();
+      const camera = new THREE.PerspectiveCamera(45, width / height, 0.1, 1000);
+      camera.position.z = 3.5;
+
+      // Lighting — cinematic terminator (same as moon3d.js)
+      const ambient  = new THREE.AmbientLight(0x101828, 0.12);
+      const keyLight = new THREE.DirectionalLight(0xfff5e6, 2.0);
+      keyLight.position.set(-1.8, 0.7, 1.5);
+      const rimLight = new THREE.DirectionalLight(0x4040a0, 0.15);
+      rimLight.position.set(5, 0, -5);
+      scene.add(ambient, keyLight, rimLight);
+
+      // Geometry
+      const geo = new THREE.SphereGeometry(1, 64, 32);
+
+      // Material — created after texture loads
+      function buildSphere(texture) {
+        const mat = new THREE.MeshStandardMaterial({
+          map:       texture,
+          roughness: 0.88,
+          metalness: 0.04,
+        });
+        const mesh = new THREE.Mesh(geo, mat);
+        mesh.rotation.x = THREE.MathUtils.degToRad(cfg.tilt || 0);
+        scene.add(mesh);
+
+        // Saturn ring
+        if (cfg.hasRing && cfg.ringTex) {
+          loader.load(cfg.ringTex, ringTex => {
+            const ringMat = new THREE.MeshBasicMaterial({
+              map: ringTex, side: THREE.DoubleSide, transparent: true, opacity: 0.92,
+            });
+            const ring = new THREE.Mesh(makeSaturnRingGeo(), ringMat);
+            ring.rotation.x = Math.PI / 2;
+            scene.add(ring);
+          });
+        } else if (cfg.hasRing) {
+          // Fallback procedural ring if no file
+          const ringMat = new THREE.MeshBasicMaterial({ color: 0xc8b890, side: THREE.DoubleSide, transparent: true, opacity: 0.65 });
+          const ring = new THREE.Mesh(makeSaturnRingGeo(), ringMat);
+          ring.rotation.x = Math.PI / 2;
+          scene.add(ring);
+        }
+
+        // First render immediately
+        renderer.render(scene, camera);
+
+        // IntersectionObserver — pause off-screen planets
+        const entry = { renderer, scene, camera, mesh, rotSpeed: cfg.speed, paused: false, disposed: false, observer: null };
+        const io = new IntersectionObserver(([e]) => { entry.paused = !e.isIntersecting; }, { threshold: 0.05 });
+        io.observe(container);
+        entry.observer = io;
+        active.push(entry);
+
+        // Start shared loop if not running
+        if (!rafId) rafId = requestAnimationFrame(loop);
+      }
+
+      // Load real texture file if available, otherwise procedural
+      if (cfg.tex) {
+        loader.load(
+          cfg.tex,
+          tex => { buildSphere(tex); },          // onLoad
+          undefined,                              // onProgress
+          () => {                                 // onError — fall back to procedural
+            console.warn(`planets3d: failed to load ${cfg.tex}, using procedural`);
+            buildSphere(makeProceduralTexture(name));
+          }
+        );
+      } else {
+        buildSphere(makeProceduralTexture(name));
+      }
+    });
   });
 }
 
 window.initPlanets3D = initPlanets3D;
 
-})();
+})(); // end IIFE
