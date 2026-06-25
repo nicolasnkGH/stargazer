@@ -741,8 +741,11 @@ body {
 
 .planet-3d-canvas-container {
   width: 100%;
-  height: 200px;
-  background: radial-gradient(circle at center, rgba(20,30,50,0.5) 0%, rgba(5,10,20,0.9) 100%);
+  height: 210px;
+  /* Deep space: pure black with a faint blue tint in the center */
+  background: radial-gradient(ellipse 70% 60% at 50% 40%,
+    rgba(10, 18, 50, 0.80) 0%,
+    rgba(2, 4, 14, 0.96) 100%);
   position: relative;
   display: flex;
   justify-content: center;
@@ -750,23 +753,32 @@ body {
   overflow: hidden;
 }
 
-/* Planet orb wrapper — centres the orb div */
+/* Planet orb wrapper — relative so absolute halo child sits behind */
 .planet-orb-wrap {
   display: flex;
   justify-content: center;
   align-items: center;
+  position: relative;
   width: 100%;
   height: 100%;
-  /* Slow float animation */
-  animation: planetFloat 6s ease-in-out infinite;
+  animation: planetFloat 7s ease-in-out infinite;
 }
 
 @keyframes planetFloat {
-  0%, 100% { transform: translateY(0px); }
-  50%       { transform: translateY(-6px); }
+  0%, 100% { transform: translateY(0px);  }
+  50%       { transform: translateY(-7px); }
 }
 
-/* CSS orbs don't use a canvas element */
+/* Halo sits absolutely centred behind the orb */
+.planet-halo {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  pointer-events: none;
+}
+
+/* CSS orbs — no canvas needed */
 
 .planet-info-col {
   padding: 16px;
