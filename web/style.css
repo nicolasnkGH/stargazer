@@ -744,22 +744,18 @@ body {
 }
 
 .planet-3d-canvas-container {
-  /* Hard bounding box — orbs are clipped to this, never push card boundaries */
+  /* Match moon container: full-width, transparent, no box appearance */
   width: 100%;
-  height: 220px;
+  height: 200px;
   flex-shrink: 0;
-  contain: size layout;
   overflow: hidden;
   position: relative;
   display: flex;
   justify-content: center;
   align-items: center;
-  /* 12px top + 8px bottom padding so sphere doesn't press into card edge */
-  padding: 12px 8px 8px;
-  box-sizing: border-box;
-  background:
-    radial-gradient(ellipse 55% 55% at 48% 42%, rgba(8, 16, 48, 0.85) 0%, rgba(1, 3, 12, 0.98) 100%),
-    linear-gradient(180deg, #01030c 0%, #020510 100%);
+  /* Subtle transparent glow — same as #moon-3d-container */
+  background: radial-gradient(circle at center, rgba(30, 40, 60, 0.3) 0%, transparent 70%);
+  cursor: grab;
 }
 
 /* Planet orb wrapper — relative so absolute halo child sits behind */
@@ -2442,12 +2438,7 @@ body.night-mode {
     overflow: hidden !important;
   }
 
-  .planet-3d-canvas-container canvas {
-    width: 100% !important;
-    max-width: 100% !important;
-    height: auto !important;
-    display: block !important;
-  }
+
 
   .planet-info-col {
     width: 100% !important;

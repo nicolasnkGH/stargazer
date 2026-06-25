@@ -142,26 +142,20 @@ function initPlanets3D() {
 
       container.innerHTML = '';
 
-      // Size — fit in container leaving room for the 12/8px padding
-      const cw   = container.offsetWidth  || 280;
-      const ch   = container.offsetHeight || 220;
-      const size = Math.round(Math.min(cw * 0.76, ch * 0.78));
-      const dpr  = Math.min(window.devicePixelRatio || 1, 2);
+      // ── Renderer — identical to moon3d.js ──
+      // Use full container dimensions (rectangular), not forced square
+      const width  = container.clientWidth  || 300;
+      const height = container.clientHeight || 200;
 
-      // ── Renderer — let Three.js create domElement (mirrors moon3d.js)
-      // Pre-creating canvas manually causes a white opaque background flash
-      const renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true });
-      renderer.setPixelRatio(dpr);
-      renderer.setSize(size, size);
-      renderer.setClearColor(0x000000, 0);
-      // Style the canvas Three.js created and append it
-      renderer.domElement.style.cssText = `width:${size}px;height:${size}px;display:block;margin:0 auto;`;
+      const renderer = new THREE.WebGLRenderer({ alpha: true, antialias: true });
+      renderer.setSize(width, height);
+      renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, 1.5));
       container.appendChild(renderer.domElement);
 
-      // Scene & camera
+      // Scene & camera — same FOV/distance as moon3d.js
       const scene  = new THREE.Scene();
-      const camera = new THREE.PerspectiveCamera(35, 1, 0.1, 100);
-      camera.position.z = 2.6;
+      const camera = new THREE.PerspectiveCamera(45, width / height, 0.1, 1000);
+      camera.position.z = 3.5;
 
       // Lighting — cinematic terminator (same as moon3d.js)
       const ambient  = new THREE.AmbientLight(0x101828, 0.12);
