@@ -9,6 +9,8 @@ import hashlib
 from zoneinfo import ZoneInfo
 
 from .skyfield import _get_skyfield, _get_observer, _get_tz, _sf_time, now_local, _tonight_window
+from skyfield.api import Star
+from skyfield import almanac
 from .moon import get_moon_info
 from .planets import get_planet_positions, _az_to_direction
 from .targets import get_visible_targets

@@ -2,6 +2,8 @@
 
 from __future__ import annotations
 
+from config import LATITUDE, LONGITUDE
+
 
 def format_tonight_telegram(report: dict) -> str:
     r = report
