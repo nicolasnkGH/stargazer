@@ -9,13 +9,14 @@ from dotenv import load_dotenv
 load_dotenv()
 
 from fastapi import FastAPI, Query, Depends, HTTPException, Header, Request
-from typing import Optional
-from fastapi.middleware.cors import CORSMiddleware
+from typing import Optional, Annotated
+from pydantic import AfterValidator
 from fastapi.responses import JSONResponse, PlainTextResponse
 import uvicorn
 import os
 from datetime import datetime
 from zoneinfo import ZoneInfo
+from urllib.parse import urlparse
 
 from engine import (
     get_tonight_report,
@@ -36,27 +37,71 @@ from engine import (
     NEARBY_TARGETS,
 )
 from config import LATITUDE, LONGITUDE, BORTLE_CLASS, TELESCOPE_APERTURE_MM, ELEVATION_M
-import re
 from fastapi import Request
+
+def _is_allowed_origin(origin: str) -> bool:
+    """Check if an origin is allowed to access the API."""
+    if not origin:
+        return False
+    try:
+        parsed = urlparse(origin)
+        host = parsed.hostname or ""
+    except Exception:
+        return False
+
+    # Production domain and subdomains
+    if host == "stargazer.nick-t.net":
+        return True
+    if host.endswith(".nick-t.net"):
+        return True
+
+    # Localhost variants
+    if host in ("localhost", "127.0.0.1"):
+        return True
+    if host.endswith(".local"):
+        return True
+
+    # Private IP ranges
+    if host.startswith("10."):
+        return True
+    if host.startswith("192.168."):
+        return True
+    if host.startswith("172."):
+        parts = host.split(".")
+        if len(parts) >= 2:
+            try:
+                second_octet = int(parts[1])
+                if 16 <= second_octet <= 31:
+                    return True
+            except ValueError:
+                pass
+
+    return False
+
 
 async def verify_origin(request: Request):
     if request.url.path in ["/", "/health"]:
         return
-        
+
     origin = request.headers.get("origin") or request.headers.get("referer", "")
-    if not origin:
-        raise HTTPException(status_code=403, detail="Direct API access is blocked.")
-        
-    allowed_domains = ["stargazer.nick-t.net", "localhost", "127.0.0.1", "10.", "192.168.", ".local"]
-    
-    if any(domain in origin for domain in allowed_domains):
-        return
-        
-    # Check for other private IPs like 172.16.x.x
-    if re.search(r"https?://(?:172\.(?:1[6-9]|2[0-9]|3[0-1])\.)", origin):
-        return
-        
-    raise HTTPException(status_code=403, detail="Unauthorized Origin.")
+    if not origin or not _is_allowed_origin(origin):
+        raise HTTPException(status_code=403, detail="Unauthorized Origin.")
+
+
+def validate_latitude(value: Optional[float]) -> Optional[float]:
+    if value is None:
+        return None
+    if not (-90 <= value <= 90):
+        raise HTTPException(status_code=400, detail="Latitude must be between -90 and 90")
+    return value
+
+
+def validate_longitude(value: Optional[float]) -> Optional[float]:
+    if value is None:
+        return None
+    if not (-180 <= value <= 180):
+        raise HTTPException(status_code=400, detail="Longitude must be between -180 and 180")
+    return value
 
 app = FastAPI(
     title="StarGazer API",
@@ -75,12 +120,6 @@ async def global_exception_handler(request: Request, exc: Exception):
         content={"detail": "Internal Server Error"},
     )
 
-app.add_middleware(
-    CORSMiddleware,
-    allow_origins=["*"],
-    allow_methods=["*"],
-    allow_headers=["*"],
-)
 
 # ── Health ────────────────────────────────────────────────────────────────────
 
@@ -202,7 +241,10 @@ def get_star(name: Optional[str] = None, ra: Optional[float] = None, dec: Option
 # ── Tonight ───────────────────────────────────────────────────────────────────
 
 @app.get("/constellations")
-def get_constellations_endpoint(lat: Optional[float] = None, lon: Optional[float] = None):
+def get_constellations_endpoint(
+    lat: Annotated[Optional[float], AfterValidator(validate_latitude)] = Query(None),
+    lon: Annotated[Optional[float], AfterValidator(validate_longitude)] = Query(None),
+):
     try:
         data = get_constellations(lat=lat, lon=lon)
         return {"constellations": data}
@@ -210,7 +252,11 @@ def get_constellations_endpoint(lat: Optional[float] = None, lon: Optional[float
         return JSONResponse(status_code=500, content={"error": str(e)})
 
 @app.get("/tonight")
-def tonight(lat: Optional[float] = Query(None), lon: Optional[float] = Query(None), lang: Optional[str] = Query("en")):
+def tonight(
+    lat: Annotated[Optional[float], AfterValidator(validate_latitude)] = Query(None),
+    lon: Annotated[Optional[float], AfterValidator(validate_longitude)] = Query(None),
+    lang: str = Query("en"),
+):
     """Full tonight's observing report."""
     try:
         return get_tonight_report(lat=lat, lon=lon, lang=lang)
@@ -218,7 +264,10 @@ def tonight(lat: Optional[float] = Query(None), lon: Optional[float] = Query(Non
         return JSONResponse(status_code=500, content={"error": str(e)})
 
 @app.get("/tonight/telegram")
-def tonight_telegram(lat: Optional[float] = Query(None), lon: Optional[float] = Query(None)):
+def tonight_telegram(
+    lat: Annotated[Optional[float], AfterValidator(validate_latitude)] = Query(None),
+    lon: Annotated[Optional[float], AfterValidator(validate_longitude)] = Query(None),
+):
     """Tonight's report formatted as Telegram markdown message."""
     try:
         report = get_tonight_report(lat=lat, lon=lon)
@@ -229,7 +278,10 @@ def tonight_telegram(lat: Optional[float] = Query(None), lon: Optional[float] = 
 # ── Weekly ────────────────────────────────────────────────────────────────────
 
 @app.get("/weekly")
-def weekly(lat: Optional[float] = Query(None), lon: Optional[float] = Query(None)):
+def weekly(
+    lat: Annotated[Optional[float], AfterValidator(validate_latitude)] = Query(None),
+    lon: Annotated[Optional[float], AfterValidator(validate_longitude)] = Query(None),
+):
     """7-day celestial event calendar."""
     try:
         return get_weekly_report(lat=lat, lon=lon)
@@ -237,7 +289,10 @@ def weekly(lat: Optional[float] = Query(None), lon: Optional[float] = Query(None
         return JSONResponse(status_code=500, content={"error": str(e)})
 
 @app.get("/weekly/telegram")
-def weekly_telegram(lat: Optional[float] = Query(None), lon: Optional[float] = Query(None)):
+def weekly_telegram(
+    lat: Annotated[Optional[float], AfterValidator(validate_latitude)] = Query(None),
+    lon: Annotated[Optional[float], AfterValidator(validate_longitude)] = Query(None),
+):
     """Weekly report formatted as Telegram markdown message."""
     try:
         report = get_weekly_report(lat=lat, lon=lon)
@@ -248,7 +303,10 @@ def weekly_telegram(lat: Optional[float] = Query(None), lon: Optional[float] = Q
 # ── Monthly ───────────────────────────────────────────────────────────────────
 
 @app.get("/monthly")
-def monthly(lat: Optional[float] = Query(None), lon: Optional[float] = Query(None)):
+def monthly(
+    lat: Annotated[Optional[float], AfterValidator(validate_latitude)] = Query(None),
+    lon: Annotated[Optional[float], AfterValidator(validate_longitude)] = Query(None),
+):
     """Monthly preview of celestial events."""
     try:
         return get_monthly_report(lat=lat, lon=lon)
@@ -256,7 +314,10 @@ def monthly(lat: Optional[float] = Query(None), lon: Optional[float] = Query(Non
         return JSONResponse(status_code=500, content={"error": str(e)})
 
 @app.get("/monthly/telegram")
-def monthly_telegram(lat: Optional[float] = Query(None), lon: Optional[float] = Query(None)):
+def monthly_telegram(
+    lat: Annotated[Optional[float], AfterValidator(validate_latitude)] = Query(None),
+    lon: Annotated[Optional[float], AfterValidator(validate_longitude)] = Query(None),
+):
     """Monthly report formatted as Telegram markdown message."""
     try:
         report = get_monthly_report(lat=lat, lon=lon)
@@ -269,7 +330,10 @@ def monthly_telegram(lat: Optional[float] = Query(None), lon: Optional[float] = 
 
 
 @app.get("/moon")
-def moon(lat: Optional[float] = Query(None), lon: Optional[float] = Query(None)):
+def moon(
+    lat: Annotated[Optional[float], AfterValidator(validate_latitude)] = Query(None),
+    lon: Annotated[Optional[float], AfterValidator(validate_longitude)] = Query(None),
+):
     """Current moon phase and rise/set times."""
     try:
         return get_moon_info(lat=lat, lon=lon)
@@ -277,7 +341,10 @@ def moon(lat: Optional[float] = Query(None), lon: Optional[float] = Query(None))
         return JSONResponse(status_code=500, content={"error": str(e)})
 
 @app.get("/planets")
-def planets(lat: Optional[float] = Query(None), lon: Optional[float] = Query(None)):
+def planets(
+    lat: Annotated[Optional[float], AfterValidator(validate_latitude)] = Query(None),
+    lon: Annotated[Optional[float], AfterValidator(validate_longitude)] = Query(None),
+):
     """All planets with current altitude/azimuth."""
     try:
         return {"planets": get_planet_positions(lat=lat, lon=lon)}
@@ -285,7 +352,11 @@ def planets(lat: Optional[float] = Query(None), lon: Optional[float] = Query(Non
         return JSONResponse(status_code=500, content={"error": str(e)})
 
 @app.get("/iss")
-def iss(count: int = Query(3), lat: Optional[float] = Query(None), lon: Optional[float] = Query(None)):
+def iss(
+    count: int = Query(3),
+    lat: Annotated[Optional[float], AfterValidator(validate_latitude)] = Query(None),
+    lon: Annotated[Optional[float], AfterValidator(validate_longitude)] = Query(None),
+):
     """Next ISS passes."""
     try:
         passes = get_iss_passes(count, lat=lat, lon=lon)
@@ -299,7 +370,10 @@ def iss(count: int = Query(3), lat: Optional[float] = Query(None), lon: Optional
         return JSONResponse(status_code=500, content={"error": str(e)})
 
 @app.get("/seeing")
-def seeing(lat: Optional[float] = Query(None), lon: Optional[float] = Query(None)):
+def seeing(
+    lat: Annotated[Optional[float], AfterValidator(validate_latitude)] = Query(None),
+    lon: Annotated[Optional[float], AfterValidator(validate_longitude)] = Query(None),
+):
     """Astronomical seeing forecast (cloud cover, wind, visibility) - Rule Based Only."""
     try:
         return get_seeing_forecast(lat=lat, lon=lon, ai_enabled=False)
@@ -307,7 +381,11 @@ def seeing(lat: Optional[float] = Query(None), lon: Optional[float] = Query(None
         return JSONResponse(status_code=500, content={"error": str(e)})
 
 @app.get("/seeing/ai")
-def seeing_ai(lat: Optional[float] = Query(None), lon: Optional[float] = Query(None), lang: Optional[str] = Query("en")):
+def seeing_ai(
+    lat: Annotated[Optional[float], AfterValidator(validate_latitude)] = Query(None),
+    lon: Annotated[Optional[float], AfterValidator(validate_longitude)] = Query(None),
+    lang: str = Query("en"),
+):
     """Astronomical seeing forecast - AI Analysis."""
     try:
         return get_seeing_forecast(lat=lat, lon=lon, ai_enabled=True, lang=lang)
@@ -316,11 +394,11 @@ def seeing_ai(lat: Optional[float] = Query(None), lon: Optional[float] = Query(N
 
 @app.get("/targets")
 def targets(
-    lat: Optional[float] = Query(None),
-    lon: Optional[float] = Query(None),
+    lat: Annotated[Optional[float], AfterValidator(validate_latitude)] = Query(None),
+    lon: Annotated[Optional[float], AfterValidator(validate_longitude)] = Query(None),
     constellation: str = Query(default="Sco", description="Filter by constellation abbreviation"),
     visible_only: bool = Query(default=False, description="Only return currently visible targets"),
-    type_filter: str = Query(default="all", description="Filter by type: all, globular, open, star, double, nebula")
+    type_filter: str = Query(default="all", description="Filter by type: all, globular, open, star, double, nebula"),
 ):
     """Full Target database filtered by constellation."""
     try:
@@ -342,7 +420,11 @@ def targets(
 # ── Run ───────────────────────────────────────────────────────────────────────
 
 @app.get("/constellation_window")
-def constellation_window(abbr: str, lat: Optional[float] = None, lon: Optional[float] = None):
+def constellation_window(
+    abbr: str,
+    lat: Annotated[Optional[float], AfterValidator(validate_latitude)] = Query(None),
+    lon: Annotated[Optional[float], AfterValidator(validate_longitude)] = Query(None),
+):
     try:
         return get_constellation_window(abbr=abbr, lat=lat, lon=lon)
     except Exception as e:
