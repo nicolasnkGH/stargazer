@@ -107,6 +107,7 @@ function makeSaturnRingGeo() {
 const active = [];
 let rafId = null, lastT = 0;
 const DT = 1000 / 12; // 12fps
+const ROT_SPEED = 0.036; // gentle auto-rotation — matches moon's idle spin rate
 
 function loop(t) {
   rafId = requestAnimationFrame(loop);
@@ -114,7 +115,8 @@ function loop(t) {
   lastT = t;
   for (const p of active) {
     if (p.paused || p.disposed) continue;
-    p.mesh.rotation.y += p.rotSpeed * (DT / 1000);
+    if (!p.idle) continue;          // only rotate when user isn't touching it
+    p.mesh.rotation.y += ROT_SPEED * (DT / 1000);
     p.renderer.render(p.scene, p.camera);
   }
 }
@@ -165,8 +167,27 @@ function initPlanets3D() {
       rimLight.position.set(5, 0, -5);
       scene.add(ambient, keyLight, rimLight);
 
+      // OrbitControls — drag to rotate, scroll to zoom (same as moon3d.js)
+      const controls = new THREE.OrbitControls(camera, renderer.domElement);
+      controls.enablePan = false;
+      controls.enableZoom = true;
+      controls.minDistance = 1.5;
+      controls.maxDistance = 6;
+      controls.autoRotate = false;
+      controls.autoRotateSpeed = 0.5;
+
+      let _planetRotateTimer = null;
+      let planetIdle = true;
+      renderer.domElement.addEventListener('pointerdown', () => {
+        planetIdle = false;
+        clearTimeout(_planetRotateTimer);
+      });
+      renderer.domElement.addEventListener('pointerup', () => {
+        _planetRotateTimer = setTimeout(() => { planetIdle = true; }, 2000);
+      });
+
       // Geometry
-      const geo = new THREE.SphereGeometry(1, 64, 32);
+      const geo = new THREE.SphereGeometry(1, 48, 48);
 
       // Material — created after texture loads
       function buildSphere(texture) {
@@ -201,7 +222,7 @@ function initPlanets3D() {
         renderer.render(scene, camera);
 
         // IntersectionObserver — pause off-screen planets
-        const entry = { renderer, scene, camera, mesh, rotSpeed: cfg.speed, paused: false, disposed: false, observer: null };
+        const entry = { renderer, scene, camera, mesh, rotSpeed: cfg.speed, idle: true, paused: false, disposed: false, observer: null };
         const io = new IntersectionObserver(([e]) => { entry.paused = !e.isIntersecting; }, { threshold: 0.05 });
         io.observe(container);
         entry.observer = io;
