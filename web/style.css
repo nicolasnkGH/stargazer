@@ -787,11 +787,11 @@ body {
 /* CSS orbs — no canvas needed */
 
 .planet-info-col {
-  padding: 16px;
+  /* Uniform 16px padding on all sides — every child left-edges at 16px */
+  padding: 14px 16px 16px;
   display: flex;
   flex-direction: column;
-  flex: 1;
-  gap: 8px;
+  gap: 6px;              /* consistent vertical rhythm */
 }
 
 .planet-name-row {
@@ -819,11 +819,14 @@ body {
 }
 
 .planet-meta-row {
+  /* Stack each metric on its own line so they all share the same left edge */
   display: flex;
-  align-items: center;
-  gap: 10px;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 4px;
   font-family: var(--font-mono);
   font-size: 0.75rem;
+  margin: 0;   /* gap on parent handles spacing */
 }
 
 .planet-alt {
@@ -837,7 +840,25 @@ body {
 
 .planet-dist {
   color: #94a3b8;
-  margin-left: auto;
+  /* margin-left:auto removed — uniform left axis */
+}
+
+/* Bottom info block (visible window + how to find) */
+.planet-bottom-info {
+  font-size: 0.78rem;
+  color: #94a3b8;
+  padding-top: 8px;
+  border-top: 1px solid rgba(100, 80, 200, 0.18);
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+  /* left-edge sits at the same 16px as all siblings (parent padding handles it) */
+}
+
+.planet-visible-window {
+  color: #d8b4fe;
+  font-weight: 600;
+  font-size: 0.78rem;
 }
 
 .planet-vis-dot {

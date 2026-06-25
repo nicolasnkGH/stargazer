@@ -1070,15 +1070,15 @@ function renderPlanets(planets, factStr) {
             <span class="planet-name">${p.emoji} ${pName}</span>
             <span class="planet-const-pill" title="Currently in this constellation">${p.constellation || ''}</span>
           </div>
-          <div class="planet-meta-row" style="flex-wrap: wrap; gap: 6px; margin-top: 8px;">
+          <div class="planet-meta-row">
             <span class="planet-alt" style="color:${altColor}" title="How high above the horizon">📐 Altitude: ${p.altitude_deg}° — ${altLabel}</span>
             <span class="planet-alt" style="color:#94a3b8" title="Compass direction to look">🧭 ${p.direction}${azimuthStr}</span>
-            <span class="planet-mag" style="color:#cbd5e1" title="Brightness scale: lower = brighter; negative = extremely bright">💡 Magnitude ${p.magnitude_approx}${magNote}</span>
+            <span class="planet-mag" title="Brightness scale: lower = brighter; negative = extremely bright">💡 Magnitude ${p.magnitude_approx}${magNote}</span>
             ${p.distance_mkm ? `<span class="planet-dist" title="Current distance from Earth">📏 ${p.distance_mkm}M km from Earth</span>` : ''}
-            ${p.light_time_minutes ? `<span class="planet-dist" title="How long light takes to travel from this planet to us right now">⚡ Light travel: ${p.light_time_minutes} min</span>` : ''}
+            ${p.light_time_minutes ? `<span class="planet-dist" title="Light travel time">⚡ Light travel: ${p.light_time_minutes} min</span>` : ''}
           </div>
-          <div style="font-size: 0.8rem; color: #cbd5e1; margin-top: 8px; padding-top: 8px; border-top: 1px dashed rgba(168, 85, 247, 0.2);">
-            ${(p.rise_time && p.set_time && p.rise_time !== 'N/A' && p.set_time !== 'N/A') ? `<div style="color: #d8b4fe; font-weight: bold; margin-bottom: 4px;">🔭 Visible window: ${p.rise_time} – ${p.set_time}</div>` : ''}
+          <div class="planet-bottom-info">
+            ${(p.rise_time && p.set_time && p.rise_time !== 'N/A' && p.set_time !== 'N/A') ? `<div class="planet-visible-window">🔭 Visible window: ${p.rise_time} – ${p.set_time}</div>` : ''}
             <div><strong>📍 How to find it:</strong> ${p.how_to_find || ''}</div>
           </div>
         </div>
