@@ -34,7 +34,7 @@
   <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/controls/OrbitControls.js"></script>
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/driver.js@1.0.1/dist/driver.css" integrity="sha384-bovbcpDBo0pTIhd7ws6ebPh1PG31ubAHcX2pv8Tcu5EtFHNl5FBciYFtS/e2SN66" crossorigin="anonymous" />
-  <link rel="stylesheet" href="style.css?v=54" />
+  <link rel="stylesheet" href="style.css?v=73" />
   
   <!-- D3.js and d3-celestial for Interactive Star Map -->
   <script src="https://d3js.org/d3.v3.min.js"></script>
@@ -49,6 +49,8 @@
   
   <!-- GSAP for Smooth Animations -->
   <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/gsap.min.js"></script>
+  <!-- Lucide Icons CDN -->
+  <script src="https://unpkg.com/lucide@latest/dist/umd/lucide.js"></script>
 </head>
 <body>
 
@@ -59,14 +61,14 @@
   <header class="header">
     <div class="header-inner">
       <div class="logo">
-        <span class="logo-icon">🔭</span>
+        <span class="logo-icon"><i data-lucide="telescope" style="width:22px;height:22px;stroke:#38bdf8;stroke-width:1.5;"></i></span>
         <div class="logo-wrap">
-        <div class="logo-main" data-i18n="app_title">✨ StarGazer</div>
+        <div class="logo-main" data-i18n="app_title">StarGazer</div>
         <div id="logo-slogan" class="logo-slogan" data-i18n="app_slogan">Astronomy made simple.</div>
         <div class="location-block" style="display: flex; flex-direction: column; align-items: flex-start; gap: 2px; margin-top: 8px;">
           <div style="display: flex; align-items: center; gap: 6px;">
             <div id="logo-sub" class="logo-sub" style="font-weight: bold;" data-i18n="loading_loc">Loading location...</div>
-            <button id="btn-location" class="location-btn" title="Set Location" data-i18n="set_loc_btn" style="width: 24px; height: 24px; font-size: 0.8rem;">📍</button>
+            <button id="btn-location" class="location-btn" title="Set Location" data-i18n="set_loc_btn" style="width: 24px; height: 24px; display:flex;align-items:center;justify-content:center;"><i data-lucide="map-pin" style="width:14px;height:14px;stroke:#38bdf8;stroke-width:1.5;"></i></button>
           </div>
           <div id="logo-coords" class="logo-coords" style="font-family: var(--font-mono); font-size: 0.75rem; opacity: 0.6; letter-spacing: 0.05em;">Lat: --, Lon: --</div>
         </div>
@@ -89,11 +91,11 @@
         <div class="header-controls" style="display: flex; gap: 8px; align-items: center;">
           <button id="btn-unit-toggle" class="unit-btn" title="Toggle Units">°C / km</button>
           <select id="lang-select" class="lang-select desktop-only"><option value="en">🇺🇸 EN</option><option value="es">🇪🇸 ES</option><option value="pt">🇧🇷 PT</option></select>
-          <button id="btn-about" class="about-btn" title="About StarGazer" data-i18n="about_btn">ℹ️</button>
+          <button id="btn-about" class="about-btn" title="About StarGazer" data-i18n="about_btn"><i data-lucide="info" style="width:16px;height:16px;stroke:currentColor;stroke-width:1.5;"></i></button>
           
           <div style="position: relative;">
             <button id="btn-menu" class="menu-btn" title="Navigation">
-              <span style="font-size: 1.1rem;">☰</span>
+              <i data-lucide="menu" style="width:18px;height:18px;stroke:currentColor;stroke-width:1.5;"></i>
               <span class="menu-label" style="font-size: 0.8rem; font-weight: 600; margin-left: 6px; letter-spacing: 0.05em; text-transform: uppercase;">Menu</span>
             </button>
             <div id="nav-dropdown" class="nav-dropdown hidden">
@@ -105,7 +107,7 @@
               <a href="#card-tonight" data-i18n="nav_tonight" class="nav-link">Tonight's Outlook</a>
               <a href="#card-active-const" data-i18n="nav_active_const" class="nav-link">Active Constellation</a>
               <a href="#card-targets" data-i18n="nav_target_db" class="nav-link">Target Database</a>
-              <a href="#card-iss" data-i18n="nav_iss" class="nav-link">ISS Pass Monitor</a>
+              <a href="#card-motion" class="nav-link">Sky Objects in Motion</a>
               <a href="#card-weekly" data-i18n="nav_weekly" class="nav-link">7-Day Forecast</a>
             </div>
           </div>
@@ -118,16 +120,21 @@
 
     <!-- ── 3D Gravity Well Hero Section ── -->
     <section id="hero-section">
+      <!-- WebGL grid canvas -->
       <canvas id="gravity-well-canvas"></canvas>
+      <!-- 2D glow halo overlay (drawn by gravity-well.js) -->
+      <canvas id="hero-glow-canvas"></canvas>
+      <!-- Text sits at top-center, above the sphere cluster -->
       <div class="hero-content">
-        <h1 class="hero-title" data-i18n="app_title">✨ StarGazer</h1>
+        <div class="hero-eyebrow">Live · Observatory · Dashboard</div>
+        <h1 class="hero-title" data-i18n="app_title">StarGazer</h1>
         <div class="hero-subtitle" data-i18n="app_slogan">Astronomy made simple.</div>
       </div>
     </section>
     <!-- ── Go/No-Go Banner ── -->
     <section id="gonogo-banner" class="gonogo-banner loading-state">
-      <div class="gonogo-inner">
-        <span class="gonogo-icon" id="gonogo-icon">⏳</span>
+      <div class="gonogo-inner" style="padding-left: 8px; padding-right: 8px;">
+        <span class="gonogo-icon" id="gonogo-icon"><i data-lucide="clock" style="width:28px;height:28px;stroke:currentColor;stroke-width:1.5;"></i></span>
         <div>
           <div class="gonogo-title" id="gonogo-title" data-i18n="lbl_status_checking">Tonight's Observing Status…</div>
           <div class="gonogo-sub" id="gonogo-sub" data-i18n="gonogo_fetching">Fetching weather and sky data</div>
@@ -142,9 +149,9 @@
       <!-- Seeing Conditions -->
       <div class="card card-seeing" id="card-seeing">
         <div class="card-header">
-          <span class="card-icon">🌤️</span>
+          <span class="card-icon"><i data-lucide="cloud-sun"></i></span>
           <h2 class="card-title" data-i18n="card_conditions">Conditions</h2>
-          <span class="info-icon" style="cursor:pointer; opacity:0.6; font-size: 0.85rem; margin-left:8px;" onclick="showInfo(window.i18n[window.currentLang]?.info_weather || 'Data powered by Open-Meteo API', event)">ℹ️</span>
+          <span class="info-icon" style="cursor:pointer;display:flex;align-items:center;margin-left:6px;" onclick="showInfo(window.i18n[window.currentLang]?.info_weather || 'Data powered by Open-Meteo API', event)"><i data-lucide="info" style="width:14px;height:14px;stroke:rgba(148,163,184,0.6);stroke-width:1.5;"></i></span>
           <span class="card-badge" id="seeing-score-badge">—</span>
         </div>
         <div class="card-body">
@@ -179,7 +186,7 @@
 
           <!-- Pre-Flight Checklist -->
           <div class="checklist-container" id="pre-flight-checklist" style="margin-top: 15px; padding-top: 15px; border-top: 1px solid rgba(255,255,255,0.1);">
-            <h3 style="margin-top:0; font-size: 1rem; color: #fff;"><span style="color:#22c55e;">✅</span> <span data-i18n="preflight_title">Pre-Flight Checklist</span></h3>
+            <h3 style="margin-top:0; font-size: 1rem; color: #fff; display:flex;align-items:center;gap:6px;"><i data-lucide="check-square" style="width:16px;height:16px;stroke:#22c55e;stroke-width:2;"></i> <span data-i18n="preflight_title">Pre-Flight Checklist</span></h3>
             <label style="display: flex; align-items: center; gap: 8px; font-size: 0.8rem; color: var(--text-secondary); margin-bottom: 5px;">
               <input type="checkbox" style="accent-color: var(--accent-blue);"> <span data-i18n="preflight_1">Put telescope outside to cool down (30m)</span>
             </label>
@@ -198,7 +205,7 @@
       <!-- Moon -->
       <div class="card card-moon" id="card-moon">
         <div class="card-header">
-          <span class="card-icon" id="moon-phase-icon">🌙</span>
+          <span class="card-icon" id="moon-phase-icon"><i data-lucide="moon"></i></span>
           <h2 class="card-title" data-i18n="card_moon">Moon</h2>
           <span class="info-icon" style="cursor:pointer; opacity:0.6; font-size: 0.85rem; margin-left:8px;" onclick="showInfo(window.i18n[window.currentLang]?.info_moon || 'Calculated locally via Skyfield Ephemeris', event)">ℹ️</span>
           <span class="card-badge" id="moon-illum-badge">—%</span>
@@ -219,21 +226,166 @@
             <div><span class="ti-label" data-i18n="lbl_alt">Alt</span> <span id="moon-alt">—</span> <span class="ux-tooltip" data-tooltip="Altitude: How high above the horizon an object is. 90° is straight up.">ℹ️</span></div>
           </div>
           <div class="dso-impact" id="dso-impact">Loading…</div>
-          <div class="moon-fact" id="moon-fact" style="display:none; font-size: 0.85rem; color: #a1a1aa; margin-top: 10px; font-style: italic; border-top: 1px solid rgba(255,255,255,0.05); padding-top: 10px;"></div>
+          <!-- Moon Fact — standardized fact card -->
+          <div class="motion-facts-wrap" id="moon-fact-wrap" style="display:none; margin-top:12px;">
+            <div class="motion-facts-header">
+              <span>🌙 Moon Fact</span>
+            </div>
+            <div id="moon-fact" class="motion-fact-card">
+              <span class="motion-fact-icon" id="moon-fact-icon">✨</span>
+              <span id="moon-fact-text">Loading…</span>
+            </div>
+          </div>
         </div>
       </div>
 
       <!-- ── Asteroid Radar (NASA) ────────────────────────────────────────── -->
-      <section class="card" id="card-asteroids">
+      <!-- ── Sky Objects in Motion (ISS + NEO + Comets) ─────────────────── -->
+      <section class="card" id="card-motion">
         <div class="card-header">
-          <span class="card-icon">☄️</span>
-          <h2 class="card-title" data-i18n="asteroid_title">Asteroid Radar</h2>
-          <span class="info-icon" style="cursor:pointer; opacity:0.6; font-size: 0.85rem; margin-left:8px;" onclick="showInfo(window.i18n[currentLang]?.asteroid_info || 'Near-Earth Objects (NEOs) passing by Earth tonight. Data from NASA NeoWs API.', event)">ℹ️</span>
+          <span class="card-icon"><i data-lucide="satellite"></i></span>
+          <h2 class="card-title">Sky Objects in Motion</h2>
+          <span class="card-badge" style="background:rgba(56,189,248,0.1);color:#38bdf8;border-color:rgba(56,189,248,0.3);">Live Tracking</span>
         </div>
-        <div class="card-body">
-          <div id="asteroids-list" style="display:flex; flex-direction:column; gap:10px;">
-            <div style="color: #94a3b8; font-size: 0.85rem; text-align: center; padding: 10px;" data-i18n="asteroid_scanning">Scanning NASA Database...</div>
+
+        <!-- Sub-tab strip -->
+        <div class="motion-tabs">
+          <button class="motion-tab active" data-panel="motion-iss-panel">🚀 ISS Passes</button>
+          <button class="motion-tab" data-panel="motion-neo-panel">☄️ Near-Earth Objects</button>
+          <button class="motion-tab" data-panel="motion-comets-panel">🌠 Comets</button>
+        </div>
+
+        <div class="card-body" style="padding-top:0;">
+
+          <!-- ── ISS Panel ───────────────────────────────────────────────── -->
+          <div id="motion-iss-panel" class="motion-panel">
+            <div class="iss-tip">
+              <span>The ISS appears as a very bright, fast-moving star &mdash; no telescope needed! It moves from horizon to horizon in ~6 minutes.</span>
+            </div>
+            <div class="iss-passes" id="iss-passes">
+              <div class="loading-shimmer"></div>
+            </div>
+            <div style="margin-top:10px; text-align:right;">
+              <a href="https://heavens-above.com/PassSummary.aspx?satid=25544&lat=40.126&lng=-83.037" target="_blank" class="ext-link">Heavens-Above ↗</a>
+            </div>
+
+            <!-- ISS Fun Facts -->
+            <div class="motion-facts-wrap" style="margin-top: 16px;">
+              <div class="motion-facts-header">
+                <span>🛰️ ISS Quick Facts</span>
+                <button class="motion-fact-next" onclick="nextMotionFact('iss')" title="Next fact">→</button>
+              </div>
+              <div id="iss-fact-card" class="motion-fact-card">
+                <span class="motion-fact-icon" id="iss-fact-icon">⚡</span>
+                <span id="iss-fact-text">Loading…</span>
+              </div>
+              <div class="motion-fact-dots" id="iss-fact-dots"></div>
+            </div>
           </div>
+
+          <!-- ── NEO Panel ───────────────────────────────────────────────── -->
+          <div id="motion-neo-panel" class="motion-panel" style="display:none;">
+            <div class="iss-tip">
+              <span>Near-Earth Objects passing within 7.5M km tonight. Data from NASA NeoWs API. <span style="cursor:pointer;opacity:0.7;" onclick="showInfo(window.i18n[currentLang]?.asteroid_info || 'Near-Earth Objects (NEOs) passing by Earth tonight. Data from NASA NeoWs API.', event)">ℹ️</span></span>
+            </div>
+            <div id="asteroids-list" style="display:flex; flex-direction:column; gap:10px;">
+              <div style="color: #94a3b8; font-size: 0.85rem; text-align: center; padding: 10px;" data-i18n="asteroid_scanning">Scanning NASA Database...</div>
+            </div>
+          </div>
+
+          <!-- ── Comets Panel ────────────────────────────────────────────── -->
+          <div id="motion-comets-panel" class="motion-panel" style="display:none;">
+            <div class="iss-tip">
+              <span>Notable comets currently in the inner solar system. Some are visible with binoculars or a small telescope.</span>
+            </div>
+
+            <!-- Curated comet list -->
+            <div class="comet-list" id="comet-list">
+
+              <div class="comet-item">
+                <div class="comet-header">
+                  <span class="comet-name">🌠 C/2023 A3 Tsuchinshan-ATLAS</span>
+                  <span class="comet-badge naked-eye">Naked Eye</span>
+                </div>
+                <div class="comet-meta">
+                  <span>📐 Perihelion: Sep 27, 2024 · Closest approach: Oct 12, 2024</span>
+                </div>
+                <div class="comet-desc">One of the brightest comets in decades — reached magnitude −4.9 at peak. Now fading but still a historic visitor. Expected to return in ~80,000 years.</div>
+                <div class="comet-stats">
+                  <span class="comet-stat">🏎️ Speed: ~68 km/s</span>
+                  <span class="comet-stat">📡 Origin: Oort Cloud</span>
+                  <span class="comet-stat">⭐ Peak Mag: −4.9</span>
+                </div>
+              </div>
+
+              <div class="comet-item">
+                <div class="comet-header">
+                  <span class="comet-name">🌠 12P/Pons-Brooks</span>
+                  <span class="comet-badge binoculars">Binoculars</span>
+                </div>
+                <div class="comet-meta">
+                  <span>📐 Perihelion: Apr 21, 2024 · Period: ~71 years</span>
+                </div>
+                <div class="comet-desc">The "Devil Comet" — famous for its cryo-volcanic outbursts that gave it distinctive horn-shaped coma. Last visible to the naked eye in 1954. Returns ~2095.</div>
+                <div class="comet-stats">
+                  <span class="comet-stat">🏎️ Speed: ~44 km/s</span>
+                  <span class="comet-stat">📡 Short-period</span>
+                  <span class="comet-stat">⭐ Peak Mag: +4.0</span>
+                </div>
+              </div>
+
+              <div class="comet-item">
+                <div class="comet-header">
+                  <span class="comet-name">🌠 67P/Churyumov-Gerasimenko</span>
+                  <span class="comet-badge telescope">Telescope</span>
+                </div>
+                <div class="comet-meta">
+                  <span>📐 Perihelion: ~Nov 2, 2021 · Period: ~6.5 years</span>
+                </div>
+                <div class="comet-desc">The Rosetta Mission target. ESA's Rosetta spacecraft orbited it for 2 years and landed the Philae probe on its surface in 2014 — the first soft comet landing in history.</div>
+                <div class="comet-stats">
+                  <span class="comet-stat">🏎️ Speed: ~34 km/s</span>
+                  <span class="comet-stat">📡 Jupiter-family</span>
+                  <span class="comet-stat">📏 Size: 4.3 × 2.6 km</span>
+                </div>
+              </div>
+
+              <div class="comet-item">
+                <div class="comet-header">
+                  <span class="comet-name">🌠 C/2024 G3 (ATLAS)</span>
+                  <span class="comet-badge naked-eye">Jan 2025</span>
+                </div>
+                <div class="comet-meta">
+                  <span>📐 Perihelion: Jan 13, 2025 · Southern hemisphere favored</span>
+                </div>
+                <div class="comet-desc">Reached potentially spectacular brightness (mag −2 to −3) near perihelion in January 2025, best seen from the southern hemisphere. Likely a dynamically new comet on its first inner solar system pass.</div>
+                <div class="comet-stats">
+                  <span class="comet-stat">📡 Oort Cloud</span>
+                  <span class="comet-stat">⭐ Est. Peak: −3</span>
+                  <span class="comet-stat">🔭 Best: S. Hemisphere</span>
+                </div>
+              </div>
+
+            </div>
+
+            <!-- Comet Fun Facts -->
+            <div class="motion-facts-wrap" style="margin-top: 16px;">
+              <div class="motion-facts-header">
+                <span>💡 Comet Fun Facts</span>
+                <button class="motion-fact-next" onclick="nextMotionFact('comet')" title="Next fact">→</button>
+              </div>
+              <div id="comet-fact-card" class="motion-fact-card">
+                <span class="motion-fact-icon" id="comet-fact-icon">☄️</span>
+                <span id="comet-fact-text">Loading…</span>
+              </div>
+              <div class="motion-fact-dots" id="comet-fact-dots"></div>
+            </div>
+
+            <div style="margin-top:12px; text-align:right;">
+              <a href="https://ssd.jpl.nasa.gov/tools/sbdb_lookup.html" target="_blank" class="ext-link">NASA Small Body DB ↗</a>
+            </div>
+          </div>
+
         </div>
       </section>
 
@@ -245,7 +397,7 @@
       <div id="astro-glow" style="position:absolute; top:-50px; left:-50px; width:300px; height:300px; background: radial-gradient(circle, rgba(45,212,191,0.15) 0%, transparent 70%); pointer-events:none; z-index: 1;"></div>
       
       <div class="card-header" style="position: relative; z-index: 2;">
-        <span class="card-icon">🎯</span>
+        <span class="card-icon"><i data-lucide="crosshair"></i></span>
         <h2 class="card-title" style="color: #d8b4fe;">Must-See & AI Picks</h2>
         <span class="card-badge" style="background: rgba(45,212,191,0.1); color: #2dd4bf; border-color: rgba(45,212,191,0.3);">Curated for tonight</span>
       </div>
@@ -259,15 +411,16 @@
       </div>
     </section>
 
-    <!-- Planets Tonight -->
-    <div class="card card-planets" style="margin-bottom: 20px;">
+    <!-- Planets Tonight —— isolated card, planet grid below status banner -->
+    <div class="card card-planets">
       <div class="card-header">
-        <span class="card-icon">🪐</span>
+        <span class="card-icon"><i data-lucide="orbit"></i></span>
         <h2 class="card-title" data-i18n="card_planets">Planets Tonight</h2>
-        <span class="info-icon" style="cursor:pointer; opacity:0.6; font-size: 0.85rem; margin-left:8px;" onclick="showInfo(window.i18n[window.currentLang]?.info_planets || 'Calculated locally via Skyfield Ephemeris', event)">ℹ️</span>
+        <span class="info-icon" style="cursor:pointer;display:flex;align-items:center;margin-left:6px;" onclick="showInfo(window.i18n[window.currentLang]?.info_planets || 'Calculated locally via Skyfield Ephemeris', event)"><i data-lucide="info" style="width:14px;height:14px;stroke:rgba(148,163,184,0.6);stroke-width:1.5;"></i></span>
       </div>
       <div class="card-body">
-        <div class="planet-list unified-scroll-list" id="planet-list">
+        <!-- planet-grid: 4-col CSS grid, isolated block context, static position -->
+        <div class="planet-grid" id="planet-list">
           <div class="loading-shimmer"></div>
         </div>
       </div>
@@ -347,7 +500,7 @@
     <!-- ── Clear Outside Weather Embed ── -->
     <section class="card card-weather">
       <div class="card-header">
-        <span class="card-icon">☁️</span>
+        <span class="card-icon"><i data-lucide="cloud"></i></span>
         <h2 class="card-title" data-i18n="card_weather">Clear Outside — Astronomical Weather Forecast</h2>
         <a id="clearoutside-link" href="https://clearoutside.com/forecast/40.126/-83.037" target="_blank" class="ext-link" data-i18n="btn_full_forecast">Open Full Forecast ↗</a>
       </div>
@@ -363,9 +516,9 @@
     <!-- Constellations Tonight -->
     <section class="card" style="margin-bottom: 20px;">
       <div class="card-header">
-        <div class="card-icon">🌌</div>
+        <div class="card-icon"><i data-lucide="star"></i></div>
         <div class="card-title" data-i18n="card_const_tonight">Constellations Tonight</div>
-        <span class="info-icon" style="cursor:pointer; opacity:0.6; font-size: 0.85rem; margin-left:8px;" onclick="showInfo(window.i18n[window.currentLang]?.info_planets || 'Calculated locally via Skyfield Ephemeris', event)">ℹ️</span>
+        <span class="info-icon" style="cursor:pointer;display:flex;align-items:center;margin-left:6px;" onclick="showInfo(window.i18n[window.currentLang]?.info_planets || 'Calculated locally via Skyfield Ephemeris', event)"><i data-lucide="info" style="width:14px;height:14px;stroke:rgba(148,163,184,0.6);stroke-width:1.5;"></i></span>
         <div class="card-badge" style="background: rgba(168, 85, 247, 0.15); color: #a855f7; border-color: rgba(168, 85, 247, 0.3);">
           <span data-i18n="badge_sorted">Sorted by best view</span>
         </div>
@@ -378,7 +531,7 @@
     <!-- ── Dynamic Target Database ── -->
     <section class="card card-targets" id="card-targets">
       <div class="card-header">
-        <div class="card-icon">🎯</div>
+        <div class="card-icon"><i data-lucide="crosshair"></i></div>
         <h2 class="card-title" id="target-db-title">Scorpius Must-See Targets</h2>
         <div class="card-actions">
           <button class="filter-btn active" data-filter="all" data-i18n="filter_all">All</button>
@@ -434,7 +587,7 @@
     <!-- ── Weekly Outlook ── -->
     <section class="card card-weekly" id="card-weekly">
       <div class="card-header">
-        <span class="card-icon">📅</span>
+        <span class="card-icon"><i data-lucide="calendar-days"></i></span>
         <h2 class="card-title" data-i18n="card_weekly">7-Day Outlook</h2>
       </div>
       <div class="weekly-grid" id="weekly-grid">
@@ -442,27 +595,11 @@
       </div>
     </section>
 
-    <!-- ── ISS Monitor ── -->
-    <section class="card card-iss" id="card-iss">
-      <div class="card-header">
-        <span class="card-icon">🛸</span>
-        <h2 class="card-title" data-i18n="iss_title" data-i18n="nav_iss">ISS Pass Monitor</h2>
-        <a href="https://heavens-above.com/PassSummary.aspx?satid=25544&lat=40.126&lng=-83.037" target="_blank" class="ext-link">Heavens-Above ↗</a>
-      </div>
-      <div class="card-body">
-        <div class="iss-tip">
-          <span data-i18n="iss_tip">The ISS appears as a very bright, fast-moving star &mdash; no telescope needed! It moves from horizon to horizon in ~6 minutes.</span>
-        </div>
-        <div class="iss-passes" id="iss-passes">
-          <div class="loading-shimmer"></div>
-        </div>
-      </div>
-    </section>
 
     <!-- ── Resources ── -->
     <section class="card card-resources">
       <div class="card-header">
-        <span class="card-icon">🔗</span>
+        <span class="card-icon"><i data-lucide="link"></i></span>
         <h2 class="card-title" data-i18n="card_resources">Resources</h2>
       </div>
       <div class="resource-grid">
@@ -527,7 +664,7 @@
     <!-- ── Observation Log ── -->
     <section class="card" id="card-obs-log" style="margin-top: 24px;">
       <div class="card-header">
-        <span class="card-icon">📓</span>
+        <span class="card-icon"><i data-lucide="notebook-pen"></i></span>
         <h2 class="card-title">Observation Log</h2>
       </div>
       <div class="card-body">
@@ -559,9 +696,9 @@
       <h3 style="font-size: 1rem; margin-top: 0; margin-bottom: 15px;">Add Custom Location</h3>
       
       <div class="input-group">
-        <label data-i18n="lbl_city_search">Search City Name</label>
+        <label for="input-city-search" data-i18n="lbl_city_search">Search City Name</label>
         <div style="display: flex; gap: 10px;">
-          <input type="text" id="input-city-search" placeholder="e.g. Columbus, Ohio" style="flex: 1;" />
+          <input type="text" id="input-city-search" name="city-search" placeholder="e.g. Columbus, Ohio" style="flex: 1;" />
           <button id="btn-city-search" class="btn btn-secondary" style="white-space: nowrap;">🔍 Search</button>
         </div>
       </div>
@@ -569,18 +706,18 @@
       <div style="text-align: center; margin: 15px 0; color: var(--text-secondary); font-size: 0.85rem;">— OR enter manually —</div>
       
       <div class="input-group">
-        <label>Profile Name (e.g. South Porch)</label>
-        <input type="text" id="input-loc-name" placeholder="My Backyard" />
+        <label for="input-loc-name">Profile Name (e.g. South Porch)</label>
+        <input type="text" id="input-loc-name" name="loc-name" placeholder="My Backyard" />
       </div>
 
       <div style="display: flex; gap: 10px;">
         <div class="input-group" style="flex: 1;">
-          <label data-i18n="lbl_lat">Latitude</label>
-          <input type="number" id="input-lat" placeholder="40.126" step="any" />
+          <label for="input-lat" data-i18n="lbl_lat">Latitude</label>
+          <input type="number" id="input-lat" name="latitude" placeholder="40.126" step="any" />
         </div>
         <div class="input-group" style="flex: 1;">
-          <label data-i18n="lbl_lon">Longitude</label>
-          <input type="number" id="input-lon" placeholder="-83.037" step="any" />
+          <label for="input-lon" data-i18n="lbl_lon">Longitude</label>
+          <input type="number" id="input-lon" name="longitude" placeholder="-83.037" step="any" />
         </div>
       </div>
       
@@ -616,7 +753,7 @@
           <li><a href="#card-tonight" data-i18n="nav_tonight">Tonight's Outlook</a></li>
           <li><a href="#card-active-const" data-i18n="nav_active_const">Active Constellation</a></li>
           <li><a href="#card-targets" data-i18n="nav_target_db">Target Database</a></li>
-          <li><a href="#card-iss" data-i18n="nav_iss">ISS Pass Monitor</a></li>
+          <li><a href="#card-motion">Sky Objects in Motion</a></li>
           <li><a href="#card-weekly" data-i18n="nav_weekly">7-Day Forecast</a></li>
         </ul>
       </div>
@@ -648,10 +785,10 @@
   <!-- Floating Night Mode Toggle -->
   <div class="night-mode-wrapper">
     <div class="night-tooltip" id="night-tooltip">
-      <span data-i18n="night_tooltip">Toggle Night Vision Mode</span>
+      <span data-i18n="night_tooltip">Night Vision Mode</span>
       <button id="close-night-tooltip" class="close-btn" onclick="document.getElementById('night-tooltip').style.display='none'" style="background:none; border:none; color:#ff4444; margin-left:10px; cursor:pointer; font-weight:bold;">✕</button>
     </div>
-    <button id="btn-night-mode" class="floating-night-btn" title="Toggle Night Vision Mode">
+    <button id="btn-night-mode" class="floating-night-btn" title="Night Vision Mode">
       🔴
     </button>
   </div>
@@ -708,9 +845,9 @@
   </div>
 
   <script src="translations.js"></script>
-  <script src="moon3d.js?v=5"></script>
-  <script src="planets3d.js?v=3"></script>
-  <script src="app.js?v=49"></script>
-  <script src="gravity-well.js?v=45"></script>
+  <script src="moon3d.js?v=6"></script>
+  <script src="planets3d.js?v=13"></script>
+  <script src="app.js?v=55"></script>
+  <script src="gravity-well.js?v=47"></script>
 </body>
 </html>

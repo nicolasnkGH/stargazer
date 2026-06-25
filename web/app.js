@@ -303,9 +303,11 @@ async function fetchAIAnalysis() {
     engineBadgeEl.className = 'seeing-engine-badge rule';
   }
 
-  if (moonFactEl) {
-    moonFactEl.innerHTML = '<span class="spinner" style="display:inline-block; animation: spin 1s linear infinite;">⚙️</span> 🤖 Generating moon fun fact...';
-    moonFactEl.style.display = 'block';
+  const moonFactWrap = document.getElementById('moon-fact-wrap');
+  const moonFactText = document.getElementById('moon-fact-text');
+  if (moonFactWrap && moonFactText) {
+    moonFactText.textContent = '⚙️ Generating moon fun fact...';
+    moonFactWrap.style.display = 'block';
   }
 
   try {
@@ -355,11 +357,13 @@ async function fetchAIAnalysis() {
       explanationEl.classList.remove('ai-loading-glow');
     }
     const cachedMoonFact = localStorage.getItem(`stargazer_moon_fact_${currentLang}`);
-    if (cachedMoonFact && moonFactEl) {
-      moonFactEl.innerHTML = `✨ <strong>${window.i18n[currentLang]?.moon_fact_title || 'Moon Fact'}:</strong> ${cachedMoonFact}`;
-      moonFactEl.style.display = 'block';
-    } else if (moonFactEl) {
-      moonFactEl.style.display = 'none';
+    const moonWrapEl = document.getElementById('moon-fact-wrap');
+    const moonTextEl = document.getElementById('moon-fact-text');
+    if (cachedMoonFact && moonWrapEl) {
+      if (moonTextEl) moonTextEl.textContent = cachedMoonFact;
+      moonWrapEl.style.display = 'block';
+    } else if (moonWrapEl) {
+      moonWrapEl.style.display = 'none';
     }
   }
 }
@@ -516,15 +520,16 @@ function renderSeeing(seeing, data) {
     updateUnifiedCard();
   }
 
-  // Moon Fact
-  const moonFactEl = document.getElementById('moon-fact');
-  if (moonFactEl) {
+  // Moon Fact — standardized fact card
+  const moonWrap = document.getElementById('moon-fact-wrap');
+  const moonText = document.getElementById('moon-fact-text');
+  if (moonWrap && moonText) {
     if (seeing.moon_fact) {
       localStorage.setItem(`stargazer_moon_fact_${currentLang}`, seeing.moon_fact);
-      moonFactEl.innerHTML = `✨ <strong>${window.i18n[currentLang]?.moon_fact_title || 'Moon Fact'}:</strong> ${seeing.moon_fact}`;
-      moonFactEl.style.display = 'block';
+      moonText.textContent = seeing.moon_fact;
+      moonWrap.style.display = 'block';
     } else {
-      moonFactEl.style.display = 'none';
+      moonWrap.style.display = 'none';
     }
   }
 
@@ -1065,15 +1070,15 @@ function renderPlanets(planets, factStr) {
             <span class="planet-name">${p.emoji} ${pName}</span>
             <span class="planet-const-pill" title="Currently in this constellation">${p.constellation || ''}</span>
           </div>
-          <div class="planet-meta-row" style="flex-wrap: wrap; gap: 6px; margin-top: 8px;">
+          <div class="planet-meta-row">
             <span class="planet-alt" style="color:${altColor}" title="How high above the horizon">📐 Altitude: ${p.altitude_deg}° — ${altLabel}</span>
             <span class="planet-alt" style="color:#94a3b8" title="Compass direction to look">🧭 ${p.direction}${azimuthStr}</span>
-            <span class="planet-mag" style="color:#cbd5e1" title="Brightness scale: lower = brighter; negative = extremely bright">💡 Magnitude ${p.magnitude_approx}${magNote}</span>
+            <span class="planet-mag" title="Brightness scale: lower = brighter; negative = extremely bright">💡 Magnitude ${p.magnitude_approx}${magNote}</span>
             ${p.distance_mkm ? `<span class="planet-dist" title="Current distance from Earth">📏 ${p.distance_mkm}M km from Earth</span>` : ''}
-            ${p.light_time_minutes ? `<span class="planet-dist" title="How long light takes to travel from this planet to us right now">⚡ Light travel: ${p.light_time_minutes} min</span>` : ''}
+            ${p.light_time_minutes ? `<span class="planet-dist" title="Light travel time">⚡ Light travel: ${p.light_time_minutes} min</span>` : ''}
           </div>
-          <div style="font-size: 0.8rem; color: #cbd5e1; margin-top: 8px; padding-top: 8px; border-top: 1px dashed rgba(168, 85, 247, 0.2);">
-            ${(p.rise_time && p.set_time && p.rise_time !== 'N/A' && p.set_time !== 'N/A') ? `<div style="color: #d8b4fe; font-weight: bold; margin-bottom: 4px;">🔭 Visible window: ${p.rise_time} – ${p.set_time}</div>` : ''}
+          <div class="planet-bottom-info">
+            ${(p.rise_time && p.set_time && p.rise_time !== 'N/A' && p.set_time !== 'N/A') ? `<div class="planet-visible-window">🔭 Visible window: ${p.rise_time} – ${p.set_time}</div>` : ''}
             <div><strong>📍 How to find it:</strong> ${p.how_to_find || ''}</div>
           </div>
         </div>
@@ -1309,6 +1314,96 @@ async function loadISS() {
       `;
     }).join('');
   });
+}
+
+// ── Motion Card Tab Switching ───────────────────────────────────────────────
+function initMotionTabs() {
+  document.querySelectorAll('.motion-tab').forEach(tab => {
+    tab.addEventListener('click', () => {
+      document.querySelectorAll('.motion-tab').forEach(t => t.classList.remove('active'));
+      document.querySelectorAll('.motion-panel').forEach(p => { p.style.display = 'none'; });
+      tab.classList.add('active');
+      const panel = document.getElementById(tab.dataset.panel);
+      if (panel) panel.style.display = 'block';
+    });
+  });
+}
+
+// ── Motion Fact Cards ──────────────────────────────────────────────────────
+const MOTION_FACTS = {
+  iss: [
+    { icon: '⚡', text: 'The ISS travels at 7.66 km/s (17,150 mph) — fast enough to circle the entire Earth in just 92 minutes.' },
+    { icon: '🌍', text: 'Astronauts on the ISS witness approximately 15–16 sunrises and sunsets every single day.' },
+    { icon: '📅', text: 'The ISS has been continuously inhabited since November 2, 2000 — over 24 years of unbroken human presence in space.' },
+    { icon: '🏟️', text: 'The ISS is larger than a American football field: 109 m × 73 m, with a pressurised volume of 916 m³.' },
+    { icon: '💰', text: 'At ~$150 billion USD, the ISS is the most expensive object ever built by humanity.' },
+    { icon: '✨', text: 'The ISS can reach magnitude −5.9 at its brightest — outshining Venus and visible in full daylight if you know where to look.' },
+    { icon: '🚀', text: 'The ISS has hosted over 270 individuals from 21 countries, spending a combined 130+ person-years in orbit.' },
+    { icon: '🔬', text: 'Over 3,000 research experiments have been conducted aboard the ISS across biology, physics, astronomy, and medicine.' },
+    { icon: '🌐', text: 'The ISS orbits at an altitude of roughly 400 km — just high enough for the curvature of Earth to be clearly visible.' },
+    { icon: '🛸', text: 'It took 42 flights and over 13 years (1998–2011) to fully assemble the ISS in orbit.' },
+  ],
+  comet: [
+    { icon: '☄️', text: 'Comets are ancient time capsules — most formed 4.6 billion years ago when the solar system was born, preserving pristine primordial material.' },
+    { icon: '🌊', text: 'Some scientists believe comets may have delivered water and complex organic molecules to early Earth, seeding the conditions for life.' },
+    { icon: '💨', text: "A comet's tail always points away from the Sun, not behind it. There are actually two tails: a dust tail and an ion (plasma) tail." },
+    { icon: '❄️', text: "Comets are sometimes called 'dirty snowballs' — their nuclei are typically dark, frozen masses of ice, rock, and organic compounds just a few km across." },
+    { icon: '🌠', text: "Most meteor showers are caused by Earth passing through trails of debris left by comets. The Perseids come from comet Swift-Tuttle; the Leonids from Tempel-Tuttle." },
+    { icon: '🔭', text: 'Edmond Halley realised in 1705 that comets seen in 1531, 1607, and 1682 were all the same object returning on a 75-year orbit — proving comets follow predictable paths.' },
+    { icon: '🌡️', text: "Comet surfaces can reach temperatures of +90 °C near the Sun but their nuclei remain at around −273 °C — just 1 degree above absolute zero." },
+    { icon: '🧪', text: "The Rosetta mission found the amino acid glycine on comet 67P — one of the building blocks of proteins — providing tantalising hints at the cosmic origins of life." },
+    { icon: '📡', text: "The Oort Cloud, a theoretical shell of trillions of comet nuclei at the very edge of our solar system, extends up to 100,000 AU (1.6 light-years) from the Sun." },
+    { icon: '🎇', text: "The Great Comet of 1882 was so bright it was visible in full daylight and cast shadows at night — rivalling the full Moon in brightness." },
+  ]
+};
+
+const motionFactState = { iss: 0, comet: 0 };
+
+function initMotionFacts() {
+  ['iss', 'comet'].forEach(type => {
+    const facts = MOTION_FACTS[type];
+    // Render dots
+    const dotsEl = document.getElementById(`${type}-fact-dots`);
+    if (dotsEl) {
+      dotsEl.innerHTML = facts.map((_, i) =>
+        `<span class="motion-fact-dot${i === 0 ? ' active' : ''}" onclick="goMotionFact('${type}',${i})"></span>`
+      ).join('');
+    }
+    // Show first fact
+    showMotionFact(type, 0);
+    // Auto-rotate every 8 seconds
+    setInterval(() => nextMotionFact(type), 8000);
+  });
+}
+
+function showMotionFact(type, idx) {
+  const facts = MOTION_FACTS[type];
+  const fact = facts[idx];
+  const textEl = document.getElementById(`${type}-fact-text`);
+  const iconEl = document.getElementById(`${type}-fact-icon`);
+  const card   = document.getElementById(`${type}-fact-card`);
+  if (!textEl || !iconEl) return;
+  card.style.opacity = '0';
+  setTimeout(() => {
+    iconEl.textContent = fact.icon;
+    textEl.textContent = fact.text;
+    card.style.opacity = '1';
+  }, 200);
+  // Update dots
+  document.querySelectorAll(`#${type}-fact-dots .motion-fact-dot`).forEach((dot, i) => {
+    dot.classList.toggle('active', i === idx);
+  });
+  motionFactState[type] = idx;
+}
+
+function nextMotionFact(type) {
+  const facts = MOTION_FACTS[type];
+  const next = (motionFactState[type] + 1) % facts.length;
+  showMotionFact(type, next);
+}
+
+function goMotionFact(type, idx) {
+  showMotionFact(type, idx);
 }
 
 // ── Render: Constellations Tonight ─────────────────────────────────────────
@@ -1738,6 +1833,10 @@ async function init() {
     loadActiveConstellation(currentConstellation)
   ]);
 
+  // Wire up the Sky Objects in Motion sub-tabs and fact cards
+  initMotionTabs();
+  initMotionFacts();
+
   // Night Mode Toggle
   const nightBtn = document.getElementById('btn-night-mode');
   if (nightBtn) {
@@ -1760,10 +1859,19 @@ async function init() {
     await loadTonightReport();
     await loadISS();
     await loadActiveConstellation(currentConstellation);
+    // Re-render any new Lucide icons injected by data loads
+    if (window.lucide) lucide.createIcons();
   }, 10 * 60 * 1000);
+
+  // Init Lucide icons after all data has loaded
+  if (window.lucide) lucide.createIcons();
 }
 
-document.addEventListener('DOMContentLoaded', init);
+document.addEventListener('DOMContentLoaded', () => {
+  init();
+  // Fallback: re-run Lucide after a short delay to catch any late-injected icons
+  setTimeout(() => { if (window.lucide) lucide.createIcons(); }, 1500);
+});
 
 
 // ── i18n ────────────────────────────────────────────────────────────────────
@@ -1964,22 +2072,27 @@ document.addEventListener('DOMContentLoaded', () => {
       });
     })
     .finally(() => {
-      // Add fun facts!
+      // Add fun facts — standardized fact card
       const facts = [
         "Asteroids are rocky remnants left over from the early formation of our solar system about 4.6 billion years ago.",
         "Most asteroids in our solar system can be found in the main asteroid belt between Mars and Jupiter.",
         "Some asteroids have their own moons! For example, the asteroid Ida has a tiny moon called Dactyl.",
         "If all the asteroids in the solar system were combined, their total mass would still be less than that of Earth's Moon.",
-        "Ceres is the largest object in the asteroid belt, and it's so big it's actually classified as a dwarf planet!"
+        "Ceres is the largest object in the asteroid belt, and it's so big it's actually classified as a dwarf planet!",
+        "Asteroid 433 Eros was the first asteroid to be orbited and landed on by a spacecraft — NASA's NEAR Shoemaker in 2001.",
+        "Some asteroids contain trillions of dollars worth of rare metals like platinum and nickel-iron."
       ];
       const randomFact = facts[Math.floor(Math.random() * facts.length)];
       
       const list = document.getElementById('asteroids-list');
       if (list) {
         list.innerHTML += `
-          <div style="margin-top: 20px; padding: 15px; background: rgba(168, 85, 247, 0.05); border: 1px solid rgba(168, 85, 247, 0.2); border-radius: 8px;">
-            <div style="color: #d8b4fe; font-size: 0.8rem; font-weight: bold; margin-bottom: 5px;">✨ ASTEROID FACT</div>
-            <div style="color: #94a3b8; font-size: 0.8rem; line-height: 1.4;">${randomFact}</div>
+          <div class="motion-facts-wrap" style="margin-top:12px;">
+            <div class="motion-facts-header"><span>☄️ Asteroid Fact</span></div>
+            <div class="motion-fact-card">
+              <span class="motion-fact-icon">🪨</span>
+              <span>${randomFact}</span>
+            </div>
           </div>
         `;
       }
