@@ -34,7 +34,7 @@
   <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/controls/OrbitControls.js"></script>
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/driver.js@1.0.1/dist/driver.css" integrity="sha384-bovbcpDBo0pTIhd7ws6ebPh1PG31ubAHcX2pv8Tcu5EtFHNl5FBciYFtS/e2SN66" crossorigin="anonymous" />
-  <link rel="stylesheet" href="style.css?v=70" />
+  <link rel="stylesheet" href="style.css?v=71" />
   
   <!-- D3.js and d3-celestial for Interactive Star Map -->
   <script src="https://d3js.org/d3.v3.min.js"></script>
@@ -49,23 +49,6 @@
   
   <!-- GSAP for Smooth Animations -->
   <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/gsap.min.js"></script>
-  <!-- Tailwind CSS CDN with custom config — preflight OFF to preserve existing styles -->
-  <script src="https://cdn.tailwindcss.com"></script>
-  <script>
-    tailwind.config = {
-      corePlugins: {
-        preflight: false,  /* CRITICAL: stops Tailwind from resetting our existing CSS */
-      },
-      theme: {
-        extend: {
-          colors: {
-            obsidian: '#050508',
-            glass: 'rgba(255,255,255,0.018)',
-          }
-        }
-      }
-    }
-  </script>
   <!-- Lucide Icons CDN -->
   <script src="https://unpkg.com/lucide@latest/dist/umd/lucide.js"></script>
 </head>
@@ -713,9 +696,9 @@
       <h3 style="font-size: 1rem; margin-top: 0; margin-bottom: 15px;">Add Custom Location</h3>
       
       <div class="input-group">
-        <label data-i18n="lbl_city_search">Search City Name</label>
+        <label for="input-city-search" data-i18n="lbl_city_search">Search City Name</label>
         <div style="display: flex; gap: 10px;">
-          <input type="text" id="input-city-search" placeholder="e.g. Columbus, Ohio" style="flex: 1;" />
+          <input type="text" id="input-city-search" name="city-search" placeholder="e.g. Columbus, Ohio" style="flex: 1;" />
           <button id="btn-city-search" class="btn btn-secondary" style="white-space: nowrap;">🔍 Search</button>
         </div>
       </div>
@@ -723,18 +706,18 @@
       <div style="text-align: center; margin: 15px 0; color: var(--text-secondary); font-size: 0.85rem;">— OR enter manually —</div>
       
       <div class="input-group">
-        <label>Profile Name (e.g. South Porch)</label>
-        <input type="text" id="input-loc-name" placeholder="My Backyard" />
+        <label for="input-loc-name">Profile Name (e.g. South Porch)</label>
+        <input type="text" id="input-loc-name" name="loc-name" placeholder="My Backyard" />
       </div>
 
       <div style="display: flex; gap: 10px;">
         <div class="input-group" style="flex: 1;">
-          <label data-i18n="lbl_lat">Latitude</label>
-          <input type="number" id="input-lat" placeholder="40.126" step="any" />
+          <label for="input-lat" data-i18n="lbl_lat">Latitude</label>
+          <input type="number" id="input-lat" name="latitude" placeholder="40.126" step="any" />
         </div>
         <div class="input-group" style="flex: 1;">
-          <label data-i18n="lbl_lon">Longitude</label>
-          <input type="number" id="input-lon" placeholder="-83.037" step="any" />
+          <label for="input-lon" data-i18n="lbl_lon">Longitude</label>
+          <input type="number" id="input-lon" name="longitude" placeholder="-83.037" step="any" />
         </div>
       </div>
       
@@ -862,7 +845,7 @@
   </div>
 
   <script src="translations.js"></script>
-  <script src="moon3d.js?v=5"></script>
+  <script src="moon3d.js?v=6"></script>
   <script src="planets3d.js?v=9"></script>
   <script src="app.js?v=55"></script>
   <script src="gravity-well.js?v=47"></script>
