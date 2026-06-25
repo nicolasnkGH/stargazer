@@ -142,10 +142,10 @@ function initPlanets3D() {
 
       container.innerHTML = '';
 
-      // Size — fit in container
+      // Size — fit in container leaving room for the 12/8px padding
       const cw   = container.offsetWidth  || 280;
       const ch   = container.offsetHeight || 220;
-      const size = Math.round(Math.min(cw * 0.84, ch * 0.88));
+      const size = Math.round(Math.min(cw * 0.76, ch * 0.78));
       const dpr  = Math.min(window.devicePixelRatio || 1, 2);
 
       // Canvas element
