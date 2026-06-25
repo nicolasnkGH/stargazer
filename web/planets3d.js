@@ -25,21 +25,21 @@ const CFG = {
 function drawJupiter(ctx, W, H) {
   const belts = [
     // [y_frac, h_frac, mid_color, edge_color]
-    [0.000, 0.045, '#c0a070', '#a08050'],  // N polar region
-    [0.045, 0.030, '#d8c080', '#b8a060'],  // NNTBs
-    [0.075, 0.030, '#906030', '#703810'],  // NNTB dark
-    [0.105, 0.060, '#dcc888', '#bcaa70'],  // NTZ bright
-    [0.165, 0.040, '#9a6838', '#7a4820'],  // NTB dark
-    [0.205, 0.060, '#e4d090', '#c4b078'],  // NTeZ
-    [0.265, 0.085, '#8c5428', '#6c3410'],  // NEB  ← prominent dark belt
-    [0.350, 0.105, '#f2e2a8', '#d8c888'],  // EZ   ← bright equatorial zone
-    [0.455, 0.095, '#905228', '#702810'],  // SEB  ← prominent dark belt
-    [0.550, 0.060, '#d8c080', '#b8a060'],  // STeZ
-    [0.610, 0.040, '#806030', '#604010'],  // STB dark
-    [0.650, 0.075, '#c8b078', '#a89058'],  // STZ
-    [0.725, 0.055, '#907040', '#706020'],  // SSTB
-    [0.780, 0.100, '#c0a068', '#a08050'],  // S polar region
-    [0.880, 0.120, '#a89060', '#887040'],  // SPZ
+    [0.000, 0.040, '#c8a870', '#a88858'],  // N polar
+    [0.040, 0.030, '#dac890', '#baa870'],  // NNTBs bright
+    [0.070, 0.028, '#7a5228', '#5a3210'],  // NNTB dark
+    [0.098, 0.062, '#e2d095', '#c2b07c'],  // NTZ bright
+    [0.160, 0.038, '#806030', '#604018'],  // NTB dark
+    [0.198, 0.058, '#e6d498', '#c6b47e'],  // NTeZ bright
+    [0.256, 0.090, '#5c3210', '#3c1a04'],  // NEB ← DEEP DARK BROWN
+    [0.346, 0.112, '#f8eccc', '#e4d8a8'],  // EZ  ← BRIGHT CREAM
+    [0.458, 0.096, '#5e3412', '#3e1c06'],  // SEB ← DEEP DARK BROWN
+    [0.554, 0.058, '#dccC90', '#bcac72'],  // STeZ bright
+    [0.612, 0.036, '#785228', '#583210'],  // STB dark
+    [0.648, 0.078, '#cca868', '#ac8850'],  // STZ
+    [0.726, 0.054, '#8a6838', '#6a4820'],  // SSTB
+    [0.780, 0.110, '#c2a262', '#a2824a'],  // S polar
+    [0.890, 0.110, '#a88858', '#888040'],  // SPZ
   ];
 
   belts.forEach(([y, h, c1, c2]) => {
@@ -222,45 +222,97 @@ function drawEarth(ctx, W, H) {
 
 /* ── Texture: Mars ───────────────────────────────────────────────────────── */
 function drawMars(ctx, W, H) {
+  // True iron-oxide rusty red — #c1440e
   const bg = ctx.createLinearGradient(0, 0, 0, H);
-  bg.addColorStop(0, '#b03c10'); bg.addColorStop(0.5, '#c4481a'); bg.addColorStop(1, '#9a3008');
+  bg.addColorStop(0,   '#b63c0e');  // slightly darker at poles
+  bg.addColorStop(0.18,'#c8481a');
+  bg.addColorStop(0.36,'#d4541e'); // brightest equatorial region
+  bg.addColorStop(0.50,'#cc4c1c');
+  bg.addColorStop(0.65,'#c6481a');
+  bg.addColorStop(0.82,'#b63c0e');
+  bg.addColorStop(1,   '#a43008');
   ctx.fillStyle = bg; ctx.fillRect(0, 0, W, H);
-  // Dark albedo features
-  [[0.27, 0.55, 0.20, 0.11, '#8a2808', 0.55],   // Syrtis Major
-   [0.57, 0.40, 0.11, 0.07, '#7a2008', 0.48],
-   [0.72, 0.65, 0.13, 0.07, '#922808', 0.42]].forEach(([x, y, rx, ry, c, a]) => {
+
+  // High-contrast dark albedo features
+  [[0.27, 0.52, 0.19, 0.10, '#7a1a04', 0.70],  // Syrtis Major — very dark
+   [0.58, 0.38, 0.11, 0.07, '#6a1400', 0.65],  // Mare Acidalium
+   [0.74, 0.62, 0.12, 0.06, '#881e08', 0.58],  // Solis Lacus
+   [0.10, 0.62, 0.08, 0.05, '#881e08', 0.48]   // Minor feature
+  ].forEach(([x,y,rx,ry,c,a]) => {
     ctx.save(); ctx.globalAlpha = a;
     ctx.fillStyle = c;
-    ctx.beginPath(); ctx.ellipse(x*W, y*H, rx*W, ry*H, 0.3, 0, Math.PI*2); ctx.fill();
+    ctx.beginPath(); ctx.ellipse(x*W,y*H,rx*W,ry*H,0.3,0,Math.PI*2); ctx.fill();
     ctx.restore();
   });
-  // Polar ice caps
-  [['top', 0, H*0.10], ['bottom', H*0.90, H]].forEach(([pos, y0, y1]) => {
-    const g = ctx.createLinearGradient(0, y0, 0, y1);
-    if (pos === 'top') { g.addColorStop(0, 'rgba(240,230,215,0.90)'); g.addColorStop(1, 'rgba(240,225,205,0)'); }
-    else               { g.addColorStop(0, 'rgba(238,222,202,0)');    g.addColorStop(1, 'rgba(232,218,205,0.88)'); }
-    ctx.fillStyle = g; ctx.fillRect(0, y0, W, y1 - y0);
-  });
+
+  // Olympus Mons plateau (slight bright bump)
+  ctx.save(); ctx.globalAlpha = 0.22;
+  ctx.fillStyle = '#e06030';
+  ctx.beginPath(); ctx.ellipse(W*0.18,H*0.42,W*0.04,H*0.03,0,0,Math.PI*2); ctx.fill();
+  ctx.restore();
+
+  // North polar ice cap — distinct white
+  const npg = ctx.createLinearGradient(0, 0, 0, H*0.14);
+  npg.addColorStop(0,   'rgba(248,242,232,0.98)');
+  npg.addColorStop(0.55,'rgba(240,232,218,0.80)');
+  npg.addColorStop(1,   'rgba(235,225,212,0)');
+  ctx.fillStyle = npg; ctx.fillRect(0, 0, W, H*0.14);
+
+  // South polar ice cap
+  const spg = ctx.createLinearGradient(0, H*0.86, 0, H);
+  spg.addColorStop(0,   'rgba(232,224,210,0)');
+  spg.addColorStop(0.45,'rgba(240,232,220,0.82)');
+  spg.addColorStop(1,   'rgba(248,242,232,0.96)');
+  ctx.fillStyle = spg; ctx.fillRect(0, H*0.86, W, H);
 }
 
 /* ── Texture: Mercury ────────────────────────────────────────────────────── */
 function drawMercury(ctx, W, H) {
+  // True monochromatic slate gray — #888888
   const bg = ctx.createLinearGradient(0, 0, 0, H);
-  bg.addColorStop(0, '#9a8870'); bg.addColorStop(0.5, '#a89878'); bg.addColorStop(1, '#887860');
+  bg.addColorStop(0,   '#707070');
+  bg.addColorStop(0.5, '#8a8a8a');
+  bg.addColorStop(1,   '#686868');
   ctx.fillStyle = bg; ctx.fillRect(0, 0, W, H);
-  // Large impact basins
-  for (let i = 0; i < 7; i++) {
-    const bx = Math.random()*W, by = Math.random()*H, br = W*0.04 + Math.random()*W*0.045;
-    ctx.save(); ctx.globalAlpha = 0.20;
-    ctx.fillStyle = '#5a4838';
-    ctx.beginPath(); ctx.arc(bx, by, br, 0, Math.PI*2); ctx.fill();
+
+  // Caloris Basin — large dark impact basin
+  ctx.save(); ctx.globalAlpha = 0.55;
+  const caloris = ctx.createRadialGradient(W*0.38,H*0.42,0,W*0.38,H*0.42,W*0.22);
+  caloris.addColorStop(0,   '#484848');
+  caloris.addColorStop(0.55,'rgba(65,65,65,0.7)');
+  caloris.addColorStop(1,   'rgba(55,55,55,0)');
+  ctx.fillStyle = caloris;
+  ctx.beginPath(); ctx.ellipse(W*0.38,H*0.42,W*0.22,H*0.18,0.2,0,Math.PI*2); ctx.fill();
+  ctx.restore();
+
+  // Secondary large basin
+  ctx.save(); ctx.globalAlpha = 0.38;
+  ctx.fillStyle = '#525252';
+  ctx.beginPath(); ctx.ellipse(W*0.72,H*0.30,W*0.12,H*0.10,0.15,0,Math.PI*2); ctx.fill();
+  ctx.restore();
+
+  // Medium craters with bright ejecta rims
+  for (let i = 0; i < 55; i++) {
+    const cx = Math.random()*W, cy = Math.random()*H;
+    const r  = Math.random()*W*0.028 + W*0.007;
+    ctx.save();
+    // Dark crater floor
+    ctx.globalAlpha = 0.40 + Math.random()*0.35;
+    ctx.fillStyle = '#484848';
+    ctx.beginPath(); ctx.arc(cx, cy, r, 0, Math.PI*2); ctx.fill();
+    // Bright ejecta rim
+    ctx.globalAlpha = 0.22 + Math.random()*0.22;
+    ctx.strokeStyle = '#c8c8c8';
+    ctx.lineWidth = r * 0.35;
+    ctx.beginPath(); ctx.arc(cx, cy, r * 1.1, 0, Math.PI*2); ctx.stroke();
     ctx.restore();
   }
-  // Smaller craters
-  for (let i = 0; i < 55; i++) {
-    const cx = Math.random()*W, cy = Math.random()*H, r = Math.random()*W*0.025 + W*0.006;
-    ctx.save(); ctx.globalAlpha = 0.22 + Math.random()*0.28;
-    ctx.fillStyle = Math.random() > 0.5 ? '#6a5848' : '#c8b898';
+
+  // Small fresh craters (bright)
+  for (let i = 0; i < 90; i++) {
+    const cx = Math.random()*W, cy = Math.random()*H, r = Math.random()*W*0.010 + W*0.003;
+    ctx.save(); ctx.globalAlpha = 0.25 + Math.random()*0.28;
+    ctx.fillStyle = Math.random() > 0.45 ? '#505050' : '#b8b8b8';
     ctx.beginPath(); ctx.arc(cx, cy, r, 0, Math.PI*2); ctx.fill();
     ctx.restore();
   }
@@ -433,21 +485,23 @@ function initPlanets3D() {
       const camera = new THREE.PerspectiveCamera(35, 1, 0.1, 100);
       camera.position.z = 2.6;
 
-      // ── Lighting: key light from top-left, soft ambient ──
-      const ambient  = new THREE.AmbientLight(0x283040, 0.38);
-      const keyLight = new THREE.DirectionalLight(0xfff5e0, 1.52);
-      keyLight.position.set(-2, 0.8, 2);
+      // ── Lighting: deep terminator — low ambient, strong directional ──
+      // AmbientLight very dim so night-side is dark and terminator is cinematic
+      const ambient  = new THREE.AmbientLight(0x101828, 0.12);
+      // Key light: top-left at -1.8,0.7 x, bright warm white
+      const keyLight = new THREE.DirectionalLight(0xfff8e8, 2.20);
+      keyLight.position.set(-1.8, 0.7, 1.5);
       scene.add(ambient, keyLight);
 
-      // ── Sphere with canvas texture ──
+      // ── Sphere — MeshStandardMaterial for matte, physically-based shading ──
       const texCanvas = makeTexture(name);
       const texture   = new THREE.CanvasTexture(texCanvas);
 
       const geo  = new THREE.SphereGeometry(1, 64, 32);
-      const mat  = new THREE.MeshPhongMaterial({
+      const mat  = new THREE.MeshStandardMaterial({
         map:       texture,
-        specular:  new THREE.Color(0x0d0d1a),
-        shininess: 14,
+        roughness: 0.85,   // very matte — no plastic shine
+        metalness: 0.05,   // near-zero metal
       });
       const mesh = new THREE.Mesh(geo, mat);
       mesh.rotation.x = THREE.MathUtils.degToRad(cfg.tilt || 0);
