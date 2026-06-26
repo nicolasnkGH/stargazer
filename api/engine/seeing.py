@@ -114,7 +114,7 @@ def _background_ai_task(payload, headers, current_hash, fallback_args=None):
                 _save_ai_cache(db)
 
 
-def _ai_seeing_analysis(weather: dict, moon_illum: float, moon_alt: float, visible_targets: list = None, window_label: str = "averaged 8 PM – 4 AM local time", lat: float = 0.0, lon: float = 0.0, lang: str = "en") -> Optional[dict]:
+def _ai_seeing_analysis(weather: dict, moon_illum: float, moon_alt: float, visible_targets: list = None, window_label: str = "averaged 8 PM – 4 AM local time", lat: float = 0.0, lon: float = 0.0, lang: str = "en", moon_dist: int = 384400) -> Optional[dict]:
     """
     Call Qwen3.5-9B with a structured astronomy seeing prompt.
     Returns dict with score (1-10), label, explanation, best_window, warnings[].
@@ -433,7 +433,7 @@ def get_seeing_forecast(lat=None, lon=None, ai_enabled: bool = False, lang: str 
     # ── AI analysis (Qwen3.5-9B) → fallback to rule-based ────────────────────
     if ai_enabled:
         try:
-            analysis = _ai_seeing_analysis(weather_snapshot, moon_illum, moon_alt, targets, window_label, lat=use_lat, lon=use_lon, lang=lang)
+            analysis = _ai_seeing_analysis(weather_snapshot, moon_illum, moon_alt, targets, window_label, lat=use_lat, lon=use_lon, lang=lang, moon_dist=moon_dist)
             if analysis and analysis.get("status") == "processing":
                 return {"status": "processing"}
         except Exception:
