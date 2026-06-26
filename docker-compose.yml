@@ -9,7 +9,7 @@ services:
       - "8181:8181"
     env_file: .env
     volumes:
-      - skyfield_data:/app/data
+      - skyfield_data:/app/.skyfield
     healthcheck:
       test: ["CMD", "curl", "-f", "http://localhost:8181/health"]
       interval: 30s
