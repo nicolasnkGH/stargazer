@@ -286,32 +286,29 @@ async function loadTonightReport() {
   });
 }
 
-async function fetchAIAnalysis() {
+async function fetchAIAnalysis(pollCount = 0) {
   const aiTargetsCard = document.getElementById('card-ai-targets');
   const engineBadgeEl = document.getElementById('seeing-engine-badge');
   const moonFactEl = document.getElementById('moon-fact');
 
   const explanationEl = document.getElementById('seeing-explanation');
-  
-  if (explanationEl) {
-    const dict = window.i18n[currentLang] || window.i18n['en'];
-    explanationEl.innerHTML = `✨ <span style="font-style:italic;">${dict.ai_analyzing || 'AI is analyzing the atmosphere (this takes a moment)...'}</span>`;
-    explanationEl.classList.add('ai-loading-glow');
-    explanationEl.style.display = 'block';
-  }
 
-  if (aiTargetsCard) {
-    // DO NOT hide the card, because it contains Must-See targets too!
-    // Just ensure we update it.
-    updateUnifiedCard();
+  if (pollCount === 0) {
+    if (explanationEl) {
+      const dict = window.i18n[currentLang] || window.i18n['en'];
+      explanationEl.innerHTML = `✨ <span style="font-style:italic;">${dict.ai_analyzing || 'AI is analyzing the atmosphere (this takes a moment)...'}</span>`;
+      explanationEl.classList.add('ai-loading-glow');
+      explanationEl.style.display = 'block';
+    }
+    if (aiTargetsCard) {
+      updateUnifiedCard();
+    }
+    if (engineBadgeEl) {
+      engineBadgeEl.style.display = '';
+      engineBadgeEl.innerHTML = '<span class="spinner" style="display:inline-block; animation: spin 1s linear infinite;">⚙️</span> Loading...';
+      engineBadgeEl.className = 'seeing-engine-badge rule';
+    }
   }
-  
-  if (engineBadgeEl) {
-    engineBadgeEl.style.display = '';
-    engineBadgeEl.innerHTML = '<span class="spinner" style="display:inline-block; animation: spin 1s linear infinite;">⚙️</span> Loading...';
-    engineBadgeEl.className = 'seeing-engine-badge rule';
-  }
-
 
   try {
     const q = (currentLat != null && currentLon != null) ? `?lat=${currentLat}&lon=${currentLon}&lang=${currentLang}` : `?lang=${currentLang}`;
@@ -320,20 +317,26 @@ async function fetchAIAnalysis() {
     const aiData = await res.json();
     if (aiData.status === 'processing') {
       // Background AI generation is running, poll every 10s
+      // Give up after 30 polls (5 minutes) to avoid infinite spinning
+      if (pollCount >= 30) {
+        console.warn("AI analysis timed out after 5 minutes, falling back to rule-based");
+        _showRuleBasedFallback(engineBadgeEl, explanationEl);
+        return;
+      }
       if (explanationEl) {
         explanationEl.classList.add('ai-loading-glow');
         const dict = window.i18n[currentLang] || window.i18n['en'];
         explanationEl.innerHTML = `✨ <span style="font-style:italic;">${dict.ai_analyzing || 'AI is analyzing the atmosphere (this takes a moment)...'}</span>`;
         explanationEl.style.display = 'block';
       }
-      setTimeout(fetchAIAnalysis, 10000);
+      setTimeout(() => fetchAIAnalysis(pollCount + 1), 10000);
       return;
     }
-    
+
     if (explanationEl) {
       explanationEl.classList.remove('ai-loading-glow');
     }
-    
+
     // Update the UI with the fresh AI data
     if (aiData.ai_powered) {
       if (window.lastTonightData) {
@@ -350,24 +353,27 @@ async function fetchAIAnalysis() {
     console.warn("AI Fetch failed", e);
     window.lastAIHTML = '';
     updateUnifiedCard();
-    if (engineBadgeEl) {
-      engineBadgeEl.textContent = 'Fallback: Rule-based';
-      engineBadgeEl.className = 'seeing-engine-badge rule';
-      engineBadgeEl.title = 'AI could not be reached. Showing rule-based metrics.';
-    }
-    const explanationEl = document.getElementById('seeing-explanation');
-    if (explanationEl) {
-      explanationEl.classList.remove('ai-loading-glow');
-    }
-    const cachedMoonFact = localStorage.getItem(`stargazer_moon_fact_${currentLang}`);
-    const moonWrapEl = document.getElementById('moon-fact-wrap');
-    const moonTextEl = document.getElementById('moon-fact-text');
-    if (cachedMoonFact && moonWrapEl) {
-      if (moonTextEl) moonTextEl.textContent = cachedMoonFact;
-      moonWrapEl.style.display = 'block';
-    } else if (moonWrapEl) {
-      moonWrapEl.style.display = 'none';
-    }
+    _showRuleBasedFallback(engineBadgeEl, explanationEl);
+  }
+}
+
+function _showRuleBasedFallback(engineBadgeEl, explanationEl) {
+  if (engineBadgeEl) {
+    engineBadgeEl.textContent = 'Fallback: Rule-based';
+    engineBadgeEl.className = 'seeing-engine-badge rule';
+    engineBadgeEl.title = 'All AI APIs were unavailable. Showing rule-based metrics.';
+  }
+  if (explanationEl) {
+    explanationEl.classList.remove('ai-loading-glow');
+  }
+  const cachedMoonFact = localStorage.getItem(`stargazer_moon_fact_${currentLang}`);
+  const moonWrapEl = document.getElementById('moon-fact-wrap');
+  const moonTextEl = document.getElementById('moon-fact-text');
+  if (cachedMoonFact && moonWrapEl) {
+    if (moonTextEl) moonTextEl.textContent = cachedMoonFact;
+    moonWrapEl.style.display = 'block';
+  } else if (moonWrapEl) {
+    moonWrapEl.style.display = 'none';
   }
 }
 

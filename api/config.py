@@ -24,7 +24,9 @@ AI_API_KEY  = os.getenv("AI_API_KEY",   "")
 AI_MODEL    = os.getenv("AI_MODEL",     "gemini-2.5-flash")
 FALLBACK_AI_API_URL = os.getenv("FALLBACK_AI_API_URL", "")
 FALLBACK_AI_MODEL   = os.getenv("FALLBACK_AI_MODEL", "")
-AI_TIMEOUT  = int(os.getenv("AI_TIMEOUT", "60"))     # seconds — fall back to rule-based on timeout
+LOCAL_AI_URL        = os.getenv("LOCAL_AI_URL", "")   # e.g. http://10.27.27.145:8083/v1/chat/completions
+LOCAL_AI_MODEL      = os.getenv("LOCAL_AI_MODEL", "") # e.g. /models/Qwen3.5-9B-Q5_K_M.gguf
+AI_TIMEOUT          = int(os.getenv("AI_TIMEOUT", "60"))     # seconds — per-API timeout, fall back to rule-based on timeout
 
 
 # Telescope defaults (can be overridden by environment variables)

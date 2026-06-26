@@ -10,7 +10,7 @@ import time
 from datetime import date, timedelta
 from typing import Optional
 
-from config import AI_API_KEY, AI_API_URL, AI_MODEL, FALLBACK_AI_API_URL, FALLBACK_AI_MODEL, LATITUDE, LONGITUDE
+from config import AI_API_KEY, AI_API_URL, AI_MODEL, FALLBACK_AI_API_URL, FALLBACK_AI_MODEL, LOCAL_AI_URL, LOCAL_AI_MODEL, LATITUDE, LONGITUDE, AI_TIMEOUT
 
 from .cache import _load_ai_cache, _save_ai_cache
 from .moon import get_moon_info
@@ -19,99 +19,135 @@ from .targets import get_visible_targets
 from .skyfield import now_local
 
 
-def _background_ai_task(payload, headers, current_hash, fallback_args=None):
-    """Run in a background thread: call AI API, parse JSON, save to cache."""
+def _call_ai_api(api_url, api_model, payload, auth_header, timeout_sec):
+    """Call an AI API and return the parsed response dict, or None on failure."""
+    headers = {"Content-Type": "application/json"}
+    if auth_header:
+        headers["Authorization"] = f"Bearer {auth_header}"
+    payload = payload.copy()
+    payload["model"] = api_model
+    resp = requests.post(api_url, json=payload, headers=headers, timeout=timeout_sec)
+    resp.raise_for_status()
+    return resp.json()
+
+
+def _parse_ai_response(data):
+    """Extract JSON from AI response. Returns dict with score or None."""
     try:
+        msg = data["choices"][0]["message"]
+    except (KeyError, IndexError):
+        return None
+    content_txt = msg.get("content", "").strip()
+    reasoning = msg.get("reasoning_content", "").strip()
+    raw = content_txt if content_txt else reasoning
+    if not raw:
+        return None
+
+    result = None
+    if "```json" in raw:
+        block = raw.split("```json")[-1].split("```")[0]
         try:
-            resp = requests.post(AI_API_URL, json=payload, headers=headers, timeout=180)
-            resp.raise_for_status()
-        except Exception as e:
-            logging.warning("Primary AI API failed: %s. Attempting fallback...", e)
-            if FALLBACK_AI_API_URL and FALLBACK_AI_MODEL:
-                fallback_payload = payload.copy()
-                fallback_payload["model"] = FALLBACK_AI_MODEL
-                fallback_headers = {k: v for k, v in headers.items() if k.lower() != "authorization"}
+            result = __import__("json").loads(block.strip())
+        except Exception:
+            pass
+    if result is None:
+        first_brace = raw.find("{")
+        if first_brace != -1:
+            candidate = raw[first_brace:].strip()
+            for suffix in ["", "}", "]}", '"]}', '"}']:
                 try:
-                    resp = requests.post(FALLBACK_AI_API_URL, json=fallback_payload, headers=fallback_headers, timeout=180)
-                    resp.raise_for_status()
-                except Exception as fb_e:
-                    logging.error("Fallback AI API failed: %s", fb_e)
-                    raise fb_e
-            else:
-                raise e
+                    result = __import__("json").loads(candidate + suffix)
+                    break
+                except Exception:
+                    pass
+                try:
+                    result = __import__("json").loads(candidate + '"' + suffix)
+                    break
+                except Exception:
+                    pass
+    if result and "score" in result:
+        score = int(result.get("score", 0))
+        if 1 <= score <= 10:
+            return {
+                "score": score,
+                "label": str(result.get("label", ""))[:60],
+                "explanation": str(result.get("explanation", ""))[:300],
+                "best_window": str(result.get("best_window", "Check conditions"))[:60],
+                "warnings": [str(w)[:80] for w in result.get("warnings", [])[:4]],
+                "recommended_targets": result.get("recommended_targets", []),
+                "ai_powered": True,
+            }
+    return None
 
-        msg = resp.json()["choices"][0]["message"]
-        content_txt = msg.get("content", "").strip()
-        reasoning = msg.get("reasoning_content", "").strip()
-        raw = content_txt if content_txt else reasoning
 
-        result = None
-        if "```json" in raw:
-            block = raw.split("```json")[-1].split("```")[0]
-            try:
-                result = __import__("json").loads(block.strip())
-            except Exception:
-                pass
+def _save_result(current_hash, result, fallback_args):
+    """Save a result to cache, or fall back to rule-based on failure."""
+    db = _load_ai_cache()
+    if result:
+        db[current_hash] = {"timestamp": int(time.time()), "data": result}
+        _save_ai_cache(db)
+    elif current_hash in db and db[current_hash].get("data", {}).get("status") == "processing":
+        if fallback_args:
+            weather, moon_illum, moon_alt, moon_dist = fallback_args
+            fb = _rule_based_seeing_score(weather, moon_illum, moon_alt, moon_dist)
+            fb["ai_powered"] = False
+            db[current_hash] = {"timestamp": int(time.time()), "data": fb}
+            _save_ai_cache(db)
+        else:
+            del db[current_hash]
+            _save_ai_cache(db)
 
-        if result is None:
-            first_brace = raw.find("{")
-            if first_brace != -1:
-                candidate = raw[first_brace:].strip()
-                for suffix in ["", "}", "]}", '"]}', '"}']:
-                    try:
-                        result = __import__("json").loads(candidate + suffix)
-                        break
-                    except Exception:
-                        pass
-                    try:
-                        result = __import__("json").loads(candidate + '"' + suffix)
-                        break
-                    except Exception:
-                        pass
 
-        if result and "score" in result:
-            score = int(result.get("score", 0))
-            if 1 <= score <= 10:
-                final_result = {
-                    "score": score,
-                    "label": str(result.get("label", ""))[:60],
-                    "explanation": str(result.get("explanation", ""))[:300],
-                    "best_window": str(result.get("best_window", "Check conditions"))[:60],
-                    "warnings": [str(w)[:80] for w in result.get("warnings", [])[:4]],
-                    "recommended_targets": result.get("recommended_targets", []),
-                    "ai_powered": True,
-                }
-                db = _load_ai_cache()
-                db[current_hash] = {"timestamp": int(time.time()), "data": final_result}
-                _save_ai_cache(db)
+def _background_ai_task(payload, headers, current_hash, fallback_args=None):
+    """Run in a background thread: try primary API → fallback remote → local llama.cpp → rule-based."""
+    auth_header = AI_API_KEY if AI_API_KEY else None
+    timeout_sec = max(AI_TIMEOUT, 15)  # at least 15s per API
+
+    # 1. Primary remote API
+    if AI_API_URL and AI_MODEL:
+        try:
+            logging.info("AI Seeing: Trying primary API %s", AI_API_URL)
+            data = _call_ai_api(AI_API_URL, AI_MODEL, payload, auth_header, timeout_sec)
+            result = _parse_ai_response(data)
+            if result:
+                logging.info("AI Seeing: Primary API succeeded")
+                _save_result(current_hash, result, None)
                 return
+            logging.warning("AI Seeing: Primary API returned unparseable response")
+        except Exception as e:
+            logging.warning("AI Seeing: Primary API failed: %s", e)
 
-        # If we got here, parsing failed or score was missing
-        db = _load_ai_cache()
-        if current_hash in db and db[current_hash].get("data", {}).get("status") == "processing":
-            if fallback_args:
-                weather, moon_illum, moon_alt, moon_dist = fallback_args
-                fb = _rule_based_seeing_score(weather, moon_illum, moon_alt, moon_dist)
-                fb["ai_powered"] = False
-                db[current_hash] = {"timestamp": int(time.time()), "data": fb}
-                _save_ai_cache(db)
-            else:
-                del db[current_hash]
-                _save_ai_cache(db)
+    # 2. Fallback remote API
+    if FALLBACK_AI_API_URL and FALLBACK_AI_MODEL:
+        try:
+            logging.info("AI Seeing: Trying fallback remote API %s", FALLBACK_AI_API_URL)
+            data = _call_ai_api(FALLBACK_AI_API_URL, FALLBACK_AI_MODEL, payload, None, timeout_sec)
+            result = _parse_ai_response(data)
+            if result:
+                logging.info("AI Seeing: Fallback remote API succeeded")
+                _save_result(current_hash, result, None)
+                return
+            logging.warning("AI Seeing: Fallback remote API returned unparseable response")
+        except Exception as e:
+            logging.warning("AI Seeing: Fallback remote API failed: %s", e)
 
-    except Exception as e:
-        logging.error("Background AI task completely failed: %s", e)
-        db = _load_ai_cache()
-        if current_hash in db and db[current_hash].get("data", {}).get("status") == "processing":
-            if fallback_args:
-                weather, moon_illum, moon_alt, moon_dist = fallback_args
-                fb = _rule_based_seeing_score(weather, moon_illum, moon_alt, moon_dist)
-                fb["ai_powered"] = False
-                db[current_hash] = {"timestamp": int(time.time()), "data": fb}
-                _save_ai_cache(db)
-            else:
-                del db[current_hash]
-                _save_ai_cache(db)
+    # 3. Local llama.cpp
+    if LOCAL_AI_URL and LOCAL_AI_MODEL:
+        try:
+            logging.info("AI Seeing: Trying local model %s", LOCAL_AI_URL)
+            data = _call_ai_api(LOCAL_AI_URL, LOCAL_AI_MODEL, payload, None, timeout_sec)
+            result = _parse_ai_response(data)
+            if result:
+                logging.info("AI Seeing: Local model succeeded")
+                _save_result(current_hash, result, None)
+                return
+            logging.warning("AI Seeing: Local model returned unparseable response")
+        except Exception as e:
+            logging.warning("AI Seeing: Local model failed: %s", e)
+
+    # 4. All APIs failed — fall back to rule-based
+    logging.warning("AI Seeing: All APIs failed, using rule-based fallback")
+    _save_result(current_hash, None, fallback_args)
 
 
 def _ai_seeing_analysis(weather: dict, moon_illum: float, moon_alt: float, visible_targets: list = None, window_label: str = "averaged 8 PM – 4 AM local time", lat: float = 0.0, lon: float = 0.0, lang: str = "en", moon_dist: int = 384400) -> Optional[dict]:
