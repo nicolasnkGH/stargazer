@@ -79,15 +79,6 @@ def _is_allowed_origin(origin: str) -> bool:
     return False
 
 
-async def verify_origin(request: Request):
-    if request.url.path in ["/", "/health"]:
-        return
-
-    origin = request.headers.get("origin") or request.headers.get("referer", "")
-    if not origin or not _is_allowed_origin(origin):
-        raise HTTPException(status_code=403, detail="Unauthorized Origin.")
-
-
 def validate_latitude(value: Optional[float]) -> Optional[float]:
     if value is None:
         return None
@@ -103,12 +94,37 @@ def validate_longitude(value: Optional[float]) -> Optional[float]:
         raise HTTPException(status_code=400, detail="Longitude must be between -180 and 180")
     return value
 
+
+async def verify_origin(request: Request):
+    if request.url.path in ["/", "/health"]:
+        return
+
+    origin = request.headers.get("origin") or request.headers.get("referer", "")
+    if not origin or not _is_allowed_origin(origin):
+        raise HTTPException(status_code=403, detail="Unauthorized Origin.")
+
+
 app = FastAPI(
     title="StarGazer API",
     description="Personal astronomy assistant and dashboard API",
     version="1.0.0",
     dependencies=[Depends(verify_origin)]
 )
+
+
+@app.middleware("http")
+async def cors_middleware(request: Request, call_next):
+    """Add CORS headers for allowed origins."""
+    response = await call_next(request)
+
+    origin = request.headers.get("origin", "")
+    if origin and _is_allowed_origin(origin):
+        response.headers["Access-Control-Allow-Origin"] = origin
+        response.headers["Access-Control-Allow-Methods"] = "GET, OPTIONS"
+        response.headers["Access-Control-Allow-Headers"] = "Content-Type"
+
+    return response
+
 
 @app.exception_handler(Exception)
 async def global_exception_handler(request: Request, exc: Exception):
@@ -136,6 +152,12 @@ def root():
                       "/moon", "/planets", "/iss", "/seeing",
                       "/targets", "/tonight/telegram", "/weekly/telegram", "/monthly/telegram"],
     }
+
+@app.options("/{full_path:path}")
+async def options_handler(full_path: str):
+    """Handle CORS preflight requests."""
+    return JSONResponse(content={})
+
 
 @app.get("/health")
 def health():
@@ -242,11 +264,12 @@ def get_star(name: Optional[str] = None, ra: Optional[float] = None, dec: Option
 
 @app.get("/constellations")
 def get_constellations_endpoint(
+    filter_famous: bool = Query(False),
     lat: Annotated[Optional[float], AfterValidator(validate_latitude)] = Query(None),
     lon: Annotated[Optional[float], AfterValidator(validate_longitude)] = Query(None),
 ):
     try:
-        data = get_constellations(lat=lat, lon=lon)
+        data = get_constellations(filter_famous=filter_famous, lat=lat, lon=lon)
         return {"constellations": data}
     except Exception as e:
         return JSONResponse(status_code=500, content={"error": str(e)})

@@ -5,6 +5,7 @@ from __future__ import annotations
 import json
 import logging
 import os
+import time as _time
 from datetime import date, datetime, timedelta
 from typing import Optional
 
@@ -15,6 +16,28 @@ from zoneinfo import ZoneInfo
 from config import MIN_ALTITUDE_DEG
 
 from .skyfield import _get_observer, _get_skyfield, _get_tz, _sf_time, now_local
+
+_constellation_window_cache: dict = {}
+_CONSTELLATION_WINDOW_TTL = 300  # 5 minutes
+
+_planet_cache: dict = {}
+_PLANET_TTL = 300  # 5 minutes
+
+
+def _planet_cache_key(lat, lon):
+    return (round(lat or 0, 2), round(lon or 0, 2))
+
+# Cache the constellation map at module level — loaded once, reused across all requests
+_constellation_map = None
+
+
+def _get_constellation_map():
+    global _constellation_map
+    if _constellation_map is None:
+        from skyfield.api import load_constellation_map
+        _constellation_map = load_constellation_map()
+    return _constellation_map
+
 
 PLANETS = {
     "Mercury": "mercury",
@@ -35,6 +58,12 @@ FAMOUS_CONSTELLATIONS = {
 
 
 def get_planet_positions(dt: Optional[datetime] = None, lat=None, lon=None, dusk: Optional[datetime] = None, dawn: Optional[datetime] = None) -> list[dict]:
+    key = _planet_cache_key(lat, lon)
+    now_mono = _time.monotonic()
+    cached = _planet_cache.get(key)
+    if cached and now_mono - cached["ts"] < _PLANET_TTL:
+        return cached["data"]
+
     ts, eph = _get_skyfield()
     observer, observer_location = _get_observer(lat=lat, lon=lon)
     now = dt or now_local(lat=lat, lon=lon)
@@ -68,9 +97,7 @@ def get_planet_positions(dt: Optional[datetime] = None, lat=None, lon=None, dusk
 
             visible = bool(alt.degrees > MIN_ALTITUDE_DEG)
 
-            from skyfield.api import load_constellation_map
-            constellation_at = load_constellation_map()
-            constellation = constellation_at(astrometric)
+            constellation = _get_constellation_map()(astrometric)
 
             dist_mkm = round(dist.km / 1_000_000, 1)
             light_time_min = round(dist.au * 8.316746397, 1)
@@ -139,6 +166,7 @@ def get_planet_positions(dt: Optional[datetime] = None, lat=None, lon=None, dusk
             print(f"Error calculating planet {name}: {e}")
 
     results.sort(key=lambda x: -x["altitude_deg"])
+    _planet_cache[key] = {"data": results, "ts": now_mono}
     return results
 
 
@@ -157,6 +185,12 @@ def _az_to_direction(az: float) -> str:
 
 def get_constellation_window(abbr: str, dt: Optional[date] = None, lat=None, lon=None) -> dict:
     """Calculate constellation rise/culmination/set and best observing window."""
+    key = (abbr, round(lat or 0, 2), round(lon or 0, 2))
+    now = _time.monotonic()
+    cached = _constellation_window_cache.get(key)
+    if cached and now - cached["ts"] < _CONSTELLATION_WINDOW_TTL:
+        return cached["data"]
+
     file_path = os.path.join(os.path.dirname(__file__), '..', 'constellations_enriched.json')
     try:
         with open(file_path, 'r') as f:
@@ -216,7 +250,7 @@ def get_constellation_window(abbr: str, dt: Optional[date] = None, lat=None, lon
     else:
         status = f"🔴 NOT VISIBLE — Below horizon or in twilight"
 
-    return {
+    result = {
         "rise_time": rise_time.strftime("%I:%M %p") if rise_time else "N/A",
         "set_time": set_time.strftime("%I:%M %p") if set_time else "N/A",
         "culmination_time": best_time_local.strftime("%I:%M %p") if best_time_local else "N/A",
@@ -232,3 +266,5 @@ def get_constellation_window(abbr: str, dt: Optional[date] = None, lat=None, lon
         "ra_hours": c["ra"],
         "dec_degrees": c["dec"],
     }
+    _constellation_window_cache[key] = {"data": result, "ts": now}
+    return result

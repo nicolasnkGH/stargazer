@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import time as _time
 from datetime import datetime
 from typing import Optional
 
@@ -10,13 +11,26 @@ from .planets import _az_to_direction
 from skyfield.api import Star
 from config import SCORPIUS_TARGETS, NEARBY_TARGETS, OTHER_TARGETS, MIN_ALTITUDE_DEG, LIMITING_MAG
 
+_targets_cache: dict = {}
+_TARGETS_TTL = 300  # 5 minutes
+
+
+def _targets_cache_key(lat, lon, constellation):
+    return (round(lat or 0, 2), round(lon or 0, 2), constellation)
+
 
 def get_visible_targets(dt: Optional[datetime] = None, lat=None, lon=None, constellation: str = "Sco") -> list[dict]:
     """Return targets for a specific constellation with current altitude/visibility."""
+    key = _targets_cache_key(lat, lon, constellation)
+    now = _time.monotonic()
+    cached = _targets_cache.get(key)
+    if cached and now - cached["ts"] < _TARGETS_TTL:
+        return cached["data"]
+
     ts, _ = _get_skyfield()
     observer, _ = _get_observer(lat=lat, lon=lon)
-    now = dt or now_local(lat=lat, lon=lon)
-    t = _sf_time(now)
+    now_dt = dt or now_local(lat=lat, lon=lon)
+    t = _sf_time(now_dt)
 
     results = []
     all_targets = SCORPIUS_TARGETS + NEARBY_TARGETS + OTHER_TARGETS
@@ -38,7 +52,7 @@ def get_visible_targets(dt: Optional[datetime] = None, lat=None, lon=None, const
         observable = bool(visible and in_limiting_mag)
 
         result = {**target}
-        
+
         equipment = target.get("equipment")
         if not equipment:
             diff = target.get("difficulty", "")
@@ -63,4 +77,5 @@ def get_visible_targets(dt: Optional[datetime] = None, lat=None, lon=None, const
         results.append(result)
 
     results.sort(key=lambda x: (-x["altitude_deg"]))
+    _targets_cache[key] = {"data": results, "ts": now}
     return results
