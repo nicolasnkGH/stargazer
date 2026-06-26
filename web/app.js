@@ -1410,8 +1410,12 @@ function goMotionFact(type, idx) {
 async function loadConstellations() {
   await fetchAndRender('/constellations?filter_famous=true', (data) => {
     const list = document.getElementById('constellations-grid');
-    if (!data || !data.constellations || data.constellations.length === 0) {
+    if (!data || !data.constellations) {
       list.innerHTML = '<div class="no-data">Could not load constellation data</div>';
+      return;
+    }
+    if (data.constellations.length === 0) {
+      list.innerHTML = '<div class="no-data">No famous constellations visible tonight</div>';
       return;
     }
 

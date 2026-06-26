@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import functools
+import os
 from datetime import date, datetime, timedelta
 from typing import Optional, Tuple
 
@@ -20,7 +21,7 @@ _loader = None
 def _get_skyfield():
     global _ts, _eph, _loader
     if _loader is None:
-        _loader = Loader("/app/.skyfield")
+        _loader = Loader(os.path.expanduser("~/.skyfield"))
     if _ts is None:
         _ts = _loader.timescale()
     if _eph is None:
