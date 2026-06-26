@@ -7,6 +7,7 @@ import time as _time
 from datetime import datetime, timedelta
 from typing import Optional
 
+import numpy as np
 from skyfield import almanac
 from zoneinfo import ZoneInfo
 
@@ -36,6 +37,11 @@ def get_moon_info(dt: Optional[datetime] = None, lat=None, lon=None) -> dict:
     moon = eph["moon"]
     earth = eph["earth"]
     sun = eph["sun"]
+
+    # Earth-Moon distance (km) for supermoon/micromoon detection
+    moon_pos = moon.at(t).position
+    earth_pos = earth.at(t).position
+    dist_km = round(np.linalg.norm(np.array(moon_pos.km) - np.array(earth_pos.km)))
 
     # Phase angle
     e = earth.at(t)
@@ -99,6 +105,7 @@ def get_moon_info(dt: Optional[datetime] = None, lat=None, lon=None) -> dict:
         "moonrise": moonrise or "N/A",
         "moonset": moonset or "N/A",
         "dso_impact": dso_impact,
+        "distance_km": dist_km,
     }
     _moon_cache[key] = {"data": result, "ts": now_mono}
     return result
