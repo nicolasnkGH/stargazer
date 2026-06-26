@@ -7,6 +7,8 @@
   [![Vanilla JS](https://img.shields.io/badge/Vanilla-JS-f7df1e.svg)](https://developer.mozilla.org/en-US/docs/Web/JavaScript)
   [![Cloudflare Pages](https://img.shields.io/badge/Deployed_on-Cloudflare-f38020.svg)](https://pages.cloudflare.com)
   [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
+  [![Release](https://img.shields.io/github/v/release/nicolasnkGH/stargazer)](https://github.com/nicolasnkGH/stargazer/releases)
+  [![CI](https://img.shields.io/github/actions/workflow/status/nicolasnkGH/stargazer/deploy.yml?label=CI)](https://github.com/nicolasnkGH/stargazer/actions)
 
   <p>
     <a href="https://stargazer.nick-t.net">View Live Demo</a>
@@ -36,11 +38,13 @@ Getting started with astronomy can be overwhelming. Standard astronomy apps are 
 - **🔴 Night Vision Mode**: A built-in toggle that turns the entire UI red to preserve your eyes' dark adaptation while out in the field.
 - **🌤 Live Weather & AI Seeing Analysis**: Aggregates cloud cover, wind, rain probability, and astronomical seeing conditions (via Open-Meteo & ClearOutside). Uses a **multi-tiered AI analysis system** (Google Gemini 2.5 Flash + Local Qwen Fallback via ROCm) to evaluate the atmosphere and give a definitive "GO" or "NO GO" rating.
 - **🎯 Curated Target Database**: Focuses only on "Must-See" targets (like the Orion Nebula or Andromeda Galaxy) specifically chosen for beginners with small telescopes or binoculars. AI Recommendations include smart badges (Equipment, Distance, Magnitude) and contextual Star-Hopping Guides.
-- **🪐 Planet Tracker & Moon Phases**: Live altitude and azimuth coordinates for the naked-eye planets, enriched with live Constellation Tracking, Apparent Magnitude, and precise Distance calculations (including light travel time).
-- **☄️ Asteroid Tracker**: Uses the NASA NeoWs API to display Near-Earth Objects (NEOs) flying by tonight, highlighting any that are potentially hazardous.
+- **🪐 Planet Tracker & Moon Phases**: Live altitude and azimuth coordinates for the naked-eye planets, enriched with live Constellation Tracking, Apparent Magnitude, and precise Distance calculations (including light travel time). Features a **3D interactive Moon** rendered with Three.js that you can rotate and zoom into craters.
+- **☄️ Asteroid Tracker**: Uses the NASA NeoWs API to display Near-Earth Objects (NEOs) flying by tonight, highlighting any that are potentially hazardous. Includes cached results and fun asteroid facts.
 - **🛰 ISS Tracker**: Calculates exactly when the International Space Station will fly over your specific coordinates in the next 10 days.
-- **🌌 Interactive Planetarium**: Includes a fullscreen dynamic star map using D3-Celestial. Click on any star to instantly scan it via the professional SIMBAD astronomical database to pull live Spectral and Distance data.
-- **🌍 Multi-Language Support**: Fully localized in English, Spanish, and Portuguese.
+- **🌌 Interactive Planetarium**: Includes a fullscreen dynamic star map using D3-Celestial. Click on any star to instantly scan it via the professional SIMBAD astronomical database to pull live Spectral and Distance data. Features a **Constellation Explorer** with drag-to-rotate planet cards and an **Interactive FOV Simulator** powered by Aladin Lite (DSS2 imagery) to simulate a realistic field-of-view.
+- **🧭 City Search**: Type any city name (e.g. "Tokyo") to automatically geocode your exact latitude, longitude, and profile name via OpenStreetMap Nominatim — no manual GPS entry needed.
+- **📋 Pre-Flight Checklist & Observation Log**: A visual pre-observation checklist and a LocalStorage-powered observation log to track what you've seen.
+- **🌍 Multi-Language Support**: Fully localized in English, Spanish, and Portuguese with 100% i18n coverage across all tooltips, dropdowns, and dynamic content.
 - **🧭 Interactive Product Tour**: A guided onboarding tour using `Driver.js` to help new users navigate the dashboard.
 
 ---
