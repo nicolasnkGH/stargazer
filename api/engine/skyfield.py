@@ -7,20 +7,24 @@ from datetime import date, datetime, timedelta
 from typing import Optional, Tuple
 
 from config import ELEVATION_M, LATITUDE, LONGITUDE, TIMEZONE
-from skyfield.api import N, W, wgs84, load
+from skyfield.api import N, W, wgs84
+from skyfield.api import Loader
 from skyfield import almanac
 from zoneinfo import ZoneInfo
 
 _ts = None
 _eph = None
+_loader = None
 
 
 def _get_skyfield():
-    global _ts, _eph
+    global _ts, _eph, _loader
+    if _loader is None:
+        _loader = Loader("/app/.skyfield")
     if _ts is None:
-        _ts = load.timescale()
+        _ts = _loader.timescale()
     if _eph is None:
-        _eph = load("de421.bsp")
+        _eph = _loader("de421.bsp")
     return _ts, _eph
 
 
