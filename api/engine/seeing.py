@@ -14,6 +14,7 @@ from config import AI_API_KEY, AI_API_URL, AI_MODEL, FALLBACK_AI_API_URL, FALLBA
 
 from .cache import _load_ai_cache, _save_ai_cache
 from .moon import get_moon_info
+from .moon_facts import get_moon_fact
 from .targets import get_visible_targets
 from .skyfield import now_local
 
@@ -75,7 +76,6 @@ def _background_ai_task(payload, headers, current_hash, fallback_args=None):
                     "score": score,
                     "label": str(result.get("label", ""))[:60],
                     "explanation": str(result.get("explanation", ""))[:300],
-                    "moon_fact": str(result.get("moon_fact", ""))[:150],
                     "best_window": str(result.get("best_window", "Check conditions"))[:60],
                     "warnings": [str(w)[:80] for w in result.get("warnings", [])[:4]],
                     "recommended_targets": result.get("recommended_targets", []),
@@ -90,8 +90,8 @@ def _background_ai_task(payload, headers, current_hash, fallback_args=None):
         db = _load_ai_cache()
         if current_hash in db and db[current_hash].get("data", {}).get("status") == "processing":
             if fallback_args:
-                weather, moon_illum, moon_alt = fallback_args
-                fb = _rule_based_seeing_score(weather, moon_illum, moon_alt)
+                weather, moon_illum, moon_alt, moon_dist = fallback_args
+                fb = _rule_based_seeing_score(weather, moon_illum, moon_alt, moon_dist)
                 fb["ai_powered"] = False
                 db[current_hash] = {"timestamp": int(time.time()), "data": fb}
                 _save_ai_cache(db)
@@ -104,8 +104,8 @@ def _background_ai_task(payload, headers, current_hash, fallback_args=None):
         db = _load_ai_cache()
         if current_hash in db and db[current_hash].get("data", {}).get("status") == "processing":
             if fallback_args:
-                weather, moon_illum, moon_alt = fallback_args
-                fb = _rule_based_seeing_score(weather, moon_illum, moon_alt)
+                weather, moon_illum, moon_alt, moon_dist = fallback_args
+                fb = _rule_based_seeing_score(weather, moon_illum, moon_alt, moon_dist)
                 fb["ai_powered"] = False
                 db[current_hash] = {"timestamp": int(time.time()), "data": fb}
                 _save_ai_cache(db)
@@ -151,7 +151,7 @@ def _ai_seeing_analysis(weather: dict, moon_illum: float, moon_alt: float, visib
     else:
         target_prompt = ""
 
-    lang_instruction = f"\nCRITICAL: All string values in your JSON response (label, explanation, moon_fact, warnings, recommended_targets names and reasons) MUST be written in the ISO language code '{lang}'. Do not use English unless '{lang}' is 'en'." if lang != "en" else ""
+    lang_instruction = f"\nCRITICAL: All string values in your JSON response (label, explanation, warnings, recommended_targets names and reasons) MUST be written in the ISO language code '{lang}'. Do not use English unless '{lang}' is 'en'." if lang != "en" else ""
 
     prompt = f"""You are an expert astronomical seeing forecaster helping amateur astronomers decide whether to observe tonight.
 
@@ -171,7 +171,7 @@ Rate the astronomical seeing quality on a scale of 1–10 (10 = perfect, 1 = sta
 Consider: transparency (cloud/humidity/cirrus), atmospheric stability (jet stream), dew risk, moon interference, and overall observing potential.
 
 Respond ONLY with valid JSON — no markdown, no explanation outside the JSON:
-{{"score": <int 1-10>, "label": "<short label e.g. Exceptional transparency>", "explanation": "<2 sentences for a beginner astronomer>", "moon_fact": "<1 short interesting sentence about the moon's phase tonight>", "best_window": "<e.g. 10 PM – Midnight or All night>", "warnings": [<list of short warning strings, empty list if none>], "recommended_targets": [{{"name": "<Target Name>", "constellation": "<Constellation>", "magnitude": "<e.g., 1.5 or N/A>", "distance_ly": "<e.g., 400 Light Years>", "equipment": "<Naked Eye / Binoculars / Telescope>", "how_to_find": "<1 sentence star-hopping guide>", "reason": "<Why it's good tonight>"}}]}}{lang_instruction}"""
+{{"score": <int 1-10>, "label": "<short label e.g. Exceptional transparency>", "explanation": "<2 sentences for a beginner astronomer>", "best_window": "<e.g. 10 PM – Midnight or All night>", "warnings": [<list of short warning strings, empty list if none>], "recommended_targets": [{{"name": "<Target Name>", "constellation": "<Constellation>", "magnitude": "<e.g., 1.5 or N/A>", "distance_ly": "<e.g., 400 Light Years>", "equipment": "<Naked Eye / Binoculars / Telescope>", "how_to_find": "<1 sentence star-hopping guide>", "reason": "<Why it's good tonight>"}}]}}{lang_instruction}"""
 
     headers = {"Content-Type": "application/json"}
     if AI_API_KEY:
@@ -195,7 +195,7 @@ Respond ONLY with valid JSON — no markdown, no explanation outside the JSON:
         cache_db[current_hash] = {"timestamp": int(time.time()), "data": {"status": "processing"}}
         _save_ai_cache(cache_db)
         
-        t = threading.Thread(target=_background_ai_task, args=(payload, headers, current_hash, (weather, moon_illum, moon_alt)))
+        t = threading.Thread(target=_background_ai_task, args=(payload, headers, current_hash, (weather, moon_illum, moon_alt, moon_dist)))
         t.start()
         
         return {"status": "processing"}
@@ -206,7 +206,7 @@ Respond ONLY with valid JSON — no markdown, no explanation outside the JSON:
         return None
 
 
-def _rule_based_seeing_score(weather: dict, moon_illum: float, moon_alt: float) -> dict:
+def _rule_based_seeing_score(weather: dict, moon_illum: float, moon_alt: float, moon_distance_km: int = 384400) -> dict:
     """
     Improved deterministic fallback scorer on 1–10 scale.
     Used when Qwen is unreachable or times out.
@@ -284,11 +284,32 @@ def _rule_based_seeing_score(weather: dict, moon_illum: float, moon_alt: float) 
     else:
         best_window = "Check hourly cloud forecast"
 
+    # Get phase name from illumination for fact lookup
+    phase_pct = moon_illum / 100
+    if moon_illum < 3:
+        phase_name = "🌑 New Moon"
+    elif moon_illum < 45:
+        phase_name = "🌒 Waxing Crescent"
+    elif moon_illum < 55:
+        phase_name = "🌓 First Quarter"
+    elif moon_illum < 95:
+        phase_name = "🌔 Waxing Gibbous"
+    elif moon_illum > 97:
+        phase_name = "🌕 Full Moon"
+    elif moon_illum > 55:
+        phase_name = "🌖 Waning Gibbous"
+    elif moon_illum > 45:
+        phase_name = "🌗 Last Quarter"
+    else:
+        phase_name = "🌘 Waning Crescent"
+
+    moon_fact = get_moon_fact(phase_name, moon_illum, moon_distance_km, today=date.today())
+
     return {
         "score": score,
         "label": labels[score],
         "explanation": "",   # rule-based doesn't generate prose
-        "moon_fact": "",     # rule-based doesn't generate prose
+        "moon_fact": moon_fact,
         "best_window": best_window,
         "warnings": warnings,
         "recommended_targets": [],
@@ -400,8 +421,9 @@ def get_seeing_forecast(lat=None, lon=None, ai_enabled: bool = False, lang: str 
         moon_now = get_moon_info(lat=lat, lon=lon)
         moon_illum = moon_now.get("illumination_pct", 50)
         moon_alt   = moon_now.get("altitude_deg", 0)
+        moon_dist  = moon_now.get("distance_km", 384400)
     except Exception:
-        moon_illum, moon_alt = 50, 0
+        moon_illum, moon_alt, moon_dist = 50, 0, 384400
         
     try:
         targets = get_visible_targets(constellation="All", lat=lat, lon=lon)
@@ -420,7 +442,7 @@ def get_seeing_forecast(lat=None, lon=None, ai_enabled: bool = False, lang: str 
         analysis = None
 
     if analysis is None:
-        analysis = _rule_based_seeing_score(weather_snapshot, moon_illum, moon_alt)
+        analysis = _rule_based_seeing_score(weather_snapshot, moon_illum, moon_alt, moon_dist)
 
     score = analysis["score"]
 
