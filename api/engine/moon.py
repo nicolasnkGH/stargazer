@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import math
+import time as _time
 from datetime import datetime, timedelta
 from typing import Optional
 
@@ -11,8 +12,20 @@ from zoneinfo import ZoneInfo
 
 from .skyfield import _get_observer, _get_skyfield, _get_tz, _sf_time, now_local
 
+_moon_cache: dict = {}
+_MOON_TTL = 300  # 5 minutes
+
+
+def _moon_cache_key(lat, lon):
+    return (round(lat or 0, 2), round(lon or 0, 2))
+
 
 def get_moon_info(dt: Optional[datetime] = None, lat=None, lon=None) -> dict:
+    key = _moon_cache_key(lat, lon)
+    now_mono = _time.monotonic()
+    cached = _moon_cache.get(key)
+    if cached and now_mono - cached["ts"] < _MOON_TTL:
+        return cached["data"]
     ts, eph = _get_skyfield()
     observer, observer_location = _get_observer(lat=lat, lon=lon)
     tz = _get_tz(lat, lon)
@@ -78,7 +91,7 @@ def get_moon_info(dt: Optional[datetime] = None, lat=None, lon=None) -> dict:
     else:
         dso_impact = "🔴 Poor — planets & stars only"
 
-    return {
+    result = {
         "phase_name": phase_name,
         "illumination_pct": illumination,
         "altitude_deg": round(alt.degrees, 1),
@@ -87,3 +100,5 @@ def get_moon_info(dt: Optional[datetime] = None, lat=None, lon=None) -> dict:
         "moonset": moonset or "N/A",
         "dso_impact": dso_impact,
     }
+    _moon_cache[key] = {"data": result, "ts": now_mono}
+    return result
