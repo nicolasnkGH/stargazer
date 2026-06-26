@@ -94,13 +94,6 @@ def validate_longitude(value: Optional[float]) -> Optional[float]:
         raise HTTPException(status_code=400, detail="Longitude must be between -180 and 180")
     return value
 
-app = FastAPI(
-    title="StarGazer API",
-    description="Personal astronomy assistant and dashboard API",
-    version="1.0.0",
-    dependencies=[Depends(verify_origin)]
-)
-
 
 async def verify_origin(request: Request):
     if request.url.path in ["/", "/health"]:
@@ -109,6 +102,14 @@ async def verify_origin(request: Request):
     origin = request.headers.get("origin") or request.headers.get("referer", "")
     if not origin or not _is_allowed_origin(origin):
         raise HTTPException(status_code=403, detail="Unauthorized Origin.")
+
+
+app = FastAPI(
+    title="StarGazer API",
+    description="Personal astronomy assistant and dashboard API",
+    version="1.0.0",
+    dependencies=[Depends(verify_origin)]
+)
 
 
 @app.middleware("http")
