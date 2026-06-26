@@ -37,8 +37,7 @@ jobs:
       - name: Check version not already tagged
         run: |
           if git tag -l "v${{ github.event.inputs.version }}" | grep -q .; then
-            echo "::error::Tag v${{ github.event.inputs.version }} already exists"
-            exit 1
+            echo "::warning::Tag v${{ github.event.inputs.version }} already exists — proceeding to create GitHub Release only"
           fi
 
       - name: Check branch is up to date
@@ -88,8 +87,12 @@ jobs:
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
-          git tag -a "v${{ github.event.inputs.version }}" -m "Release v${{ github.event.inputs.version }}"
-          git push origin "v${{ github.event.inputs.version }}"
+          if git tag -l "v${{ github.event.inputs.version }}" | grep -q .; then
+            echo "Tag v${{ github.event.inputs.version }} already exists — skipping tag creation"
+          else
+            git tag -a "v${{ github.event.inputs.version }}" -m "Release v${{ github.event.inputs.version }}"
+            git push origin "v${{ github.event.inputs.version }}"
+          fi
 
       - name: Create GitHub Release
         uses: softprops/action-gh-release@v2
