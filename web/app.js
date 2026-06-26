@@ -260,6 +260,13 @@ async function loadTonightReport() {
       renderSeeing(null);
       renderPlanets(null);
       renderAlerts(null);
+      // Reset hero stats on error
+      const hd = document.getElementById('hero-dark-in');
+      const hb = document.getElementById('hero-bortle');
+      const hs = document.getElementById('hero-github-stars');
+      if (hd) hd.textContent = '--';
+      if (hb) hb.textContent = '--';
+      if (hs) hs.textContent = '--';
       return;
     }
     window.lastTonightData = data;
@@ -271,9 +278,11 @@ async function loadTonightReport() {
     renderMoon(data.moon);
     renderPlanets(data.visible_planets || [], data.planet_fact);
     renderAlerts(data.must_see || []);
-    
-    // Fire off async AI fetch now that the UI is rendered
+    updateHeroStats(data);
+
+    // Fire off async AI fetch and GitHub stars now that the UI is rendered
     fetchAIAnalysis();
+    fetchGitHubStars();
   });
 }
 
@@ -719,6 +728,52 @@ function renderMoon(moon) {
     else if (impact.includes('below horizon')) impact = dict.moon_below || impact;
   }
   document.getElementById('dso-impact').textContent = impact;
+}
+
+// ── Hero Stats (dark-in time, bortle) ──────────────────────────────────────
+function updateHeroStats(data) {
+  // Dark In — hours until astronomical dusk
+  const heroDarkIn = document.getElementById('hero-dark-in');
+  if (heroDarkIn && data.astronomical_dusk) {
+    try {
+      const tz = data.location_timezone || Intl.DateTimeFormat().resolvedOptions().timeZone;
+      const now = new Date();
+      const duskStr = data.astronomical_dusk; // e.g. "21:30"
+      const [h, m] = duskStr.split(':').map(Number);
+      const duskToday = new Date(now.getFullYear(), now.getMonth(), now.getDate(), h, m);
+      if (duskToday < now) duskToday.setDate(duskToday.getDate() + 1);
+      const diffHrs = ((duskToday - now) / (1000 * 60 * 60)).toFixed(1);
+      heroDarkIn.textContent = `${diffHrs}h`;
+    } catch {
+      heroDarkIn.textContent = data.astronomical_dusk;
+    }
+  }
+
+  // Bortle scale
+  const heroBortle = document.getElementById('hero-bortle');
+  if (heroBortle && data.bortle) {
+    heroBortle.textContent = `B${data.bortle}`;
+  }
+}
+
+// ── GitHub stars (cached, fetched once) ──────────────────────────────────────
+let _githubStarsFetched = false;
+async function fetchGitHubStars() {
+  if (_githubStarsFetched) return;
+  _githubStarsFetched = true;
+  const el = document.getElementById('hero-github-stars');
+  if (!el) return;
+  try {
+    const res = await fetch('https://api.github.com/repos/nicolasnkGH/stargazer');
+    const json = await res.json();
+    if (json && json.stargazers_count != null) {
+      el.textContent = json.stargazers_count.toLocaleString();
+    } else {
+      el.textContent = '629'; // fallback
+    }
+  } catch {
+    el.textContent = '629'; // fallback
+  }
 }
 
 function loadActiveConstellation(abbr) {
@@ -2120,4 +2175,108 @@ document.addEventListener('DOMContentLoaded', () => {
 
   // Initialize 3D Moon if present
   if (window.initMoon3D) setTimeout(window.initMoon3D, 500);
+
+  // ── Draggable Floating Buttons ───────────────────────────────────────────
+  function makeDraggable(el) {
+    let isDragging = false;
+    let startX, startY, startLeft, startTop, startRight, startBottom;
+    let hasMoved = false;
+
+    function onStart(e) {
+      // Don't drag if clicking dismiss button
+      if (e.target.classList.contains('floating-btn-dismiss')) return;
+      // Don't drag if clicking inner buttons
+      if (e.target.tagName === 'BUTTON' && e.target.id !== '') {
+        // Allow dragging when clicking the main button
+      }
+      isDragging = true;
+      hasMoved = false;
+      el.classList.add('dragging');
+
+      const touch = e.touches ? e.touches[0] : e;
+      startX = touch.clientX;
+      startY = touch.clientY;
+
+      const rect = el.getBoundingClientRect();
+      startLeft = rect.left;
+      startTop = rect.top;
+      startRight = window.innerWidth - rect.right;
+      startBottom = window.innerHeight - rect.bottom;
+
+      if (e.touches) e.preventDefault();
+    }
+
+    function onMove(e) {
+      if (!isDragging) return;
+      const touch = e.touches ? e.touches[0] : e;
+      const dx = touch.clientX - startX;
+      const dy = touch.clientY - startY;
+
+      if (Math.abs(dx) > 3 || Math.abs(dy) > 3) hasMoved = true;
+
+      el.style.left = (startLeft + dx) + 'px';
+      el.style.top = (startTop + dy) + 'px';
+      el.style.bottom = 'auto';
+      el.style.right = 'auto';
+
+      if (e.touches) e.preventDefault();
+    }
+
+    function onEnd() {
+      if (!isDragging) return;
+      isDragging = false;
+      el.classList.remove('dragging');
+
+      // Clamp to viewport
+      const rect = el.getBoundingClientRect();
+      const clampedLeft = Math.max(0, Math.min(rect.left, window.innerWidth - 50));
+      const clampedTop = Math.max(0, Math.min(rect.top, window.innerHeight - 50));
+      el.style.left = clampedLeft + 'px';
+      el.style.top = clampedTop + 'px';
+      el.style.bottom = 'auto';
+      el.style.right = 'auto';
+
+      // Save position
+      try {
+        localStorage.setItem('stargazer_' + el.id + '_pos', JSON.stringify({
+          left: clampedLeft, top: clampedTop
+        }));
+      } catch {}
+    }
+
+    // Touch events
+    el.addEventListener('touchstart', onStart, { passive: false });
+    el.addEventListener('touchmove', onMove, { passive: false });
+    el.addEventListener('touchend', onEnd);
+
+    // Mouse events
+    el.addEventListener('mousedown', onStart);
+    document.addEventListener('mousemove', onMove);
+    document.addEventListener('mouseup', onEnd);
+  }
+
+  // Restore saved positions and make buttons draggable
+  ['floating-tour', 'floating-night'].forEach(id => {
+    const el = document.getElementById(id);
+    if (!el) return;
+
+    // Restore saved position
+    try {
+      const saved = localStorage.getItem('stargazer_' + id + '_pos');
+      if (saved) {
+        const pos = JSON.parse(saved);
+        el.style.left = pos.left + 'px';
+        el.style.top = pos.top + 'px';
+        el.style.bottom = 'auto';
+        el.style.right = 'auto';
+      }
+    } catch {}
+
+    // Hide if previously dismissed
+    if (localStorage.getItem(id + '_dismissed') === '1') {
+      el.style.display = 'none';
+    }
+
+    makeDraggable(el);
+  });
 });
