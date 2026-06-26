@@ -293,22 +293,18 @@ async function fetchAIAnalysis(pollCount = 0) {
 
   const explanationEl = document.getElementById('seeing-explanation');
 
-  if (pollCount === 0) {
-    if (explanationEl) {
-      const dict = window.i18n[currentLang] || window.i18n['en'];
-      explanationEl.innerHTML = `✨ <span style="font-style:italic;">${dict.ai_analyzing || 'AI is analyzing the atmosphere (this takes a moment)...'}</span>`;
-      explanationEl.classList.add('ai-loading-glow');
-      explanationEl.style.display = 'block';
-    }
-    if (aiTargetsCard) {
-      updateUnifiedCard();
-    }
-    if (engineBadgeEl) {
-      engineBadgeEl.style.display = '';
-      engineBadgeEl.innerHTML = '<span class="spinner" style="display:inline-block; animation: spin 1s linear infinite;">⚙️</span> Loading...';
-      engineBadgeEl.className = 'seeing-engine-badge rule';
-    }
+  if (aiTargetsCard) {
+    // DO NOT hide the card, because it contains Must-See targets too!
+    // Just ensure we update it.
+    updateUnifiedCard();
   }
+  
+  if (engineBadgeEl) {
+    engineBadgeEl.style.display = '';
+    engineBadgeEl.innerHTML = '<span class="spinner" style="display:inline-block; animation: spin 1s linear infinite;">⚙️</span> Loading...';
+    engineBadgeEl.className = 'seeing-engine-badge rule';
+  }
+
 
   try {
     const q = (currentLat != null && currentLon != null) ? `?lat=${currentLat}&lon=${currentLon}&lang=${currentLang}` : `?lang=${currentLang}`;
