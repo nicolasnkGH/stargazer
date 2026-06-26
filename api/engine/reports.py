@@ -90,7 +90,7 @@ def get_tonight_report(lat=None, lon=None, lang: str = "en") -> dict:
         })
 
     planet_fact_date = now.strftime("%Y-%m-%d")
-    idx = int(hashlib.md5(planet_fact_date.encode()).hexdigest(), 16) % len(PLANET_FACTS)
+    idx = int(hashlib.md5(planet_fact_date.encode(), usedforsecurity=False).hexdigest(), 16) % len(PLANET_FACTS)
 
     return {
         "date": now.strftime("%A, %B %d, %Y"),
