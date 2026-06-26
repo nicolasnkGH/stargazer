@@ -736,10 +736,16 @@ function updateHeroStats(data) {
   const heroDarkIn = document.getElementById('hero-dark-in');
   if (heroDarkIn && data.astronomical_dusk) {
     try {
-      const tz = data.location_timezone || Intl.DateTimeFormat().resolvedOptions().timeZone;
       const now = new Date();
-      const duskStr = data.astronomical_dusk; // e.g. "21:30"
-      const [h, m] = duskStr.split(':').map(Number);
+      const duskStr = data.astronomical_dusk; // e.g. "09:30 PM"
+      // Parse "%I:%M %p" format (12-hour with AM/PM)
+      const match = duskStr.match(/(\d+):(\d+)\s*(AM|PM)/i);
+      if (!match) throw new Error('bad format');
+      let h = parseInt(match[1], 10);
+      const m = parseInt(match[2], 10);
+      const ampm = match[3].toUpperCase();
+      if (ampm === 'PM' && h !== 12) h += 12;
+      if (ampm === 'AM' && h === 12) h = 0;
       const duskToday = new Date(now.getFullYear(), now.getMonth(), now.getDate(), h, m);
       if (duskToday < now) duskToday.setDate(duskToday.getDate() + 1);
       const diffHrs = ((duskToday - now) / (1000 * 60 * 60)).toFixed(1);
@@ -751,8 +757,8 @@ function updateHeroStats(data) {
 
   // Bortle scale
   const heroBortle = document.getElementById('hero-bortle');
-  if (heroBortle && data.bortle) {
-    heroBortle.textContent = `B${data.bortle}`;
+  if (heroBortle && data.telescope?.bortle != null) {
+    heroBortle.textContent = `B${data.telescope.bortle}`;
   }
 }
 
