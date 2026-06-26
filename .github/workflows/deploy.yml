@@ -3,21 +3,24 @@ name: Deploy Stargazer CI/CD
 on:
   push:
     branches: [ "main" ]
+    tags:
+      - "v*.*.*"
   pull_request:
     branches: [ "main" ]
 
 permissions:
-  contents: read
+  contents: write
   pull-requests: read
 
 jobs:
   validate:
     runs-on: ubuntu-latest
+    if: github.event_name == 'pull_request' || (github.event_name == 'push' && !startsWith(github.ref, 'refs/tags/'))
     steps:
       - uses: actions/checkout@v3
         with:
           fetch-depth: 0
-      
+
       - name: Set up Python 3.11
         uses: actions/setup-python@v5
         with:
@@ -60,9 +63,8 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
   deploy:
-    needs: validate
     runs-on: self-hosted
-    if: github.ref == 'refs/heads/main'
+    if: github.event_name == 'push' && !startsWith(github.ref, 'refs/tags/')
     steps:
       - uses: actions/checkout@v3
 
@@ -88,3 +90,44 @@ jobs:
           sleep 10
           docker compose exec -T stargazer-api curl -f http://localhost:8181/health || (echo "Health check failed" && docker compose logs && exit 1)
           echo "Deployment successful and healthy!"
+
+  deploy-tag:
+    runs-on: self-hosted
+    if: github.event_name == 'push' && startsWith(github.ref, 'refs/tags/')
+    steps:
+      - uses: actions/checkout@v3
+        with:
+          ref: ${{ github.ref }}
+
+      - name: Extract version from tag
+        id: version
+        run: echo "version=${GITHUB_REF#refs/tags/}" >> $GITHUB_OUTPUT
+
+      - name: Update version in HTML and API
+        run: |
+          VERSION="${{ steps.version.outputs.version }}"
+          # Update HTML version badge
+          sed -i "s/v[0-9]*\.[0-9]*\.[0-9]*.*/${VERSION}/" web/index.html
+          # Update API version
+          sed -i "s/version=\"[0-9]*\.[0-9]*\.[0-9]*\"/version=\"${VERSION#v}\"/" api/main.py
+
+      - name: Deploy to Server
+        run: |
+          mkdir -p /opt/stargazer
+          tar -cf - --exclude=.git . | (cd /opt/stargazer && tar -xf -)
+          cd /opt/stargazer
+          if [ ! -f .env ]; then
+            echo "No .env found, initializing from .env.example"
+            cp .env.example .env
+          else
+            echo "Existing .env found, preserving it."
+          fi
+          docker compose up -d --build
+
+      - name: Health Check Verification
+        working-directory: /opt/stargazer
+        run: |
+          echo "Waiting for API to start..."
+          sleep 10
+          docker compose exec -T stargazer-api curl -f http://localhost:8181/health || (echo "Health check failed" && docker compose logs && exit 1)
+          echo "Deployment of ${{ steps.version.outputs.version }} successful and healthy!"

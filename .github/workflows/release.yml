@@ -1,0 +1,107 @@
+name: Release
+
+on:
+  workflow_dispatch:
+    inputs:
+      version:
+        description: "Release version (e.g. 1.1.0)"
+        required: true
+        type: string
+      target_branch:
+        description: "Branch to release from (default: main)"
+        required: false
+        default: "main"
+        type: string
+
+permissions:
+  contents: write
+
+jobs:
+  release:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          ref: ${{ github.event.inputs.target_branch }}
+
+      - name: Validate version format
+        run: |
+          VERSION="${{ github.event.inputs.version }}"
+          if ! [[ "$VERSION" =~ ^[0-9]+\.[0-9]+\.[0-9]+$ ]]; then
+            echo "::error::Version must be semver: X.Y.Z (got '$VERSION')"
+            exit 1
+          fi
+
+      - name: Check version not already tagged
+        run: |
+          if git tag -l "v${{ github.event.inputs.version }}" | grep -q .; then
+            echo "::error::Tag v${{ github.event.inputs.version }} already exists"
+            exit 1
+          fi
+
+      - name: Check branch is up to date
+        run: |
+          git fetch origin "${{ github.event.inputs.target_branch }}"
+          LOCAL=$(git rev-parse HEAD)
+          REMOTE=$(git rev-parse "origin/${{ github.event.inputs.target_branch }}")
+          if [ "$LOCAL" != "$REMOTE" ]; then
+            echo "::error::Branch ${{ github.event.inputs.target_branch }} has unpushed commits"
+            exit 1
+          fi
+
+      - name: Pre-release checklist
+        run: |
+          VERSION="${{ github.event.inputs.version }}"
+          echo "## Pre-release Checklist"
+          echo ""
+          echo "Before proceeding, verify:"
+          echo ""
+          echo "- [ ] HTML version badge updated to v${VERSION} (web/index.html)"
+          echo "- [ ] API version updated to ${VERSION} (api/main.py)"
+          echo "- [ ] Changelog reviewed and accurate"
+          echo "- [ ] All CI checks passing on ${{ github.event.inputs.target_branch }}"
+          echo "- [ ] Release notes written (not just auto-generated commits)"
+          echo "- [ ] Docker images tested locally (if applicable)"
+          echo ""
+          echo "After this workflow completes:"
+          echo "- [ ] GitHub Release reviewed and edited (add manual notes)"
+          echo "- [ ] Server health checked at /health endpoint"
+          echo "- [ ] Rollback plan documented if needed"
+
+      - name: Generate changelog
+        id: changelog
+        run: |
+          LAST_TAG=$(git describe --tags --abbrev=0 HEAD^ 2>/dev/null || echo "")
+          if [ -z "$LAST_TAG" ]; then
+            # First release — log everything
+            LOG=$(git log --pretty=format:"%h %s (%an, %ad)" --date=short)
+          else
+            LOG=$(git log --pretty=format:"%h %s (%an, %ad)" --date=short "$LAST_TAG"..HEAD)
+          fi
+          echo "log<<EOF" >> $GITHUB_OUTPUT
+          echo "$LOG" >> $GITHUB_OUTPUT
+          echo "EOF" >> $GITHUB_OUTPUT
+
+      - name: Create release commit and tag
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git tag -a "v${{ github.event.inputs.version }}" -m "Release v${{ github.event.inputs.version }}"
+          git push origin "v${{ github.event.inputs.version }}"
+
+      - name: Create GitHub Release
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: v${{ github.event.inputs.version }}
+          name: Release v${{ github.event.inputs.version }}
+          body: |
+            ## Changes since last release
+
+            ```
+            ${{ steps.changelog.outputs.log }}
+            ```
+          generate_release_notes: true
+          draft: false
+          prerelease: false

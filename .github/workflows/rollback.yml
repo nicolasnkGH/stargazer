@@ -1,0 +1,86 @@
+name: Rollback
+
+on:
+  workflow_dispatch:
+    inputs:
+      target_tag:
+        description: "Tag to rollback to (e.g. v1.0.0)"
+        required: true
+        type: string
+      reason:
+        description: "Reason for rollback"
+        required: false
+        default: ""
+        type: string
+
+permissions:
+  contents: write
+  pull-requests: write
+
+jobs:
+  rollback:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Validate target tag exists
+        run: |
+          if ! git rev-parse "${{ github.event.inputs.target_tag }}" >/dev/null 2>&1; then
+            echo "::error::Tag ${{ github.event.inputs.target_tag }} not found"
+            exit 1
+          fi
+
+      - name: Verify tag is a valid release (annotated)
+        run: |
+          TYPE=$(git cat-file -t "${{ github.event.inputs.target_tag }}" 2>/dev/null)
+          if [ "$TYPE" != "tag" ]; then
+            echo "::error::${{ github.event.inputs.target_tag }} is not an annotated tag"
+            exit 1
+          fi
+
+      - name: Create rollback PR
+        id: pr
+        run: |
+          ROLLBACK_BRANCH="rollback/$(date +%Y%m%d)-${{ github.event.inputs.target_tag }}"
+          ROLLBACK_BRANCH=$(echo "$ROLLBACK_BRANCH" | tr '/' '-')
+          git checkout -b "$ROLLBACK_BRANCH" "${{ github.event.inputs.target_tag }}"
+          git push origin "$ROLLBACK_BRANCH"
+
+          REASON="${{ github.event.inputs.reason }}"
+          if [ -z "$REASON" ]; then
+            REASON="Rolling back to ${{ github.event.inputs.target_tag }} due to issues in current main"
+          fi
+
+          PR_TITLE="Rollback to ${{ github.event.inputs.target_tag }}"
+          PR_BODY=$(cat <<EOF
+          ## Rollback to ${{ github.event.inputs.target_tag }}
+
+          **Reason:** $REASON
+
+          This PR resets \`main\` to the state at tag ${{ github.event.inputs.target_tag }}.
+
+          ### What this does
+          - Reverts all commits since ${{ github.event.inputs.target_tag }}
+          - Restores the codebase to a known-good state
+          - Triggers a fresh deployment via the deploy workflow
+
+          ### After merge
+          - The server will redeploy from the rolled-back state
+          - Monitor health checks at \`/health\` to confirm stability
+          EOF
+          )
+
+          PR_URL=$(gh pr create \
+            --base main \
+            --head "$ROLLBACK_BRANCH" \
+            --title "$PR_TITLE" \
+            --body "$PR_BODY")
+
+          echo "url=$PR_URL" >> $GITHUB_OUTPUT
+
+      - name: Summary
+        run: |
+          echo "Rollback PR created: ${{ steps.pr.outputs.url }}"
