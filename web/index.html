@@ -34,7 +34,7 @@
   <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/controls/OrbitControls.js"></script>
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/driver.js@1.0.1/dist/driver.css" integrity="sha384-bovbcpDBo0pTIhd7ws6ebPh1PG31ubAHcX2pv8Tcu5EtFHNl5FBciYFtS/e2SN66" crossorigin="anonymous" />
-  <link rel="stylesheet" href="style.css?v=73" />
+  <link rel="stylesheet" href="style.css?v=74" />
   
   <!-- D3.js and d3-celestial for Interactive Star Map -->
   <script src="https://d3js.org/d3.v3.min.js"></script>
@@ -124,11 +124,41 @@
       <canvas id="gravity-well-canvas"></canvas>
       <!-- 2D glow halo overlay (drawn by gravity-well.js) -->
       <canvas id="hero-glow-canvas"></canvas>
-      <!-- Text sits at top-center, above the sphere cluster -->
+      <!-- Glass-morphism hero card -->
       <div class="hero-content">
-        <div class="hero-eyebrow">Live · Observatory · Dashboard</div>
-        <h1 class="hero-title" data-i18n="app_title">StarGazer</h1>
-        <div class="hero-subtitle" data-i18n="app_slogan">Astronomy made simple.</div>
+        <div class="hero-glass-card">
+          <div class="hero-eyebrow-row">
+            <span class="hero-live-dot"></span>
+            <span class="hero-eyebrow">Observatory · Dashboard</span>
+          </div>
+          <h1 class="hero-title" data-i18n="app_title">StarGazer</h1>
+          <p class="hero-subtitle" data-i18n="app_slogan">Astronomy made simple.</p>
+          <div class="hero-stats">
+            <div class="hero-stat">
+              <span class="hero-stat-value" id="hero-dark-in">--</span>
+              <span class="hero-stat-label">Dark In</span>
+            </div>
+            <div class="hero-stat-divider"></div>
+            <div class="hero-stat">
+              <span class="hero-stat-value" id="hero-bortle">--</span>
+              <span class="hero-stat-label">Bortle Scale</span>
+            </div>
+          </div>
+          <!-- Open-source showcase badges -->
+          <div class="hero-badges">
+            <a class="hero-badge hero-badge-version" href="https://github.com/nicolasnkGH/stargazer/releases" target="_blank" rel="noopener">
+              <span class="hero-badge-dot hero-badge-dot-green"></span>
+              v1.2.0-stable
+            </a>
+            <a class="hero-badge hero-badge-stars" href="https://github.com/nicolasnkGH/stargazer" target="_blank" rel="noopener">
+              ⭐ <span id="hero-github-stars">--</span> Stars
+            </a>
+            <a class="hero-badge hero-badge-collab" href="https://github.com/nicolasnkGH/stargazer/issues" target="_blank" rel="noopener">
+              Collaborate
+              <i data-lucide="arrow-up-right" style="width:12px;height:12px;vertical-align:0;margin-left:3px;"></i>
+            </a>
+          </div>
+        </div>
       </div>
     </section>
     <!-- ── Go/No-Go Banner ── -->
@@ -729,7 +759,10 @@
     </div>
   </div>
 
-  <button id="btn-tour" class="floating-tour-btn" title="Take a Tour" data-i18n="tour_btn">🚀</button>
+  <div id="floating-tour" class="floating-btn-draggable" style="bottom: 30px; left: 30px;">
+    <button id="btn-tour" class="floating-tour-btn" title="Take a Tour" data-i18n="tour_btn">🚀</button>
+    <button class="floating-btn-dismiss" onclick="document.getElementById('floating-tour').style.display='none'; localStorage.setItem('stargazer_tour_dismissed','1');" title="Dismiss">✕</button>
+  </div>
 
   <footer class="footer">
     <div class="footer-inner">
@@ -783,7 +816,7 @@
   <div id="night-overlay"></div>
 
   <!-- Floating Night Mode Toggle -->
-  <div class="night-mode-wrapper">
+  <div id="floating-night" class="floating-btn-draggable night-mode-wrapper" style="bottom: 30px; right: 30px;">
     <div class="night-tooltip" id="night-tooltip">
       <span data-i18n="night_tooltip">Night Vision Mode</span>
       <button id="close-night-tooltip" class="close-btn" onclick="document.getElementById('night-tooltip').style.display='none'" style="background:none; border:none; color:#ff4444; margin-left:10px; cursor:pointer; font-weight:bold;">✕</button>
@@ -791,6 +824,7 @@
     <button id="btn-night-mode" class="floating-night-btn" title="Night Vision Mode">
       🔴
     </button>
+    <button class="floating-btn-dismiss" onclick="document.getElementById('floating-night').style.display='none'; localStorage.setItem('stargazer_night_dismissed','1');" title="Dismiss">✕</button>
   </div>
 
   <!-- Tooltip notification element -->

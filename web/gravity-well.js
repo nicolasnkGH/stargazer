@@ -29,7 +29,7 @@
   renderer.setSize(w, h);
   renderer.setPixelRatio(Math.min(window.devicePixelRatio, 1.0));
 
-  // ── Grid — ghostly faint, fewer segments ─────────────────────────────────
+  // ── Grid — ultra-faint sky-blue lines with distance-based gradient ────────
   const planeSize     = 520;
   const planeSegments = 18;
   const geometry = new THREE.PlaneGeometry(planeSize, planeSize, planeSegments, planeSegments);
@@ -44,14 +44,46 @@
     distances[i] = Math.sqrt(x * x + z * z);
   }
 
-  const gridMat = new THREE.MeshBasicMaterial({
-    color: 0xffffff,
-    wireframe: true,
+  // Custom shader material for sky-blue gradient lines with ultra-low opacity
+  const gridMat = new THREE.ShaderMaterial({
     transparent: true,
-    opacity: 0.09
+    depthWrite: false,
+    uniforms: {
+      uColorCenter: { value: new THREE.Color(0x0ea5e9) },  // sky-500
+      uColorEdge:   { value: new THREE.Color(0x0ea5e9) },
+      uOpacityCenter: { value: 0.18 },
+      uOpacityEdge:   { value: 0.03 },
+    },
+    vertexShader: `
+      attribute float distance;
+      varying float vDistance;
+      void main() {
+        vDistance = distance;
+        gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0);
+      }
+    `,
+    fragmentShader: `
+      uniform vec3 uColorCenter;
+      uniform vec3 uColorEdge;
+      uniform float uOpacityCenter;
+      uniform float uOpacityEdge;
+      varying float vDistance;
+      void main() {
+        float t = clamp(vDistance / 260.0, 0.0, 1.0);
+        vec3 color = mix(uColorCenter, uColorEdge, t);
+        float opacity = mix(uOpacityCenter, uOpacityEdge, t);
+        gl_FragColor = vec4(color, opacity);
+      }
+    `
   });
-  const plane = new THREE.Mesh(geometry, gridMat);
-  scene.add(plane);
+
+  // Add distance attribute to geometry
+  geometry.setAttribute('distance', new THREE.BufferAttribute(distances, 1));
+
+  // Use EdgesGeometry for clean line rendering (no wireframe artifact doubling)
+  const edgesGeo = new THREE.EdgesGeometry(geometry);
+  const gridLines = new THREE.LineSegments(edgesGeo, gridMat);
+  scene.add(gridLines);
 
   // ── Lighting ──────────────────────────────────────────────────────────────
   scene.add(new THREE.AmbientLight(0x101828, 1.0));
@@ -128,6 +160,27 @@
     });
   }
 
+  // ── Micro-parallax camera ─────────────────────────────────────────────────
+  const PARALLAX_STRENGTH = 0.012;  // subtle tilt per pixel
+  let mouseX = 0, mouseY = 0;       // normalized -1..1
+  let camTargetX = 0, camTargetY = 0;
+  let camCurrentX = 0, camCurrentY = 0;
+
+  function onPointerMove(e) {
+    const rect = canvas.getBoundingClientRect();
+    mouseX = ((e.clientX - rect.left) / rect.width) * 2 - 1;
+    mouseY = -((e.clientY - rect.top) / rect.height) * 2 + 1;
+  }
+  canvas.addEventListener('mousemove', onPointerMove, { passive: true });
+  canvas.addEventListener('touchmove', (e) => {
+    if (e.touches.length === 1) {
+      const t = e.touches[0];
+      const rect = canvas.getBoundingClientRect();
+      mouseX = ((t.clientX - rect.left) / rect.width) * 2 - 1;
+      mouseY = -((t.clientY - rect.top) / rect.height) * 2 + 1;
+    }
+  }, { passive: true });
+
   // ── Animation loop — 15fps ─────────────────────────────────────────────────
   let time = 0, lastRaf = 0;
   const FPS_INTERVAL = 1000 / 15;
@@ -139,7 +192,7 @@
     lastRaf = now;
     time += 0.013;
 
-    const pos = plane.geometry.attributes.position;
+    const pos = geometry.attributes.position;
     for (let i = 0; i < vertexCount; i++) {
       const d = distances[i];
       let y = d < 130 ? -48 * Math.exp(-(d * d) / 1300) : 0;
@@ -147,7 +200,16 @@
       pos.setY(i, y);
     }
     pos.needsUpdate = true;
-    plane.rotation.y = time * 0.035;
+    gridLines.rotation.y = time * 0.035;
+
+    // Micro-parallax: smooth camera tilt toward cursor
+    camTargetX = mouseX * PARALLAX_STRENGTH;
+    camTargetY = mouseY * PARALLAX_STRENGTH * 0.6;
+    camCurrentX += (camTargetX - camCurrentX) * 0.04;
+    camCurrentY += (camTargetY - camCurrentY) * 0.04;
+    camera.position.x = camCurrentX * 30;
+    camera.position.y = 110 + camCurrentY * 20;
+    camera.lookAt(0, -60 + camCurrentY * 10, 0);
 
     sphereObjects.forEach(s => {
       if (s.orbitRadius > 0) {
