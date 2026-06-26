@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import time as _time
 from datetime import datetime, timedelta
 from zoneinfo import ZoneInfo
 import tempfile, os
@@ -15,8 +16,20 @@ from config import LATITUDE, LONGITUDE, ELEVATION_M
 
 N, W = 1, -1
 
+_iss_cache: dict = {}
+_ISS_TTL = 300  # 5 minutes
+
+
+def _iss_cache_key(lat, lon, count):
+    return (round(lat or 0, 2), round(lon or 0, 2), count)
+
 
 def get_iss_passes(count: int = 3, lat=None, lon=None) -> list[dict]:
+    key = _iss_cache_key(lat, lon, count)
+    now_mono = _time.monotonic()
+    cached = _iss_cache.get(key)
+    if cached and now_mono - cached["ts"] < _ISS_TTL:
+        return cached["data"]
     """
     Predict ISS passes using Skyfield + live TLE from wheretheiss.at.
     """
@@ -123,15 +136,18 @@ def get_iss_passes(count: int = 3, lat=None, lon=None) -> list[dict]:
                 if len(passes) >= count:
                     break
 
-        return passes[:count] if passes else [{
+        result = passes[:count] if passes else [{
             "rise": "No passes in next 5 days",
             "set": "N/A", "peak_alt": 0, "peak_az": "S", "visible": False,
         }]
 
     except Exception as e:
-        return [{
+        result = [{
             "rise": "Prediction error", "set": "N/A",
             "peak_alt": "N/A", "peak_az": "S", "visible": False,
             "error": str(e),
             "fallback_url": f"https://heavens-above.com/PassSummary.aspx?satid=25544&lat={LATITUDE}&lng={LONGITUDE}",
         }]
+
+    _iss_cache[key] = {"data": result, "ts": _time.monotonic()}
+    return result
