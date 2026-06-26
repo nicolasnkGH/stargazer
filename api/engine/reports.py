@@ -200,7 +200,23 @@ def get_weekly_report(lat=None, lon=None) -> dict:
 
 # ── Constellations ────────────────────────────────────────────────────────────
 
+import time as _time
+
+_constellation_cache: dict = {}
+_CONSTELLATION_TTL = 300  # 5 minutes — positions change <0.25° in that window
+
+
+def _constellation_cache_key(lat, lon, filter_famous):
+    return (round(lat or 0, 2), round(lon or 0, 2), filter_famous)
+
+
 def get_constellations(lat=None, lon=None, filter_famous=False) -> list[dict]:
+    key = _constellation_cache_key(lat, lon, filter_famous)
+    now = _time.monotonic()
+    cached = _constellation_cache.get(key)
+    if cached and now - cached["ts"] < _CONSTELLATION_TTL:
+        return cached["data"]
+
     import json
     import os
     file_path = os.path.join(os.path.dirname(__file__), 'constellations_enriched.json')
@@ -221,7 +237,7 @@ def get_constellations(lat=None, lon=None, filter_famous=False) -> list[dict]:
         target = Star(ra_hours=c["ra"], dec_degrees=c["dec"])
         astrometric = observer.at(t).observe(target)
         alt, az, _ = astrometric.apparent().altaz()
-        
+
         results.append({
             "name": c["name"],
             "abbr": c["abbr"],
@@ -233,6 +249,7 @@ def get_constellations(lat=None, lon=None, filter_famous=False) -> list[dict]:
         })
 
     results.sort(key=lambda x: -x["altitude_deg"])
+    _constellation_cache[key] = {"data": results, "ts": now}
     return results
 
 def _rate_night(moon_illum: float, cloud_pct: Optional[float]) -> str:

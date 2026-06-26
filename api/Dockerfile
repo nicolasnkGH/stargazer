@@ -11,8 +11,10 @@ RUN pip install --no-cache-dir -r requirements.txt
 # Copy source
 COPY . .
 
-# Create data dir for Skyfield ephemeris files
-RUN mkdir -p /app/data
+# Preload Skyfield ephemeris at build time (avoids CPU spike on first request)
+RUN mkdir -p /app/.skyfield && \
+    python3 -c "from skyfield.api import Loader; l = Loader('/app/.skyfield'); l.timescale(); l('de421.bsp')" && \
+    echo "Skyfield ephemeris preloaded"
 ENV HOME=/app
 
 EXPOSE 8181
