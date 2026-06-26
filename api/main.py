@@ -79,29 +79,6 @@ def _is_allowed_origin(origin: str) -> bool:
     return False
 
 
-@app.middleware("http")
-async def cors_middleware(request: Request, call_next):
-    """Add CORS headers for allowed origins."""
-    response = await call_next(request)
-
-    origin = request.headers.get("origin", "")
-    if origin and _is_allowed_origin(origin):
-        response.headers["Access-Control-Allow-Origin"] = origin
-        response.headers["Access-Control-Allow-Methods"] = "GET, OPTIONS"
-        response.headers["Access-Control-Allow-Headers"] = "Content-Type"
-
-    return response
-
-
-async def verify_origin(request: Request):
-    if request.url.path in ["/", "/health"]:
-        return
-
-    origin = request.headers.get("origin") or request.headers.get("referer", "")
-    if not origin or not _is_allowed_origin(origin):
-        raise HTTPException(status_code=403, detail="Unauthorized Origin.")
-
-
 def validate_latitude(value: Optional[float]) -> Optional[float]:
     if value is None:
         return None
@@ -123,6 +100,30 @@ app = FastAPI(
     version="1.0.0",
     dependencies=[Depends(verify_origin)]
 )
+
+
+async def verify_origin(request: Request):
+    if request.url.path in ["/", "/health"]:
+        return
+
+    origin = request.headers.get("origin") or request.headers.get("referer", "")
+    if not origin or not _is_allowed_origin(origin):
+        raise HTTPException(status_code=403, detail="Unauthorized Origin.")
+
+
+@app.middleware("http")
+async def cors_middleware(request: Request, call_next):
+    """Add CORS headers for allowed origins."""
+    response = await call_next(request)
+
+    origin = request.headers.get("origin", "")
+    if origin and _is_allowed_origin(origin):
+        response.headers["Access-Control-Allow-Origin"] = origin
+        response.headers["Access-Control-Allow-Methods"] = "GET, OPTIONS"
+        response.headers["Access-Control-Allow-Headers"] = "Content-Type"
+
+    return response
+
 
 @app.exception_handler(Exception)
 async def global_exception_handler(request: Request, exc: Exception):
