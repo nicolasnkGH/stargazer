@@ -123,6 +123,10 @@ async def cors_middleware(request: Request, call_next):
         response.headers["Access-Control-Allow-Methods"] = "GET, OPTIONS"
         response.headers["Access-Control-Allow-Headers"] = "Content-Type"
 
+    # Cache-Control for API responses (5 min, matches server-side TTLs)
+    if not request.url.path.startswith("/api/"):
+        response.headers["Cache-Control"] = "public, max-age=300"
+
     return response
 
 
