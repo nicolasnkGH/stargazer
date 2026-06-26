@@ -1,3 +1,5 @@
+import SolarSystemHero from "@/components/SolarSystemHero";
+import StarfieldBackground from "@/components/StarfieldBackground";
 import PlanetGrid from "@/components/PlanetGrid";
 import TonightOutlook from "@/components/TonightOutlook";
 import ActiveConstellation from "@/components/ActiveConstellation";
@@ -13,19 +15,23 @@ import Footer from "@/components/Footer";
 
 export default function Home() {
   return (
-    <div className="flex w-full flex-col items-center gap-8 p-4 sm:p-8">
-      <GoNoGoBanner />
-      <TonightOutlook />
-      <ActiveConstellation />
-      <ConstellationsTonight />
-      <TargetDatabase />
-      <SkyMotion />
-      <WeeklyForecast />
-      <PlanetGrid />
-      <ClearOutsideEmbed />
-      <ObservationLog />
-      <Resources />
-      <Footer />
-    </div>
+    <>
+      <StarfieldBackground />
+      <SolarSystemHero />
+      <div className="flex w-full flex-col items-center gap-8 p-4 sm:p-8">
+        <GoNoGoBanner />
+        <TonightOutlook />
+        <ActiveConstellation />
+        <ConstellationsTonight />
+        <TargetDatabase />
+        <SkyMotion />
+        <WeeklyForecast />
+        <PlanetGrid />
+        <ClearOutsideEmbed />
+        <ObservationLog />
+        <Resources />
+        <Footer />
+      </div>
+    </>
   );
 }
