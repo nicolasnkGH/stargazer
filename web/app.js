@@ -312,12 +312,6 @@ async function fetchAIAnalysis() {
     engineBadgeEl.className = 'seeing-engine-badge rule';
   }
 
-  const moonFactWrap = document.getElementById('moon-fact-wrap');
-  const moonFactText = document.getElementById('moon-fact-text');
-  if (moonFactWrap && moonFactText) {
-    moonFactText.textContent = '⚙️ Generating moon fun fact...';
-    moonFactWrap.style.display = 'block';
-  }
 
   try {
     const q = (currentLat != null && currentLon != null) ? `?lat=${currentLat}&lon=${currentLon}&lang=${currentLang}` : `?lang=${currentLang}`;
