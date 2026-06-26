@@ -233,6 +233,7 @@ body {
   display: flex;
   align-items: center;
   gap: 20px;
+  flex-wrap: wrap;
 }
 
 .gonogo-icon { font-size: 2.4rem; }
@@ -254,7 +255,8 @@ body {
   font-size: 0.82rem;
   color: var(--text-secondary);
   line-height: 1.8;
-  padding-right: 140px;
+  max-width: 200px;
+  overflow-wrap: break-word;
 }
 
 /* ── Cards — translucent dark-slate glass ─────────────────────────── */
@@ -279,6 +281,7 @@ body {
   display: flex;
   align-items: center;
   gap: 10px;
+  flex-wrap: wrap;
   padding: 14px 20px;
   border-bottom: 1px solid rgba(100, 120, 220, 0.10);
   background: rgba(15, 23, 42, 0.25);
@@ -389,10 +392,12 @@ body {
   display: flex;
   gap: 16px;
   margin-bottom: 16px;
+  flex-wrap: wrap;
 }
 
 .metric {
   flex: 1;
+  min-width: 0;
   text-align: center;
   background: var(--bg-glass);
   border-radius: var(--radius-sm);
@@ -414,6 +419,8 @@ body {
   color: var(--text-secondary);
   text-transform: uppercase;
   letter-spacing: 0.08em;
+  overflow-wrap: break-word;
+  word-break: break-word;
 }
 
 .seeing-label {
@@ -514,8 +521,10 @@ body {
   background: rgba(245, 158, 11, 0.1);
   border: 1px solid rgba(245, 158, 11, 0.3);
   color: #fbbf24;
-  white-space: nowrap;
   animation: fadeInUp 0.3s ease forwards;
+  min-width: 0;
+  overflow-wrap: break-word;
+  word-break: break-word;
 }
 
 
@@ -532,6 +541,7 @@ body {
   align-items: center;
   gap: 10px;
   margin-bottom: 14px;
+  flex-wrap: wrap;
 }
 
 .moon-arc-bar {
@@ -1549,6 +1559,7 @@ body {
   padding: 12px 20px 0;
   border-bottom: 1px solid rgba(255, 255, 255, 0.06);
   margin-bottom: 0;
+  flex-wrap: wrap;
 }
 
 .motion-tab {
@@ -1681,6 +1692,7 @@ body {
   display: flex;
   justify-content: space-between;
   align-items: center;
+  flex-wrap: wrap;
   gap: 8px;
   margin-bottom: 4px;
 }
@@ -1689,6 +1701,7 @@ body {
   font-size: 0.88rem;
   font-weight: 600;
   color: #e2e8f0;
+  overflow-wrap: break-word;
 }
 
 .comet-badge {
@@ -1791,6 +1804,8 @@ body {
   border: 1px solid var(--border);
   border-radius: 10px;
   font-size: 0.85rem;
+  min-width: 0;
+  flex-wrap: wrap;
 }
 
 .iss-pass-item.visible {
@@ -1818,7 +1833,7 @@ body {
 /* ── Resources ──────────────────────────────────────────────────────────── */
 .resource-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+  grid-template-columns: repeat(auto-fill, minmax(min(280px, 100%), 1fr));
   gap: 14px;
   padding: 20px 24px;
 }
@@ -1834,6 +1849,8 @@ body {
   text-decoration: none;
   color: inherit;
   transition: all 0.25s ease;
+  min-width: 0;
+  flex-wrap: wrap;
 }
 
 .about-btn, .location-btn, .unit-btn {
@@ -1923,12 +1940,14 @@ body {
   font-size: 0.9rem;
   margin-bottom: 4px;
   color: var(--text-primary);
+  overflow-wrap: break-word;
 }
 
 .resource-desc {
   font-size: 0.75rem;
   color: var(--text-secondary);
   line-height: 1.4;
+  overflow-wrap: break-word;
 }
 
 /* ── Footer ─────────────────────────────────────────────────────────────── */
@@ -2527,6 +2546,8 @@ body.night-mode {
   margin-bottom: 10px;
   transition: transform 0.2s ease, background 0.2s ease;
   cursor: default;
+  min-width: 0;
+  flex-wrap: wrap;
 }
 
 .must-see-item:hover {
@@ -2543,6 +2564,7 @@ body.night-mode {
   display: flex;
   flex-direction: column;
   flex: 1;
+  min-width: 0;
 }
 
 .must-see-title-row {
@@ -2550,12 +2572,16 @@ body.night-mode {
   justify-content: space-between;
   align-items: center;
   margin-bottom: 4px;
+  flex-wrap: wrap;
+  gap: 4px;
 }
 
 .must-see-title {
   font-weight: 600;
   font-size: 1.05rem;
   color: #e2e8f0;
+  overflow-wrap: break-word;
+  min-width: 0;
 }
 
 .must-see-meta {
@@ -2565,6 +2591,7 @@ body.night-mode {
   background: rgba(74, 158, 255, 0.1);
   padding: 2px 8px;
   border-radius: 12px;
+  white-space: normal;
 }
 
 .must-see-subtitle {
@@ -2622,6 +2649,7 @@ body.night-mode {
 .planet-fact-strip {
   display: flex;
   align-items: flex-start;
+  flex-wrap: wrap;
   gap: 10px;
   margin-top: 4px;
   padding: 12px 16px;
@@ -2630,6 +2658,7 @@ body.night-mode {
   border-radius: 0 0 10px 10px;
   width: 100%;
   box-sizing: border-box;
+  overflow: hidden;
 }
 
 .planet-fact-label {
@@ -2640,12 +2669,17 @@ body.night-mode {
   letter-spacing: 0.07em;
   color: #c084fc;
   padding-top: 1px;
+  white-space: nowrap;
 }
 
 .planet-fact-text {
   font-size: 0.85rem;
   color: #cbd5e1;
   line-height: 1.5;
+  flex: 1;
+  min-width: 0;
+  overflow-wrap: break-word;
+  word-break: break-word;
 }
 
 /* ── Unified Layout (Responsive Grid) ────────────────────────────────────── */
@@ -2879,5 +2913,21 @@ body.night-mode {
   #hero-glow-canvas {
     will-change: auto;
     animation: none !important;
+  }
+}
+
+/* ── Mobile fixes for HUD screens and scroll list ─────────────────────── */
+@media (max-width: 480px) {
+  .unified-scroll-list {
+    grid-template-columns: 1fr;
+  }
+  .hud-screen {
+    padding-left: 12px;
+    padding-right: 12px;
+  }
+  .planet-fact-strip {
+    flex-direction: column;
+    gap: 4px;
+    padding: 10px 12px;
   }
 }
