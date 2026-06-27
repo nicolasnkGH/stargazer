@@ -60,15 +60,15 @@
   // ── Planet definitions ────────────────────────────────────────────────────
   // Sizes tuned for visual impact at the camera distance
   const PLANETS = [
-    { name: 'sun',     radius: 7,   orbit: 0,   speed: 0,       tex: 'assets/2k_sun.jpg',              isSun: true },
-    { name: 'mercury', radius: 1.2, orbit: 14,  speed: 0.022,   tex: 'assets/mercury.jpg',             tilt: 0.03 },
-    { name: 'venus',   radius: 2.4, orbit: 22,  speed: 0.010,   tex: 'assets/venus.jpg',               tilt: 177.4 },
-    { name: 'earth',   radius: 2.6, orbit: 32,  speed: 0.007,   tex: 'assets/2k_earth_daymap.jpg',     tilt: 23.4 },
-    { name: 'mars',    radius: 1.8, orbit: 42,  speed: 0.005,   tex: 'assets/mars.jpg',                tilt: 25.2 },
-    { name: 'jupiter', radius: 5.0, orbit: 58,  speed: 0.0016,  tex: 'assets/jupiter.jpg',             tilt: 3.1 },
-    { name: 'saturn',  radius: 4.0, orbit: 76,  speed: 0.0009,  tex: 'assets/saturn.jpg',              tilt: 26.7, hasRing: true, ringTex: 'assets/saturn_ring_color.jpg' },
-    { name: 'uranus',  radius: 2.8, orbit: 92,  speed: 0.0004,  tex: 'assets/uranus.jpg',              tilt: 97.8 },
-    { name: 'neptune', radius: 2.6, orbit: 106, speed: 0.0003,  tex: 'assets/neptune.jpg',             tilt: 28.3 },
+    { name: 'sun',     radius: 7,   orbit: 0,   speed: 0,       tex: 'assets/2k_sun.jpg',              isSun: true, color: 0xffaa00 },
+    { name: 'mercury', radius: 1.2, orbit: 14,  speed: 0.022,   tex: 'assets/mercury.jpg',             tilt: 0.03,  color: 0x888888 },
+    { name: 'venus',   radius: 2.4, orbit: 22,  speed: 0.010,   tex: 'assets/venus.jpg',               tilt: 177.4, color: 0xe3bb76 },
+    { name: 'earth',   radius: 2.6, orbit: 32,  speed: 0.007,   tex: 'assets/2k_earth_daymap.jpg',     tilt: 23.4,  color: 0x2233ff },
+    { name: 'mars',    radius: 1.8, orbit: 42,  speed: 0.005,   tex: 'assets/mars.jpg',                tilt: 25.2,  color: 0xff5522 },
+    { name: 'jupiter', radius: 5.0, orbit: 58,  speed: 0.0016,  tex: 'assets/jupiter.jpg',             tilt: 3.1,   color: 0xc49b73 },
+    { name: 'saturn',  radius: 4.0, orbit: 76,  speed: 0.0009,  tex: 'assets/saturn.jpg',              tilt: 26.7,  color: 0xeadaa5, hasRing: true, ringTex: 'assets/saturn_ring_color.jpg' },
+    { name: 'uranus',  radius: 2.8, orbit: 92,  speed: 0.0004,  tex: 'assets/uranus.jpg',              tilt: 97.8,  color: 0x99ffff },
+    { name: 'neptune', radius: 2.6, orbit: 106, speed: 0.0003,  tex: 'assets/neptune.jpg',             tilt: 28.3,  color: 0x3344ff },
   ];
 
   // ── Saturn ring geometry with proper UV mapping ───────────────────────────
@@ -114,20 +114,41 @@
 
     if (def.isSun) {
       // Sun: emissive glow material
-      const sunTex = loader.load(def.tex, undefined, undefined, () => {});
-      sunTex.encoding = THREE.sRGBEncoding;
-      mat = new THREE.MeshBasicMaterial({ map: sunTex });
-      // Fallback
-      sunTex.onerror = () => { mat.map = makeSunTexture(); mat.needsUpdate = true; };
+      mat = new THREE.MeshBasicMaterial({ color: def.color });
+      loader.load(
+        def.tex,
+        (sunTex) => {
+          sunTex.encoding = THREE.sRGBEncoding;
+          mat.map = sunTex;
+          mat.color.setHex(0xffffff); // reset color so texture shows normally
+          mat.needsUpdate = true;
+        },
+        undefined,
+        (err) => {
+          console.error("Sun texture failed to load:", def.tex, err);
+          mat.map = makeSunTexture();
+          mat.color.setHex(0xffffff);
+          mat.needsUpdate = true;
+        }
+      );
     } else {
       // Textured planets with realistic material
-      const tex = loader.load(def.tex, undefined, undefined, () => {});
-      tex.encoding = THREE.sRGBEncoding;
       mat = new THREE.MeshStandardMaterial({
-        map: tex,
+        color: def.color,
         roughness: 0.82,
         metalness: 0.02,
       });
+      loader.load(
+        def.tex,
+        (tex) => {
+          tex.encoding = THREE.sRGBEncoding;
+          mat.map = tex;
+          mat.color.setHex(0xffffff);
+          mat.needsUpdate = true;
+        },
+        undefined,
+        (err) => console.error("Planet texture failed to load:", def.tex, err)
+      );
     }
 
     const mesh = new THREE.Mesh(geo, mat);
@@ -201,15 +222,25 @@
       const outerR = def.radius * 2.3;
       const ringGeo = makeSaturnRingGeo(innerR, outerR);
       if (def.ringTex) {
-        loader.load(def.ringTex, ringTex => {
-          ringTex.encoding = THREE.sRGBEncoding;
-          const ringMat = new THREE.MeshBasicMaterial({
-            map: ringTex, side: THREE.DoubleSide, transparent: true, opacity: 0.85,
-          });
-          const ring = new THREE.Mesh(ringGeo, ringMat);
-          ring.rotation.x = Math.PI / 2.2;
-          mesh.add(ring);
+        const ringMat = new THREE.MeshBasicMaterial({
+          color: 0xc8b890, side: THREE.DoubleSide, transparent: true, opacity: 0.7,
         });
+        const ring = new THREE.Mesh(ringGeo, ringMat);
+        ring.rotation.x = Math.PI / 2.2;
+        mesh.add(ring);
+
+        loader.load(
+          def.ringTex, 
+          (ringTex) => {
+            ringTex.encoding = THREE.sRGBEncoding;
+            ringMat.map = ringTex;
+            ringMat.color.setHex(0xffffff);
+            ringMat.opacity = 0.85;
+            ringMat.needsUpdate = true;
+          },
+          undefined,
+          (err) => console.error("Saturn ring texture failed to load:", def.ringTex, err)
+        );
       } else {
         const ringMat = new THREE.MeshBasicMaterial({
           color: 0xc8b890, side: THREE.DoubleSide, transparent: true, opacity: 0.7,
