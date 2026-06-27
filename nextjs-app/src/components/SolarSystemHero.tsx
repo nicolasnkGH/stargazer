@@ -344,21 +344,16 @@ export default function SolarSystemHero() {
     scene.add(grid);
 
     // ── Labels (HTML overlay) ────────────────────────────────────────────
-    const labels: { mesh: THREE.Mesh; element: HTMLElement; def: PlanetDef }[] = [];
+    const labels: { mesh: THREE.Mesh; element: HTMLElement }[] = [];
     const _projVec = new THREE.Vector3();
 
     PLANETS.forEach((def, i) => {
         const mesh = meshes[i];
         const label = document.createElement("div");
-        label.className = "absolute -translate-x-1/2 -translate-y-1/2 pointer-events-none";
-        label.innerHTML = `
-          <div class="text-[0.65rem] font-medium tracking-[0.2em] text-white/60 uppercase hover:text-white transition-colors" style="text-shadow: 0 0 6px rgba(0,0,0,0.9)">
-            ${def.name}
-          </div>
-        `;
-        
-        labelContainerRef.current?.appendChild(label);
-        labels.push({ mesh, element: label, def });
+        label.className = "hero-planet-label";
+        label.textContent = def.name;
+        labelContainer.appendChild(label);
+        labels.push({ mesh, element: label });
     });
 
     // ── OrbitControls ────────────────────────────────────────────────────
@@ -512,6 +507,50 @@ export default function SolarSystemHero() {
         ref={labelContainerRef}
         className="absolute inset-0 pointer-events-none overflow-hidden"
       />
+      {/* Glass card overlay */}
+      <div className="absolute inset-0 flex items-center justify-center z-10">
+        <div className="hero-glass-card max-w-lg mx-4">
+          {/* Eyebrow */}
+          <div className="hero-eyebrow">
+            <span className="hero-pulse-dot" />
+            <span>Observatory &middot; Dashboard</span>
+          </div>
+          {/* Title */}
+          <h1 className="hero-title">StarGazer</h1>
+          {/* Subtitle */}
+          <p className="hero-subtitle">Astronomy made simple.</p>
+          {/* Stats */}
+          <div className="hero-stats">
+            <div className="hero-stat">
+              <span className="hero-stat-label">Dark In</span>
+              <span className="hero-stat-value">--:--</span>
+            </div>
+            <div className="hero-stat-divider" />
+            <div className="hero-stat">
+              <span className="hero-stat-label">Bortle Scale</span>
+              <span className="hero-stat-value">--</span>
+            </div>
+          </div>
+          {/* Badges */}
+          <div className="hero-badges">
+            <span className="hero-badge hero-badge-version">v0.2.0</span>
+            <a
+              href="https://github.com/nickt-star/stargazer"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="hero-badge hero-badge-link"
+            >
+              GitHub
+            </a>
+            <a
+              href="#collaborate"
+              className="hero-badge hero-badge-link"
+            >
+              Collaborate
+            </a>
+          </div>
+        </div>
+      </div>
       {/* Bottom fade */}
       <div className="hero-fade" />
     </section>

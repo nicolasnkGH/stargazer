@@ -18,19 +18,21 @@ export default function Home() {
     <>
       <StarfieldBackground />
       <SolarSystemHero />
-      <div className="flex w-full flex-col items-center gap-8 p-4 sm:p-8">
-        <GoNoGoBanner />
-        <TonightOutlook />
-        <ActiveConstellation />
-        <ConstellationsTonight />
-        <TargetDatabase />
-        <SkyMotion />
-        <WeeklyForecast />
-        <PlanetGrid />
-        <ClearOutsideEmbed />
-        <ObservationLog />
-        <Resources />
-        <Footer />
+      <div className="flex w-full flex-col items-center gap-8">
+        <div className="w-full max-w-5xl px-4 sm:px-8 py-8">
+          <GoNoGoBanner />
+          <TonightOutlook />
+          <ActiveConstellation />
+          <ConstellationsTonight />
+          <TargetDatabase />
+          <SkyMotion />
+          <WeeklyForecast />
+          <PlanetGrid />
+          <ClearOutsideEmbed />
+          <ObservationLog />
+          <Resources />
+          <Footer />
+        </div>
       </div>
     </>
   );
