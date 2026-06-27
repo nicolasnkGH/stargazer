@@ -8,17 +8,17 @@
 
 /* ── Planet configs ─────────────────────────────────────────────────────── */
 const CFG = {
-  sun:     { tilt:  7.25, speed: 0.48, bumpScale: 0.005 },
-  mercury: { tilt:  0.03, speed: 0.017, tex: '/assets/mercury.jpg', bumpScale: 0.06 },
-  venus:   { tilt: 177.4, speed: 0.004, tex: '/assets/venus.jpg', bumpScale: 0.02 },
-  earth:   { tilt:  23.4, speed: 0.50, bumpScale: 0.03 },   // no texture file yet — procedural
-  mars:    { tilt:  25.2, speed: 0.24, tex: '/assets/mars.jpg', bumpScale: 0.04 },
-  jupiter: { tilt:   3.1, speed: 0.45, tex: '/assets/jupiter.jpg', bumpScale: 0.01 },
-  saturn:  { tilt:  26.7, speed: 0.38, tex: '/assets/saturn.jpg', hasRing: true, ringTex: '/assets/saturn_ring_color.jpg', bumpScale: 0.01 },
-  uranus:  { tilt:  97.8, speed: 0.23, tex: '/assets/uranus.jpg', bumpScale: 0.005 },
-  neptune: { tilt:  28.3, speed: 0.15, tex: '/assets/neptune.jpg', bumpScale: 0.01 },
-  moon:    { tilt:   1.5, speed: 0.036, tex: '/assets/moon_texture.jpg', bumpScale: 0.04 },
-  pluto:   { tilt: 122.5, speed: 0.006, bumpScale: 0.04 },   // no texture file yet — procedural
+  sun:     { tilt:  7.25, speed: 0.48, bumpScale: 0.002 },
+  mercury: { tilt:  0.03, speed: 0.017, tex: '/assets/mercury.jpg', bumpScale: 0.015 },
+  venus:   { tilt: 177.4, speed: 0.004, tex: '/assets/venus.jpg', bumpScale: 0.006 },
+  earth:   { tilt:  23.4, speed: 0.50, bumpScale: 0.008 },   // no texture file yet — procedural
+  mars:    { tilt:  25.2, speed: 0.24, tex: '/assets/mars.jpg', bumpScale: 0.012 },
+  jupiter: { tilt:   3.1, speed: 0.45, tex: '/assets/jupiter.jpg', bumpScale: 0.003 },
+  saturn:  { tilt:  26.7, speed: 0.38, tex: '/assets/saturn.jpg', hasRing: true, ringTex: '/assets/saturn_ring_color.jpg', bumpScale: 0.003 },
+  uranus:  { tilt:  97.8, speed: 0.23, tex: '/assets/uranus.jpg', bumpScale: 0.002 },
+  neptune: { tilt:  28.3, speed: 0.15, tex: '/assets/neptune.jpg', bumpScale: 0.003 },
+  moon:    { tilt:   1.5, speed: 0.036, tex: '/assets/moon_texture.jpg', bumpScale: 0.01 },
+  pluto:   { tilt: 122.5, speed: 0.006, bumpScale: 0.01 },   // no texture file yet — procedural
 };
 
 /* ── Procedural canvas fallbacks (only for planets without .jpg assets) ── */
@@ -326,23 +326,27 @@ function initPlanets3D() {
       const width  = container.clientWidth  || 300;
       const height = container.clientHeight || 200;
 
-      const renderer = new THREE.WebGLRenderer({ alpha: true, antialias: true });
+      const renderer = new THREE.WebGLRenderer({ antialias: true });
+      renderer.setClearColor(0x050510, 1);
       renderer.setSize(width, height);
       renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, 1.5));
       container.appendChild(renderer.domElement);
 
       // Scene & camera — same FOV/distance as moon3d.js
       const scene  = new THREE.Scene();
+      scene.fog = new THREE.FogExp2(0x050510, 0.06);
       const camera = new THREE.PerspectiveCamera(45, width / height, 0.1, 1000);
       camera.position.z = 3.5;
 
-      // Lighting — cinematic terminator (same as moon3d.js)
-      const ambient  = new THREE.AmbientLight(0x101828, 0.12);
-      const keyLight = new THREE.DirectionalLight(0xfff5e6, 2.0);
-      keyLight.position.set(-1.8, 0.7, 1.5);
-      const rimLight = new THREE.DirectionalLight(0x4040a0, 0.20);
+      // Lighting — soft, natural illumination (no harsh terminator)
+      const ambient  = new THREE.AmbientLight(0x303050, 0.35);
+      const keyLight = new THREE.DirectionalLight(0xfff5e6, 1.2);
+      keyLight.position.set(-2, 1, 2);
+      const fillLight = new THREE.DirectionalLight(0x8090b0, 0.25);
+      fillLight.position.set(2, -0.5, 1);
+      const rimLight = new THREE.DirectionalLight(0x4040a0, 0.15);
       rimLight.position.set(5, 0, -5);
-      scene.add(ambient, keyLight, rimLight);
+      scene.add(ambient, keyLight, fillLight, rimLight);
 
       // OrbitControls — drag to rotate, scroll to zoom (same as moon3d.js)
       const controls = new THREE.OrbitControls(camera, renderer.domElement);
@@ -373,9 +377,9 @@ function initPlanets3D() {
         const mat = new THREE.MeshStandardMaterial({
           map:       texture,
           bumpMap:   bumpTexture,
-          bumpScale: cfg.bumpScale || 0.03,
-          roughness: 0.88,
-          metalness: 0.04,
+          bumpScale: cfg.bumpScale || 0.01,
+          roughness: 0.95,
+          metalness: 0.0,
         });
         const mesh = new THREE.Mesh(geo, mat);
         mesh.rotation.x = THREE.MathUtils.degToRad(cfg.tilt || 0);

@@ -16,7 +16,8 @@ function initMoon3D() {
   const camera = new THREE.PerspectiveCamera(45, width / height, 0.1, 1000);
   camera.position.z = 3.5;
 
-  const renderer = new THREE.WebGLRenderer({ alpha: true, antialias: true });
+  const renderer = new THREE.WebGLRenderer({ antialias: true });
+  renderer.setClearColor(0x050510, 1);
   renderer.setSize(width, height);
   renderer.setPixelRatio(Math.min(window.devicePixelRatio, 1.5));
   container.appendChild(renderer.domElement);
@@ -83,21 +84,24 @@ function initMoon3D() {
   const material = new THREE.MeshStandardMaterial({
     map:       diffuseMap,
     bumpMap:   bumpTexture,
-    bumpScale: 0.04,
-    roughness: 0.88,
-    metalness: 0.04,
+    bumpScale: 0.01,
+    roughness: 0.95,
+    metalness: 0.0,
   });
 
   const moon = new THREE.Mesh(geometry, material);
   scene.add(moon);
 
-  // Lighting — match planets3d.js cinematic style
-  const ambientLight = new THREE.AmbientLight(0x101828, 0.12);
+  // Lighting — soft, natural illumination
+  const ambientLight = new THREE.AmbientLight(0x303050, 0.35);
   scene.add(ambientLight);
-  const dirLight = new THREE.DirectionalLight(0xfff5e6, 2.0);
-  dirLight.position.set(-1.8, 0.7, 1.5);
+  const dirLight = new THREE.DirectionalLight(0xfff5e6, 1.2);
+  dirLight.position.set(-2, 1, 2);
   scene.add(dirLight);
-  const rimLight = new THREE.DirectionalLight(0x4040a0, 0.20);
+  const fillLight = new THREE.DirectionalLight(0x8090b0, 0.25);
+  fillLight.position.set(2, -0.5, 1);
+  scene.add(fillLight);
+  const rimLight = new THREE.DirectionalLight(0x4040a0, 0.15);
   rimLight.position.set(5, 0, -5);
   scene.add(rimLight);
 
