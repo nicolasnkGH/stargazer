@@ -136,7 +136,8 @@ let currentLon = parseFloat(activeLoc.lon) || -83.037;
   }
 
   function draw() {
-    ctx.clearRect(0, 0, canvas.width, canvas.height);
+    ctx.fillStyle = '#050510';
+    ctx.fillRect(0, 0, canvas.width, canvas.height);
     stars.forEach(s => {
       ctx.fillStyle = s.color;
       ctx.globalAlpha = s.alpha;
@@ -843,14 +844,15 @@ function renderConstellationMap(targets, constInfo) {
     interactive: true,
     controls: false,
     datapath: "https://cdn.jsdelivr.net/npm/d3-celestial@0.7.32/data/",
-    stars: { show: true, limit: 5.5, colors: true, names: true, propername: true, size: 4 },
-    dsos: { show: true, limit: 6, names: true },
+    stars: { show: true, limit: 6.0, colors: true, names: false, propername: false },
+    dsos: { show: true, limit: 4, names: false },
+    adaptable: true,
     constellations: {
       show: true, names: true, namesType: "la", lines: true,
       lineStyle: { stroke: "#60a5fa", width: 1.5, opacity: 0.5 },
       nameStyle: { fill: "#94a3b8", align: "center", baseline: "middle", font: ["12px Space Grotesk, sans-serif"] }
     },
-    mw: { show: true, style: { fill: "#ffffff", opacity: 0.08 } },
+    mw: { show: false },
     lines: { graticule: { show: false }, equatorial: { show: false } },
     background: { fill: "#0a0f1c", stroke: "#1e293b", opacity: 1 }
   };
@@ -858,9 +860,16 @@ function renderConstellationMap(targets, constInfo) {
   if (!window.celestialInitialized) {
     // Only set up the UI once to avoid breaking Celestial's canvas references
     container.innerHTML = `
+      <div id="ac-map-overlay" style="position: absolute; top:0; left:0; width:100%; height:100%; background: rgba(0,0,0,0.2); display: flex; align-items: center; justify-content: center; z-index: 5; cursor: pointer; transition: opacity 0.3s;" onclick="this.style.pointerEvents='none'; this.style.opacity='0'; document.getElementById('ac-map-container').addEventListener('mouseleave', function() { document.getElementById('ac-map-overlay').style.pointerEvents='auto'; document.getElementById('ac-map-overlay').style.opacity='1'; }, {once: true});">
+        <div style="background: rgba(15,23,42,0.9); padding: 8px 16px; border-radius: 20px; font-size: 0.85rem; border: 1px solid rgba(255,255,255,0.2); backdrop-filter: blur(4px); display:flex; align-items:center; gap:6px;">
+          <i data-lucide="mouse-pointer-click" style="width:16px;height:16px;"></i> Click to interact
+        </div>
+      </div>
       <button id="btn-map-expand" class="map-expand-btn" onclick="toggleMapFullscreen()" title="Toggle Fullscreen">⤢</button>
       <div id="ac-map-tooltip" style="position: absolute; opacity: 0; pointer-events: none; background: rgba(15,23,42,0.9); color: #fff; padding: 4px 8px; border-radius: 4px; font-size: 0.75rem; border: 1px solid rgba(168,85,247,0.3); transition: opacity 0.2s; white-space: nowrap; z-index: 10;"></div>
     `;
+    
+    if (window.lucide) lucide.createIcons();
     
     Celestial.display(config);
     window.celestialInitialized = true;
@@ -1103,6 +1112,8 @@ function renderActiveConstellation(constInfo) {
 
 function renderPlanets(planets, factStr) {
   const list = document.getElementById('planet-list');
+  if (!list) return; // Feature removed from UI
+  
   if (!planets) {
     list.innerHTML = '<div class="no-data">Could not load planet data — API may be offline</div>';
     return;
@@ -1697,11 +1708,28 @@ function initLocationUI() {
     modal.classList.add('hidden');
   });
   
-  // About Modal
-  const aboutModal = document.getElementById('about-modal');
-  const openAbout = () => aboutModal.classList.remove('hidden');
+  // Onboarding Tour
+  window.startOnboardingTour = function() {
+    if (!window.driver || !window.driver.js || !window.driver.js.driver) {
+      console.warn('Driver.js not loaded yet');
+      return;
+    }
+    const driverObj = window.driver.js.driver({
+      showProgress: true,
+      steps: [
+        { popover: { title: 'Welcome to StarGazer! ✨', description: 'Your personal dashboard for stargazing and astronomy planning. Let\'s take a quick tour.', align: 'center' } },
+        { element: '#btn-location', popover: { title: 'Location Setup', description: 'First, set your observatory location here to get accurate celestial data for your local sky.', side: "bottom", align: 'start' } },
+        { element: '#card-live-sky', popover: { title: 'Live Sky Conditions', description: 'Check the real-time weather, astronomical seeing conditions, and moon phase before heading out.', side: "bottom", align: 'start' } },
+        { element: '#card-active-const', popover: { title: 'Active Constellation', description: 'Explore interactive sky maps of constellations currently visible. Click on the map to unlock it, and then click any star to scan it via SIMBAD!', side: "top", align: 'start' } },
+        { element: '#card-targets', popover: { title: 'Tonight\'s Targets', description: 'Discover planets, galaxies, and nebulae visible tonight, ranked by their peak elevation.', side: "top", align: 'start' } },
+        { element: '#card-iss', popover: { title: 'ISS Tracker', description: 'Track exactly when the International Space Station will fly over your location.', side: "top", align: 'start' } },
+        { element: '#btn-night-mode', popover: { title: 'Night Vision Mode', description: 'Enable the red light overlay to preserve your dark adaptation while stargazing.', side: "left", align: 'end' } }
+      ]
+    });
+    driverObj.drive();
+  };
   
-  document.getElementById('btn-about').addEventListener('click', openAbout);
+  document.getElementById('btn-about').addEventListener('click', window.startOnboardingTour);
   
   // Navigation Menu Toggle
   const btnMenu = document.getElementById('btn-menu');
@@ -1724,8 +1752,7 @@ function initLocationUI() {
       });
     });
   }
-  document.getElementById('logo-slogan').addEventListener('click', openAbout);
-  
+
   document.getElementById('close-about-btn').addEventListener('click', () => {
     aboutModal.classList.add('hidden');
   });
@@ -2007,35 +2034,6 @@ if (closeNightTooltip) {
   });
 }
 
-// --- Interactive Tour ---
-function initTour() {
-  if (typeof window.driver === 'undefined') return;
-  const getTrans = (key) => window.i18n[currentLang][key] || key;
-  
-  const driver = window.driver.js.driver({
-    showProgress: true,
-    animate: true,
-    steps: [
-      { element: '#btn-location', popover: { title: getTrans('tour_loc_title'), description: getTrans('tour_loc_desc'), side: "bottom", align: 'start' }},
-      { element: '.card-conditions', popover: { title: getTrans('tour_cond_title'), description: getTrans('tour_cond_desc'), side: "bottom", align: 'start' }},
-      { element: '#card-targets', popover: { title: getTrans('tour_targets_title'), description: getTrans('tour_targets_desc'), side: "top", align: 'start' }},
-      { element: '#btn-night-mode', popover: { title: getTrans('tour_night_title'), description: getTrans('tour_night_desc'), side: "top", align: 'end' }}
-    ]
-  });
-
-  const btnTour = document.getElementById('btn-tour');
-  if (btnTour) {
-    btnTour.addEventListener('click', () => {
-      driver.drive();
-    });
-  }
-
-  // Auto-start on first load
-  if (!localStorage.getItem('stargazer_tour_seen')) {
-    localStorage.setItem('stargazer_tour_seen', 'true');
-    setTimeout(() => { driver.drive(); }, 1500);
-  }
-}
 
 // ── FOV Simulator (Aladin Lite) ──
 let aladinInstance = null;
@@ -2071,6 +2069,12 @@ window.openFovModal = function(ra_deg, dec_deg, targetName) {
 
 document.getElementById('close-fov-btn')?.addEventListener('click', () => {
   document.getElementById('fov-modal').classList.add('hidden');
+  
+  // Fix Aladin Lite throwing resize errors when its container is display: none
+  if (aladinInstance) {
+    document.getElementById('aladin-lite-div').innerHTML = '';
+    aladinInstance = null;
+  }
 });
 
 document.getElementById('close-star-btn')?.addEventListener('click', () => {
@@ -2078,7 +2082,7 @@ document.getElementById('close-star-btn')?.addEventListener('click', () => {
 });
 
 document.addEventListener('DOMContentLoaded', () => {
-  setTimeout(() => initTour(), 500);
+
   
   // Fetch Asteroids
   fetch(`${API_BASE}/api/asteroids`)
@@ -2281,4 +2285,33 @@ document.addEventListener('DOMContentLoaded', () => {
 
     makeDraggable(el);
   });
+  
+  // CPU Optimization: Pause heavy 3D solar system when out of view
+  const solarWrapper = document.getElementById('css-solar-system-wrapper');
+  if (solarWrapper) {
+    const observer = new IntersectionObserver((entries) => {
+      entries.forEach(entry => {
+        if (entry.isIntersecting) {
+          solarWrapper.style.display = 'block';
+        } else {
+          solarWrapper.style.display = 'none'; // Completely stops CSS animations & GPU usage
+        }
+      });
+    }, { rootMargin: '100px' });
+    
+    const heroSection = document.getElementById('hero-section');
+    if (heroSection) observer.observe(heroSection);
+  }
+
+  // Auto-start tour on first visit
+  setTimeout(() => {
+    if (!localStorage.getItem('stargazer_tour_seen')) {
+      localStorage.setItem('stargazer_tour_seen', 'true');
+      if (typeof window.startOnboardingTour === 'function') {
+        window.startOnboardingTour();
+      }
+    }
+  }, 1000);
 });
+
+

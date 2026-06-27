@@ -1,0 +1,618 @@
+[
+  {
+    "name": "Andromeda",
+    "abbr": "And",
+    "ra": 0.81,
+    "dec": 37.43,
+    "description": "Andromeda is one of the 48 constellations listed by the 2nd-century Greco-Roman astronomer Ptolemy,  and one of the 88 modern constellations. Located in the northern celestial hemisphere, it is named for Andromeda, daughter of Cassiopeia, in the Greek myth, who was chained to a rock to be eaten by the sea monster Cetus. Andromeda is most prominent during autumn evenings in the Northern Hemisphere, along with several other constellations named for characters in the Perseus myth. Because of its northern declination, Andromeda is visible only north of 40\u00b0 south latitude; for observers farther south, it always lies below the horizon. It is one of the largest constellations, with an area of 722 square degrees. This is over 1,400 times the size of the full moon, 55% of the size of the largest constellation, Hydra, and over 10 times the size of the smallest constellation, Crux."
+  },
+  {
+    "name": "Antlia",
+    "abbr": "Ant",
+    "ra": 10.28,
+    "dec": -32.48,
+    "description": ""
+  },
+  {
+    "name": "Apus",
+    "abbr": "Aps",
+    "ra": 16.14,
+    "dec": -75.3,
+    "description": ""
+  },
+  {
+    "name": "Aquarius",
+    "abbr": "Aqr",
+    "ra": 22.29,
+    "dec": -10.78,
+    "description": "Aquarius is an equatorial constellation of the zodiac, between Capricornus and Pisces. Its name is Latin for \"water-carrier\" or \"cup-carrier\", and its traditional astrological symbol is (\u2652\ufe0e), a representation of water. Aquarius is one of the oldest of the recognized constellations along the zodiac (the Sun's apparent path). It was one of the 48 constellations listed by the 2nd century astronomer Ptolemy, and it remains one of the 88 modern constellations. It is found in a region often called the Sea due to its profusion of constellations with watery associations such as Cetus the whale, Pisces the fish, and Eridanus the river."
+  },
+  {
+    "name": "Aquila",
+    "abbr": "Aql",
+    "ra": 19.67,
+    "dec": 3.41,
+    "description": "Aquila is a constellation on the celestial equator. Its name is Latin for 'eagle', and what it represents is mixed; some say it represents the bird that carried Zeus/Jupiter's thunderbolts in Greek-Roman mythology, while others say it was the bird that Zeus ordered to attack Prometheus."
+  },
+  {
+    "name": "Ara",
+    "abbr": "Ara",
+    "ra": 17.39,
+    "dec": -53.97,
+    "description": "Ara (Latin for \"the Altar\") is a southern constellation between Scorpius, Telescopium, Triangulum Australe, and Norma. Under its Greek name \u0392\u03c9\u03bc\u03cc\u03c2, B\u014dm\u01d2s, it was one of the 48 classical constellations described by the 2nd-century astronomer Ptolemy, and it remains one of the 88 modern constellations designated by the International Astronomical Union."
+  },
+  {
+    "name": "Aries",
+    "abbr": "Ari",
+    "ra": 2.64,
+    "dec": 20.81,
+    "description": "Aries  is one of the constellations of the zodiac. It is located in the Northern celestial hemisphere between Pisces to the west and Taurus to the east. The name Aries is Latin for ram. Its traditional astrological symbol is  (\u2648\ufe0e). It is one of the 48 constellations described by the 2nd century astronomer Ptolemy, and remains one of the 88 modern constellations.  It is a mid-sized constellation ranking 39th in overall size, with an area of 441 square degrees (1.1% of the celestial sphere)."
+  },
+  {
+    "name": "Auriga",
+    "abbr": "Aur",
+    "ra": 6.02,
+    "dec": 42.03,
+    "description": ""
+  },
+  {
+    "name": "Bo\u00f6tes",
+    "abbr": "Boo",
+    "ra": 14.71,
+    "dec": 31.2,
+    "description": ""
+  },
+  {
+    "name": "Caelum",
+    "abbr": "Cae",
+    "ra": 4.7,
+    "dec": -37.88,
+    "description": ""
+  },
+  {
+    "name": "Camelopardalis",
+    "abbr": "Cam",
+    "ra": 5.75,
+    "dec": 68.65,
+    "description": ""
+  },
+  {
+    "name": "Cancer",
+    "abbr": "Cnc",
+    "ra": 8.65,
+    "dec": 19.8,
+    "description": ""
+  },
+  {
+    "name": "Canes Venatici",
+    "abbr": "CVn",
+    "ra": 13.11,
+    "dec": 40.11,
+    "description": ""
+  },
+  {
+    "name": "Canis Major",
+    "abbr": "CMa",
+    "ra": 6.83,
+    "dec": -22.13,
+    "description": ""
+  },
+  {
+    "name": "Canis Minor",
+    "abbr": "CMi",
+    "ra": 7.65,
+    "dec": 6.43,
+    "description": ""
+  },
+  {
+    "name": "Capricornus",
+    "abbr": "Cap",
+    "ra": 21.05,
+    "dec": -18.02,
+    "description": ""
+  },
+  {
+    "name": "Carina",
+    "abbr": "Car",
+    "ra": 8.7,
+    "dec": -63.3,
+    "description": ""
+  },
+  {
+    "name": "Cassiopeia",
+    "abbr": "Cas",
+    "ra": 1.32,
+    "dec": 62.18,
+    "description": ""
+  },
+  {
+    "name": "Centaurus",
+    "abbr": "Cen",
+    "ra": 13.07,
+    "dec": -47.34,
+    "description": ""
+  },
+  {
+    "name": "Cepheus",
+    "abbr": "Cep",
+    "ra": 22.0,
+    "dec": 71.0,
+    "description": ""
+  },
+  {
+    "name": "Cetus",
+    "abbr": "Cet",
+    "ra": 1.67,
+    "dec": -7.18,
+    "description": ""
+  },
+  {
+    "name": "Chamaeleon",
+    "abbr": "Cha",
+    "ra": 10.69,
+    "dec": -79.2,
+    "description": ""
+  },
+  {
+    "name": "Circinus",
+    "abbr": "Cir",
+    "ra": 14.58,
+    "dec": -63.03,
+    "description": ""
+  },
+  {
+    "name": "Columba",
+    "abbr": "Col",
+    "ra": 5.86,
+    "dec": -35.09,
+    "description": ""
+  },
+  {
+    "name": "Coma Berenices",
+    "abbr": "Com",
+    "ra": 12.79,
+    "dec": 23.31,
+    "description": ""
+  },
+  {
+    "name": "Corona Australis",
+    "abbr": "CrA",
+    "ra": 18.65,
+    "dec": -41.08,
+    "description": ""
+  },
+  {
+    "name": "Corona Borealis",
+    "abbr": "CrB",
+    "ra": 15.84,
+    "dec": 32.62,
+    "description": ""
+  },
+  {
+    "name": "Corvus",
+    "abbr": "Crv",
+    "ra": 12.44,
+    "dec": -18.44,
+    "description": ""
+  },
+  {
+    "name": "Crater",
+    "abbr": "Crt",
+    "ra": 11.4,
+    "dec": -15.93,
+    "description": ""
+  },
+  {
+    "name": "Crux",
+    "abbr": "Cru",
+    "ra": 12.45,
+    "dec": -60.18,
+    "description": ""
+  },
+  {
+    "name": "Cygnus",
+    "abbr": "Cyg",
+    "ra": 20.59,
+    "dec": 44.54,
+    "description": ""
+  },
+  {
+    "name": "Delphinus",
+    "abbr": "Del",
+    "ra": 20.69,
+    "dec": 11.67,
+    "description": ""
+  },
+  {
+    "name": "Dorado",
+    "abbr": "Dor",
+    "ra": 5.24,
+    "dec": -59.42,
+    "description": ""
+  },
+  {
+    "name": "Draco",
+    "abbr": "Dra",
+    "ra": 17.03,
+    "dec": 65.4,
+    "description": ""
+  },
+  {
+    "name": "Equuleus",
+    "abbr": "Equ",
+    "ra": 21.19,
+    "dec": 7.76,
+    "description": ""
+  },
+  {
+    "name": "Eridanus",
+    "abbr": "Eri",
+    "ra": 3.3,
+    "dec": -29.0,
+    "description": ""
+  },
+  {
+    "name": "Fornax",
+    "abbr": "For",
+    "ra": 2.8,
+    "dec": -31.63,
+    "description": ""
+  },
+  {
+    "name": "Gemini",
+    "abbr": "Gem",
+    "ra": 7.07,
+    "dec": 22.6,
+    "description": ""
+  },
+  {
+    "name": "Grus",
+    "abbr": "Gru",
+    "ra": 22.46,
+    "dec": -46.35,
+    "description": ""
+  },
+  {
+    "name": "Hercules",
+    "abbr": "Her",
+    "ra": 17.39,
+    "dec": 27.5,
+    "description": ""
+  },
+  {
+    "name": "Horologium",
+    "abbr": "Hor",
+    "ra": 3.28,
+    "dec": -53.33,
+    "description": ""
+  },
+  {
+    "name": "Hydra",
+    "abbr": "Hya",
+    "ra": 11.61,
+    "dec": -14.48,
+    "description": ""
+  },
+  {
+    "name": "Hydrus",
+    "abbr": "Hyi",
+    "ra": 2.34,
+    "dec": -70.0,
+    "description": ""
+  },
+  {
+    "name": "Indus",
+    "abbr": "Ind",
+    "ra": 21.97,
+    "dec": -59.71,
+    "description": "Indus is a constellation in the southern sky first professionally surveyed by Europeans in the 1590s and mapped on a globe by Petrus Plancius by early 1598. It was included on a plate illustrating southern constellations in Bayer's sky atlas Uranometria in 1603.  It lies well south of the Tropic of Capricorn, but its triangular shape can be seen for most of the year from the Equator. It is elongated from north to south and has a complex boundary.  The English translation of its name is given as the Indian, apparently representing an inhabitant of Madgascar or the East Indies."
+  },
+  {
+    "name": "Lacerta",
+    "abbr": "Lac",
+    "ra": 22.46,
+    "dec": 46.04,
+    "description": ""
+  },
+  {
+    "name": "Leo",
+    "abbr": "Leo",
+    "ra": 10.67,
+    "dec": 13.14,
+    "description": "Leo  is one of the constellations of the zodiac, between Cancer, the Crab, to the west and Virgo, the Maiden, to the east. It is located in the Northern celestial hemisphere. Its name is Latin for lion, and to the ancient Greeks represented the Nemean Lion killed by the mythical Greek hero Heracles as one of his twelve labors. Its traditional astronomical symbol is  (\u264c\ufe0e). One of the 48 constellations described by the 2nd-century astronomer Ptolemy, Leo remains one of the 88 modern constellations today, and one of the most easily recognizable due to its many bright stars and a distinctive shape that is reminiscent of the crouching lion it depicts."
+  },
+  {
+    "name": "Leo Minor",
+    "abbr": "LMi",
+    "ra": 10.24,
+    "dec": 32.08,
+    "description": ""
+  },
+  {
+    "name": "Lepus",
+    "abbr": "Lep",
+    "ra": 5.56,
+    "dec": -19.04,
+    "description": "Lepus is a constellation lying just south of the celestial equator. Its name is Latin for hare. It is located below\u2014immediately south\u2014of Orion (the hunter), and is sometimes represented as a hare being chased by Orion or by Orion's hunting dogs."
+  },
+  {
+    "name": "Libra",
+    "abbr": "Lib",
+    "ra": 15.2,
+    "dec": -15.23,
+    "description": "Libra  is a constellation of the zodiac and is located in the Southern celestial hemisphere. Its name is Latin for weighing scales. Its old astronomical symbol is  (\u264e\ufe0e).  It is fairly faint, with no first magnitude stars, and lies between Virgo to the west and Scorpius to the east. Beta Librae, also known as Zubeneschamali, is the brightest star in the constellation. Three star systems are known to have planets."
+  },
+  {
+    "name": "Lupus",
+    "abbr": "Lup",
+    "ra": 15.22,
+    "dec": -42.7,
+    "description": "Lupus is a constellation of the mid-Southern Sky. Its name is Latin for wolf. Lupus was one of the 48 constellations listed by the 2nd-century astronomer Ptolemy, and it remains one of the 88 modern constellations but was mostly considered an asterism associated with the nearby constellation Centaurus."
+  },
+  {
+    "name": "Lynx",
+    "abbr": "Lyn",
+    "ra": 7.99,
+    "dec": 47.47,
+    "description": "Lynx is a constellation named after the animal, usually observed in the Northern Celestial Hemisphere. The constellation was introduced in the late 17th century by Johannes Hevelius. It is a faint constellation, with its brightest stars forming a zigzag line. The orange giant Alpha Lyncis is the brightest star in the constellation, and the semiregular variable star Y Lyncis is a target for amateur astronomers. Six star systems have been found to contain planets. Those of 6 Lyncis and HD 75898 were discovered by the Doppler method; those of XO-2, XO-4, XO-5 and WASP-13 were observed as they passed in front of the host star."
+  },
+  {
+    "name": "Lyra",
+    "abbr": "Lyr",
+    "ra": 18.85,
+    "dec": 36.77,
+    "description": ""
+  },
+  {
+    "name": "Mensa",
+    "abbr": "Men",
+    "ra": 5.42,
+    "dec": -77.5,
+    "description": "Mensa is a constellation in the Southern Celestial Hemisphere near the south celestial pole, one of fourteen constellations drawn up in the 18th century by French astronomer Nicolas-Louis de Lacaille. Its name is Latin for table, though it originally commemorated Table Mountain and was known as \"Mons Mensae\". One of the eighty-eight constellations designated by the International Astronomical Union (IAU), it covers a keystone-shaped wedge of sky 153.5 square degrees in area. Other than the south polar constellation of Octans, it is the most southerly of constellations and is observable only south of the 5th parallel of the Northern Hemisphere."
+  },
+  {
+    "name": "Microscopium",
+    "abbr": "Mic",
+    "ra": 20.96,
+    "dec": -36.27,
+    "description": ""
+  },
+  {
+    "name": "Monoceros",
+    "abbr": "Mon",
+    "ra": 7.06,
+    "dec": -5.92,
+    "description": ""
+  },
+  {
+    "name": "Musca",
+    "abbr": "Mus",
+    "ra": 12.46,
+    "dec": -70.15,
+    "description": ""
+  },
+  {
+    "name": "Norma",
+    "abbr": "Nor",
+    "ra": 15.9,
+    "dec": -51.35,
+    "description": ""
+  },
+  {
+    "name": "Octans",
+    "abbr": "Oct",
+    "ra": 22.0,
+    "dec": -82.0,
+    "description": ""
+  },
+  {
+    "name": "Ophiuchus",
+    "abbr": "Oph",
+    "ra": 17.39,
+    "dec": -7.9,
+    "description": ""
+  },
+  {
+    "name": "Orion",
+    "abbr": "Ori",
+    "ra": 5.58,
+    "dec": 5.94,
+    "description": ""
+  },
+  {
+    "name": "Pavo",
+    "abbr": "Pav",
+    "ra": 19.61,
+    "dec": -65.78,
+    "description": ""
+  },
+  {
+    "name": "Pegasus",
+    "abbr": "Peg",
+    "ra": 22.69,
+    "dec": 19.46,
+    "description": ""
+  },
+  {
+    "name": "Perseus",
+    "abbr": "Per",
+    "ra": 3.18,
+    "dec": 45.01,
+    "description": ""
+  },
+  {
+    "name": "Phoenix",
+    "abbr": "Phe",
+    "ra": 0.93,
+    "dec": -48.58,
+    "description": ""
+  },
+  {
+    "name": "Pictor",
+    "abbr": "Pic",
+    "ra": 5.71,
+    "dec": -53.47,
+    "description": ""
+  },
+  {
+    "name": "Pisces",
+    "abbr": "Psc",
+    "ra": 0.48,
+    "dec": 13.69,
+    "description": ""
+  },
+  {
+    "name": "Piscis Austrinus",
+    "abbr": "PsA",
+    "ra": 22.28,
+    "dec": -30.65,
+    "description": ""
+  },
+  {
+    "name": "Puppis",
+    "abbr": "Pup",
+    "ra": 7.26,
+    "dec": -31.18,
+    "description": ""
+  },
+  {
+    "name": "Pyxis",
+    "abbr": "Pyx",
+    "ra": 8.95,
+    "dec": -27.35,
+    "description": ""
+  },
+  {
+    "name": "Reticulum",
+    "abbr": "Ret",
+    "ra": 3.92,
+    "dec": -60.0,
+    "description": ""
+  },
+  {
+    "name": "Sagitta",
+    "abbr": "Sge",
+    "ra": 19.65,
+    "dec": 18.86,
+    "description": ""
+  },
+  {
+    "name": "Sagittarius",
+    "abbr": "Sgr",
+    "ra": 19.09,
+    "dec": -28.47,
+    "description": ""
+  },
+  {
+    "name": "Scorpius",
+    "abbr": "Sco",
+    "ra": 16.89,
+    "dec": -27.03,
+    "description": ""
+  },
+  {
+    "name": "Sculptor",
+    "abbr": "Scl",
+    "ra": 0.44,
+    "dec": -32.09,
+    "description": ""
+  },
+  {
+    "name": "Scutum",
+    "abbr": "Sct",
+    "ra": 18.67,
+    "dec": -9.88,
+    "description": ""
+  },
+  {
+    "name": "Serpens",
+    "abbr": "Ser",
+    "ra": 16.95,
+    "dec": 6.12,
+    "description": ""
+  },
+  {
+    "name": "Sextans",
+    "abbr": "Sex",
+    "ra": 10.27,
+    "dec": -2.61,
+    "description": ""
+  },
+  {
+    "name": "Taurus",
+    "abbr": "Tau",
+    "ra": 4.63,
+    "dec": 14.88,
+    "description": ""
+  },
+  {
+    "name": "Telescopium",
+    "abbr": "Tel",
+    "ra": 19.32,
+    "dec": -51.04,
+    "description": ""
+  },
+  {
+    "name": "Triangulum",
+    "abbr": "Tri",
+    "ra": 2.18,
+    "dec": 31.48,
+    "description": ""
+  },
+  {
+    "name": "Triangulum Australe",
+    "abbr": "TrA",
+    "ra": 16.08,
+    "dec": -65.39,
+    "description": ""
+  },
+  {
+    "name": "Tucana",
+    "abbr": "Tuc",
+    "ra": 23.77,
+    "dec": -65.83,
+    "description": ""
+  },
+  {
+    "name": "Ursa Major",
+    "abbr": "UMa",
+    "ra": 11.31,
+    "dec": 50.72,
+    "description": ""
+  },
+  {
+    "name": "Ursa Minor",
+    "abbr": "UMi",
+    "ra": 15.0,
+    "dec": 77.53,
+    "description": ""
+  },
+  {
+    "name": "Vela",
+    "abbr": "Vel",
+    "ra": 9.58,
+    "dec": -47.16,
+    "description": ""
+  },
+  {
+    "name": "Virgo",
+    "abbr": "Vir",
+    "ra": 13.41,
+    "dec": -4.16,
+    "description": ""
+  },
+  {
+    "name": "Volans",
+    "abbr": "Vol",
+    "ra": 7.79,
+    "dec": -69.8,
+    "description": ""
+  },
+  {
+    "name": "Vulpecula",
+    "abbr": "Vul",
+    "ra": 20.23,
+    "dec": 24.44,
+    "description": ""
+  }
+]

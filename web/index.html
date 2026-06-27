@@ -35,6 +35,7 @@
   <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/controls/OrbitControls.js"></script>
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/driver.js@1.0.1/dist/driver.css" integrity="sha384-bovbcpDBo0pTIhd7ws6ebPh1PG31ubAHcX2pv8Tcu5EtFHNl5FBciYFtS/e2SN66" crossorigin="anonymous" />
   <link rel="stylesheet" href="style.css?v=74" />
+  <link rel="stylesheet" href="css-solar-system.css" />
   
   <!-- D3.js and d3-celestial for Interactive Star Map -->
   <script src="https://d3js.org/d3.v3.min.js"></script>
@@ -49,6 +50,9 @@
   
   <!-- GSAP for Smooth Animations -->
   <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/gsap.min.js"></script>
+  <!-- Driver.js for Onboarding Tour -->
+  <script src="https://cdn.jsdelivr.net/npm/driver.js@1.3.1/dist/driver.js.iife.js"></script>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/driver.js@1.3.1/dist/driver.css"/>
   <!-- Lucide Icons CDN -->
   <script src="https://unpkg.com/lucide@latest/dist/umd/lucide.js"></script>
 </head>
@@ -57,110 +61,134 @@
   <!-- Starfield canvas -->
   <canvas id="starfield"></canvas>
 
-  <!-- Header -->
+  <!-- Modern Header -->
   <header class="header">
     <div class="header-inner">
-      <div class="logo">
+      
+      <!-- Left: Logo -->
+      <a href="#hero-section" class="logo" style="text-decoration: none; cursor: pointer;">
         <span class="logo-icon"><i data-lucide="telescope" style="width:22px;height:22px;stroke:#38bdf8;stroke-width:1.5;"></i></span>
-        <div class="logo-wrap">
         <div class="logo-main" data-i18n="app_title">StarGazer</div>
-        <div id="logo-slogan" class="logo-slogan" data-i18n="app_slogan">Astronomy made simple.</div>
-        <div class="location-block" style="display: flex; flex-direction: column; align-items: flex-start; gap: 2px; margin-top: 8px;">
-          <div style="display: flex; align-items: center; gap: 6px;">
-            <div id="logo-sub" class="logo-sub" style="font-weight: bold;" data-i18n="loading_loc">Loading location...</div>
-            <button id="btn-location" class="location-btn" title="Set Location" data-i18n="set_loc_btn" style="width: 24px; height: 24px; display:flex;align-items:center;justify-content:center;"><i data-lucide="map-pin" style="width:14px;height:14px;stroke:#38bdf8;stroke-width:1.5;"></i></button>
+      </a>
+
+      <!-- Center: Telemetry Pill (Glassmorphism) -->
+      <div class="header-telemetry-pill">
+        <div class="live-badge" id="live-badge">
+          <span class="pulse-dot"></span> <span data-i18n="live_badge">LIVE</span>
+        </div>
+        <div class="pill-divider"></div>
+        <div class="telemetry-item" id="hud-moon">🌙 --</div>
+        <div class="pill-divider"></div>
+        <div class="telemetry-item" id="hud-weather">🌡️ -- | 💨 --</div>
+        <div class="pill-divider"></div>
+        <div class="telemetry-item location-item">
+          <button id="btn-location" class="location-btn" title="Set Location"><i data-lucide="map-pin" style="width:14px;height:14px;stroke:currentColor;stroke-width:1.5;"></i></button>
+          <div style="display:flex; flex-direction:column; line-height:1.2;">
+            <span id="logo-sub" style="font-weight:600; color:var(--text-primary);" data-i18n="loading_loc">Loading...</span>
+            <span id="logo-coords" style="font-size:0.65rem; color:var(--text-dim);">Lat: --, Lon: --</span>
           </div>
-          <div id="logo-coords" class="logo-coords" style="font-family: var(--font-mono); font-size: 0.75rem; opacity: 0.6; letter-spacing: 0.05em;">Lat: --, Lon: --</div>
         </div>
       </div>
-      <div class="header-meta">
-        <div class="header-telemetry-group" style="display: flex; gap: 28px; align-items: center; border-right: 1px solid rgba(255,255,255,0.1); padding-right: 16px;">
-          <div class="live-badge desktop-only" id="live-badge">
-            <span class="pulse-dot"></span> <span data-i18n="live_badge">LIVE</span>
-          </div>
-          <div class="header-telemetry" style="display: flex; gap: 12px; font-family: var(--font-mono); font-size: 0.75rem; color: #94a3b8; align-items: center;">
-            <div id="hud-moon">🌙 --</div>
-            <div id="hud-weather">🌡️ -- | 💨 --</div>
-          </div>
-          <div class="clock-group desktop-only" style="display: flex; gap: 8px; align-items: center; font-family: var(--font-mono);">
-            <div class="clock-display" id="clock">--:-- --</div>
-            <div class="date-display" id="date-display" style="font-size: 0.75rem; color: var(--text-secondary);">Loading...</div>
-          </div>
-        </div>
 
-        <div class="header-controls" style="display: flex; gap: 8px; align-items: center;">
-          <button id="btn-unit-toggle" class="unit-btn" title="Toggle Units">°C / km</button>
-          <select id="lang-select" class="lang-select desktop-only"><option value="en">🇺🇸 EN</option><option value="es">🇪🇸 ES</option><option value="pt">🇧🇷 PT</option></select>
-          <button id="btn-about" class="about-btn" title="About StarGazer" data-i18n="about_btn"><i data-lucide="info" style="width:16px;height:16px;stroke:currentColor;stroke-width:1.5;"></i></button>
+      <!-- Right: Controls & Time -->
+      <div class="header-controls">
+        <div class="clock-group desktop-only">
+          <div class="clock-display" id="clock">--:-- --</div>
+          <div class="date-display" id="date-display">Loading...</div>
+        </div>
+        
+        <div class="controls-actions">
+          <a href="https://github.com/nicolasnkGH/stargazer/issues" target="_blank" class="hero-badge hero-badge-collab desktop-only" style="text-decoration: none; padding: 6px 12px; margin-right: 8px; height: 32px; display: inline-flex; align-items: center; box-sizing: border-box;">
+            Collaborate <i data-lucide="arrow-up-right" style="width:12px;height:12px;margin-left:4px;"></i>
+          </a>
+          <button id="btn-unit-toggle" class="icon-btn" title="Toggle Units">°C/km</button>
+          <select id="lang-select" class="lang-select desktop-only"><option value="en">EN</option><option value="es">ES</option><option value="pt">PT</option></select>
+          <button id="btn-about" class="icon-btn" title="Dashboard Tour" data-i18n="tour_btn"><i data-lucide="info" style="width:18px;height:18px;stroke:currentColor;stroke-width:1.5;"></i></button>
           
           <div style="position: relative;">
             <button id="btn-menu" class="menu-btn" title="Navigation">
               <i data-lucide="menu" style="width:18px;height:18px;stroke:currentColor;stroke-width:1.5;"></i>
-              <span class="menu-label" style="font-size: 0.8rem; font-weight: 600; margin-left: 6px; letter-spacing: 0.05em; text-transform: uppercase;">Menu</span>
             </button>
             <div id="nav-dropdown" class="nav-dropdown hidden">
-              <div class="mobile-only" style="padding: 8px 16px; border-bottom: 1px solid rgba(255,255,255,0.1); margin-bottom: 8px; font-family: var(--font-mono); font-size: 0.8rem; color: var(--text-secondary);">
-                <div class="clock-display" style="color: var(--text-primary);">--:-- --</div>
-                <div class="date-display" style="margin-top: 4px;">Loading...</div>
-                <select class="lang-select" style="margin-top: 8px; width: 100%;"><option value="en">🇺🇸 EN</option><option value="es">🇪🇸 ES</option><option value="pt">🇧🇷 PT</option></select>
-              </div>
               <a href="#card-tonight" data-i18n="nav_tonight" class="nav-link">Tonight's Outlook</a>
               <a href="#card-active-const" data-i18n="nav_active_const" class="nav-link">Active Constellation</a>
               <a href="#card-targets" data-i18n="nav_target_db" class="nav-link">Target Database</a>
               <a href="#card-motion" class="nav-link">Sky Objects in Motion</a>
               <a href="#card-weekly" data-i18n="nav_weekly" class="nav-link">7-Day Forecast</a>
+              
+              <div class="nav-item-has-submenu">
+                <a href="#footer-resources" class="nav-link" style="display:flex; justify-content:space-between; align-items:center;">
+                  Resources
+                  <i data-lucide="chevron-right" style="width:14px; height:14px;"></i>
+                </a>
+                <div class="nav-submenu">
+                  <a href="https://clearoutside.com" target="_blank" class="nav-submenu-link">Clear Outside</a>
+                  <a href="https://stellarium-web.org" target="_blank" class="nav-submenu-link">Stellarium Web</a>
+                  <a href="https://theskylive.com/scorpius-info" target="_blank" class="nav-submenu-link">TheSkyLive</a>
+                  <a href="https://in-the-sky.org/newscal.php" target="_blank" class="nav-submenu-link">In-The-Sky.org</a>
+                  <a href="https://www.heavens-above.com/" target="_blank" class="nav-submenu-link">Heavens-Above</a>
+                  <a href="https://www.astrob.in" target="_blank" class="nav-submenu-link">AstroBin</a>
+                </div>
+              </div>
             </div>
           </div>
         </div>
       </div>
-    </div>
+      
   </header>
 
-  <main class="main">
-
-    <!-- ── 3D Gravity Well Hero Section ── -->
-    <section id="hero-section">
-      <!-- WebGL grid canvas -->
-      <canvas id="gravity-well-canvas"></canvas>
-      <!-- 2D glow halo overlay (drawn by gravity-well.js) -->
-      <canvas id="hero-glow-canvas"></canvas>
-      <!-- Glass-morphism hero card -->
+  <!-- ── 3D Gravity Well Hero Section ── -->
+  <section id="hero-section">
+      <!-- 3D CSS Solar System Background -->
+      <div id="css-solar-system-wrapper" class="set-speed view-3D zoom-large data-close controls-close">
+        <div id="universe" class="scale-stretched">
+          <div id="galaxy">
+            <div id="solar-system" class="earth">
+              <div id="mercury" class="orbit"><div class="pos"><div class="planet"></div></div></div>
+              <div id="venus" class="orbit"><div class="pos"><div class="planet"></div></div></div>
+              <div id="earth" class="orbit">
+                <div class="pos">
+                  <div class="orbit"><div class="pos"><div class="moon"></div></div></div>
+                  <div class="planet"></div>
+                </div>
+              </div>
+              <div id="mars" class="orbit"><div class="pos"><div class="planet"></div></div></div>
+              <div id="jupiter" class="orbit"><div class="pos"><div class="planet"></div></div></div>
+              <div id="saturn" class="orbit">
+                <div class="pos">
+                  <div class="planet"><div class="ring"></div></div>
+                </div>
+              </div>
+              <div id="uranus" class="orbit"><div class="pos"><div class="planet"></div></div></div>
+              <div id="neptune" class="orbit"><div class="pos"><div class="planet"></div></div></div>
+              <div id="sun"></div>
+            </div>
+          </div>
+        </div>
+      </div>
+      <!-- Hero text overlay -->
       <div class="hero-content">
-        <div class="hero-glass-card">
-          <div class="hero-eyebrow-row">
-            <span class="hero-live-dot"></span>
-            <span class="hero-eyebrow">Observatory · Dashboard</span>
+        <div class="hero-eyebrow-row">
+          <span class="hero-live-dot"></span>
+          <span class="hero-eyebrow">Observatory · Dashboard</span>
+        </div>
+        <h1 class="hero-title" data-i18n="app_title">StarGazer</h1>
+        <p class="hero-subtitle" data-i18n="app_slogan">Astronomy made simple.</p>
+        <div class="hero-stats">
+          <div class="hero-stat">
+            <span class="hero-stat-value" id="hero-dark-in">--</span>
+            <span class="hero-stat-label">Dark In</span>
           </div>
-          <h1 class="hero-title" data-i18n="app_title">StarGazer</h1>
-          <p class="hero-subtitle" data-i18n="app_slogan">Astronomy made simple.</p>
-          <div class="hero-stats">
-            <div class="hero-stat">
-              <span class="hero-stat-value" id="hero-dark-in">--</span>
-              <span class="hero-stat-label">Dark In</span>
-            </div>
-            <div class="hero-stat-divider"></div>
-            <div class="hero-stat">
-              <span class="hero-stat-value" id="hero-bortle">--</span>
-              <span class="hero-stat-label">Bortle Scale</span>
-            </div>
-          </div>
-          <!-- Open-source showcase badges -->
-          <div class="hero-badges">
-            <a class="hero-badge hero-badge-version" href="https://github.com/nicolasnkGH/stargazer/releases" target="_blank" rel="noopener">
-              <span class="hero-badge-dot hero-badge-dot-green"></span>
-v1.1.1
-            </a>
-            <a class="hero-badge hero-badge-stars" href="https://github.com/nicolasnkGH/stargazer" target="_blank" rel="noopener">
-              ⭐ <span id="hero-github-stars">--</span> Stars
-            </a>
-            <a class="hero-badge hero-badge-collab" href="https://github.com/nicolasnkGH/stargazer/issues" target="_blank" rel="noopener">
-              Collaborate
-              <i data-lucide="arrow-up-right" style="width:12px;height:12px;vertical-align:0;margin-left:3px;"></i>
-            </a>
+          <div class="hero-stat-divider"></div>
+          <div class="hero-stat">
+            <span class="hero-stat-value" id="hero-bortle">--</span>
+            <span class="hero-stat-label">Bortle Scale</span>
           </div>
         </div>
       </div>
     </section>
+
+  <main class="main">
     <!-- ── Go/No-Go Banner ── -->
     <section id="gonogo-banner" class="gonogo-banner loading-state">
       <div class="gonogo-inner" style="padding-left: 8px; padding-right: 8px;">
@@ -441,20 +469,7 @@ v1.1.1
       </div>
     </section>
 
-    <!-- Planets Tonight —— isolated card, planet grid below status banner -->
-    <div class="card card-planets">
-      <div class="card-header">
-        <span class="card-icon"><i data-lucide="orbit"></i></span>
-        <h2 class="card-title" data-i18n="card_planets">Planets Tonight</h2>
-        <span class="info-icon" style="cursor:pointer;display:flex;align-items:center;margin-left:6px;" onclick="showInfo(window.i18n[window.currentLang]?.info_planets || 'Calculated locally via Skyfield Ephemeris', event)"><i data-lucide="info" style="width:14px;height:14px;stroke:rgba(148,163,184,0.6);stroke-width:1.5;"></i></span>
-      </div>
-      <div class="card-body">
-        <!-- planet-grid: 4-col CSS grid, isolated block context, static position -->
-        <div class="planet-grid" id="planet-list">
-          <div class="loading-shimmer"></div>
-        </div>
-      </div>
-    </div>
+
 
       <!-- ── Active Constellation Card ────────────────────────────────────────── -->
       <section class="card" id="card-active-const">
@@ -500,6 +515,11 @@ v1.1.1
           
           <!-- Interactive D3 Map Container -->
           <div id="ac-map-container" style="width: 100%; aspect-ratio: 1; max-height: 500px; height: auto; background: rgba(0,0,0,0.2); border-radius: 8px; border: 1px solid rgba(255,255,255,0.05); position: relative; overflow: hidden; margin-bottom: 12px;">
+            <div id="ac-map-overlay" style="position: absolute; top:0; left:0; width:100%; height:100%; background: rgba(0,0,0,0.2); display: flex; align-items: center; justify-content: center; z-index: 5; cursor: pointer; transition: opacity 0.3s;" onclick="this.style.pointerEvents='none'; this.style.opacity='0'; document.getElementById('ac-map-container').addEventListener('mouseleave', function() { document.getElementById('ac-map-overlay').style.pointerEvents='auto'; document.getElementById('ac-map-overlay').style.opacity='1'; }, {once: true});">
+              <div style="background: rgba(15,23,42,0.9); padding: 8px 16px; border-radius: 20px; font-size: 0.85rem; border: 1px solid rgba(255,255,255,0.2); backdrop-filter: blur(4px); display:flex; align-items:center; gap:6px;">
+                <i data-lucide="mouse-pointer-click" style="width:16px;height:16px;"></i> Click to interact
+              </div>
+            </div>
             <button id="btn-map-expand" class="map-expand-btn" onclick="toggleMapFullscreen()" title="Toggle Fullscreen">⤢</button>
             <div id="ac-map-tooltip" style="position: absolute; opacity: 0; pointer-events: none; background: rgba(15,23,42,0.9); color: #fff; padding: 4px 8px; border-radius: 4px; font-size: 0.75rem; border: 1px solid rgba(168,85,247,0.3); transition: opacity 0.2s; white-space: nowrap; z-index: 10;"></div>
           </div>
@@ -626,71 +646,6 @@ v1.1.1
     </section>
 
 
-    <!-- ── Resources ── -->
-    <section class="card card-resources">
-      <div class="card-header">
-        <span class="card-icon"><i data-lucide="link"></i></span>
-        <h2 class="card-title" data-i18n="card_resources">Resources</h2>
-      </div>
-      <div class="resource-grid">
-        <a href="https://clearoutside.com" target="_blank" class="resource-card">
-          <div class="resource-icon">🔭</div>
-          <div class="resource-info">
-            <div class="resource-name">Clear Outside</div>
-            <div class="resource-desc">Detailed astronomical weather forecasting (Bortle agnostic)</div>
-          </div>
-        </a>
-        <a href="https://stellarium-web.org" target="_blank" class="resource-card">
-          <div class="resource-icon">🌐</div>
-          <div class="resource-info">
-            <div class="resource-name">Stellarium Web</div>
-            <div class="resource-desc">Free online planetarium — real-time sky map for any date/time/location</div>
-          </div>
-        </a>
-        <a href="https://theskylive.com/scorpius-info" target="_blank" class="resource-card">
-          <div class="resource-icon">📡</div>
-          <div class="resource-info">
-            <div class="resource-name">TheSkyLive</div>
-            <div class="resource-desc">Live Scorpius positions, rise/set, and object finder</div>
-          </div>
-        </a>
-        <a href="https://in-the-sky.org/newscal.php" target="_blank" class="resource-card">
-          <div class="resource-icon">📆</div>
-          <div class="resource-info">
-            <div class="resource-name">In-The-Sky.org</div>
-            <div class="resource-desc">Astronomy event calendar — conjunctions, oppositions, showers</div>
-          </div>
-        </a>
-        <a href="https://www.heavens-above.com/" target="_blank" class="resource-card">
-          <div class="resource-icon">🛸</div>
-          <div class="resource-info">
-            <div class="resource-name">Heavens-Above</div>
-            <div class="resource-desc">ISS & satellite passes for your location — most accurate predictions</div>
-          </div>
-        </a>
-        <a href="https://www.astrob.in" target="_blank" class="resource-card">
-          <div class="resource-icon">📸</div>
-          <div class="resource-info">
-            <div class="resource-name">AstroBin</div>
-            <div class="resource-desc">Astrophotography community — see what others have captured from similar scopes</div>
-          </div>
-        </a>
-        <a href="https://edu.kde.org/kstars/" target="_blank" class="resource-card">
-          <div class="resource-icon">⭐</div>
-          <div class="resource-info">
-            <div class="resource-name">KStars (Free)</div>
-            <div class="resource-desc">Best free Stellarium alternative — includes EKOS for telescope control</div>
-          </div>
-        </a>
-        <a id="clearoutside-resource-link" href="https://clearoutside.com/forecast/40.126/-83.037" target="_blank" class="resource-card">
-          <div class="resource-icon">🌤</div>
-          <div class="resource-info">
-            <div class="resource-name">Clear Outside</div>
-            <div class="resource-desc">Astronomy-optimized weather for your exact coordinates</div>
-          </div>
-        </a>
-      </div>
-    </section>
     <!-- ── Observation Log ── -->
     <section class="card" id="card-obs-log" style="margin-top: 24px;">
       <div class="card-header">
@@ -702,7 +657,6 @@ v1.1.1
         <textarea id="observation-notes" style="width: 100%; height: 120px; background: rgba(0,0,0,0.2); border: 1px solid rgba(255,255,255,0.1); color: var(--text-primary); border-radius: 8px; padding: 12px; font-family: inherit; font-size: 0.9rem; resize: vertical;" placeholder="Type your observations here..."></textarea>
       </div>
     </section>
-
   </main>
 
   <!-- Location Modal -->
@@ -759,10 +713,6 @@ v1.1.1
     </div>
   </div>
 
-  <div id="floating-tour" class="floating-btn-draggable" style="bottom: 30px; left: 30px;">
-    <button id="btn-tour" class="floating-tour-btn" title="Take a Tour" data-i18n="tour_btn">🚀</button>
-    <button class="floating-btn-dismiss" onclick="document.getElementById('floating-tour').style.display='none'; localStorage.setItem('stargazer_tour_dismissed','1');" title="Dismiss">✕</button>
-  </div>
 
   <footer class="footer">
     <div class="footer-inner">
@@ -771,13 +721,28 @@ v1.1.1
         <p style="color: var(--text-secondary); margin-bottom: 8px;"><span data-i18n="footer_creator">StarGazer Creator | Cloud & DevOps</span></p>
         <p><span data-i18n="footer_desc">Personal stargazing dashboard to track active constellations, planets, and ISS passes.</span></p>
         <div class="footer-socials">
-          <a href="https://www.linkedin.com/in/nicolasdealmeidateixeira" target="_blank" title="LinkedIn">LinkedIn</a>
-          <a href="https://github.com/nicolasnkGH" target="_blank" title="GitHub">GitHub</a>
-          <a href="https://nick-t.net" target="_blank" title="Portfolio">Portfolio</a>
+          <a href="https://www.linkedin.com/in/nicolasdealmeidateixeira" target="_blank" title="LinkedIn" style="display:flex; align-items:center; gap:6px;">
+            <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M16 8a6 6 0 0 1 6 6v7h-4v-7a2 2 0 0 0-2-2 2 2 0 0 0-2 2v7h-4v-7a6 6 0 0 1 6-6z"/><rect width="4" height="12" x="2" y="9"/><circle cx="4" cy="4" r="2"/></svg> LinkedIn
+          </a>
+          <a href="https://github.com/nicolasnkGH" target="_blank" title="GitHub" style="display:flex; align-items:center; gap:6px;">
+            <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 22v-4a4.8 4.8 0 0 0-1-3.2c3-.3 6-1.5 6-6.5a4.6 4.6 0 0 0-1.3-3.2 4.2 4.2 0 0 0-.1-3.2s-1.1-.3-3.5 1.3a12.3 12.3 0 0 0-6.2 0C6.5 2.8 5.4 3.1 5.4 3.1a4.2 4.2 0 0 0-.1 3.2A4.6 4.6 0 0 0 4 9.5c0 5 3 6.2 6 6.5a4.8 4.8 0 0 0-1 3.2v4"/><path d="M9 18c-4.5 1.5-5-2.5-7-3"/></svg> GitHub
+          </a>
+          <a href="https://nick-t.net" target="_blank" title="Portfolio" style="display:flex; align-items:center; gap:6px;"><i data-lucide="globe" style="width:18px;height:18px;"></i> Portfolio</a>
         </div>
         <div style="margin-top: 20px;">
           <p style="color: var(--text-secondary); margin-bottom: 8px; font-size: 0.9em;"><span data-i18n="footer_like">Like this dashboard? Give it a star!</span></p>
-          <a class="github-button" href="https://github.com/nicolasnkGH/stargazer" data-color-scheme="no-preference: dark; light: dark; dark: dark;" data-icon="octicon-star" data-size="large" data-show-count="true" aria-label="Star nicolasnkGH/stargazer on GitHub">Star</a>
+          <div class="hero-badges" style="justify-content: flex-start;">
+            <a class="hero-badge hero-badge-version" href="https://github.com/nicolasnkGH/stargazer/releases" target="_blank" rel="noopener">
+              <span class="hero-badge-dot hero-badge-dot-green"></span>v1.1.1
+            </a>
+            <a class="hero-badge hero-badge-stars" href="https://github.com/nicolasnkGH/stargazer" target="_blank" rel="noopener">
+              ⭐ <span id="hero-github-stars">--</span> Stars
+            </a>
+            <a class="hero-badge hero-badge-collab" href="https://github.com/nicolasnkGH/stargazer/issues" target="_blank" rel="noopener">
+              Collaborate
+              <i data-lucide="arrow-up-right" style="width:12px;height:12px;vertical-align:0;margin-left:3px;"></i>
+            </a>
+          </div>
         </div>
       </div>
       <div class="footer-col">
@@ -788,6 +753,17 @@ v1.1.1
           <li><a href="#card-targets" data-i18n="nav_target_db">Target Database</a></li>
           <li><a href="#card-motion">Sky Objects in Motion</a></li>
           <li><a href="#card-weekly" data-i18n="nav_weekly">7-Day Forecast</a></li>
+        </ul>
+      </div>
+      <div class="footer-col">
+        <h3 id="footer-resources">Resources</h3>
+        <ul class="footer-links">
+          <li><a href="https://clearoutside.com" target="_blank">Clear Outside</a></li>
+          <li><a href="https://stellarium-web.org" target="_blank">Stellarium Web</a></li>
+          <li><a href="https://theskylive.com/scorpius-info" target="_blank">TheSkyLive</a></li>
+          <li><a href="https://in-the-sky.org/newscal.php" target="_blank">In-The-Sky.org</a></li>
+          <li><a href="https://www.heavens-above.com/" target="_blank">Heavens-Above</a></li>
+          <li><a href="https://www.astrob.in" target="_blank">AstroBin</a></li>
         </ul>
       </div>
       <div class="footer-col">
@@ -880,8 +856,7 @@ v1.1.1
 
   <script src="translations.js"></script>
   <script src="moon3d.js?v=6"></script>
-  <script src="planets3d.js?v=15"></script>
   <script src="app.js?v=55"></script>
-  <script src="gravity-well.js?v=47"></script>
+  <script src="css-solar-system.js"></script>
 </body>
 </html>
