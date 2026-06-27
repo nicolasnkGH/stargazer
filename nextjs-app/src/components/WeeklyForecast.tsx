@@ -23,6 +23,7 @@ interface WeeklyReport {
 const API_BASE = process.env.NEXT_PUBLIC_API_BASE || "/api";
 
 function RatingBadge({ rating }: { rating: string }) {
+  if (!rating) return <span className="text-xs font-medium text-zinc-500">—</span>;
   if (rating.includes("Excellent")) return <span className="text-xs font-medium text-green-400">⭐⭐⭐ Excellent</span>;
   if (rating.includes("Good")) return <span className="text-xs font-medium text-green-300">⭐⭐ Good</span>;
   if (rating.includes("Fair")) return <span className="text-xs font-medium text-yellow-400">⭐ Fair</span>;
@@ -93,7 +94,7 @@ export default function WeeklyForecast() {
       <div className="card-body">
 
       {/* Best nights */}
-      {report.best_nights.length > 0 && (
+      {(report.best_nights ?? []).length > 0 && (
         <div className="mb-4 rounded-lg bg-green-500/10 border border-green-500/20 px-3 py-2 flex flex-wrap gap-x-4 gap-y-1">
           {report.best_nights.map((bn, i) => (
             <span key={i} className="text-xs text-green-300">
@@ -105,11 +106,11 @@ export default function WeeklyForecast() {
 
       {/* 7-day grid */}
       <div className="grid grid-cols-7 gap-1.5">
-        {report.days.map((day, i) => (
+        {(report.days ?? []).map((day, i) => (
           <div
             key={i}
             className={`rounded-lg bg-white/[0.02] border p-3 flex flex-col items-center text-center gap-1.5 ${
-              day.rating.includes("Excellent") || day.rating.includes("Good")
+              (day.rating ?? "").includes("Excellent") || (day.rating ?? "").includes("Good")
                 ? "border-green-500/15"
                 : "border-white/5"
             }`}
@@ -125,9 +126,9 @@ export default function WeeklyForecast() {
             <span className="text-[0.65rem] text-zinc-400">{day.moon_phase}</span>
             <span className="text-xs text-zinc-300 font-mono">{day.temp_c}°C</span>
             <RatingBadge rating={day.rating} />
-            {day.highlights.length > 0 && (
+            {(day.highlights ?? []).length > 0 && (
               <div className="mt-1 w-full pt-1.5 border-t border-white/5">
-                {day.highlights.slice(0, 2).map((h, j) => (
+                {(day.highlights ?? []).slice(0, 2).map((h, j) => (
                   <p key={j} className="text-[0.6rem] text-zinc-500 leading-tight">{h}</p>
                 ))}
               </div>
