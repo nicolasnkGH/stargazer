@@ -19,10 +19,16 @@ export default function GoNoGoBanner() {
   useEffect(() => {
     async function fetchGoNoGo() {
       try {
-        const res = await fetch(`${API_BASE}/go-nogo`);
+        const res = await fetch(`${API_BASE}/tonight`);
         if (!res.ok) throw new Error(`HTTP ${res.status}`);
         const d = await res.json();
-        setData(d);
+        const seeing = d.seeing || {};
+        setData({
+          go_nogo: seeing.go_nogo || "UNKNOWN",
+          confidence: "Rule-based",
+          factors: seeing.warnings || [],
+          recommendation: seeing.seeing_label || ""
+        });
       } catch {
         // Use TonightOutlook data as fallback — handled by parent
       } finally {

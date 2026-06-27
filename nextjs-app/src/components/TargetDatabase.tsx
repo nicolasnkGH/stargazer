@@ -29,7 +29,7 @@ export default function TargetDatabase() {
         const res = await fetch(`${API_BASE}/targets?constellation=${filter}`);
         if (!res.ok) throw new Error(`HTTP ${res.status}`);
         const data = await res.json();
-        setTargets(data);
+        setTargets(data.targets || []);
       } catch (e) {
         setError(e instanceof Error ? e.message : "Failed to fetch targets");
       } finally {
@@ -44,7 +44,7 @@ export default function TargetDatabase() {
   if (loading) {
     return (
       <section id="card-targets" className="w-full">
-        <div className="animate-pulse rounded-xl border border-white/10 bg-white/[0.03] p-5">
+        <div className="card animate-pulse p-5">
           <div className="h-6 w-48 bg-white/10 rounded mb-4" />
           <div className="h-40 bg-white/5 rounded" />
         </div>
@@ -61,11 +61,12 @@ export default function TargetDatabase() {
   }
 
   return (
-    <section id="card-targets" className="w-full">
-      <div className="flex items-center gap-2 mb-4">
+    <section id="card-targets" className="card w-full">
+      <div className="card-header">
         <Binoculars className="h-5 w-5 text-sky-400" strokeWidth={1.6} />
-        <h2 className="text-[0.92rem] font-semibold text-zinc-100 tracking-wide">Target Database</h2>
+        <h2>Target Database</h2>
       </div>
+      <div className="card-body">
 
       {/* Constellation filter */}
       <div className="flex flex-wrap gap-1.5 mb-4">
@@ -85,13 +86,13 @@ export default function TargetDatabase() {
       </div>
 
       {targets.length === 0 ? (
-        <div className="rounded-xl border border-white/10 bg-white/[0.03] p-5">
-          <p className="text-sm text-zinc-400">No targets found for {filter}.</p>
+        <div className="py-8 text-center text-sm text-zinc-400">
+          No targets found for {filter}.
         </div>
       ) : (
         <div className="flex flex-col gap-2">
           {targets.map((t, i) => (
-            <div key={i} className="rounded-xl border border-white/10 bg-white/[0.03] p-4 flex items-start gap-3">
+            <div key={i} className="rounded-lg bg-white/[0.02] border border-white/5 p-4 flex items-start gap-3">
               <span className="text-2xl flex-shrink-0">{t.emoji ?? "🔭"}</span>
               <div className="min-w-0 flex-1">
                 <div className="flex items-center gap-2 mb-0.5">
@@ -120,6 +121,7 @@ export default function TargetDatabase() {
           ))}
         </div>
       )}
+      </div>
     </section>
   );
 }

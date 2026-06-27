@@ -51,11 +51,11 @@ export default function ObservationLog() {
     c === "Excellent" ? "text-green-400" : c === "Good" ? "text-yellow-400" : "text-red-400";
 
   return (
-    <section className="w-full">
-      <div className="flex items-center justify-between mb-4">
+    <section className="card w-full">
+      <div className="card-header justify-between">
         <div className="flex items-center gap-2">
           <NotebookPen className="h-5 w-5 text-sky-400" strokeWidth={1.6} />
-          <h2 className="text-[0.92rem] font-semibold text-zinc-100 tracking-wide">Observation Log</h2>
+          <h2>Observation Log</h2>
         </div>
         <button
           onClick={() => setShowForm(!showForm)}
@@ -66,9 +66,10 @@ export default function ObservationLog() {
         </button>
       </div>
 
+      <div className="card-body">
       {/* Add entry form */}
       {showForm && (
-        <form onSubmit={addEntry} className="rounded-xl border border-white/10 bg-white/[0.03] p-4 mb-4 flex flex-col gap-3">
+        <form onSubmit={addEntry} className="rounded-lg bg-white/[0.02] border border-white/5 p-4 mb-4 flex flex-col gap-3">
           <input
             type="text"
             placeholder="Target name..."
@@ -117,13 +118,13 @@ export default function ObservationLog() {
 
       {/* Log entries */}
       {entries.length === 0 ? (
-        <div className="rounded-xl border border-white/10 bg-white/[0.03] p-5">
-          <p className="text-sm text-zinc-400">No observations logged yet. Add your first entry!</p>
+        <div className="py-8 text-center text-sm text-zinc-400">
+          No observations logged yet. Add your first entry!
         </div>
       ) : (
         <div className="flex flex-col gap-2">
           {entries.map((entry) => (
-            <div key={entry.id} className="rounded-xl border border-white/10 bg-white/[0.03] p-4 flex items-start gap-3 group">
+            <div key={entry.id} className="rounded-lg bg-white/[0.02] border border-white/5 p-4 flex items-start gap-3 group">
               <Camera className="h-4 w-4 text-zinc-600 flex-shrink-0 mt-0.5" strokeWidth={1.5} />
               <div className="min-w-0 flex-1">
                 <div className="flex items-center justify-between mb-0.5">
@@ -149,6 +150,7 @@ export default function ObservationLog() {
           ))}
         </div>
       )}
+      </div>
     </section>
   );
 }

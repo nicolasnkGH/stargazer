@@ -4,13 +4,12 @@ import { CloudSun } from "lucide-react";
 
 export default function ClearOutsideEmbed() {
   return (
-    <section className="w-full">
-      <div className="flex items-center gap-2 mb-4">
+    <section className="card w-full">
+      <div className="card-header">
         <CloudSun className="h-5 w-5 text-sky-400" strokeWidth={1.6} />
-        <h2 className="text-[0.92rem] font-semibold text-zinc-100 tracking-wide">Astronomical Weather</h2>
+        <h2>Astronomical Weather</h2>
       </div>
-
-      <div className="rounded-xl border border-white/10 bg-white/[0.03] overflow-hidden">
+      <div className="card-body px-0 py-0 overflow-hidden rounded-b-xl">
         <iframe
           src="https://clearoutside.com"
           title="Clear Outside — Astronomical Seeing & Cloud Forecast"
@@ -19,10 +18,6 @@ export default function ClearOutsideEmbed() {
           allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope"
         />
       </div>
-
-      <p className="text-[0.65rem] text-zinc-600 mt-2 text-center">
-        Powered by <a href="https://clearoutside.com" target="_blank" rel="noopener" className="text-zinc-500 hover:text-zinc-300 underline">ClearOutside.com</a> — seeing, cloud, and transparency forecasts for astronomers
-      </p>
     </section>
   );
 }

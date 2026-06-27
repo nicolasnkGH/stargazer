@@ -28,7 +28,7 @@ export default function ConstellationsTonight() {
         const res = await fetch(`${API_BASE}/constellations`);
         if (!res.ok) throw new Error(`HTTP ${res.status}`);
         const data = await res.json();
-        setConstellations(data);
+        setConstellations(data.constellations || []);
       } catch (e) {
         setError(e instanceof Error ? e.message : "Failed to fetch constellations");
       } finally {
@@ -67,11 +67,12 @@ export default function ConstellationsTonight() {
   const stable = visible.filter((c) => !c.rising && !c.setting);
 
   return (
-    <section className="w-full">
-      <div className="flex items-center gap-2 mb-4">
+    <section id="card-constellations" className="card w-full">
+      <div className="card-header">
         <Star className="h-5 w-5 text-amber-400" strokeWidth={1.6} />
-        <h2 className="text-[0.92rem] font-semibold text-zinc-100 tracking-wide">Constellations Tonight</h2>
+        <h2>Constellations Tonight</h2>
       </div>
+      <div className="card-body">
 
       {/* All visible grid */}
       <div className="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-6 gap-2 mb-5">
@@ -136,6 +137,7 @@ export default function ConstellationsTonight() {
           </div>
         </div>
       )}
+      </div>
     </section>
   );
 }

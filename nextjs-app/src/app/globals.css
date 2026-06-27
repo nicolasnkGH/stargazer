@@ -7,6 +7,92 @@
   --font-mono: var(--font-space-mono);
 }
 
+/* ── StarGazer Design Tokens — ported from original style.css ─────────── */
+
+:root {
+  /* Backgrounds — deep midnight navy / astronomy console */
+  --bg-void:        #050510;
+  --bg-deep:        #08091a;
+  --bg-card:        rgba(2, 6, 23, 0.40);
+  --bg-card-hover:  rgba(2, 6, 23, 0.65);
+  --bg-glass:       rgba(15, 23, 42, 0.35);
+
+  /* Borders — subtle midnight blue */
+  --border:         rgba(100, 120, 220, 0.14);
+  --border-glow:    rgba(120, 160, 255, 0.30);
+  --border-hover:   rgba(148, 163, 220, 0.28);
+
+  /* Accent palette */
+  --accent-blue:    #4a9eff;
+  --accent-purple:  #a855f7;
+  --accent-gold:    #f59e0b;
+  --accent-teal:    #14b8a6;
+  --accent-red:     #ef4444;
+  --accent-green:   #22c55e;
+
+  /* Text */
+  --text-primary:   #e8ecff;
+  --text-secondary: #8892b0;
+  --text-muted:     #4a5568;
+  --text-accent:    #a0c4ff;
+
+  /* Shape */
+  --radius:    16px;
+  --radius-sm: 10px;
+
+  /* Shadows & glows */
+  --shadow-card:   0 4px 40px rgba(0, 0, 50, 0.55), 0 1px 0 rgba(100, 140, 255, 0.08) inset;
+  --glow-blue:     0 0 30px rgba(74, 158, 255, 0.14);
+  --glow-hover:    0 0 32px rgba(74, 158, 255, 0.22), 0 4px 40px rgba(0,0,50,0.55);
+
+  /* Color scheme */
+  --background: #050510;
+  --foreground: #e8ecff;
+}
+
+/* ── Cards — translucent dark-slate glass (original design) ───────────── */
+
+.card {
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  box-shadow: var(--shadow-card);
+  overflow: hidden;
+  transition: box-shadow 0.28s ease, border-color 0.28s ease;
+  will-change: box-shadow;
+  width: 100%;
+}
+
+.card:hover {
+  border-color: var(--border-hover);
+  box-shadow: var(--glow-hover);
+}
+
+.card-header {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-wrap: wrap;
+  padding: 14px 20px;
+  border-bottom: 1px solid rgba(100, 120, 220, 0.10);
+  background: rgba(15, 23, 42, 0.25);
+}
+
+.card-header h2 {
+  font-size: 0.92rem;
+  font-weight: 600;
+  color: var(--text-primary);
+  letter-spacing: 0.03em;
+}
+
+.card-body {
+  padding: 20px;
+}
+
+/* ── Float animation ──────────────────────────────────────────────────── */
+
 @keyframes float {
   0%, 100% { transform: translateY(0); }
   50% { transform: translateY(-4px); }
@@ -16,14 +102,14 @@
   animation: float 4s ease-in-out infinite;
 }
 
-/* ── Hero section ─────────────────────────────────────────────────────────── */
+/* ── Hero section ─────────────────────────────────────────────────────── */
 
 #hero-section {
   position: relative;
   min-height: 60vh;
   min-width: 100%;
   overflow: hidden;
-  background: radial-gradient(ellipse at 50% 50%, #0a0a2e 0%, #050510 70%);
+  background: radial-gradient(ellipse at 50% 50%, #0a0a2e 0%, var(--bg-void) 70%);
 }
 
 #hero-section::after {
@@ -38,16 +124,16 @@
   z-index: 5;
 }
 
-/* ── Glass card ───────────────────────────────────────────────────────────── */
+/* ── Glass card overlay ───────────────────────────────────────────────── */
 
 .hero-glass-card {
   backdrop-filter: blur(20px);
   -webkit-backdrop-filter: blur(20px);
-  background: rgba(10, 10, 40, 0.45);
-  border: 1px solid rgba(100, 140, 255, 0.15);
+  background: rgba(10, 10, 40, 0.55);
+  border: 1px solid rgba(100, 140, 255, 0.18);
   border-radius: 1rem;
   box-shadow:
-    0 8px 32px rgba(0, 0, 0, 0.4),
+    0 8px 32px rgba(0, 0, 0, 0.5),
     inset 0 1px 0 rgba(255, 255, 255, 0.05);
   padding: 2rem 2.5rem;
   text-align: center;
@@ -66,7 +152,7 @@
   }
 }
 
-/* ── Eyebrow ──────────────────────────────────────────────────────────────── */
+/* ── Eyebrow ──────────────────────────────────────────────────────────── */
 
 .hero-eyebrow {
   display: flex;
@@ -95,7 +181,7 @@
   50% { opacity: 0.6; transform: scale(0.85); }
 }
 
-/* ── Title ────────────────────────────────────────────────────────────────── */
+/* ── Title ────────────────────────────────────────────────────────────── */
 
 .hero-title {
   font-size: 2.5rem;
@@ -110,7 +196,7 @@
   animation: heroFadeIn 0.6s ease-out 0.35s both;
 }
 
-/* ── Subtitle ─────────────────────────────────────────────────────────────── */
+/* ── Subtitle ─────────────────────────────────────────────────────────── */
 
 .hero-subtitle {
   font-size: 1.1rem;
@@ -119,7 +205,7 @@
   animation: heroFadeIn 0.6s ease-out 0.5s both;
 }
 
-/* ── Stats ────────────────────────────────────────────────────────────────── */
+/* ── Stats ────────────────────────────────────────────────────────────── */
 
 .hero-stats {
   display: flex;
@@ -160,7 +246,7 @@
   background: rgba(100, 140, 255, 0.15);
 }
 
-/* ── Badges ───────────────────────────────────────────────────────────────── */
+/* ── Badges ───────────────────────────────────────────────────────────── */
 
 .hero-badges {
   display: flex;
@@ -199,7 +285,7 @@
   color: rgba(220, 230, 255, 0.9);
 }
 
-/* ── Planet labels ────────────────────────────────────────────────────────── */
+/* ── Planet labels ────────────────────────────────────────────────────── */
 
 .hero-planet-label {
   position: absolute;
@@ -214,7 +300,7 @@
   text-transform: uppercase;
 }
 
-/* ── Bottom fade ──────────────────────────────────────────────────────────── */
+/* ── Bottom fade ──────────────────────────────────────────────────────── */
 
 .hero-fade {
   position: absolute;
@@ -227,14 +313,48 @@
   z-index: 5;
 }
 
-/* ── Shared animation ─────────────────────────────────────────────────────── */
+/* ── Shared animation ─────────────────────────────────────────────────── */
 
 @keyframes heroFadeIn {
   from { opacity: 0; transform: translateY(8px); }
   to { opacity: 1; transform: translateY(0); }
 }
 
-/* ── Responsive ───────────────────────────────────────────────────────────── */
+/* ── Go/No-Go Banner ──────────────────────────────────────────────────── */
+
+.banner-go {
+  border-color: rgba(34, 197, 94, 0.30);
+  background: rgba(34, 197, 94, 0.08);
+}
+
+.banner-nogo {
+  border-color: rgba(239, 68, 68, 0.30);
+  background: rgba(239, 68, 68, 0.08);
+}
+
+.banner-marginal {
+  border-color: rgba(245, 158, 11, 0.30);
+  background: rgba(245, 158, 11, 0.08);
+}
+
+/* ── Scrollbar ────────────────────────────────────────────────────────── */
+
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+::-webkit-scrollbar-track {
+  background: rgba(0, 0, 0, 0.2);
+}
+::-webkit-scrollbar-thumb {
+  background: rgba(100, 120, 220, 0.25);
+  border-radius: 3px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: rgba(100, 120, 220, 0.4);
+}
+
+/* ── Responsive ───────────────────────────────────────────────────────── */
 
 @media (max-width: 640px) {
   #hero-section {
@@ -268,7 +388,7 @@
   }
 }
 
-/* ── Reduced motion ───────────────────────────────────────────────────────── */
+/* ── Reduced motion ───────────────────────────────────────────────────── */
 
 @media (prefers-reduced-motion: reduce) {
   .hero-glass-card,
@@ -280,18 +400,6 @@
   .hero-pulse-dot {
     animation: none !important;
     opacity: 1 !important;
-  }
-
-  #hero-section::after,
-  .hero-fade {
-    height: 60px;
-  }
-}
-
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #050510;
-    --foreground: #e8ecff;
   }
 }
 

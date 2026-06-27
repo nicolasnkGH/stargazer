@@ -59,7 +59,7 @@ export default function WeeklyForecast() {
   if (loading) {
     return (
       <section id="card-weekly" className="w-full">
-        <div className="animate-pulse rounded-xl border border-white/10 bg-white/[0.03] p-5">
+        <div className="card animate-pulse p-5">
           <div className="h-6 w-48 bg-white/10 rounded mb-4" />
           <div className="grid grid-cols-7 gap-2">
             {Array.from({ length: 7 }).map((_, i) => (
@@ -82,14 +82,15 @@ export default function WeeklyForecast() {
   if (!report) return null;
 
   return (
-    <section id="card-weekly" className="w-full">
-      <div className="flex items-center justify-between mb-4">
+    <section id="card-weekly" className="card w-full">
+      <div className="card-header justify-between">
         <div className="flex items-center gap-2">
           <CalendarDays className="h-5 w-5 text-sky-400" strokeWidth={1.6} />
-          <h2 className="text-[0.92rem] font-semibold text-zinc-100 tracking-wide">7-Day Forecast</h2>
+          <h2>7-Day Forecast</h2>
         </div>
         <span className="text-xs text-zinc-500 font-mono">{report.week_start}</span>
       </div>
+      <div className="card-body">
 
       {/* Best nights */}
       {report.best_nights.length > 0 && (
@@ -107,10 +108,10 @@ export default function WeeklyForecast() {
         {report.days.map((day, i) => (
           <div
             key={i}
-            className={`rounded-xl border p-3 flex flex-col items-center text-center gap-1.5 ${
+            className={`rounded-lg bg-white/[0.02] border p-3 flex flex-col items-center text-center gap-1.5 ${
               day.rating.includes("Excellent") || day.rating.includes("Good")
-                ? "border-green-500/15 bg-green-500/[0.03]"
-                : "border-white/10 bg-white/[0.03]"
+                ? "border-green-500/15"
+                : "border-white/5"
             }`}
           >
             <StatusDot cloud_pct={day.cloud_pct} />
@@ -133,6 +134,7 @@ export default function WeeklyForecast() {
             )}
           </div>
         ))}
+      </div>
       </div>
     </section>
   );

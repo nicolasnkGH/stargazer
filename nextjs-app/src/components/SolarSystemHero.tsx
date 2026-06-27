@@ -4,8 +4,8 @@ import { useEffect, useRef, useCallback } from "react";
 import * as THREE from "three";
 import { OrbitControls } from "three/examples/jsm/controls/OrbitControls.js";
 
-// ── Texture base URL (SolarSystemScope, CC0) ────────────────────────────────
-const TEX_BASE = "https://solarsystemscope.com/textures/download/";
+// ── Texture base URL ────────────────────────────────
+const TEX_BASE = "/assets/";
 
 // ── Planet data ──────────────────────────────────────────────────────────────
 interface PlanetDef {
@@ -29,7 +29,7 @@ const PLANETS: PlanetDef[] = [
     speed: 0,
     color: 0xffcc33,
     emissive: 0xffaa00,
-    emissiveIntensity: 2.0,
+    emissiveIntensity: 4.0,
     textureUrl: `${TEX_BASE}2k_sun.jpg`,
   },
   {
@@ -39,7 +39,7 @@ const PLANETS: PlanetDef[] = [
     speed: 0.018,
     color: 0x8c7e6d,
     emissive: 0x1a1510,
-    textureUrl: `${TEX_BASE}2k_mercury.jpg`,
+    textureUrl: `${TEX_BASE}mercury.jpg`,
   },
   {
     name: "Venus",
@@ -48,7 +48,7 @@ const PLANETS: PlanetDef[] = [
     speed: 0.012,
     color: 0xc8a878,
     emissive: 0x1a1408,
-    textureUrl: `${TEX_BASE}2k_venus_surface.jpg`,
+    textureUrl: `${TEX_BASE}venus.jpg`,
   },
   {
     name: "Earth",
@@ -66,7 +66,7 @@ const PLANETS: PlanetDef[] = [
     speed: 0.008,
     color: 0xb85a3a,
     emissive: 0x1a0800,
-    textureUrl: `${TEX_BASE}2k_mars.jpg`,
+    textureUrl: `${TEX_BASE}mars.jpg`,
   },
   {
     name: "Jupiter",
@@ -75,7 +75,7 @@ const PLANETS: PlanetDef[] = [
     speed: 0.004,
     color: 0xc8a878,
     emissive: 0x1a1408,
-    textureUrl: `${TEX_BASE}2k_jupiter.jpg`,
+    textureUrl: `${TEX_BASE}jupiter.jpg`,
   },
   {
     name: "Saturn",
@@ -84,7 +84,7 @@ const PLANETS: PlanetDef[] = [
     speed: 0.003,
     color: 0xd8c898,
     emissive: 0x1a1508,
-    textureUrl: `${TEX_BASE}2k_saturn.jpg`,
+    textureUrl: `${TEX_BASE}saturn.jpg`,
     ringInner: 6.0,
     ringOuter: 10.0,
   },
@@ -95,7 +95,7 @@ const PLANETS: PlanetDef[] = [
     speed: 0.002,
     color: 0x78b8c8,
     emissive: 0x0a1520,
-    textureUrl: `${TEX_BASE}2k_uranus.jpg`,
+    textureUrl: `${TEX_BASE}uranus.jpg`,
   },
   {
     name: "Neptune",
@@ -104,7 +104,7 @@ const PLANETS: PlanetDef[] = [
     speed: 0.001,
     color: 0x3355bb,
     emissive: 0x050a20,
-    textureUrl: `${TEX_BASE}2k_neptune.jpg`,
+    textureUrl: `${TEX_BASE}neptune.jpg`,
   },
 ];
 
@@ -164,8 +164,8 @@ export default function SolarSystemHero() {
     scene.add(new THREE.Mesh(starGeo, starMat));
 
     const camera = new THREE.PerspectiveCamera(45, w / h, 0.1, 1000);
-    // High-angle view looking down at the solar system (SolarSystemScope style)
-    camera.position.set(80, 160, 160);
+    // SolarSystemScope style: low angle, looking slightly down at the ecliptic
+    camera.position.set(0, 45, 180);
     camera.lookAt(0, 0, 0);
 
     const renderer = new THREE.WebGLRenderer({
@@ -223,6 +223,33 @@ export default function SolarSystemHero() {
         0,
         def.orbitRadius > 0 ? Math.sin(0) * def.orbitRadius : 0
       );
+
+      // Add sun glow sprite
+      if (def.name === "Sun") {
+        const glowCanvas = document.createElement("canvas");
+        glowCanvas.width = 128;
+        glowCanvas.height = 128;
+        const ctx = glowCanvas.getContext("2d")!;
+        const grad = ctx.createRadialGradient(64, 64, 0, 64, 64, 64);
+        grad.addColorStop(0, "rgba(255, 230, 150, 1)");
+        grad.addColorStop(0.3, "rgba(255, 180, 50, 0.8)");
+        grad.addColorStop(1, "rgba(255, 100, 0, 0)");
+        ctx.fillStyle = grad;
+        ctx.fillRect(0, 0, 128, 128);
+
+        const glowTex = new THREE.CanvasTexture(glowCanvas);
+        const glowMat = new THREE.SpriteMaterial({
+          map: glowTex,
+          color: 0xffddaa,
+          transparent: true,
+          blending: THREE.AdditiveBlending,
+          depthWrite: false,
+        });
+        const glowSprite = new THREE.Sprite(glowMat);
+        glowSprite.scale.set(def.radius * 4, def.radius * 4, 1);
+        mesh.add(glowSprite);
+      }
+
       scene.add(mesh);
       return mesh;
     };
@@ -274,27 +301,64 @@ export default function SolarSystemHero() {
         );
       }
       const orbitGeo = new THREE.BufferGeometry().setFromPoints(points);
-      const orbitMat = new THREE.LineBasicMaterial({
-        color: 0x4466aa,
+      const orbitMat = new THREE.LineDashedMaterial({
+        color: 0x5588ff,
         transparent: true,
-        opacity: 0.15,
+        opacity: 0.35,
+        dashSize: 2,
+        gapSize: 1.5,
       });
-      scene.add(new THREE.LineLoop(orbitGeo, orbitMat));
+      const line = new THREE.LineLoop(orbitGeo, orbitMat);
+      line.computeLineDistances();
+      scene.add(line);
     });
 
+    // ── Ecliptic Grid ────────────────────────────────────────────────────
+    const grid = new THREE.GridHelper(400, 40, 0x334466, 0x112233);
+    grid.material.transparent = true;
+    grid.material.opacity = 0.2;
+    // Fade out grid at edges
+    grid.material.onBeforeCompile = (shader) => {
+      shader.vertexShader = `
+        varying vec3 vWorldPosition;
+        ${shader.vertexShader}
+      `.replace(
+        `#include <worldpos_vertex>`,
+        `
+        #include <worldpos_vertex>
+        vWorldPosition = (modelMatrix * vec4(position, 1.0)).xyz;
+        `
+      );
+      shader.fragmentShader = `
+        varying vec3 vWorldPosition;
+        ${shader.fragmentShader}
+      `.replace(
+        `vec4 diffuseColor = vec4( diffuse, opacity );`,
+        `
+        float dist = length(vWorldPosition);
+        float fade = smoothstep(200.0, 50.0, dist);
+        vec4 diffuseColor = vec4( diffuse, opacity * fade );
+        `
+      );
+    };
+    scene.add(grid);
+
     // ── Labels (HTML overlay) ────────────────────────────────────────────
-    const labelElements: HTMLElement[] = [];
+    const labels: { mesh: THREE.Mesh; element: HTMLElement; def: PlanetDef }[] = [];
     const _projVec = new THREE.Vector3();
 
     PLANETS.forEach((def, i) => {
-      const label = document.createElement("div");
-      label.className = "hero-planet-label";
-      label.textContent = def.name;
-      labelContainer.appendChild(label);
-      labelElements.push(label);
-
-      // Position above planet
-      meshes[i].position.y = def.radius + 2;
+        const mesh = meshes[i];
+        const label = document.createElement("div");
+        label.className = "absolute -translate-x-1/2 -translate-y-1/2 pointer-events-none";
+        label.innerHTML = `
+          <div class="text-[0.65rem] font-medium tracking-[0.2em] text-white/60 uppercase hover:text-white transition-colors" style="text-shadow: 0 0 6px rgba(0,0,0,0.9)">
+            ${def.name}
+          </div>
+        `;
+        
+        labelContainerRef.current?.appendChild(label);
+        labels.push({ mesh, element: label, def });
     });
 
     // ── OrbitControls ────────────────────────────────────────────────────
@@ -341,9 +405,10 @@ export default function SolarSystemHero() {
 
     // ── Animation loop — 20fps ───────────────────────────────────────────
     const FPS_INTERVAL = 1000 / 20;
+    let animationFrameId: number;
 
     const animate = (now: number) => {
-      requestAnimationFrame(animate);
+      animationFrameId = requestAnimationFrame(animate);
       if (!pageVisible || !heroVisible) return;
       if (now - lastRaf.current < FPS_INTERVAL) return;
       lastRaf.current = now;
@@ -374,29 +439,30 @@ export default function SolarSystemHero() {
       // Micro-parallax camera
       const camTargetX = mouseX.current * PARALLAX_STRENGTH;
       const camTargetY = mouseY.current * PARALLAX_STRENGTH * 0.6;
-      camera.position.x += (camTargetX * 40 - camera.position.x + 80) * 0.02;
-      camera.position.y += (camTargetY * 25 - camera.position.y + 160) * 0.02;
+      camera.position.x += (camTargetX * 40 - camera.position.x + 0) * 0.02;
+      camera.position.y += (camTargetY * 25 - camera.position.y + 45) * 0.02;
       camera.lookAt(0, 0, 0);
 
       controls.update();
       renderer.render(scene, camera);
 
       // Update label positions
-      labelElements.forEach((label, i) => {
+      labels.forEach(({ mesh, element }) => {
         const worldPos = new THREE.Vector3();
-        meshes[i].getWorldPosition(worldPos);
+        mesh.getWorldPosition(worldPos);
         _projVec.copy(worldPos).project(camera);
 
         const rect = container.getBoundingClientRect();
         const x = (_projVec.x + 1) / 2 * rect.width;
-        const y = (-_projVec.y + 1) / 2 * rect.height;
+        // Offset Y slightly so the label sits nicely under/over the planet
+        const y = (-_projVec.y + 1) / 2 * rect.height + 15;
 
         if (_projVec.z > 1) {
-          label.style.display = "none";
+          element.style.display = "none";
         } else {
-          label.style.display = "";
-          label.style.left = `${x}px`;
-          label.style.top = `${y}px`;
+          element.style.display = "";
+          element.style.left = `${x}px`;
+          element.style.top = `${y}px`;
         }
       });
     };
@@ -417,6 +483,7 @@ export default function SolarSystemHero() {
 
     // ── Cleanup ──────────────────────────────────────────────────────────
     return () => {
+      cancelAnimationFrame(animationFrameId);
       observer.disconnect();
       document.removeEventListener("visibilitychange", onVisibilityChange);
       container.removeEventListener("mousemove", handlePointerMove);
@@ -445,50 +512,6 @@ export default function SolarSystemHero() {
         ref={labelContainerRef}
         className="absolute inset-0 pointer-events-none overflow-hidden"
       />
-      {/* Glass card overlay */}
-      <div className="absolute inset-0 flex items-center justify-center z-10">
-        <div className="hero-glass-card max-w-lg mx-4">
-          {/* Eyebrow */}
-          <div className="hero-eyebrow">
-            <span className="hero-pulse-dot" />
-            <span>Observatory &middot; Dashboard</span>
-          </div>
-          {/* Title */}
-          <h1 className="hero-title">StarGazer</h1>
-          {/* Subtitle */}
-          <p className="hero-subtitle">Astronomy made simple.</p>
-          {/* Stats */}
-          <div className="hero-stats">
-            <div className="hero-stat">
-              <span className="hero-stat-label">Dark In</span>
-              <span className="hero-stat-value">--:--</span>
-            </div>
-            <div className="hero-stat-divider" />
-            <div className="hero-stat">
-              <span className="hero-stat-label">Bortle Scale</span>
-              <span className="hero-stat-value">--</span>
-            </div>
-          </div>
-          {/* Badges */}
-          <div className="hero-badges">
-            <span className="hero-badge hero-badge-version">v0.2.0</span>
-            <a
-              href="https://github.com/nickt-star/stargazer"
-              target="_blank"
-              rel="noopener noreferrer"
-              className="hero-badge hero-badge-link"
-            >
-              GitHub
-            </a>
-            <a
-              href="#collaborate"
-              className="hero-badge hero-badge-link"
-            >
-              Collaborate
-            </a>
-          </div>
-        </div>
-      </div>
       {/* Bottom fade */}
       <div className="hero-fade" />
     </section>

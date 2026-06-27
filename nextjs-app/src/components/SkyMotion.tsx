@@ -57,14 +57,16 @@ export default function SkyMotion() {
   useEffect(() => {
     async function fetchData() {
       try {
-        const [issRes, neoRes, cometRes] = await Promise.all([
+        const [issRes, neoRes] = await Promise.all([
           fetch(`${API_BASE}/iss?count=3`),
-          fetch(`${API_BASE}/neo?limit=5`),
-          fetch(`${API_BASE}/comets`),
+          fetch(`${API_BASE}/asteroids?limit=5`),
         ]);
-        if (issRes.ok) setPasses(await issRes.json());
+        if (issRes.ok) {
+          const issData = await issRes.json();
+          setPasses(issData.passes || []);
+        }
         if (neoRes.ok) setNeos(await neoRes.json());
-        if (cometRes.ok) setComets(await cometRes.json());
+        setComets([]); // No backend endpoint for comets currently
       } catch (e) {
         setError(e instanceof Error ? e.message : "Failed to fetch sky motion data");
       } finally {
@@ -77,7 +79,7 @@ export default function SkyMotion() {
   if (loading) {
     return (
       <section id="card-motion" className="w-full">
-        <div className="animate-pulse rounded-xl border border-white/10 bg-white/[0.03] p-5">
+        <div className="card animate-pulse p-5">
           <div className="h-6 w-48 bg-white/10 rounded mb-4" />
           <div className="h-24 bg-white/5 rounded" />
         </div>
@@ -96,11 +98,12 @@ export default function SkyMotion() {
   const visiblePasses = passes.filter((p) => p.visible);
 
   return (
-    <section id="card-motion" className="w-full">
-      <div className="flex items-center gap-2 mb-4">
+    <section id="card-motion" className="card w-full">
+      <div className="card-header">
         <Rocket className="h-5 w-5 text-sky-400" strokeWidth={1.6} />
-        <h2 className="text-[0.92rem] font-semibold text-zinc-100 tracking-wide">Sky Objects in Motion</h2>
+        <h2>Sky Objects in Motion</h2>
       </div>
+      <div className="card-body">
 
       {/* Tabs */}
       <div className="flex gap-1 mb-4">
@@ -126,8 +129,8 @@ export default function SkyMotion() {
       {/* ISS Passes tab */}
       {tab === "iss" && (
         visiblePasses.length === 0 ? (
-          <div className="rounded-xl border border-white/10 bg-white/[0.03] p-5">
-            <p className="text-sm text-zinc-400">No ISS passes visible right now. Check back later!</p>
+          <div className="py-8 text-center text-sm text-zinc-400">
+            No ISS passes visible right now. Check back later!
           </div>
         ) : (
           <div className="flex flex-col gap-3">
@@ -167,8 +170,8 @@ export default function SkyMotion() {
       {/* NEO tab */}
       {tab === "neo" && (
         neos.length === 0 ? (
-          <div className="rounded-xl border border-white/10 bg-white/[0.03] p-5">
-            <p className="text-sm text-zinc-400">No near-Earth objects data available right now.</p>
+          <div className="py-8 text-center text-sm text-zinc-400">
+            No Near-Earth Objects currently tracked.
           </div>
         ) : (
           <div className="flex flex-col gap-2">
@@ -204,8 +207,8 @@ export default function SkyMotion() {
       {/* Comets tab */}
       {tab === "comets" && (
         comets.length === 0 ? (
-          <div className="rounded-xl border border-white/10 bg-white/[0.03] p-5">
-            <p className="text-sm text-zinc-400">No comet data available right now.</p>
+          <div className="py-8 text-center text-sm text-zinc-400">
+            No Comets currently visible in the sky.
           </div>
         ) : (
           <div className="flex flex-col gap-2">
@@ -239,6 +242,7 @@ export default function SkyMotion() {
           </div>
         )
       )}
+      </div>
     </section>
   );
 }

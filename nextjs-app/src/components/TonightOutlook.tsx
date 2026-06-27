@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useEffect, useRef, useCallback } from "react";
+import * as THREE from "three";
 import { CloudSun, Moon, Eye, Telescope, Sparkles, CheckSquare, Square } from "lucide-react";
 
 interface SeeingData {
@@ -83,7 +84,7 @@ function SeeingCard({ seeing }: { seeing: SeeingData }) {
         : "text-red-400";
 
   return (
-    <div className="rounded-xl border border-white/10 bg-white/[0.03] p-5">
+    <div className="card card-body">
       <div className="flex items-center gap-2 mb-3">
         <Eye className="h-5 w-5 text-sky-400" strokeWidth={1.6} />
         <h3 className="text-[0.92rem] font-semibold text-zinc-100 tracking-wide">Seeing Conditions</h3>
@@ -154,7 +155,7 @@ function SeeingCard({ seeing }: { seeing: SeeingData }) {
 
 function MoonCard({ moon }: { moon: TonightReport["moon"] }) {
   return (
-    <div className="rounded-xl border border-white/10 bg-white/[0.03] p-5">
+    <div className="card card-body">
       <div className="flex items-center gap-2 mb-3">
         <Moon className="h-5 w-5 text-amber-400" strokeWidth={1.6} />
         <h3 className="text-[0.92rem] font-semibold text-zinc-100 tracking-wide">Moon</h3>
@@ -181,6 +182,11 @@ function MoonCard({ moon }: { moon: TonightReport["moon"] }) {
           {moon.altitude_deg}° {moon.direction}
         </p>
       )}
+
+      {/* 3D Moon Renderer */}
+      <div className="w-full mt-4 pt-4 border-t border-white/5 flex flex-col items-center">
+        <Moon3DWidget moon={moon} />
+      </div>
     </div>
   );
 }
@@ -189,7 +195,7 @@ function MustSeeCard({ items }: { items: TonightReport["must_see"] }) {
   if (!items.length) return null;
 
   return (
-    <div className="rounded-xl border border-white/10 bg-white/[0.03] p-5">
+    <div className="card card-body">
       <div className="flex items-center gap-2 mb-3">
         <Sparkles className="h-5 w-5 text-purple-400" strokeWidth={1.6} />
         <h3 className="text-[0.92rem] font-semibold text-zinc-100 tracking-wide">Must See Tonight</h3>
@@ -215,7 +221,7 @@ function MustSeeCard({ items }: { items: TonightReport["must_see"] }) {
 
 function TelescopeInfo({ telescope }: { telescope: TonightReport["telescope"] }) {
   return (
-    <div className="rounded-xl border border-white/10 bg-white/[0.03] p-5">
+    <div className="card card-body">
       <div className="flex items-center gap-2 mb-3">
         <Telescope className="h-5 w-5 text-sky-400" strokeWidth={1.6} />
         <h3 className="text-[0.92rem] font-semibold text-zinc-100 tracking-wide">Your Setup</h3>
@@ -263,7 +269,7 @@ function PreflightChecklist({ seeing }: { seeing: SeeingData }) {
   const allDone = checks.every((c) => checked[c.id]);
 
   return (
-    <div className="rounded-xl border border-white/10 bg-white/[0.03] p-5">
+    <div className="card card-body">
       <div className="flex items-center justify-between mb-3">
         <div className="flex items-center gap-2">
           <CheckSquare className="h-5 w-5 text-green-400" strokeWidth={1.6} />
@@ -304,82 +310,81 @@ function PreflightChecklist({ seeing }: { seeing: SeeingData }) {
 }
 
 function Moon3DWidget({ moon }: { moon: TonightReport["moon"] }) {
-  const canvasRef = useRef<HTMLCanvasElement>(null);
-
-  const drawMoon = useCallback(() => {
-    const canvas = canvasRef.current;
-    if (!canvas) return;
-    const ctx = canvas.getContext("2d");
-    if (!ctx) return;
-
-    const size = Math.min(canvas.clientWidth, 180);
-    canvas.width = size * 2;
-    canvas.height = size * 2;
-    const cx = canvas.width / 2;
-    const cy = canvas.height / 2;
-    const r = canvas.width * 0.38;
-
-    ctx.clearRect(0, 0, canvas.width, canvas.height);
-
-    // Shadow gradient based on illumination
-    const illum = moon.illumination_pct / 100;
-    const shadowX = cx + r * (1 - 2 * illum);
-
-    // Moon body
-    const grad = ctx.createRadialGradient(cx - r * 0.3, cy - r * 0.3, r * 0.1, cx, cy, r);
-    grad.addColorStop(0, "#e8e0d0");
-    grad.addColorStop(0.7, "#c8bfa8");
-    grad.addColorStop(1, "#8a8070");
-    ctx.beginPath();
-    ctx.arc(cx, cy, r, 0, Math.PI * 2);
-    ctx.fillStyle = grad;
-    ctx.fill();
-
-    // Shadow overlay
-    if (illum < 1) {
-      const shadowGrad = ctx.createLinearGradient(shadowX - r, 0, shadowX + r, 0);
-      shadowGrad.addColorStop(0, "rgba(5,5,16,0)");
-      shadowGrad.addColorStop(0.5, "rgba(5,5,16,0.7)");
-      shadowGrad.addColorStop(1, "rgba(5,5,16,0.95)");
-      ctx.beginPath();
-      ctx.arc(cx, cy, r, 0, Math.PI * 2);
-      ctx.fillStyle = shadowGrad;
-      ctx.fill();
-    }
-
-    // Craters
-    const craters = [
-      { x: cx - r * 0.2, y: cy - r * 0.15, r: r * 0.12 },
-      { x: cx + r * 0.25, y: cy + r * 0.1, r: r * 0.09 },
-      { x: cx - r * 0.1, y: cy + r * 0.3, r: r * 0.07 },
-      { x: cx + r * 0.05, y: cy - r * 0.35, r: r * 0.06 },
-    ];
-    craters.forEach((cr) => {
-      ctx.beginPath();
-      ctx.arc(cr.x, cr.y, cr.r, 0, Math.PI * 2);
-      ctx.fillStyle = "rgba(100,90,75,0.25)";
-      ctx.fill();
-      ctx.beginPath();
-      ctx.arc(cr.x + 1, cr.y + 1, cr.r * 0.7, 0, Math.PI * 2);
-      ctx.fillStyle = "rgba(80,70,55,0.15)";
-      ctx.fill();
-    });
-  }, [moon.illumination_pct]);
+  const containerRef = useRef<HTMLDivElement>(null);
+  const rafRef = useRef(0);
+  const meshRef = useRef<THREE.Mesh | null>(null);
 
   useEffect(() => {
-    drawMoon();
-    window.addEventListener("resize", drawMoon);
-    return () => window.removeEventListener("resize", drawMoon);
-  }, [drawMoon]);
+    const container = containerRef.current;
+    if (!container || typeof window === "undefined") return;
+
+    const w = container.clientWidth;
+    const h = container.clientHeight;
+    if (!w || !h) return;
+
+    const scene = new THREE.Scene();
+    const camera = new THREE.PerspectiveCamera(45, w / h, 0.1, 1000);
+    camera.position.z = 3.5;
+
+    const renderer = new THREE.WebGLRenderer({ alpha: true, antialias: true });
+    renderer.setSize(w, h);
+    renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+    
+    // Clear previous canvas if any
+    while (container.firstChild) {
+      container.removeChild(container.firstChild);
+    }
+    container.appendChild(renderer.domElement);
+
+    // Light
+    const ambient = new THREE.AmbientLight(0x222233, 0.5);
+    scene.add(ambient);
+
+    // Directional light based on moon illumination
+    const illum = moon.illumination_pct / 100;
+    const lightAngle = Math.PI * (1 - illum * 2);
+    
+    const dirLight = new THREE.DirectionalLight(0xffeedd, 1.2);
+    dirLight.position.set(Math.cos(lightAngle) * 5, 0.5, Math.sin(lightAngle) * 5);
+    scene.add(dirLight);
+
+    // Moon Mesh
+    const geo = new THREE.SphereGeometry(1, 48, 48);
+    const texLoader = new THREE.TextureLoader();
+    const mat = new THREE.MeshPhongMaterial({
+      map: texLoader.load("/assets/moon_texture.jpg"),
+      bumpMap: texLoader.load("/assets/moon_texture.jpg"),
+      bumpScale: 0.02,
+      specular: 0x111111,
+      shininess: 5,
+    });
+
+    const mesh = new THREE.Mesh(geo, mat);
+    meshRef.current = mesh;
+    mesh.rotation.y = -Math.PI / 2;
+    mesh.rotation.x = 0.1;
+    scene.add(mesh);
+
+    const animate = () => {
+      rafRef.current = requestAnimationFrame(animate);
+      if (meshRef.current) {
+        meshRef.current.rotation.y += 0.001;
+      }
+      renderer.render(scene, camera);
+    };
+    animate();
+
+    return () => {
+      cancelAnimationFrame(rafRef.current);
+      renderer.dispose();
+      mat.dispose();
+      geo.dispose();
+    };
+  }, [moon.illumination_pct]);
 
   return (
-    <div className="flex flex-col items-center gap-2">
-      <canvas
-        ref={canvasRef}
-        className="w-full max-w-[180px] h-auto"
-        style={{ filter: "drop-shadow(0 0 12px rgba(200,190,170,0.15))" }}
-      />
-      <p className="text-[0.65rem] text-zinc-500 font-mono">{moon.illumination_pct}% illuminated</p>
+    <div className="w-full h-48 flex items-center justify-center">
+      <div ref={containerRef} className="w-full h-full" />
     </div>
   );
 }
@@ -408,7 +413,7 @@ export default function TonightOutlook() {
   if (loading) {
     return (
       <section id="card-tonight" className="w-full">
-        <div className="animate-pulse rounded-xl border border-white/10 bg-white/[0.03] p-5">
+        <div className="card animate-pulse p-5">
           <div className="h-6 w-48 bg-white/10 rounded mb-4" />
           <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
             <div className="h-48 bg-white/5 rounded" />
@@ -440,11 +445,12 @@ export default function TonightOutlook() {
         <span className="text-xs text-zinc-500 font-mono">{report.date} · Generated {report.time_generated}</span>
       </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
-        <SeeingCard seeing={report.seeing} />
-        <div className="flex flex-col gap-5">
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+        <div className="lg:col-span-2 flex flex-col h-full">
+          <SeeingCard seeing={report.seeing} />
+        </div>
+        <div className="lg:col-span-1 flex flex-col h-full">
           <MoonCard moon={report.moon} />
-          <Moon3DWidget moon={report.moon} />
         </div>
       </div>
 
@@ -456,7 +462,7 @@ export default function TonightOutlook() {
         <TelescopeInfo telescope={report.telescope} />
 
         {/* Dusk/Dawn + Planet Fact */}
-        <div className="rounded-xl border border-white/10 bg-white/[0.03] p-5">
+        <div className="card card-body">
           <h3 className="text-[0.92rem] font-semibold text-zinc-100 tracking-wide mb-3">Dark Window</h3>
           <div className="flex items-center justify-between mb-4">
             <div>

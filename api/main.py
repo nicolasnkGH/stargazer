@@ -176,7 +176,7 @@ import json
 asteroid_cache = {"timestamp": 0, "data": None}
 star_cache = {}
 
-@app.get("/api/asteroids")
+@app.get("/asteroids")
 def get_asteroids():
     now = datetime.now(ZoneInfo("UTC")).timestamp()
     if now - asteroid_cache["timestamp"] < 43200 and asteroid_cache["data"]: # 12 hours
@@ -213,7 +213,7 @@ def get_asteroids():
         print(f"Error fetching asteroids: {e}")
         return JSONResponse(content=[])
 
-@app.get("/api/star")
+@app.get("/star")
 def get_star(name: Optional[str] = None, ra: Optional[float] = None, dec: Optional[float] = None):
     cache_key = name if name else f"{ra},{dec}"
     if cache_key in star_cache:

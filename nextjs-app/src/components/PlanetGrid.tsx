@@ -30,7 +30,7 @@ function PlanetCard({ planet }: { planet: PlanetData }) {
   const distStr = `${planet.distance_mkm}M km (${planet.light_time_minutes} min light)`;
 
   return (
-    <div className={`flex flex-col rounded-xl border border-white/10 bg-white/[0.03] transition-colors hover:border-sky-400/18 ${planet.visible_tonight ? "" : "opacity-45"}`}>
+    <div className={`flex flex-col card transition-colors hover:border-sky-400/18 ${planet.visible_tonight ? "" : "opacity-45"}`}>
       {/* 3D canvas placeholder — planets3d.js mounts here */}
       <div
         className="relative h-[200px] w-full flex-shrink-0 overflow-hidden bg-transparent"
@@ -104,7 +104,7 @@ export default function PlanetGrid() {
         const res = await fetch(`${API_BASE}/planets`);
         if (!res.ok) throw new Error(`HTTP ${res.status}`);
         const data = await res.json();
-        setPlanets(data);
+        setPlanets(data.planets || []);
       } catch (e) {
         setError(e instanceof Error ? e.message : "Failed to fetch planets");
       } finally {
@@ -117,7 +117,7 @@ export default function PlanetGrid() {
   return (
     <section className="card card-planets">
       {/* Card header */}
-      <div className="flex items-center gap-2.5 border-b border-white/[0.10] bg-slate-900/25 px-5 py-3.5">
+      <div className="card-header">
         <Orbit className="h-5 w-5" strokeWidth={1.6} />
         <h2 className="text-[0.92rem] font-semibold text-zinc-100 tracking-wide">
           Planets Tonight

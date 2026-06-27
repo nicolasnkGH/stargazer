@@ -5,6 +5,7 @@
   [![Python](https://img.shields.io/badge/Python-3.11+-blue.svg)](https://python.org)
   [![FastAPI](https://img.shields.io/badge/FastAPI-0.100+-00a393.svg)](https://fastapi.tiangolo.com)
   [![Vanilla JS](https://img.shields.io/badge/Vanilla-JS-f7df1e.svg)](https://developer.mozilla.org/en-US/docs/Web/JavaScript)
+  [![Next.js](https://img.shields.io/badge/Next.js-16+-black.svg)](https://nextjs.org)
   [![Cloudflare Pages](https://img.shields.io/badge/Deployed_on-Cloudflare-f38020.svg)](https://pages.cloudflare.com)
   [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
   [![Release](https://img.shields.io/github/v/release/nicolasnkGH/stargazer)](https://github.com/nicolasnkGH/stargazer/releases)
@@ -58,9 +59,9 @@ The `api/` directory contains a lightning-fast Python API built on **FastAPI**.
 It acts as an engine that calculates ephemerides (using `skyfield`), scrapes seeing conditions, calculates ISS passes, and serves pre-computed target databases.
 - **AI Integration**: The backend employs a highly resilient AI pipeline to analyze weather data. It defaults to the **Google Gemini API** for ultra-fast reasoning, but seamlessly falls back to a **local Qwen LLM** running on AMD ROCm (`llama.cpp`) if the cloud API is unavailable. It gracefully degrades to a deterministic math algorithm if all AI services are unreachable.
 
-### 2. Frontend Dashboard (Vanilla JS / HTML / CSS)
-The `web/` directory contains a 100% build-free Vanilla JS frontend.
-No React, no Webpack, no node_modules. Just pure HTML, CSS, and JS. It is extremely fast, fully responsive, and utilizes modern CSS concepts like glassmorphism.
+### 2. Frontend Dashboard (Next.js 16 App Router)
+The frontend has been completely modernized from Vanilla JS to a powerful **Next.js 16** stack located in `nextjs-app/`.
+It utilizes TailwindCSS, Turbopack, and Server Components while retaining the beautiful dark-mode glassmorphism aesthetics of the original vanilla design. It connects to the Python API via a configured rewrite proxy.
 
 ---
 
@@ -78,14 +79,15 @@ uvicorn main:app --host 0.0.0.0 --port 8181 --reload
 ```
 The API will be available at `http://localhost:8181`. You can view the interactive Swagger documentation at `http://localhost:8181/docs`.
 
-### 2. Run the Frontend
-Since the frontend uses pure HTML/JS without any bundler, you can serve it with any standard HTTP server.
+### 2. Run the Frontend (Next.js)
+The frontend is built with Next.js and TailwindCSS.
 
 ```bash
-cd web
-python3 -m http.server 8000
+cd nextjs-app
+npm install
+npm run dev
 ```
-Open `http://localhost:8000` in your browser. The frontend logic (`app.js`) will automatically detect that you are running on `localhost` and route API calls to `http://localhost:8181`.
+Open `http://localhost:3000` in your browser. The Next.js dev server will automatically proxy `/api/*` requests to the Python backend running on port 8181.
 
 ---
 
