@@ -23,8 +23,7 @@
   renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2.0));
   renderer.setSize(w, h);
   renderer.outputEncoding = THREE.sRGBEncoding;
-  renderer.toneMapping = THREE.ACESFilmicToneMapping;
-  renderer.toneMappingExposure = 1.1;
+  // Tone mapping removed to keep colors vibrant and matching CSS exactly
 
   // ── Starfield ─────────────────────────────────────────────────────────────
   (function () {
@@ -46,14 +45,21 @@
     scene.add(new THREE.Points(geo, mat));
   })();
 
-  // ── Lighting — warm sunlight + subtle fill ────────────────────────────────
-  scene.add(new THREE.AmbientLight(0x1a1a30, 1.0));
-  const sunLight = new THREE.PointLight(0xffeecc, 5.0, 300, 1.2);
-  sunLight.position.set(0, 5, 0);
-  scene.add(sunLight);
-  const hemiLight = new THREE.HemisphereLight(0x3344aa, 0x111122, 0.4);
+  // ── Lights ────────────────────────────────────────────────────────────────
+  // Vibrant lighting to make planet colors pop
+  scene.add(new THREE.AmbientLight(0xffffff, 0.4));
+  
+  // A subtle blue hemisphere light to fill in shadows
+  const hemiLight = new THREE.HemisphereLight(0xffffff, 0x444466, 0.5);
   scene.add(hemiLight);
-  const rimLight = new THREE.DirectionalLight(0x4466aa, 0.3);
+
+  // The sun's light
+  const sunLight = new THREE.PointLight(0xffffff, 2.0, 500, 1.0);
+  sunLight.position.set(0, 0, 0);
+  scene.add(sunLight);
+
+  // Rim light for that cinematic 3D edge
+  const rimLight = new THREE.DirectionalLight(0x88bbff, 0.6);
   rimLight.position.set(40, 20, -40);
   scene.add(rimLight);
 
@@ -166,24 +172,26 @@
 
     // ── Sun glow: layered sprite for realistic corona ──
     if (def.isSun) {
-      // Inner warm glow
+      // Add vibrant glow sprite
       const glowCanvas = document.createElement('canvas');
       glowCanvas.width = 256; glowCanvas.height = 256;
       const gctx = glowCanvas.getContext('2d');
       const grad = gctx.createRadialGradient(128, 128, 0, 128, 128, 128);
-      grad.addColorStop(0,    'rgba(255,230,140,0.50)');
-      grad.addColorStop(0.15, 'rgba(255,200,80,0.30)');
-      grad.addColorStop(0.35, 'rgba(255,140,30,0.12)');
-      grad.addColorStop(0.6,  'rgba(255,100,10,0.04)');
-      grad.addColorStop(1,    'rgba(255,60,0,0)');
+      grad.addColorStop(0,    'rgba(255, 180, 50, 1.0)');
+      grad.addColorStop(0.2,  'rgba(255, 120, 20, 0.8)');
+      grad.addColorStop(0.4,  'rgba(255, 80, 0, 0.4)');
+      grad.addColorStop(0.7,  'rgba(255, 40, 0, 0.1)');
+      grad.addColorStop(1,    'rgba(255, 0, 0, 0)');
       gctx.fillStyle = grad;
       gctx.fillRect(0, 0, 256, 256);
+      
       const glowTex = new THREE.CanvasTexture(glowCanvas);
+      glowTex.encoding = THREE.sRGBEncoding;
       const glowMat = new THREE.SpriteMaterial({
-        map: glowTex, transparent: true, blending: THREE.AdditiveBlending,
+        map: glowTex, transparent: true, blending: THREE.AdditiveBlending, depthWrite: false
       });
       const glowSprite = new THREE.Sprite(glowMat);
-      glowSprite.scale.set(28, 28, 1);
+      glowSprite.scale.set(38, 38, 1);
       mesh.add(glowSprite);
 
       // Outer diffuse halo
@@ -257,8 +265,8 @@
       points.push(new THREE.Vector3(Math.cos(a) * def.orbit, -0.15, Math.sin(a) * def.orbit));
     }
     const lineGeo = new THREE.BufferGeometry().setFromPoints(points);
-    const lineMat = new THREE.LineBasicMaterial({
-      color: 0x334477, transparent: true, opacity: 0.12,
+    const lineMat = new THREE.LineBasicMaterial({ 
+      color: 0xffffff, transparent: true, opacity: 0.15 
     });
     scene.add(new THREE.Line(lineGeo, lineMat));
   });
