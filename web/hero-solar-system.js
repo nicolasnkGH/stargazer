@@ -22,7 +22,7 @@
   const renderer = new THREE.WebGLRenderer({ canvas, alpha: true, antialias: true });
   renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2.0));
   renderer.setSize(w, h);
-  renderer.outputColorSpace = THREE.SRGBColorSpace;
+  renderer.outputEncoding = THREE.sRGBEncoding;
   renderer.toneMapping = THREE.ACESFilmicToneMapping;
   renderer.toneMappingExposure = 1.1;
 
@@ -60,15 +60,15 @@
   // ── Planet definitions ────────────────────────────────────────────────────
   // Sizes tuned for visual impact at the camera distance
   const PLANETS = [
-    { name: 'sun',     radius: 7,   orbit: 0,   speed: 0,       tex: '/assets/2k_sun.jpg',              isSun: true },
-    { name: 'mercury', radius: 1.2, orbit: 14,  speed: 0.022,   tex: '/assets/mercury.jpg',             tilt: 0.03 },
-    { name: 'venus',   radius: 2.4, orbit: 22,  speed: 0.010,   tex: '/assets/venus.jpg',               tilt: 177.4 },
-    { name: 'earth',   radius: 2.6, orbit: 32,  speed: 0.007,   tex: '/assets/2k_earth_daymap.jpg',     tilt: 23.4 },
-    { name: 'mars',    radius: 1.8, orbit: 42,  speed: 0.005,   tex: '/assets/mars.jpg',                tilt: 25.2 },
-    { name: 'jupiter', radius: 5.0, orbit: 58,  speed: 0.0016,  tex: '/assets/jupiter.jpg',             tilt: 3.1 },
-    { name: 'saturn',  radius: 4.0, orbit: 76,  speed: 0.0009,  tex: '/assets/saturn.jpg',              tilt: 26.7, hasRing: true, ringTex: '/assets/saturn_ring_color.jpg' },
-    { name: 'uranus',  radius: 2.8, orbit: 92,  speed: 0.0004,  tex: '/assets/uranus.jpg',              tilt: 97.8 },
-    { name: 'neptune', radius: 2.6, orbit: 106, speed: 0.0003,  tex: '/assets/neptune.jpg',             tilt: 28.3 },
+    { name: 'sun',     radius: 7,   orbit: 0,   speed: 0,       tex: 'assets/2k_sun.jpg',              isSun: true },
+    { name: 'mercury', radius: 1.2, orbit: 14,  speed: 0.022,   tex: 'assets/mercury.jpg',             tilt: 0.03 },
+    { name: 'venus',   radius: 2.4, orbit: 22,  speed: 0.010,   tex: 'assets/venus.jpg',               tilt: 177.4 },
+    { name: 'earth',   radius: 2.6, orbit: 32,  speed: 0.007,   tex: 'assets/2k_earth_daymap.jpg',     tilt: 23.4 },
+    { name: 'mars',    radius: 1.8, orbit: 42,  speed: 0.005,   tex: 'assets/mars.jpg',                tilt: 25.2 },
+    { name: 'jupiter', radius: 5.0, orbit: 58,  speed: 0.0016,  tex: 'assets/jupiter.jpg',             tilt: 3.1 },
+    { name: 'saturn',  radius: 4.0, orbit: 76,  speed: 0.0009,  tex: 'assets/saturn.jpg',              tilt: 26.7, hasRing: true, ringTex: 'assets/saturn_ring_color.jpg' },
+    { name: 'uranus',  radius: 2.8, orbit: 92,  speed: 0.0004,  tex: 'assets/uranus.jpg',              tilt: 97.8 },
+    { name: 'neptune', radius: 2.6, orbit: 106, speed: 0.0003,  tex: 'assets/neptune.jpg',             tilt: 28.3 },
   ];
 
   // ── Saturn ring geometry with proper UV mapping ───────────────────────────
@@ -115,14 +115,14 @@
     if (def.isSun) {
       // Sun: emissive glow material
       const sunTex = loader.load(def.tex, undefined, undefined, () => {});
-      sunTex.colorSpace = THREE.SRGBColorSpace;
+      sunTex.encoding = THREE.sRGBEncoding;
       mat = new THREE.MeshBasicMaterial({ map: sunTex });
       // Fallback
       sunTex.onerror = () => { mat.map = makeSunTexture(); mat.needsUpdate = true; };
     } else {
       // Textured planets with realistic material
       const tex = loader.load(def.tex, undefined, undefined, () => {});
-      tex.colorSpace = THREE.SRGBColorSpace;
+      tex.encoding = THREE.sRGBEncoding;
       mat = new THREE.MeshStandardMaterial({
         map: tex,
         roughness: 0.82,
@@ -202,7 +202,7 @@
       const ringGeo = makeSaturnRingGeo(innerR, outerR);
       if (def.ringTex) {
         loader.load(def.ringTex, ringTex => {
-          ringTex.colorSpace = THREE.SRGBColorSpace;
+          ringTex.encoding = THREE.sRGBEncoding;
           const ringMat = new THREE.MeshBasicMaterial({
             map: ringTex, side: THREE.DoubleSide, transparent: true, opacity: 0.85,
           });

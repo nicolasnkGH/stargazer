@@ -68,7 +68,7 @@ table {
   position: absolute;
   width: 100%;
   height: 100%;
-  /* transform-style: preserve-3d; removed for CPU */  }
+  transform-style: preserve-3d; }
 
 .orbit {
   position: absolute;
@@ -76,7 +76,7 @@ table {
   left: 50%;
   border: 1px solid rgba(255, 255, 255, 0.2);
   border-radius: 50%;
-  /* transform-style: preserve-3d; removed for CPU */ 
+  transform-style: preserve-3d;
   animation-name: orbit;
   animation-iteration-count: infinite;
   animation-timing-function: linear; }
@@ -91,7 +91,7 @@ table {
   height: 2em;
   margin-top: -1em;
   margin-left: -1em;
-  /* transform-style: preserve-3d; removed for CPU */ 
+  transform-style: preserve-3d;
   animation-name: invert;
   animation-iteration-count: infinite;
   animation-timing-function: linear; }
@@ -105,7 +105,7 @@ table {
   margin-top: -0.5em;
   margin-left: -0.5em;
   border-radius: 50%;
-  /* transform-style: preserve-3d; removed for CPU */  }
+  transform-style: preserve-3d; }
 
 #sun {
   background-color: #FB7209;
@@ -232,10 +232,10 @@ table {
 
 /* --------------------------------------------------------------------------- 3D view */
 .view-3D.zoom-large #sun {
-  /* transform-style: preserve-3d; removed for CPU */  }
+  transform-style: preserve-3d; }
 
 .view-3D.zoom-large .orbit {
-  /* transform-style: preserve-3d; removed for CPU */  }
+  transform-style: preserve-3d; }
 
 .view-3D #solar-system {
   transform: rotateX(75deg); }
@@ -1079,7 +1079,7 @@ dl.infos {
   margin-left: 90%;
   padding-left: 100%;
   transform-origin: 100% 100%;
-  /* transform-style: preserve-3d; removed for CPU */ 
+  transform-style: preserve-3d;
   transform: rotateX(90deg); }
 
 dl.infos:before {
@@ -1091,7 +1091,7 @@ dl.infos:before {
   bottom: 0;
   border-top: 1px solid white;
   border-left: 1px solid white;
-  /* transform-style: preserve-3d; removed for CPU */ 
+  transform-style: preserve-3d;
   transform: skew(-45deg, 0deg);
   box-shadow: inset 1px 1px black; }
 

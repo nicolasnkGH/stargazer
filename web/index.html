@@ -35,7 +35,6 @@
   <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/controls/OrbitControls.js"></script>
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/driver.js@1.0.1/dist/driver.css" integrity="sha384-bovbcpDBo0pTIhd7ws6ebPh1PG31ubAHcX2pv8Tcu5EtFHNl5FBciYFtS/e2SN66" crossorigin="anonymous" />
   <link rel="stylesheet" href="style.css?v=74" />
-  <link rel="stylesheet" href="css-solar-system.css" />
   
   <!-- D3.js and d3-celestial for Interactive Star Map -->
   <script src="https://d3js.org/d3.v3.min.js"></script>
@@ -139,33 +138,8 @@
 
   <!-- ── 3D Gravity Well Hero Section ── -->
   <section id="hero-section">
-      <!-- 3D CSS Solar System Background -->
-      <div id="css-solar-system-wrapper" class="set-speed view-3D zoom-large data-close controls-close">
-        <div id="universe" class="scale-stretched">
-          <div id="galaxy">
-            <div id="solar-system" class="earth">
-              <div id="mercury" class="orbit"><div class="pos"><div class="planet"></div></div></div>
-              <div id="venus" class="orbit"><div class="pos"><div class="planet"></div></div></div>
-              <div id="earth" class="orbit">
-                <div class="pos">
-                  <div class="orbit"><div class="pos"><div class="moon"></div></div></div>
-                  <div class="planet"></div>
-                </div>
-              </div>
-              <div id="mars" class="orbit"><div class="pos"><div class="planet"></div></div></div>
-              <div id="jupiter" class="orbit"><div class="pos"><div class="planet"></div></div></div>
-              <div id="saturn" class="orbit">
-                <div class="pos">
-                  <div class="planet"><div class="ring"></div></div>
-                </div>
-              </div>
-              <div id="uranus" class="orbit"><div class="pos"><div class="planet"></div></div></div>
-              <div id="neptune" class="orbit"><div class="pos"><div class="planet"></div></div></div>
-              <div id="sun"></div>
-            </div>
-          </div>
-        </div>
-      </div>
+      <!-- 3D WebGL Solar System Background -->
+      <canvas id="solar-system-canvas" style="position:absolute; top:0; left:0; width:100%; height:100%; pointer-events:none; z-index:0;"></canvas>
       <!-- Hero text overlay -->
       <div class="hero-content">
         <div class="hero-eyebrow-row">
@@ -855,8 +829,8 @@
   </div>
 
   <script src="translations.js"></script>
-  <script src="moon3d.js?v=6"></script>
+  <script src="moon3d.js?v=55" defer></script>
+  <script src="hero-solar-system.js?v=55" defer></script>
   <script src="app.js?v=55"></script>
-  <script src="css-solar-system.js"></script>
 </body>
 </html>
