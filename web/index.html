@@ -37,7 +37,7 @@
   <link rel="preload" as="image" href="assets/2k_sun.jpg" />
   <link rel="preload" as="image" href="assets/2k_earth_daymap.jpg" />
 
-  <link rel="stylesheet" href="style.css?v=74" />
+  <link rel="stylesheet" href="style.css?v=2" />
 
   <!-- D3.js and d3-celestial for Interactive Star Map -->
   <script src="https://d3js.org/d3.v3.min.js" defer></script>
@@ -636,11 +636,25 @@
     <section class="card" id="card-optics" style="margin-top: 24px;">
       <div class="card-header">
         <span class="card-icon"><i data-lucide="telescope"></i></span>
-        <h2 class="card-title">Telescope Optics</h2>
+        <h2 class="card-title">Telescope Optics & Eyepiece Guide</h2>
       </div>
       <div class="card-body">
-        <p style="font-size: 0.85rem; color: var(--text-secondary); margin-bottom: 12px;">Calculate the exact magnification and Field of View (FOV) for your equipment.</p>
+        <p style="font-size: 0.85rem; color: var(--text-secondary); margin-bottom: 12px;">Not sure what eyepiece to use? Select what you want to look at, and we'll tell you what you need!</p>
         
+        <div style="margin-bottom: 16px;">
+          <label style="font-size: 0.8rem; color: var(--text-secondary); display: block; margin-bottom: 4px;">What do you want to observe?</label>
+          <select id="calc-target-type" style="width: 100%; background: rgba(0,0,0,0.4); border: 1px solid rgba(255,255,255,0.2); color: var(--text-primary); border-radius: 4px; padding: 8px;" onchange="updateOptics()">
+            <option value="planets">Planets (Jupiter, Saturn, Mars)</option>
+            <option value="moon">The Moon</option>
+            <option value="clusters">Star Clusters (Globular & Open)</option>
+            <option value="nebulae">Wide Nebulae (Orion, Andromeda)</option>
+          </select>
+        </div>
+
+        <div id="calc-recommendation" style="background: rgba(74,158,255,0.1); border-left: 3px solid var(--accent-blue); padding: 10px 12px; font-size: 0.85rem; color: rgba(255,255,255,0.9); margin-bottom: 16px; border-radius: 0 4px 4px 0;">
+          <!-- Populated by JS -->
+        </div>
+
         <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 12px;">
           <div>
             <label style="font-size: 0.8rem; color: var(--text-secondary);">Telescope Focal Length (mm)</label>
@@ -662,15 +676,15 @@
 
         <div style="background: rgba(255,255,255,0.05); padding: 12px; border-radius: 6px; display: flex; justify-content: space-between; text-align: center;">
           <div>
-            <div style="font-size: 0.75rem; color: var(--text-secondary);">Magnification</div>
+            <div style="font-size: 0.75rem; color: var(--text-secondary); display: flex; align-items: center; justify-content: center; gap: 4px;">Magnification <span style="cursor:pointer; opacity:0.6;" onclick="showInfo('How many times larger the object appears.', event)"><i data-lucide="info" style="width:12px; height:12px;"></i></span></div>
             <div id="calc-out-mag" style="font-size: 1.2rem; font-weight: bold; color: var(--accent-blue);">26x</div>
           </div>
           <div>
-            <div style="font-size: 0.75rem; color: var(--text-secondary);">True FOV</div>
+            <div style="font-size: 0.75rem; color: var(--text-secondary); display: flex; align-items: center; justify-content: center; gap: 4px;">True FOV <span style="cursor:pointer; opacity:0.6;" onclick="showInfo('How much actual sky you can see at once (e.g. the full Moon is ~0.5° wide).', event)"><i data-lucide="info" style="width:12px; height:12px;"></i></span></div>
             <div id="calc-out-tfov" style="font-size: 1.2rem; font-weight: bold; color: var(--accent-orange);">2.00°</div>
           </div>
           <div>
-            <div style="font-size: 0.75rem; color: var(--text-secondary);">Max Useful</div>
+            <div style="font-size: 0.75rem; color: var(--text-secondary); display: flex; align-items: center; justify-content: center; gap: 4px;">Max Useful <span style="cursor:pointer; opacity:0.6;" onclick="showInfo('The maximum useful magnification before the image gets too blurry for this aperture.', event)"><i data-lucide="info" style="width:12px; height:12px;"></i></span></div>
             <div id="calc-out-max" style="font-size: 1.2rem; font-weight: bold; color: var(--accent-purple);">260x</div>
           </div>
         </div>
