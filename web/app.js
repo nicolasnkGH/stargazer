@@ -1615,7 +1615,7 @@ function renderTargetGrid(targets, liveMap, filter) {
           </div>
           <span class="tc-mag">mag ${t.magnitude}</span>
         </div>
-        <img class="target-thumb" src="/assets/targets/${t.id}.jpg" alt="${tName}" onerror="this.style.display='none'">
+        ${['m1', 'm31', 'm4', 'm42', 'm7', 'm8', 'omega_cen', 'pleiades'].includes(t.id) ? `<img class="target-thumb" src="/assets/targets/${t.id}.jpg" alt="${tName}">` : ''}
         <div class="tc-desc">${tDesc}</div>
         ${t.horizon_note ? `<div class="tc-horizon-note">${t.horizon_note}</div>` : ''}
         <div class="tc-footer">
@@ -2321,14 +2321,35 @@ window.updateOptics = function() {
   const scopeAp = parseFloat(document.getElementById('calc-scope-ap').value) || 130;
   const epFl = parseFloat(document.getElementById('calc-ep-fl').value) || 25;
   const epAfov = parseFloat(document.getElementById('calc-ep-afov').value) || 52;
+  const targetType = document.getElementById('calc-target-type').value;
 
   const mag = scopeFl / epFl;
   const tfov = epAfov / mag;
   const max = scopeAp * 2;
 
+  let recText = "";
+  if (targetType === 'planets') {
+    recText = `<strong>Planets are tiny.</strong> You need at least <strong>100x - 150x</strong> magnification to see details like Jupiter's bands or Saturn's rings. Try an eyepiece around <strong>${Math.max(4, Math.round(scopeFl/150))}mm to ${Math.round(scopeFl/100)}mm</strong>.`;
+  } else if (targetType === 'moon') {
+    recText = `<strong>The Moon is huge (~0.5° wide).</strong> To see the whole Moon at once, your True FOV must be &gt; 0.5°. For zooming into craters, push the magnification to <strong>100x+</strong>!`;
+  } else if (targetType === 'clusters') {
+    recText = `<strong>Star clusters vary in size.</strong> A moderate magnification of <strong>40x - 80x</strong> is usually best to resolve individual stars while keeping the cluster framed beautifully.`;
+  } else if (targetType === 'nebulae') {
+    recText = `<strong>Nebulae are faint and sprawling.</strong> You want a very wide True FOV (<strong>&gt; 1.5°</strong>) and low magnification to concentrate their faint light. Stick to your <strong>25mm or 32mm</strong> eyepiece!`;
+  }
+  
+  document.getElementById('calc-recommendation').innerHTML = recText;
+
   document.getElementById('calc-out-mag').innerText = Math.round(mag) + 'x';
   document.getElementById('calc-out-tfov').innerText = tfov.toFixed(2) + '°';
   document.getElementById('calc-out-max').innerText = Math.round(max) + 'x';
 };
+
+// Initialize optics on load
+document.addEventListener('DOMContentLoaded', () => {
+  if (document.getElementById('calc-target-type')) {
+    window.updateOptics();
+  }
+});
 
 

@@ -1395,9 +1395,11 @@ body {
   position: relative;
   cursor: help;
   opacity: 0.8;
+  z-index: 1000;
 }
 .ux-tooltip:hover {
   opacity: 1;
+  z-index: 10000;
 }
 .ux-tooltip::after {
   content: attr(data-tooltip);
@@ -1405,25 +1407,32 @@ body {
   bottom: 150%;
   left: 50%;
   transform: translateX(-50%);
-  background: rgba(15, 23, 42, 0.95);
-  color: white;
-  padding: 8px 12px;
-  border-radius: 6px;
-  font-size: 0.75rem;
+  background: rgba(20, 20, 30, 0.95);
+  color: #e2e8f0;
+  padding: 10px 14px;
+  border-radius: 8px;
+  font-size: 0.85rem;
   font-family: 'Inter', sans-serif;
   width: max-content;
-  max-width: 200px;
+  max-width: 250px;
   text-align: center;
   white-space: normal;
   opacity: 0;
   pointer-events: none;
   transition: opacity 0.2s, transform 0.2s;
-  z-index: 100;
-  border: 1px solid rgba(255,255,255,0.1);
-  box-shadow: 0 4px 6px rgba(0,0,0,0.3);
+  z-index: 9999;
+  border: 1px solid rgba(138, 43, 226, 0.4);
+  box-shadow: 0 8px 24px rgba(0,0,0,0.8);
+  backdrop-filter: blur(8px);
 }
 .ux-tooltip:hover::after {
   opacity: 1;
+}
+
+.ux-tooltip.ux-tooltip-left::after {
+  left: auto;
+  right: 0;
+  transform: none;
 }
 .tc-difficulty.naked_eye {
   color: #22c55e;
