@@ -124,9 +124,6 @@ def _load_targets_json():
 
 OTHER_TARGETS = _load_targets_json()
 
-# Telegram config (set via environment variables)
-TELEGRAM_BOT_TOKEN = os.getenv("TELEGRAM_BOT_TOKEN", "")
-TELEGRAM_CHAT_ID = os.getenv("TELEGRAM_CHAT_ID", "")
 
 # API Keys (all optional / free)
 NASA_APOD_KEY = os.getenv("NASA_APOD_KEY", "DEMO_KEY")  # free tier

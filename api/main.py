@@ -27,9 +27,7 @@ from engine import (
     get_visible_targets,
     get_iss_passes,
     get_seeing_forecast,
-    format_tonight_telegram,
-    format_weekly_telegram,
-    format_monthly_telegram,
+
     get_constellations,
     get_constellation_window,
     now_local,
@@ -154,7 +152,7 @@ def root():
         "time": now_local().isoformat(),
         "endpoints": ["/tonight", "/weekly", "/monthly", "/scorpius",
                       "/moon", "/planets", "/iss", "/seeing",
-                      "/targets", "/tonight/telegram", "/weekly/telegram", "/monthly/telegram"],
+                      "/targets"],
     }
 
 @app.options("/{full_path:path}")
@@ -290,17 +288,6 @@ def tonight(
     except Exception as e:
         return JSONResponse(status_code=500, content={"error": str(e)})
 
-@app.get("/tonight/telegram")
-def tonight_telegram(
-    lat: Annotated[Optional[float], AfterValidator(validate_latitude)] = Query(None),
-    lon: Annotated[Optional[float], AfterValidator(validate_longitude)] = Query(None),
-):
-    """Tonight's report formatted as Telegram markdown message."""
-    try:
-        report = get_tonight_report(lat=lat, lon=lon)
-        return PlainTextResponse(format_tonight_telegram(report))
-    except Exception as e:
-        return PlainTextResponse(f"❌ Error: {str(e)}")
 
 # ── Weekly ────────────────────────────────────────────────────────────────────
 
@@ -315,17 +302,6 @@ def weekly(
     except Exception as e:
         return JSONResponse(status_code=500, content={"error": str(e)})
 
-@app.get("/weekly/telegram")
-def weekly_telegram(
-    lat: Annotated[Optional[float], AfterValidator(validate_latitude)] = Query(None),
-    lon: Annotated[Optional[float], AfterValidator(validate_longitude)] = Query(None),
-):
-    """Weekly report formatted as Telegram markdown message."""
-    try:
-        report = get_weekly_report(lat=lat, lon=lon)
-        return PlainTextResponse(format_weekly_telegram(report))
-    except Exception as e:
-        return PlainTextResponse(f"❌ Error: {str(e)}")
 
 # ── Monthly ───────────────────────────────────────────────────────────────────
 
@@ -340,17 +316,6 @@ def monthly(
     except Exception as e:
         return JSONResponse(status_code=500, content={"error": str(e)})
 
-@app.get("/monthly/telegram")
-def monthly_telegram(
-    lat: Annotated[Optional[float], AfterValidator(validate_latitude)] = Query(None),
-    lon: Annotated[Optional[float], AfterValidator(validate_longitude)] = Query(None),
-):
-    """Monthly report formatted as Telegram markdown message."""
-    try:
-        report = get_monthly_report(lat=lat, lon=lon)
-        return PlainTextResponse(format_monthly_telegram(report))
-    except Exception as e:
-        return PlainTextResponse(f"❌ Error: {str(e)}")
 
 # ── Individual Endpoints ──────────────────────────────────────────────────────
 

@@ -15,7 +15,6 @@ from .moon import get_moon_info
 from .planets import get_planet_positions, _az_to_direction
 from .targets import get_visible_targets
 from .seeing import get_seeing_forecast
-from .telegram import format_tonight_telegram, format_weekly_telegram, format_monthly_telegram
 from config import BORTLE_CLASS, TELESCOPE_APERTURE_MM, LATITUDE, LONGITUDE, LIMITING_MAG
 
 FAMOUS_CONSTELLATIONS = {
