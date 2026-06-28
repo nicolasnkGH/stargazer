@@ -1615,6 +1615,7 @@ function renderTargetGrid(targets, liveMap, filter) {
           </div>
           <span class="tc-mag">mag ${t.magnitude}</span>
         </div>
+        <img class="target-thumb" src="/assets/targets/${t.id}.jpg" alt="${tName}" onerror="this.style.display='none'">
         <div class="tc-desc">${tDesc}</div>
         ${t.horizon_note ? `<div class="tc-horizon-note">${t.horizon_note}</div>` : ''}
         <div class="tc-footer">
@@ -2313,5 +2314,21 @@ document.addEventListener('DOMContentLoaded', () => {
     }
   }, 1000);
 });
+
+// ── Optics Calculator ───────────────────────────────────────────────────────
+window.updateOptics = function() {
+  const scopeFl = parseFloat(document.getElementById('calc-scope-fl').value) || 650;
+  const scopeAp = parseFloat(document.getElementById('calc-scope-ap').value) || 130;
+  const epFl = parseFloat(document.getElementById('calc-ep-fl').value) || 25;
+  const epAfov = parseFloat(document.getElementById('calc-ep-afov').value) || 52;
+
+  const mag = scopeFl / epFl;
+  const tfov = epAfov / mag;
+  const max = scopeAp * 2;
+
+  document.getElementById('calc-out-mag').innerText = Math.round(mag) + 'x';
+  document.getElementById('calc-out-tfov').innerText = tfov.toFixed(2) + '°';
+  document.getElementById('calc-out-max').innerText = Math.round(max) + 'x';
+};
 
 

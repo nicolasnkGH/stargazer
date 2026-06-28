@@ -632,6 +632,50 @@
       </div>
     </section>
 
+    <!-- ── Telescope Optics Calculator ── -->
+    <section class="card" id="card-optics" style="margin-top: 24px;">
+      <div class="card-header">
+        <span class="card-icon"><i data-lucide="telescope"></i></span>
+        <h2 class="card-title">Telescope Optics</h2>
+      </div>
+      <div class="card-body">
+        <p style="font-size: 0.85rem; color: var(--text-secondary); margin-bottom: 12px;">Calculate the exact magnification and Field of View (FOV) for your equipment.</p>
+        
+        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 12px;">
+          <div>
+            <label style="font-size: 0.8rem; color: var(--text-secondary);">Telescope Focal Length (mm)</label>
+            <input type="number" id="calc-scope-fl" value="650" style="width: 100%; background: rgba(0,0,0,0.2); border: 1px solid rgba(255,255,255,0.1); color: var(--text-primary); border-radius: 4px; padding: 6px;" oninput="updateOptics()">
+          </div>
+          <div>
+            <label style="font-size: 0.8rem; color: var(--text-secondary);">Telescope Aperture (mm)</label>
+            <input type="number" id="calc-scope-ap" value="130" style="width: 100%; background: rgba(0,0,0,0.2); border: 1px solid rgba(255,255,255,0.1); color: var(--text-primary); border-radius: 4px; padding: 6px;" oninput="updateOptics()">
+          </div>
+          <div>
+            <label style="font-size: 0.8rem; color: var(--text-secondary);">Eyepiece Focal Length (mm)</label>
+            <input type="number" id="calc-ep-fl" value="25" style="width: 100%; background: rgba(0,0,0,0.2); border: 1px solid rgba(255,255,255,0.1); color: var(--text-primary); border-radius: 4px; padding: 6px;" oninput="updateOptics()">
+          </div>
+          <div>
+            <label style="font-size: 0.8rem; color: var(--text-secondary);">Apparent FOV (°)</label>
+            <input type="number" id="calc-ep-afov" value="52" style="width: 100%; background: rgba(0,0,0,0.2); border: 1px solid rgba(255,255,255,0.1); color: var(--text-primary); border-radius: 4px; padding: 6px;" oninput="updateOptics()">
+          </div>
+        </div>
+
+        <div style="background: rgba(255,255,255,0.05); padding: 12px; border-radius: 6px; display: flex; justify-content: space-between; text-align: center;">
+          <div>
+            <div style="font-size: 0.75rem; color: var(--text-secondary);">Magnification</div>
+            <div id="calc-out-mag" style="font-size: 1.2rem; font-weight: bold; color: var(--accent-blue);">26x</div>
+          </div>
+          <div>
+            <div style="font-size: 0.75rem; color: var(--text-secondary);">True FOV</div>
+            <div id="calc-out-tfov" style="font-size: 1.2rem; font-weight: bold; color: var(--accent-orange);">2.00°</div>
+          </div>
+          <div>
+            <div style="font-size: 0.75rem; color: var(--text-secondary);">Max Useful</div>
+            <div id="calc-out-max" style="font-size: 1.2rem; font-weight: bold; color: var(--accent-purple);">260x</div>
+          </div>
+        </div>
+      </div>
+    </section>
 
     <!-- ── Observation Log ── -->
     <section class="card" id="card-obs-log" style="margin-top: 24px;">
