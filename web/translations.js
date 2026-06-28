@@ -56,6 +56,10 @@ const translations = {
     "iss_duration": "Duration:",
     "iss_max_alt": "Max Alt:",
     "iss_no_passes": "No passes in next 10 days",
+
+    // Planets
+    "card_planets": "Planet Tracker",
+    "nav_planets": "Planets",
     
     // Weekly
     "weekly_title": "7-Day Forecast",
@@ -66,6 +70,8 @@ const translations = {
     "lbl_lon": "Longitude",
     "btn_detect": "Detect Location",
     "btn_save": "Save Profile & Activate",
+    "lbl_city_search": "Search City Name",
+    "night_tooltip": "Night Vision Mode",
     
     // Footer
     "footer_creator": "StarGazer Creator | Cloud & DevOps",
@@ -393,7 +399,9 @@ const translations = {
     "lbl_lon": "Longitud",
     "btn_detect": "Detectar Ubicación",
     "btn_save": "Guardar Perfil y Activar",
-    
+    "lbl_city_search": "Buscar Ciudad",
+    "night_tooltip": "Modo Visión Nocturna",
+
     // Footer
     "footer_creator": "Creador de StarGazer | Cloud & DevOps",
     "footer_desc": "Panel personal de astronomía para rastrear constelaciones activas, planetas y pasos de la ISS.",
@@ -701,7 +709,9 @@ const translations = {
     "lbl_lon": "Longitude",
     "btn_detect": "Detectar Localização",
     "btn_save": "Salvar Perfil e Ativar",
-    
+    "lbl_city_search": "Buscar Cidade",
+    "night_tooltip": "Modo Visão Noturna",
+
     // Footer
     "footer_creator": "Criador do StarGazer | Cloud & DevOps",
     "footer_desc": "Painel pessoal de astronomia para rastrear constelações ativas, planetas e passagens da ISS.",
