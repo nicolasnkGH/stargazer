@@ -107,7 +107,7 @@ async def verify_origin(request: Request):
 app = FastAPI(
     title="StarGazer API",
     description="Personal astronomy assistant and dashboard API",
-    version="1.1.1",
+    version="2.0.0",
     dependencies=[Depends(verify_origin)]
 )
 
