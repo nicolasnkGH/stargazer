@@ -41,3 +41,6 @@ test_engine.py
 download_textures.py
 api/test_engine.py
 api/test_sun.py
+
+# Node.js
+node_modules/
