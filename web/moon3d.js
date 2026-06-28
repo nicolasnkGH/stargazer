@@ -19,7 +19,7 @@ function initMoon3D() {
   const renderer = new THREE.WebGLRenderer({ antialias: true });
   renderer.setClearColor(0x050510, 1);
   renderer.setSize(width, height);
-  renderer.setPixelRatio(Math.min(window.devicePixelRatio, 1.5));
+  renderer.setPixelRatio(Math.min(window.devicePixelRatio, 1.0));
   container.appendChild(renderer.domElement);
 
   const controls = new THREE.OrbitControls(camera, renderer.domElement);

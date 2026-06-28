@@ -20,14 +20,14 @@
   camera.lookAt(0, 15, 0);         // Look above the origin to shift the scene down on screen
 
   const renderer = new THREE.WebGLRenderer({ canvas, alpha: true, antialias: true });
-  renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2.0));
+  renderer.setPixelRatio(Math.min(window.devicePixelRatio, 1.5));
   renderer.setSize(w, h);
   renderer.outputEncoding = THREE.sRGBEncoding;
   // Tone mapping removed to keep colors vibrant and matching CSS exactly
 
   // ── Starfield ─────────────────────────────────────────────────────────────
   (function () {
-    const count = 800;
+    const count = 400;
     const positions = new Float32Array(count * 3);
     const sizes = new Float32Array(count);
     for (let i = 0; i < count; i++) {
@@ -79,7 +79,7 @@
 
   // ── Saturn ring geometry with proper UV mapping ───────────────────────────
   function makeSaturnRingGeo(inner, outer) {
-    const geo = new THREE.RingGeometry(inner, outer, 128);
+    const geo = new THREE.RingGeometry(inner, outer, 64);
     const pos = geo.attributes.position;
     const uv  = geo.attributes.uv;
     const v3  = new THREE.Vector3();
@@ -115,7 +115,7 @@
   const planetObjects = [];
 
   PLANETS.forEach((def, idx) => {
-    const geo = new THREE.SphereGeometry(def.radius, 64, 48);
+    const geo = new THREE.SphereGeometry(def.radius, 48, 32);
     let mat;
 
     if (def.isSun) {
@@ -260,8 +260,8 @@
   PLANETS.forEach(def => {
     if (def.orbit <= 0) return;
     const points = [];
-    for (let i = 0; i <= 128; i++) {
-      const a = (i / 128) * Math.PI * 2;
+    for (let i = 0; i <= 64; i++) {
+      const a = (i / 64) * Math.PI * 2;
       points.push(new THREE.Vector3(Math.cos(a) * def.orbit, -0.15, Math.sin(a) * def.orbit));
     }
     const lineGeo = new THREE.BufferGeometry().setFromPoints(points);
