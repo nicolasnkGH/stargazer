@@ -171,9 +171,19 @@ import urllib.request
 import urllib.parse
 import json
 
+@app.get("/api/moon")
+def get_moon():
+    moon = get_moon_info()
+    response = {
+        "illumination_pct" : moon["illumination_pct"],
+        "phase_name" : moon["phase_name"],
+        "distance_km" : moon["distance_km"]
+    }
+    return response
+
+
 asteroid_cache = {"timestamp": 0, "data": None}
 star_cache = {}
-
 @app.get("/api/asteroids")
 def get_asteroids():
     now = datetime.now(ZoneInfo("UTC")).timestamp()
