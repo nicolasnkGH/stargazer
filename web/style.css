@@ -1002,6 +1002,32 @@ body {
 }
 
 /* ── Weather Embed ──────────────────────────────────────────────────────── */
+.weather-layout {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+  padding: 15px;
+}
+
+@media (min-width: 1024px) {
+  .weather-layout {
+    flex-direction: row;
+    align-items: flex-start;
+  }
+  .weather-embed-wrap {
+    flex: 2;
+    padding: 0;
+  }
+  .weather-notes {
+    flex: 1;
+    background: rgba(255,255,255,0.03);
+    border: 1px solid rgba(255,255,255,0.05);
+    border-radius: var(--radius);
+    padding: 15px;
+    height: 100%;
+  }
+}
+
 .weather-embed-wrap {
   background: transparent;
   border-radius: 0 0 var(--radius) var(--radius);
