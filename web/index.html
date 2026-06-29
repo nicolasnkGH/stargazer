@@ -114,6 +114,7 @@
               <a href="#card-targets" data-i18n="nav_target_db" class="nav-link">Target Database</a>
               <a href="#card-motion" class="nav-link">Sky Objects in Motion</a>
               <a href="#card-weekly" data-i18n="nav_weekly" class="nav-link">7-Day Forecast</a>
+              <button id="btn-data-settings" class="nav-link" style="text-align: left; width: 100%; border: none; background: transparent; cursor: pointer; color: var(--text-primary);">💾 Data & Settings</button>
               
               <div class="nav-item-has-submenu">
                 <a href="#footer-resources" class="nav-link" style="display:flex; justify-content:space-between; align-items:center;">
@@ -699,7 +700,7 @@
       </div>
       <div class="card-body">
         <p style="font-size: 0.85rem; color: var(--text-secondary); margin-bottom: 12px;">Use this space to jot down what you observed tonight. These notes are saved locally in your browser.</p>
-        <textarea id="observation-notes" style="width: 100%; height: 120px; background: rgba(0,0,0,0.2); border: 1px solid rgba(255,255,255,0.1); color: var(--text-primary); border-radius: 8px; padding: 12px; font-family: inherit; font-size: 0.9rem; resize: vertical;" placeholder="Type your observations here..."></textarea>
+        <textarea id="observation-notes" style="width: 100%; min-height: 120px; height: 120px; background: rgba(0,0,0,0.2); border: 1px solid rgba(255,255,255,0.1); color: var(--text-primary); border-radius: 8px; padding: 12px; font-family: inherit; font-size: 0.9rem; resize: none; overflow: hidden;" placeholder="Type your observations here..."></textarea>
       </div>
     </section>
   </main>
@@ -914,6 +915,32 @@
         </a>
       </div>
       <button id="close-about-btn" class="modal-close" data-i18n="close_btn">Close</button>
+    </div>
+  </div>
+
+  <!-- Data & Settings Modal -->
+  <div id="data-modal" class="modal hidden">
+    <div class="modal-content" style="max-width: 500px;">
+      <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px;">
+        <h2 style="margin: 0;">💾 Data & Settings</h2>
+        <button id="btn-close-data" class="btn btn-secondary" style="padding: 5px 10px;">✕</button>
+      </div>
+      
+      <p style="margin-top: 0; color: var(--text-secondary); font-size: 0.9rem;">
+        Export your locations, observation logs, and preferences to a JSON file. 
+        Import a backup to restore your settings across devices or after clearing cookies.
+      </p>
+
+      <div style="display: flex; flex-direction: column; gap: 15px; margin-top: 20px;">
+        <button id="btn-export-data" class="btn btn-secondary" style="justify-content: center; width: 100%;">
+          📥 Export Backup (JSON)
+        </button>
+        <button id="btn-trigger-import" class="btn btn-primary" style="justify-content: center; width: 100%;">
+          📤 Import Backup (JSON)
+        </button>
+        <!-- Hidden file input for import -->
+        <input type="file" id="input-import-data" accept=".json" style="display: none;">
+      </div>
     </div>
   </div>
 
