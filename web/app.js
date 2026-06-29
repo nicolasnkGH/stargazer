@@ -1869,9 +1869,17 @@ function initLocationUI() {
 
   document.getElementById('btn-save-loc').addEventListener('click', async () => {
     const lat = parseFloat(inputLat.value);
-    const lon = parseFloat(inputLon.value);
+    let lon = parseFloat(inputLon.value);
     let name = inputName.value.trim();
-    if (isNaN(lat) || isNaN(lon)) return alert('Invalid coordinates');
+    
+    if (isNaN(lat) || isNaN(lon)) return alert('Invalid coordinates. Please enter a valid number.');
+    if (lat < -90 || lat > 90) return alert('Latitude must be between -90 and 90 degrees.');
+    
+    // Normalize longitude if someone enters 0-360 instead of -180 to 180
+    if (lon > 180) lon -= 360;
+    if (lon < -180) lon += 360;
+    
+    if (lon < -180 || lon > 180) return alert('Longitude must be between -180 and 180 degrees.');
     
     const btn = document.getElementById('btn-save-loc');
     const oldText = btn.textContent;
