@@ -1124,6 +1124,17 @@ function renderPlanets(planets, factStr) {
   }
 
   const html = planets.map(p => {
+    let isBlocked = false;
+    if (typeof activeLoc !== 'undefined' && activeLoc && activeLoc.porchMode && p.azimuth_deg != null && !isNaN(p.azimuth_deg)) {
+      const az = p.azimuth_deg;
+      const min = activeLoc.minAz || 0;
+      const max = activeLoc.maxAz || 360;
+      if (min <= max) {
+        isBlocked = (az < min || az > max);
+      } else {
+        isBlocked = !(az >= min || az <= max);
+      }
+    }
     const dict = window.i18n[currentLang] || window.i18n['en'];
     const pName = dict[`planet_${p.name.toLowerCase()}`] || p.name;
     const altColor = p.altitude_deg > 30 ? '#22c55e' : p.altitude_deg > 10 ? '#f59e0b' : '#f87171';
@@ -1131,12 +1142,13 @@ function renderPlanets(planets, factStr) {
     const magNote  = p.magnitude_approx < 0 ? ' (extremely bright)' : p.magnitude_approx < 3 ? ' (naked eye)' : p.magnitude_approx < 6 ? ' (binoculars)' : ' (telescope)';
     const azimuthStr = (p.azimuth_deg != null && !isNaN(p.azimuth_deg)) ? ` · Azimuth ${Math.round(p.azimuth_deg)}°` : '';
     return `
-      <div class="planet-3d-card ${p.visible_tonight ? '' : 'not-visible'}">
+      <div class="planet-3d-card ${p.visible_tonight ? '' : 'not-visible'} ${isBlocked ? 'blocked-horizon' : ''}">
         <div class="planet-3d-canvas-container" data-planet="${p.name}"></div>
         <div class="planet-info-col">
           <div class="planet-name-row">
             <span class="planet-name">${p.emoji} ${pName}</span>
             <span class="planet-const-pill" title="Currently in this constellation">${p.constellation || ''}</span>
+            ${isBlocked ? '<span class="blocked-badge" title="Hidden behind your custom horizon limits">Blocked by Horizon</span>' : ''}
           </div>
           <div class="planet-meta-row">
             <span class="planet-alt" style="color:${altColor}" title="How high above the horizon">📐 Altitude: ${p.altitude_deg}° — ${altLabel}</span>
@@ -1605,13 +1617,26 @@ function renderTargetGrid(targets, liveMap, filter) {
     const tType = dict[`target_${t.id}_type`] || t.type;
     const tDesc = dict[`target_${t.id}_desc`] || t.description;
 
+    let isBlocked = false;
+    if (typeof activeLoc !== 'undefined' && activeLoc && activeLoc.porchMode && live.azimuth_deg != null && !isNaN(live.azimuth_deg)) {
+      const az = live.azimuth_deg;
+      const min = activeLoc.minAz || 0;
+      const max = activeLoc.maxAz || 360;
+      if (min <= max) {
+        isBlocked = (az < min || az > max);
+      } else {
+        isBlocked = !(az >= min || az <= max);
+      }
+    }
+
     return `
-      <div class="target-card ${visibleNow ? 'visible-now' : ''}" data-type="${t.type}">
+      <div class="target-card ${visibleNow ? 'visible-now' : ''} ${isBlocked ? 'blocked-horizon' : ''}" data-type="${t.type}">
         <div class="tc-header">
           <span class="tc-emoji">${t.emoji}</span>
           <div>
             <div class="tc-name">${tName}</div>
             <div class="tc-type">${tType}</div>
+            ${isBlocked ? '<div class="blocked-badge" title="Hidden behind your custom horizon limits">Blocked by Horizon</div>' : ''}
           </div>
           <span class="tc-mag">mag ${t.magnitude}</span>
         </div>
@@ -1675,6 +1700,15 @@ function initLocationUI() {
   const inputName = document.getElementById('input-loc-name');
   const inputLat = document.getElementById('input-lat');
   const inputLon = document.getElementById('input-lon');
+  
+  const inputPorchMode = document.getElementById('input-porch-mode');
+  const porchModeInputs = document.getElementById('porch-mode-inputs');
+  const inputPorchMin = document.getElementById('input-porch-min');
+  const inputPorchMax = document.getElementById('input-porch-max');
+
+  inputPorchMode?.addEventListener('change', (e) => {
+    porchModeInputs.style.display = e.target.checked ? 'flex' : 'none';
+  });
   
   function renderList() {
     listEl.innerHTML = savedLocations.map(l => `
@@ -1791,7 +1825,17 @@ function initLocationUI() {
       }
     }
     
-    const newLoc = { id: 'loc_' + Date.now(), name, lat, lon };
+    let porchMode = false;
+    let minAz = 0;
+    let maxAz = 360;
+    
+    if (inputPorchMode && inputPorchMode.checked) {
+      porchMode = true;
+      minAz = parseFloat(inputPorchMin.value) || 0;
+      maxAz = parseFloat(inputPorchMax.value) || 360;
+    }
+    
+    const newLoc = { id: 'loc_' + Date.now(), name, lat, lon, porchMode, minAz, maxAz };
     savedLocations.push(newLoc);
     localStorage.setItem('stargazer_locations', JSON.stringify(savedLocations));
     
