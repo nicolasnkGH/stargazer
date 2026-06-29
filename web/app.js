@@ -1743,6 +1743,80 @@ function initLocationUI() {
     modal.classList.add('hidden');
   });
   
+  // Data & Settings Modal
+  const btnDataSettings = document.getElementById('btn-data-settings');
+  const modalData = document.getElementById('data-modal');
+  const btnCloseData = document.getElementById('btn-close-data');
+  const btnExport = document.getElementById('btn-export-data');
+  const btnTriggerImport = document.getElementById('btn-trigger-import');
+  const inputImport = document.getElementById('input-import-data');
+
+  if (btnDataSettings) {
+    btnDataSettings.addEventListener('click', () => {
+      const navDropdown = document.getElementById('nav-dropdown');
+      if (navDropdown) navDropdown.classList.add('hidden'); // Close nav
+      modalData.classList.remove('hidden');
+    });
+  }
+
+  if (btnCloseData) {
+    btnCloseData.addEventListener('click', () => {
+      modalData.classList.add('hidden');
+    });
+  }
+
+  if (btnExport) {
+    btnExport.addEventListener('click', () => {
+      const data = {};
+      for (let i = 0; i < localStorage.length; i++) {
+        const key = localStorage.key(i);
+        if (key.startsWith('stargazer_') || key.startsWith('sg_')) {
+          data[key] = localStorage.getItem(key);
+        }
+      }
+      const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = `stargazer_backup_${new Date().toISOString().split('T')[0]}.json`;
+      a.click();
+      URL.revokeObjectURL(url);
+    });
+  }
+
+  if (btnTriggerImport && inputImport) {
+    btnTriggerImport.addEventListener('click', () => {
+      inputImport.click();
+    });
+
+    inputImport.addEventListener('change', (evt) => {
+      const file = evt.target.files[0];
+      if (!file) return;
+
+      const reader = new FileReader();
+      reader.onload = (e) => {
+        try {
+          const data = JSON.parse(e.target.result);
+          
+          if (confirm('Are you sure you want to import this backup? It will overwrite your current locations and observation logs.')) {
+            for (const key in data) {
+              if (key.startsWith('stargazer_') || key.startsWith('sg_')) {
+                localStorage.setItem(key, data[key]);
+              }
+            }
+            alert('Backup successfully imported! Reloading...');
+            location.reload();
+          }
+        } catch (err) {
+          alert('Error: Invalid JSON backup file.');
+        }
+      };
+      reader.readAsText(file);
+      // Reset input
+      inputImport.value = '';
+    });
+  }
+
   // Onboarding Tour
   window.startOnboardingTour = function() {
     if (!window.driver || !window.driver.js || !window.driver.js.driver) {
@@ -2212,11 +2286,22 @@ document.addEventListener('DOMContentLoaded', () => {
   const obsNotes = document.getElementById('observation-notes');
   if (obsNotes) {
     const savedNotes = localStorage.getItem('stargazer_obs_notes');
-    if (savedNotes) obsNotes.value = savedNotes;
+    if (savedNotes) {
+      obsNotes.value = savedNotes;
+    }
     
+    const autoResize = () => {
+      obsNotes.style.height = '120px'; // Reset to min-height first
+      obsNotes.style.height = Math.max(120, obsNotes.scrollHeight) + 'px';
+    };
+    
+    // Auto-resize on load
+    setTimeout(autoResize, 50);
+
     // Save on input with simple debounce
     let timeoutId;
     obsNotes.addEventListener('input', () => {
+      autoResize();
       clearTimeout(timeoutId);
       timeoutId = setTimeout(() => {
         localStorage.setItem('stargazer_obs_notes', obsNotes.value);
