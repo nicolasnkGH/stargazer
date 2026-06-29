@@ -3,7 +3,8 @@
 import json
 import os
 
-CACHE_FILE = "/app/data/ai_cache.json"
+BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+CACHE_FILE = os.path.join(BASE_DIR, "data", "ai_cache.json")
 
 
 def _load_ai_cache():
