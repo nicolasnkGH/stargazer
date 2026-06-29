@@ -1832,6 +1832,7 @@ function initLocationUI() {
         { element: '#card-active-const', popover: { title: 'Active Constellation', description: 'Explore interactive sky maps of constellations currently visible. Click on the map to unlock it, and then click any star to scan it via SIMBAD!', side: "top", align: 'start' } },
         { element: '#card-targets', popover: { title: 'Tonight\'s Targets', description: 'Discover planets, galaxies, and nebulae visible tonight, ranked by their peak elevation.', side: "top", align: 'start' } },
         { element: '#card-iss', popover: { title: 'ISS Tracker', description: 'Track exactly when the International Space Station will fly over your location.', side: "top", align: 'start' } },
+        { element: '#btn-menu', popover: { title: 'Data & Settings', description: 'Don\'t lose your data! Open this menu to export or import backups of your locations, horizon settings, and observation logs.', side: "bottom", align: 'end' } },
         { element: '#btn-night-mode', popover: { title: 'Night Vision Mode', description: 'Enable the red light overlay to preserve your dark adaptation while stargazing.', side: "left", align: 'end' } }
       ]
     });
