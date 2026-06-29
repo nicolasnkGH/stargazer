@@ -84,6 +84,18 @@ def _save_result(current_hash, result, fallback_args):
     """Save a result to cache, or fall back to rule-based on failure."""
     db = _load_ai_cache()
     if result:
+        if fallback_args:
+            weather, moon_illum, moon_alt, moon_dist = fallback_args
+            if moon_illum < 3: phase_name = "🌑 New Moon"
+            elif moon_illum < 45: phase_name = "🌒 Waxing Crescent"
+            elif moon_illum < 55: phase_name = "🌓 First Quarter"
+            elif moon_illum < 95: phase_name = "🌔 Waxing Gibbous"
+            elif moon_illum > 97: phase_name = "🌕 Full Moon"
+            elif moon_illum > 55: phase_name = "🌖 Waning Gibbous"
+            elif moon_illum > 45: phase_name = "🌗 Last Quarter"
+            else: phase_name = "🌘 Waning Crescent"
+            result["moon_fact"] = get_moon_fact(phase_name, moon_illum, moon_dist, today=date.today())
+            
         db[current_hash] = {"timestamp": int(time.time()), "data": result}
         _save_ai_cache(db)
     elif current_hash in db and db[current_hash].get("data", {}).get("status") == "processing":
@@ -111,7 +123,7 @@ def _background_ai_task(payload, headers, current_hash, fallback_args=None):
             result = _parse_ai_response(data)
             if result:
                 logging.info("AI Seeing: Primary API succeeded")
-                _save_result(current_hash, result, None)
+                _save_result(current_hash, result, fallback_args)
                 return
             logging.warning("AI Seeing: Primary API returned unparseable response")
         except Exception as e:
@@ -125,7 +137,7 @@ def _background_ai_task(payload, headers, current_hash, fallback_args=None):
             result = _parse_ai_response(data)
             if result:
                 logging.info("AI Seeing: Fallback remote API succeeded")
-                _save_result(current_hash, result, None)
+                _save_result(current_hash, result, fallback_args)
                 return
             logging.warning("AI Seeing: Fallback remote API returned unparseable response")
         except Exception as e:
@@ -139,7 +151,7 @@ def _background_ai_task(payload, headers, current_hash, fallback_args=None):
             result = _parse_ai_response(data)
             if result:
                 logging.info("AI Seeing: Local model succeeded")
-                _save_result(current_hash, result, None)
+                _save_result(current_hash, result, fallback_args)
                 return
             logging.warning("AI Seeing: Local model returned unparseable response")
         except Exception as e:
