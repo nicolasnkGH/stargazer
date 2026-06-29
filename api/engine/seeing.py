@@ -503,7 +503,8 @@ def get_seeing_forecast(lat=None, lon=None, ai_enabled: bool = False, lang: str 
         day_cloud  = avg("cloudcover", idx_s, idx_e)
         day_precip = avg("precipitation_probability", idx_s, idx_e)
         day_temp = avg("temperature_2m", idx_s, idx_e)
-        label = "🟢 Clear" if (day_cloud or 100) < 30 else ("🟡 Partly Cloudy" if (day_cloud or 100) < 70 else "🔴 Cloudy")
+        _c = day_cloud if day_cloud is not None else 100
+        label = "🟢 Clear" if _c < 30 else ("🟡 Partly Cloudy" if _c < 70 else "🔴 Cloudy")
         from datetime import date as _date
         day_date = (_date.today() + timedelta(days=i)).strftime("%a %b %d")
         week_summary.append({
