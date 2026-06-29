@@ -128,6 +128,7 @@ def get_iss_passes(count: int = 3, lat=None, lon=None) -> list[dict]:
                 alt, az, _ = topo.altaz()
                 current_pass["peak_alt"] = round(alt.degrees)
                 current_pass["peak_az"]  = _az_to_direction(az.degrees)
+                current_pass["peak_az_deg"] = round(az.degrees, 1)
             elif event == 2:    # set below horizon
                 current_pass["set"]     = dt_local.strftime("%I:%M %p")
                 current_pass["visible"] = bool(current_pass.get("peak_alt", 0) > 20)
