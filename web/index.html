@@ -750,6 +750,24 @@
         </div>
       </div>
       
+      <div style="margin-top: 10px; margin-bottom: 15px; border-top: 1px solid rgba(255,255,255,0.1); padding-top: 15px;">
+        <label style="display: flex; align-items: center; gap: 8px; margin-bottom: 10px; cursor: pointer;">
+          <input type="checkbox" id="input-porch-mode" style="accent-color: var(--accent-blue);"> 
+          <span style="font-weight: 500; color: #fff;">Enable Porch Mode (Custom Horizon)</span>
+        </label>
+        <p style="font-size: 0.75rem; color: var(--text-secondary); margin-bottom: 12px; margin-top: -5px;">Only show objects visible between specific compass headings.</p>
+        <div id="porch-mode-inputs" style="display: none; gap: 10px;">
+          <div class="input-group" style="flex: 1;">
+            <label>Min Azimuth (0-360°)</label>
+            <input type="number" id="input-porch-min" placeholder="90" min="0" max="360" />
+          </div>
+          <div class="input-group" style="flex: 1;">
+            <label>Max Azimuth (0-360°)</label>
+            <input type="number" id="input-porch-max" placeholder="270" min="0" max="360" />
+          </div>
+        </div>
+      </div>
+
       <button id="btn-gps" class="btn btn-secondary" style="width: 100%; margin-bottom: 15px; font-size: 0.8rem;">
         📡 Try Device GPS (Requires HTTPS)
       </button>
