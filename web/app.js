@@ -1382,13 +1382,30 @@ async function loadISS() {
           </a>
         </div>`;
       }
+
+      let isBlocked = false;
+      if (typeof activeLoc !== 'undefined' && activeLoc && activeLoc.porchMode && p.peak_az_deg != null && !isNaN(p.peak_az_deg)) {
+        const az = p.peak_az_deg;
+        const min = activeLoc.minAz;
+        const max = activeLoc.maxAz;
+        if (min <= max) {
+          isBlocked = (az < min || az > max);
+        } else {
+          isBlocked = (az > max && az < min);
+        }
+      }
+
+      const blockedClass = isBlocked ? 'blocked-horizon' : '';
+      const visColor = isBlocked ? '#64748b' : (p.visible ? '#22c55e' : '#64748b');
+      const visText = isBlocked ? '❌ BLOCKED' : (p.visible ? '✅ VISIBLE' : '🔭 Low pass');
+
       return `
-        <div class="iss-pass-item ${p.visible ? 'visible' : ''}">
+        <div class="iss-pass-item ${p.visible ? 'visible' : ''} ${blockedClass}">
           <span class="iss-time">🚀 ${p.rise || 'N/A'}</span>
           <span>→ ${p.set || 'N/A'}</span>
           <span class="iss-alt">📐 ${p.peak_alt !== 'N/A' ? p.peak_alt + '°' : '?'} ${p.peak_az || ''}</span>
-          <span class="iss-vis-label" style="color: ${p.visible ? '#22c55e' : '#64748b'}">
-            ${p.visible ? '✅ VISIBLE' : '🔭 Low pass'}
+          <span class="iss-vis-label" style="color: ${visColor}">
+            ${visText}
           </span>
         </div>
       `;
