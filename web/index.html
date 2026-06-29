@@ -542,12 +542,33 @@
         <h2 class="card-title" data-i18n="card_weather">Clear Outside — Astronomical Weather Forecast</h2>
         <a id="clearoutside-link" href="https://clearoutside.com/forecast/40.126/-83.037" target="_blank" class="ext-link" data-i18n="btn_full_forecast">Open Full Forecast ↗</a>
       </div>
-      <div class="weather-embed-wrap">
-        <img
-          src="https://clearoutside.com/forecast_image_large/40.126/-83.037/forecast.png"
-          id="clearoutside-img"
-          alt="Clear Outside astronomical weather forecast"
-        />
+      <div class="weather-layout">
+        <div class="weather-embed-wrap">
+          <img
+            src="https://clearoutside.com/forecast_image_large/40.126/-83.037/forecast.png"
+            id="clearoutside-img"
+            alt="Clear Outside astronomical weather forecast"
+          />
+        </div>
+        <div class="weather-notes">
+          <h3 style="margin-top: 0; margin-bottom: 15px; color: var(--text-primary); font-size: 1rem;">How to read this chart</h3>
+          
+          <div style="margin-bottom: 15px;">
+            <strong style="color: var(--accent-blue); display: block; margin-bottom: 4px;">🚦 The Traffic Light System</strong>
+            <span style="font-size: 0.85rem; color: var(--text-secondary);"><strong>SUMMARY Row:</strong> Red means clouded over. Green means perfectly clear. Orange means mixed conditions.<br>
+            <strong>CLOUD Rows:</strong> Pure white squares mean 0% clouds. Dark blue squares mean 100% cloud cover.</span>
+          </div>
+
+          <div style="margin-bottom: 15px;">
+            <strong style="color: var(--accent-blue); display: block; margin-bottom: 4px;">🌫️ How to Spot the Haze</strong>
+            <span style="font-size: 0.85rem; color: var(--text-secondary);">Look at the <strong>REL. HUMIDITY & DEW RISK</strong> rows. When humidity is high, moisture creates a thick, milky haze that scatters light and washes out faint stars. If these rows turn Red/Orange, expect poor transparency even if cloud cover is 0%.</span>
+          </div>
+
+          <div>
+            <strong style="color: #ef4444; display: block; margin-bottom: 4px;">💧 Telescope Dew Warning</strong>
+            <span style="font-size: 0.85rem; color: var(--text-secondary);">If the Dew Risk row is glowing red, water vapor will condense quickly. Glass lenses and mirrors will fog up and end your session if you don't use a dew heater or dew shield!</span>
+          </div>
+        </div>
       </div>
     </section>
 
