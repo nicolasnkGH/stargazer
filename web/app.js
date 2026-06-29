@@ -284,6 +284,7 @@ async function loadTonightReport() {
     // Fire off async AI fetch and GitHub stars now that the UI is rendered
     fetchAIAnalysis();
     fetchGitHubStars();
+    fetchLatestVersion();
   });
 }
 
@@ -776,6 +777,26 @@ async function fetchGitHubStars() {
     }
   } catch {
     el.textContent = '629'; // fallback
+  }
+}
+
+// ── GitHub Version (fetched once) ────────────────────────────────────────────
+let _githubVersionFetched = false;
+async function fetchLatestVersion() {
+  if (_githubVersionFetched) return;
+  _githubVersionFetched = true;
+  const versionEl = document.getElementById('hero-version-tag');
+  if (!versionEl) return;
+  try {
+    const res = await fetch('https://api.github.com/repos/nicolasnkGH/stargazer/releases/latest');
+    if (res.ok) {
+      const json = await res.json();
+      if (json && json.tag_name) {
+        versionEl.innerHTML = `<span class="hero-badge-dot hero-badge-dot-green"></span>${json.tag_name}`;
+      }
+    }
+  } catch (e) {
+    console.warn("Could not fetch latest release", e);
   }
 }
 
