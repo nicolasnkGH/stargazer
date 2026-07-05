@@ -14,10 +14,30 @@
   // ── Three.js scene ────────────────────────────────────────────────────────
   const scene = new THREE.Scene();
 
+  // Cinematic fog: matches the app's deep background (#05050f) so distant
+  // planets and orbit lines dissolve into the backdrop instead of hard-cutting.
+  scene.fog = new THREE.FogExp2(0x05050f, 0.0022);
+
   // Camera: cinematic low-angle perspective — planets feel large and close
   const camera = new THREE.PerspectiveCamera(55, w / h, 0.1, 1000);
-  camera.position.set(0, 65, 95);  // Slightly higher and further back
-  camera.lookAt(0, 15, 0);         // Look above the origin to shift the scene down on screen
+  const CAMERA_BASE = new THREE.Vector3(0, 65, 95); // Slightly higher and further back
+  const LOOK_BASE   = new THREE.Vector3(0, 15, 0);  // Look above the origin to shift the scene down on screen
+  camera.position.copy(CAMERA_BASE);
+  camera.lookAt(LOOK_BASE);
+
+  // ── Interactive mouse parallax ───────────────────────────────────────────
+  // Tracks normalized mouse coordinates (-1..1) and gently pans/tilts the
+  // camera toward them each frame for a subtle sense of depth.
+  const mouse = { x: 0, y: 0 };
+  const parallax = { x: 0, y: 0 }; // smoothed/lerped values actually applied
+  const PARALLAX_STRENGTH_X = 12;  // max horizontal camera offset
+  const PARALLAX_STRENGTH_Y = 8;   // max vertical camera offset
+  const PARALLAX_LERP = 0.04;      // smoothing factor per frame
+
+  window.addEventListener('mousemove', (e) => {
+    mouse.x = (e.clientX / window.innerWidth) * 2 - 1;
+    mouse.y = (e.clientY / window.innerHeight) * 2 - 1;
+  });
 
   const renderer = new THREE.WebGLRenderer({ canvas, alpha: true, antialias: true });
   renderer.setPixelRatio(Math.min(window.devicePixelRatio, 1.5));
@@ -58,10 +78,15 @@
   sunLight.position.set(0, 0, 0);
   scene.add(sunLight);
 
-  // Rim light for that cinematic 3D edge
-  const rimLight = new THREE.DirectionalLight(0x88bbff, 0.6);
+  // Rim light for that cinematic 3D edge — deep purple/blue sci-fi glow
+  const rimLight = new THREE.DirectionalLight(0x6a4dff, 1.1);
   rimLight.position.set(40, 20, -40);
   scene.add(rimLight);
+
+  // Secondary cooler rim from the opposite side reinforces the edge-lit look
+  const rimLight2 = new THREE.DirectionalLight(0x3344cc, 0.5);
+  rimLight2.position.set(-30, -10, -50);
+  scene.add(rimLight2);
 
   // ── Planet definitions ────────────────────────────────────────────────────
   // Sizes tuned for visual impact at the camera distance
@@ -256,19 +281,29 @@
     planetObjects.push(obj);
   });
 
-  // ── Orbital path lines — very subtle ──────────────────────────────────────
+  // ── Orbital path lines — dashed technical-schematic style ────────────────
   PLANETS.forEach(def => {
     if (def.orbit <= 0) return;
     const points = [];
-    for (let i = 0; i <= 64; i++) {
-      const a = (i / 64) * Math.PI * 2;
+    // Slightly denser sampling so dashes read cleanly on larger orbits
+    const segments = 128;
+    for (let i = 0; i <= segments; i++) {
+      const a = (i / segments) * Math.PI * 2;
       points.push(new THREE.Vector3(Math.cos(a) * def.orbit, -0.15, Math.sin(a) * def.orbit));
     }
     const lineGeo = new THREE.BufferGeometry().setFromPoints(points);
-    const lineMat = new THREE.LineBasicMaterial({ 
-      color: 0xffffff, transparent: true, opacity: 0.15 
+    const lineMat = new THREE.LineDashedMaterial({
+      color: 0x99aaff,
+      transparent: true,
+      opacity: 0.25,
+      dashSize: 1.5,
+      gapSize: 1.2,
     });
-    scene.add(new THREE.Line(lineGeo, lineMat));
+    const line = new THREE.Line(lineGeo, lineMat);
+    // Required for dashed lines: computes cumulative distances along the line
+    // so the dash/gap pattern renders correctly instead of a solid line.
+    line.computeLineDistances();
+    scene.add(line);
   });
 
   // ── Visibility guards ─────────────────────────────────────────────────────
@@ -306,6 +341,14 @@
     const pulse = 1.0 + Math.sin(time * 1.5) * 0.02;
     sun.mesh.scale.setScalar(pulse);
     sunLight.intensity = 5.0 * pulse;
+
+    // Interactive mouse parallax: smoothly ease the camera toward the
+    // mouse-driven offset so pans/tilts feel gentle rather than snappy.
+    parallax.x = THREE.MathUtils.lerp(parallax.x, mouse.x, PARALLAX_LERP);
+    parallax.y = THREE.MathUtils.lerp(parallax.y, mouse.y, PARALLAX_LERP);
+    camera.position.x = CAMERA_BASE.x + parallax.x * PARALLAX_STRENGTH_X;
+    camera.position.y = CAMERA_BASE.y - parallax.y * PARALLAX_STRENGTH_Y;
+    camera.lookAt(LOOK_BASE);
 
     renderer.render(scene, camera);
   }
