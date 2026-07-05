@@ -2528,4 +2528,33 @@ document.addEventListener('DOMContentLoaded', () => {
   }
 });
 
-
+// Telescope Calculator Metric Clipboard Copier
+document.querySelectorAll('.copy-metric-btn').forEach(btn => {
+  btn.addEventListener('click', (event) => {
+    event.stopPropagation();
+    
+    const targetId = btn.getAttribute('data-target');
+    const targetElement = document.getElementById(targetId);
+    
+    if (targetElement) {
+      const valueText = targetElement.innerText.trim();
+      let labelText = '';
+      
+      if (targetId === 'calc-out-mag') labelText = 'Magnification';
+      if (targetId === 'calc-out-tfov') labelText = 'True FOV';
+      if (targetId === 'calc-out-max') labelText = 'Max Useful Magnification';
+      
+      const copyString = `${labelText}: ${valueText}`;
+      
+      navigator.clipboard.writeText(copyString)
+        .then(() => {
+          if (typeof showInfo === 'function') {
+            showInfo(`Copied to clipboard: ${valueText}`, event);
+          }
+        })
+        .catch(err => {
+          console.error('Failed to copy text layout: ', err);
+        });
+    }
+  });
+});
