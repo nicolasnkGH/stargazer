@@ -38,6 +38,11 @@
   --radius:    16px;
   --radius-sm: 10px;
 
+  /* ── Layout ── */
+  /* Caps content width on ultra-wide monitors (>2560px) so the dashboard
+     grid stays readable instead of stretching edge to edge. */
+  --max-width: 1600px;
+
   /* ── Shadows & glows ── */
   --shadow-card:   0 4px 40px rgba(0, 0, 50, 0.55), 0 1px 0 rgba(100, 140, 255, 0.08) inset;
   --glow-blue:     0 0 30px rgba(74, 158, 255, 0.14);
@@ -72,7 +77,7 @@ body {
 .header, .main, .footer { position: relative; z-index: 1; }
 
 .main {
-  max-width: 100%;
+  max-width: var(--max-width);
   margin: 0 auto;
   /* Defensive horizontal gutter — content never runs flush to browser edge */
   padding: 0 32px 80px;
@@ -93,7 +98,7 @@ body {
 }
 
 .header-inner {
-  max-width: 100%;
+  max-width: var(--max-width);
   padding: 0 16px;
   margin: 0 auto;
   display: flex;
