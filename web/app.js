@@ -1586,6 +1586,8 @@ async function loadConstellations() {
         // 3. Sync the dropdown
         const selectEl = document.getElementById('ac-select');
         if (selectEl) selectEl.value = c.abbr;
+        //RESET COUNTER WHEN SWITCHING CONSTELLATIONS
+        window.targetDisplayedCount = 12;
 
         // 4. Update the section title
         const titleEl = document.getElementById('target-db-title');
@@ -1606,6 +1608,9 @@ async function loadConstellations() {
 
 // ── Render: Target Database ─────────────────────────────────────────────────
 let currentConstellation = localStorage.getItem('sg_constellation') || 'Sco';
+
+let targetDisplayedCount = 12; 
+let activeFilter = 'all';
 
 async function loadTargets() {
   await fetchAndRender(`/targets?constellation=${currentConstellation}`, (liveData) => {
@@ -1639,11 +1644,24 @@ async function loadTargets() {
 
 function renderTargetGrid(targets, liveMap, filter) {
   const grid = document.getElementById('target-grid');
+  if (!grid) return;
+
+  // 1. Reset display chunk counter if the user switches active filter tabs
+  if (window.activeTargetFilter !== filter) {
+    window.activeTargetFilter = filter;
+    window.targetDisplayedCount = 12;
+  }
+
+  // 2. Filter targets array first
   const filtered = filter === 'all'
     ? targets
     : targets.filter(t => t.type.toLowerCase().includes(filter));
 
-  grid.innerHTML = filtered.map(t => {
+  // 3. Smoothly slice the processed filtered data for chunked rendering
+  const displayedTargets = filtered.slice(0, window.targetDisplayedCount || 12);
+
+  // 4. Map the visible slice into HTML layout strings
+  grid.innerHTML = displayedTargets.map(t => {
     const live = liveMap[t.id] || {};
     const visibleNow = live.in_fov === true;
     const altText = live.altitude_deg != null
@@ -1692,6 +1710,30 @@ function renderTargetGrid(targets, liveMap, filter) {
       </div>
     `;
   }).join('');
+
+  // 5. Append or clean up the DOM "Load More" pagination element
+  let loadMoreBtn = document.getElementById('load-more-targets-btn');
+  
+  if (!loadMoreBtn && filtered.length > (window.targetDisplayedCount || 12)) {
+    loadMoreBtn = document.createElement('button');
+    loadMoreBtn.id = 'load-more-targets-btn';
+    loadMoreBtn.textContent = 'Load More Targets 🔭';
+    loadMoreBtn.style.cssText = 'display:block; margin:20px auto; padding:10px 24px; background:#a855f7; color:white; border:none; border-radius:6px; cursor:pointer; font-weight:bold; transition: background 0.2s;';
+    loadMoreBtn.onmouseover = () => loadMoreBtn.style.background = '#9333ea';
+    loadMoreBtn.onmouseout = () => loadMoreBtn.style.background = '#a855f7';
+    grid.after(loadMoreBtn);
+  }
+
+  if (loadMoreBtn) {
+    if ((window.targetDisplayedCount || 12) >= filtered.length) {
+      loadMoreBtn.remove();
+    } else {
+      loadMoreBtn.onclick = () => {
+        window.targetDisplayedCount = (window.targetDisplayedCount || 12) + 12;
+        renderTargetGrid(targets, liveMap, filter);
+      };
+    }
+  }
 }
 
 // ── API Status Check ────────────────────────────────────────────────────────
