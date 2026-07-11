@@ -2088,6 +2088,7 @@ async function init() {
       btn.classList.add('active');
       currentConstellation = btn.dataset.const;
       localStorage.setItem('sg_constellation', currentConstellation);
+      window.targetDisplayedCount = 12;
       document.getElementById('target-db-title').textContent = `${btn.textContent.trim()} ${window.i18n[currentLang].targets_title_suffix}`;
       loadTargets();
       loadActiveConstellation(currentConstellation);
@@ -2100,6 +2101,7 @@ async function init() {
     selectEl.addEventListener('change', (e) => {
       currentConstellation = e.target.value;
       localStorage.setItem('sg_constellation', currentConstellation);
+      window.targetDisplayedCount = 12;
       
       // Update the active tab if it exists
       document.querySelectorAll('.const-tab').forEach(b => b.classList.remove('active'));
