@@ -181,12 +181,16 @@ const subtitle = document.getElementById('logo-sub');
 const coords = document.getElementById('logo-coords');
 if (subtitle) {
   subtitle.removeAttribute('data-i18n');
-  subtitle.textContent = activeLoc.name;
+  subtitle.textContent = activeLoc ? activeLoc.name : 'Location Required';
 }
 if (coords) {
-  const latStr = Math.abs(activeLoc.lat).toFixed(3) + (activeLoc.lat >= 0 ? '°N' : '°S');
-  const lonStr = Math.abs(activeLoc.lon).toFixed(3) + (activeLoc.lon >= 0 ? '°E' : '°W');
-  coords.textContent = `${latStr}, ${lonStr}`;
+  if (activeLoc) {
+    const latStr = Math.abs(activeLoc.lat).toFixed(3) + (activeLoc.lat >= 0 ? '°N' : '°S');
+    const lonStr = Math.abs(activeLoc.lon).toFixed(3) + (activeLoc.lon >= 0 ? '°E' : '°W');
+    coords.textContent = `${latStr}, ${lonStr}`;
+  } else {
+    coords.textContent = 'Please enable GPS';
+  }
 }
 
 async function fetchAPI(path, fallback = null) {
@@ -2036,11 +2040,58 @@ function initLocationUI() {
 // ── Init ────────────────────────────────────────────────────────────────────
 async function init() {
   initLocationUI();
+
+  // --- Auto-detect GPS from Header ---
+  const headerGpsBtn = document.getElementById('btn-gps-header');
+  if (headerGpsBtn && !headerGpsBtn.dataset.bound) {
+    headerGpsBtn.dataset.bound = "true";
+    headerGpsBtn.addEventListener('click', () => {
+      if (window.location.protocol !== 'https:' && window.location.hostname !== 'localhost') {
+        alert("Browser Geolocation requires HTTPS. Please enter coordinates manually in the location settings.");
+        return;
+      }
+      const icon = headerGpsBtn.querySelector('i');
+      if (icon) icon.style.stroke = 'var(--accent-blue)';
+      
+      navigator.geolocation.getCurrentPosition(
+        pos => {
+          const lat = pos.coords.latitude;
+          const lon = pos.coords.longitude;
+          
+          fetch(`https://nominatim.openstreetmap.org/reverse?format=json&lat=${lat}&lon=${lon}`)
+            .then(res => res.json())
+            .then(data => {
+              let locName = 'GPS Location';
+              if (data && data.address) {
+                locName = data.address.city || data.address.town || data.address.village || data.address.county || locName;
+              }
+              const newId = 'loc_' + Date.now();
+              const newLoc = { id: newId, name: locName, lat: lat, lon: lon };
+              savedLocations.push(newLoc);
+              localStorage.setItem('stargazer_locations', JSON.stringify(savedLocations));
+              activateLocation(newId);
+              if (icon) icon.style.stroke = 'currentColor';
+            })
+            .catch(() => {
+              const newId = 'loc_' + Date.now();
+              const newLoc = { id: newId, name: 'GPS Location', lat: lat, lon: lon };
+              savedLocations.push(newLoc);
+              localStorage.setItem('stargazer_locations', JSON.stringify(savedLocations));
+              activateLocation(newId);
+              if (icon) icon.style.stroke = 'currentColor';
+            });
+        },
+        err => {
+          alert('Geolocation failed: ' + err.message);
+          if (icon) icon.style.stroke = 'currentColor';
+        }
+      );
+    });
+  }
   
   if (currentLat === null || currentLon === null) {
     document.getElementById('logo-sub').textContent = 'Location Required';
     document.getElementById('logo-coords').textContent = 'Please enable GPS';
-    const headerGpsBtn = document.getElementById('btn-gps-header');
     if (headerGpsBtn) headerGpsBtn.click();
     return;
   }
@@ -2125,39 +2176,6 @@ async function init() {
     // Re-render any new Lucide icons injected by data loads
     if (window.lucide) lucide.createIcons();
   }, 10 * 60 * 1000);
-
-  // --- Auto-detect GPS from Header ---
-  const headerGpsBtn = document.getElementById('btn-gps-header');
-  if (headerGpsBtn) {
-    headerGpsBtn.addEventListener('click', () => {
-      if (window.location.protocol !== 'https:' && window.location.hostname !== 'localhost') {
-        alert("Browser Geolocation requires HTTPS. Please enter coordinates manually in the location settings.");
-        return;
-      }
-      const icon = headerGpsBtn.querySelector('i');
-      if (icon) icon.style.stroke = 'var(--accent-blue)';
-      
-      navigator.geolocation.getCurrentPosition(
-        pos => {
-          const lat = pos.coords.latitude;
-          const lon = pos.coords.longitude;
-          
-          // Save and activate new location
-          const newId = 'loc_' + Date.now();
-          const newLoc = { id: newId, name: 'GPS Location', lat: lat, lon: lon };
-          savedLocations.push(newLoc);
-          localStorage.setItem('sg_locations', JSON.stringify(savedLocations));
-          activateLocation(newId);
-          
-          if (icon) icon.style.stroke = 'currentColor';
-        },
-        err => {
-          alert('Geolocation failed: ' + err.message);
-          if (icon) icon.style.stroke = 'currentColor';
-        }
-      );
-    });
-  }
 
   // --- Register Service Worker for PWA ---
   if ('serviceWorker' in navigator) {
