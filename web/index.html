@@ -27,6 +27,7 @@
   <!-- Favicon Fallback -->
   <link rel="icon" href="assets/ai_stargazer_mascot.png" type="image/png" />
   <link rel="shortcut icon" href="assets/ai_stargazer_mascot.png" type="image/png" />
+  <link rel="manifest" href="manifest.json" />
 
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
@@ -82,6 +83,7 @@
         <div class="pill-divider"></div>
         <div class="telemetry-item location-item">
           <button id="btn-location" class="location-btn" title="Set Location"><i data-lucide="map-pin" style="width:14px;height:14px;stroke:currentColor;stroke-width:1.5;"></i></button>
+          <button id="btn-gps-header" class="location-btn" title="Auto-detect Location"><i data-lucide="crosshair" style="width:14px;height:14px;stroke:currentColor;stroke-width:1.5;"></i></button>
           <div style="display:flex; flex-direction:column; line-height:1.2;">
             <span id="logo-sub" style="font-weight:600; color:var(--text-primary);" data-i18n="loading_loc">Loading...</span>
             <span id="logo-coords" style="font-size:0.65rem; color:var(--text-dim);">Lat: --, Lon: --</span>

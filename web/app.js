@@ -2117,6 +2117,46 @@ async function init() {
     if (window.lucide) lucide.createIcons();
   }, 10 * 60 * 1000);
 
+  // --- Auto-detect GPS from Header ---
+  const headerGpsBtn = document.getElementById('btn-gps-header');
+  if (headerGpsBtn) {
+    headerGpsBtn.addEventListener('click', () => {
+      if (window.location.protocol !== 'https:' && window.location.hostname !== 'localhost') {
+        alert("Browser Geolocation requires HTTPS. Please enter coordinates manually in the location settings.");
+        return;
+      }
+      const icon = headerGpsBtn.querySelector('i');
+      if (icon) icon.style.stroke = 'var(--accent-blue)';
+      
+      navigator.geolocation.getCurrentPosition(
+        pos => {
+          const lat = pos.coords.latitude;
+          const lon = pos.coords.longitude;
+          
+          // Save and activate new location
+          const newId = 'loc_' + Date.now();
+          const newLoc = { id: newId, name: 'GPS Location', lat: lat, lon: lon };
+          savedLocations.push(newLoc);
+          localStorage.setItem('sg_locations', JSON.stringify(savedLocations));
+          activateLocation(newId);
+          
+          if (icon) icon.style.stroke = 'currentColor';
+        },
+        err => {
+          alert('Geolocation failed: ' + err.message);
+          if (icon) icon.style.stroke = 'currentColor';
+        }
+      );
+    });
+  }
+
+  // --- Register Service Worker for PWA ---
+  if ('serviceWorker' in navigator) {
+    navigator.serviceWorker.register('sw.js')
+      .then(reg => console.log('Service Worker registered', reg))
+      .catch(err => console.error('Service Worker registration failed', err));
+  }
+
   // Init Lucide icons after all data has loaded
   if (window.lucide) lucide.createIcons();
 }
