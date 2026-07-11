@@ -75,9 +75,7 @@ if (window.location.hostname.includes('nick-t.net')) {
   API_BASE = '/api'; // Fallback for Docker LAN self-hosting where Nginx is the proxy
 }
 
-const DEFAULT_LOCATIONS = [
-  { id: 'default', name: 'Mauna Kea Observatory', lat: 19.8206, lon: -155.4681 }
-];
+const DEFAULT_LOCATIONS = [];
 
 let savedLocations = DEFAULT_LOCATIONS;
 try {
@@ -90,16 +88,16 @@ try {
   console.error("Failed to parse saved locations", e);
 }
 
-let activeLocId = localStorage.getItem('stargazer_active_loc') || 'default';
+let activeLocId = localStorage.getItem('stargazer_active_loc');
 let activeLoc = savedLocations.find(l => l.id === activeLocId);
-if (!activeLoc) {
+if (!activeLoc && savedLocations.length > 0) {
   activeLoc = savedLocations[0];
   activeLocId = activeLoc.id;
   localStorage.setItem('stargazer_active_loc', activeLocId);
 }
 
-let currentLat = parseFloat(activeLoc.lat) || 40.126;
-let currentLon = parseFloat(activeLoc.lon) || -83.037;
+let currentLat = activeLoc ? parseFloat(activeLoc.lat) : null;
+let currentLon = activeLoc ? parseFloat(activeLoc.lon) : null;
 
 // ── Starfield Canvas ────────────────────────────────────────────────────────
 (function initStarfield() {
@@ -192,6 +190,7 @@ if (coords) {
 }
 
 async function fetchAPI(path, fallback = null) {
+  if (currentLat === null || currentLon === null) return fallback;
   const separator = path.includes('?') ? '&' : '?';
   const finalPath = `${path}${separator}lat=${currentLat}&lon=${currentLon}&lang=${currentLang}`;
   const cacheKey = `stargazer_cache_${finalPath}`;
@@ -220,6 +219,7 @@ async function fetchAPI(path, fallback = null) {
 
 // SWR wrapper for immediate render
 async function fetchAndRender(path, renderFn, fallback = null) {
+  if (currentLat === null || currentLon === null) return;
   const separator = path.includes('?') ? '&' : '?';
   const finalPath = `${path}${separator}lat=${currentLat}&lon=${currentLon}&lang=${currentLang}`;
   const cacheKey = `stargazer_cache_${finalPath}`;
@@ -2036,6 +2036,15 @@ function initLocationUI() {
 // ── Init ────────────────────────────────────────────────────────────────────
 async function init() {
   initLocationUI();
+  
+  if (currentLat === null || currentLon === null) {
+    document.getElementById('logo-sub').textContent = 'Location Required';
+    document.getElementById('logo-coords').textContent = 'Please enable GPS';
+    const headerGpsBtn = document.getElementById('btn-gps-header');
+    if (headerGpsBtn) headerGpsBtn.click();
+    return;
+  }
+
   updateClearOutside();
 
   // Setup Constellation Tabs
