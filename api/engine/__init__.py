@@ -13,6 +13,7 @@ from .planets import (
 from config import SCORPIUS_TARGETS, NEARBY_TARGETS
 from .targets import get_visible_targets
 from .iss import get_iss_passes
+from .meteors import get_meteor_showers
 from .seeing import get_seeing_forecast
 from .reports import (
     get_tonight_report,
@@ -31,6 +32,7 @@ __all__ = [
     "get_planet_positions",
     "get_visible_targets",
     "get_iss_passes",
+    "get_meteor_showers",
     "get_seeing_forecast",
 
     "get_constellations",

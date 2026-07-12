@@ -26,6 +26,7 @@ from engine import (
     get_planet_positions,
     get_visible_targets,
     get_iss_passes,
+    get_meteor_showers,
     get_seeing_forecast,
 
     get_constellations,
@@ -152,7 +153,7 @@ def root():
         "time": now_local().isoformat(),
         "endpoints": ["/tonight", "/weekly", "/monthly", "/scorpius",
                       "/moon", "/planets", "/iss", "/seeing",
-                      "/targets"],
+                      "/targets", "/api/meteors"],
     }
 
 @app.options("/{full_path:path}")
@@ -220,6 +221,15 @@ def get_asteroids():
     except Exception as e:
         print(f"Error fetching asteroids: {e}")
         return JSONResponse(content=[])
+
+@app.get("/api/meteors")
+def get_meteors(count: int = Query(5, ge=1, le=10)):
+    """Upcoming major meteor showers with peak dates and Zenithal Hourly Rate."""
+    try:
+        return {"showers": get_meteor_showers(count=count)}
+    except Exception as e:
+        return JSONResponse(status_code=500, content={"error": str(e)})
+
 
 @app.get("/api/star")
 def get_star(name: Optional[str] = None, ra: Optional[float] = None, dec: Optional[float] = None):

@@ -2440,6 +2440,67 @@ document.addEventListener('DOMContentLoaded', () => {
       }
     });
 
+  // Fetch Meteor Showers
+  fetch(`${API_BASE}/api/meteors?count=5`)
+    .then(r => {
+      if (!r.ok) throw new Error('API Error');
+      return r.json();
+    })
+    .catch(err => {
+      console.warn("Meteor showers API failed, falling back to cache.", err);
+      return null;
+    })
+    .then(data => {
+      const list = document.getElementById('meteors-list');
+      if (!list) return;
+
+      let showers = data && data.showers;
+      if (!showers || showers.length === 0) {
+        const cachedStr = localStorage.getItem('stargazer_meteors_cache');
+        if (cachedStr) {
+          try { showers = JSON.parse(cachedStr); } catch(e) {}
+        }
+      }
+
+      if (!showers || showers.length === 0) {
+        list.innerHTML = `<div style="color:#ef4444; font-size:0.85rem; padding:10px;">Failed to load meteor shower schedule.</div>`;
+        return;
+      }
+
+      localStorage.setItem('stargazer_meteors_cache', JSON.stringify(showers));
+
+      list.innerHTML = showers.map((s, i) => {
+        const peak = new Date(s.peak_date + 'T00:00:00Z');
+        const peakLabel = peak.toLocaleDateString(undefined, { weekday: 'short', month: 'short', day: 'numeric', year: 'numeric' });
+        const days = s.days_until_peak;
+        let countdown;
+        if (days === 0) countdown = 'Peaks tonight';
+        else if (days === 1) countdown = 'Peaks tomorrow';
+        else countdown = `Peaks in ${days} days`;
+        const highlight = i === 0
+          ? 'border: 1px solid rgba(56,189,248,0.4); box-shadow: 0 0 12px rgba(56,189,248,0.15);'
+          : 'border: 1px solid rgba(255,255,255,0.08);';
+        const nextBadge = i === 0
+          ? `<span style="background:rgba(56,189,248,0.15); color:#38bdf8; font-size:0.65rem; padding:2px 6px; border-radius:4px; margin-left:6px; text-transform:uppercase; letter-spacing:0.05em;">Next</span>`
+          : '';
+        return `
+          <div style="background: rgba(255,255,255,0.05); padding: 12px; border-radius: 6px; ${highlight}">
+            <div style="display:flex; justify-content:space-between; align-items:baseline; gap:8px; flex-wrap:wrap;">
+              <div style="color:#e2e8f0; font-weight:bold; font-size:0.95rem;">💫 ${s.name}${nextBadge}</div>
+              <div style="color:#a855f7; font-size:0.85rem; font-family: var(--font-mono);">ZHR ~${s.zhr}/hr</div>
+            </div>
+            <div style="color:#cbd5e1; font-size:0.8rem; margin-top:4px;">
+              <span style="color:#38bdf8;">${peakLabel}</span> · <span style="color:#94a3b8;">${countdown}</span>
+            </div>
+            <div style="color:#94a3b8; font-size:0.75rem; margin-top:4px;">
+              Active: ${s.activity_period} · Best: ${s.hemisphere} Hem. · Parent: ${s.parent_body}
+            </div>
+            <div style="color:#cbd5e1; font-size:0.75rem; margin-top:6px; font-style:italic;">${s.notes}</div>
+          </div>
+        `;
+      }).join('');
+    });
+
   // Observation Notes Local Storage
   const obsNotes = document.getElementById('observation-notes');
   if (obsNotes) {

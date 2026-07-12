@@ -290,6 +290,7 @@
           <button class="motion-tab active" data-panel="motion-iss-panel">🚀 ISS Passes</button>
           <button class="motion-tab" data-panel="motion-neo-panel">☄️ Near-Earth Objects</button>
           <button class="motion-tab" data-panel="motion-comets-panel">🌠 Comets</button>
+          <button class="motion-tab" data-panel="motion-meteors-panel">💫 Meteor Showers</button>
         </div>
 
         <div class="card-body" style="padding-top:0;">
@@ -420,6 +421,19 @@
 
             <div style="margin-top:12px; text-align:right;">
               <a href="https://ssd.jpl.nasa.gov/tools/sbdb_lookup.html" target="_blank" class="ext-link">NASA Small Body DB ↗</a>
+            </div>
+          </div>
+
+          <!-- ── Meteor Showers Panel ────────────────────────────────────── -->
+          <div id="motion-meteors-panel" class="motion-panel" style="display:none;">
+            <div class="iss-tip">
+              <span>Upcoming major meteor showers, ranked by peak date. ZHR = Zenithal Hourly Rate under ideal dark skies.</span>
+            </div>
+            <div id="meteors-list" style="display:flex; flex-direction:column; gap:10px;">
+              <div class="loading-shimmer"></div>
+            </div>
+            <div style="margin-top:12px; text-align:right;">
+              <a href="https://www.imo.net/members/imo_showers/working_shower_list" target="_blank" class="ext-link">IMO Shower List ↗</a>
             </div>
           </div>
 
