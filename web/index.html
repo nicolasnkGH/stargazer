@@ -218,7 +218,25 @@
           <div class="seeing-best-window" id="seeing-best-window" style="display:none"></div>
           <!-- Warning chips -->
           <div class="seeing-warnings" id="seeing-warnings" style="display:none"></div>
-          <div class="dark-window" id="dark-window">Dark window: loading…</div>
+          <!-- Twilight Timeline -->
+          <div class="twilight-timeline" id="twilight-timeline" style="display:none; margin-top: 15px; border-top: 1px solid rgba(255,255,255,0.1); padding-top: 10px;">
+            <div style="font-size: 0.8rem; margin-bottom: 8px; color: #fff; display:flex; align-items:center; gap:6px;"><i data-lucide="clock" style="width:14px;height:14px;"></i> Twilight Timeline</div>
+            <div style="display:flex; justify-content: space-between; font-size: 0.75rem; color: var(--text-secondary); text-align: center;">
+              <div><i data-lucide="sunset" style="width:16px;height:16px;stroke:var(--accent-orange);margin-bottom:4px;"></i><br><span id="tl-sunset" style="color:#fff;font-weight:600;">--:--</span><br>Sunset</div>
+              <div><i data-lucide="moon" style="width:16px;height:16px;stroke:var(--accent-blue);margin-bottom:4px;"></i><br><span id="tl-astro-start" style="color:#fff;font-weight:600;">--:--</span><br>Astro Start</div>
+              <div><i data-lucide="sun" style="width:16px;height:16px;stroke:var(--accent-blue);margin-bottom:4px;"></i><br><span id="tl-astro-end" style="color:#fff;font-weight:600;">--:--</span><br>Astro End</div>
+              <div><i data-lucide="sunrise" style="width:16px;height:16px;stroke:var(--accent-orange);margin-bottom:4px;"></i><br><span id="tl-sunrise" style="color:#fff;font-weight:600;">--:--</span><br>Sunrise</div>
+            </div>
+          </div>
+
+          <!-- Hourly Cloud Forecast Bar Chart -->
+          <div class="hourly-clouds-container" id="hourly-clouds-container" style="display:none; margin-top: 15px; border-top: 1px solid rgba(255,255,255,0.1); padding-top: 10px;">
+            <div style="font-size: 0.8rem; margin-bottom: 8px; color: #fff; display:flex; align-items:center; gap:6px; justify-content:space-between;">
+              <span><i data-lucide="bar-chart-2" style="width:14px;height:14px;vertical-align:middle;"></i> Cloud Forecast (24h)</span>
+              <span style="font-size:0.7rem; color:var(--text-secondary);"><span style="color:#22c55e;">●</span> Clear <span style="color:#ef4444;margin-left:4px;">●</span> Overcast</span>
+            </div>
+            <div id="hourly-clouds-chart" style="display: flex; gap: 2px; height: 40px; align-items: flex-end;"></div>
+          </div>
 
           <!-- Pre-Flight Checklist -->
           <div class="checklist-container" id="pre-flight-checklist" style="margin-top: 15px; padding-top: 15px; border-top: 1px solid rgba(255,255,255,0.1);">
@@ -606,15 +624,26 @@
 
     <!-- ── Dynamic Target Database ── -->
     <section class="card card-targets" id="card-targets">
-      <div class="card-header">
-        <div class="card-icon"><i data-lucide="crosshair"></i></div>
-        <h2 class="card-title" id="target-db-title">Scorpius Must-See Targets</h2>
-        <div class="card-actions">
-          <button class="filter-btn active" data-filter="all" data-i18n="filter_all">All</button>
-          <button class="filter-btn" data-filter="globular" data-i18n="filter_globular">Globulars</button>
-          <button class="filter-btn" data-filter="open" data-i18n="filter_open">Open Clusters</button>
-          <button class="filter-btn" data-filter="double" data-i18n="filter_double">Double Stars</button>
-          <button class="filter-btn" data-filter="star" data-i18n="filter_stars">Stars</button>
+      <div class="card-header" style="flex-wrap: wrap; gap: 10px;">
+        <div style="display: flex; align-items: center; gap: 10px; width: 100%;">
+          <div class="card-icon"><i data-lucide="crosshair"></i></div>
+          <h2 class="card-title" id="target-db-title">Scorpius Must-See Targets</h2>
+        </div>
+        <div class="card-actions" id="equipment-filters" style="margin-right: auto;">
+          <span style="font-size: 0.8rem; color: var(--text-secondary); margin-right: 5px;">Equipment:</span>
+          <button class="filter-btn equip-btn active" data-equip="all">All</button>
+          <button class="filter-btn equip-btn" data-equip="seestar">Seestar</button>
+          <button class="filter-btn equip-btn" data-equip="dslr">DSLR</button>
+          <button class="filter-btn equip-btn" data-equip="binos">Binoculars</button>
+        </div>
+        <div class="card-actions" id="type-filters">
+          <span style="font-size: 0.8rem; color: var(--text-secondary); margin-right: 5px;">Object:</span>
+          <button class="filter-btn type-btn active" data-filter="all" data-i18n="filter_all">All</button>
+          <button class="filter-btn type-btn" data-filter="globular" data-i18n="filter_globular">Globulars</button>
+          <button class="filter-btn type-btn" data-filter="open" data-i18n="filter_open">Open Clusters</button>
+          <button class="filter-btn type-btn" data-filter="double" data-i18n="filter_double">Double Stars</button>
+          <button class="filter-btn type-btn" data-filter="star" data-i18n="filter_stars">Stars</button>
+          <button class="filter-btn type-btn" data-filter="galaxy">Galaxies</button>
         </div>
       </div>
       

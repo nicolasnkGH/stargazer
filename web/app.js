@@ -499,11 +499,11 @@ function renderSeeing(seeing, data) {
   const engineBadgeEl = document.getElementById('seeing-engine-badge');
   if (engineBadgeEl) {
     const isAI = seeing.ai_powered;
-    engineBadgeEl.textContent   = isAI ? '🤖 AI' : '📐 Rule-based';
-    engineBadgeEl.title         = isAI
+    engineBadgeEl.textContent   = isAI ? '🤖 AI' : (seeing.source.includes('7Timer') ? '☁️ Blended' : '📐 Rule-based');
+    engineBadgeEl.title         = seeing.source || (isAI
       ? 'Scored by Qwen3.5-9B (local AI)'
-      : 'AI unavailable — using extended rule-based scorer';
-    engineBadgeEl.className = `seeing-engine-badge ${isAI ? 'ai' : 'rule'}`;
+      : 'AI unavailable — using extended rule-based scorer');
+    engineBadgeEl.className = `seeing-engine-badge ${isAI ? 'ai' : (seeing.source.includes('7Timer') ? 'blended' : 'rule')}`;
     engineBadgeEl.style.display = '';
   }
 
@@ -520,6 +520,41 @@ function renderSeeing(seeing, data) {
     explanationEl.classList.remove('ai-loading-glow');
     explanationEl.textContent = seeing.seeing_explanation || '';
     explanationEl.style.display = seeing.seeing_explanation ? '' : 'none';
+  }
+
+  // ── Twilight Timeline ──
+  const tlContainer = document.getElementById('twilight-timeline');
+  if (tlContainer && data.twilight_timeline) {
+    document.getElementById('tl-sunset').textContent = data.twilight_timeline.sunset || '--:--';
+    document.getElementById('tl-astro-start').textContent = data.twilight_timeline.astro_start || '--:--';
+    document.getElementById('tl-astro-end').textContent = data.twilight_timeline.astro_end || '--:--';
+    document.getElementById('tl-sunrise').textContent = data.twilight_timeline.sunrise || '--:--';
+    tlContainer.style.display = '';
+  }
+
+  // ── Hourly Cloud Forecast Bar Chart ──
+  const hcContainer = document.getElementById('hourly-clouds-container');
+  const hcChart = document.getElementById('hourly-clouds-chart');
+  if (hcContainer && hcChart && seeing.hourly_clouds && seeing.hourly_clouds.length > 0) {
+    hcChart.innerHTML = '';
+    // Draw 24 bars
+    seeing.hourly_clouds.forEach(cloudPct => {
+      const bar = document.createElement('div');
+      bar.style.flex = '1';
+      // Map 0% cloud -> green, 100% -> red
+      let color = '#22c55e'; // clear
+      if (cloudPct > 20) color = '#eab308'; // partly cloudy
+      if (cloudPct > 60) color = '#ef4444'; // overcast
+      
+      const h = Math.max(10, cloudPct); 
+      bar.style.height = `${h}%`;
+      bar.style.backgroundColor = color;
+      bar.style.borderRadius = '2px 2px 0 0';
+      bar.style.opacity = '0.9';
+      bar.title = `${cloudPct}% cloud cover`;
+      hcChart.appendChild(bar);
+    });
+    hcContainer.style.display = '';
   }
 
   // Also surface the AI explanation as the Observer's Briefing in the Must-See card
@@ -1625,10 +1660,12 @@ async function loadTargets() {
     const liveMap = {};
     targets.forEach(t => { liveMap[t.id] = t; });
 
-    const filterBtn = document.querySelector('.filter-btn.active');
-    const filter = filterBtn ? filterBtn.dataset.filter : 'all';
+    const typeBtn = document.querySelector('.type-btn.active');
+    const typeFilter = typeBtn ? typeBtn.dataset.filter : 'all';
+    const equipBtn = document.querySelector('.equip-btn.active');
+    const equipFilter = equipBtn ? equipBtn.dataset.equip : 'all';
 
-    renderTargetGrid(targets, liveMap, filter);
+    renderTargetGrid(targets, liveMap, typeFilter, equipFilter);
 
     // Filter buttons
     document.querySelectorAll('.filter-btn').forEach(btn => {
@@ -1637,29 +1674,59 @@ async function loadTargets() {
       btn.parentNode.replaceChild(newBtn, btn);
       
       newBtn.addEventListener('click', () => {
-        document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
-        newBtn.classList.add('active');
-        const f = newBtn.dataset.filter;
-        renderTargetGrid(targets, liveMap, f);
+        if (newBtn.classList.contains('equip-btn')) {
+          document.querySelectorAll('.equip-btn').forEach(b => b.classList.remove('active'));
+          newBtn.classList.add('active');
+        } else if (newBtn.classList.contains('type-btn')) {
+          document.querySelectorAll('.type-btn').forEach(b => b.classList.remove('active'));
+          newBtn.classList.add('active');
+        }
+
+        const activeEquip = document.querySelector('.equip-btn.active');
+        const ef = activeEquip ? activeEquip.dataset.equip : 'all';
+
+        const activeType = document.querySelector('.type-btn.active');
+        const tf = activeType ? activeType.dataset.filter : 'all';
+
+        renderTargetGrid(targets, liveMap, tf, ef);
       });
     });
   });
 }
 
-function renderTargetGrid(targets, liveMap, filter) {
+function renderTargetGrid(targets, liveMap, typeFilter = 'all', equipFilter = 'all') {
   const grid = document.getElementById('target-grid');
   if (!grid) return;
 
   // 1. Reset display chunk counter if the user switches active filter tabs
-  if (window.activeTargetFilter !== filter) {
-    window.activeTargetFilter = filter;
+  const cacheKey = typeFilter + '-' + equipFilter;
+  if (window.activeTargetFilter !== cacheKey) {
+    window.activeTargetFilter = cacheKey;
     window.targetDisplayedCount = 12;
   }
 
   // 2. Filter targets array first
-  const filtered = filter === 'all'
-    ? targets
-    : targets.filter(t => t.type.toLowerCase().includes(filter));
+  const filtered = targets.filter(t => {
+    let typeMatch = true;
+    if (typeFilter !== 'all') {
+      typeMatch = t.type.toLowerCase().includes(typeFilter);
+    }
+    
+    let equipMatch = true;
+    if (equipFilter !== 'all') {
+      if (equipFilter === 'seestar') {
+        // Seestar is great at galaxies, nebulae, clusters.
+        equipMatch = ['galaxy', 'nebula', 'globular cluster', 'open cluster'].some(k => t.type.toLowerCase().includes(k));
+      } else if (equipFilter === 'dslr') {
+        // DSLR is great for wide-field, big clusters, and bright objects.
+        equipMatch = t.magnitude <= 6 || t.type.toLowerCase().includes('open cluster');
+      } else if (equipFilter === 'binos') {
+        // Binoculars need bright, easy targets or large clusters.
+        equipMatch = t.difficulty === 'naked_eye' || t.difficulty === 'easy' || t.magnitude <= 7;
+      }
+    }
+    return typeMatch && equipMatch;
+  });
 
   // 3. Smoothly slice the processed filtered data for chunked rendering
   const displayedTargets = filtered.slice(0, window.targetDisplayedCount || 12);

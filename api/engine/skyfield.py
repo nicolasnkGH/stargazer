@@ -93,3 +93,38 @@ def _tonight_window(dt: Optional[date] = None, lat=None, lon=None) -> tuple[date
         dawn = datetime(d.year, d.month, d.day + 1, 5, 0, tzinfo=tz)
 
     return dusk, dawn
+
+def get_twilight_timeline(lat=None, lon=None) -> dict:
+    """Return sunrise, sunset, astro_start, and astro_end times for tonight."""
+    tz = _get_tz(lat, lon)
+    d = now_local(lat=lat, lon=lon).date()
+    ts, eph = _get_skyfield()
+    _, observer_location = _get_observer(lat=lat, lon=lon)
+
+    # From noon today to noon tomorrow
+    midnight = datetime(d.year, d.month, d.day, 12, 0, tzinfo=tz)
+    t0 = ts.from_datetime(midnight)
+    t1 = ts.from_datetime(midnight + timedelta(hours=24))
+
+    f = almanac.dark_twilight_day(eph, observer_location)
+    times, events = almanac.find_discrete(t0, t1, f)
+
+    timeline = {
+        "sunset": None,
+        "astro_start": None,
+        "astro_end": None,
+        "sunrise": None,
+    }
+
+    for t, e in zip(times, events):
+        dt_local = t.utc_datetime().replace(tzinfo=ZoneInfo("UTC")).astimezone(tz)
+        if e == 3 and dt_local.hour > 12: # Day to Civil (Sunset)
+            timeline["sunset"] = dt_local.strftime("%H:%M")
+        elif e == 0 and dt_local.hour > 12: # Astro to Dark (Astro twilight ends)
+            timeline["astro_start"] = dt_local.strftime("%H:%M")
+        elif e == 1 and dt_local.hour < 12: # Dark to Astro (Astro twilight starts morning)
+            timeline["astro_end"] = dt_local.strftime("%H:%M")
+        elif e == 4 and dt_local.hour < 12: # Civil to Day (Sunrise)
+            timeline["sunrise"] = dt_local.strftime("%H:%M")
+
+    return timeline

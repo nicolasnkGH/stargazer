@@ -405,6 +405,19 @@ def get_seeing_forecast(lat=None, lon=None, ai_enabled: bool = False, lang: str 
             "clearoutside_embed": f"https://clearoutside.com/forecast_embed/{use_lat}/{use_lon}",
             "error": str(e),
         }
+        
+    # ── Fetch 7Timer! Seeing Data ──
+    seeing_arcsec = "N/A"
+    try:
+        url_7t = f"http://www.7timer.info/bin/astro.php?lon={use_lon}&lat={use_lat}&ac=0&unit=metric&output=json"
+        resp_7t = requests.get(url_7t, timeout=5)
+        resp_7t.raise_for_status()
+        data_7t = resp_7t.json()
+        s_val = data_7t["dataseries"][0]["seeing"]
+        seeing_map = {1: "<0.5\"", 2: "0.5\"-0.75\"", 3: "0.75\"-1\"", 4: "1\"-1.5\"", 5: "1.5\"-2\"", 6: "2\"-2.5\"", 7: "2.5\"-3\"", 8: ">3\""}
+        seeing_arcsec = seeing_map.get(s_val, "N/A")
+    except Exception:
+        pass
 
     hourly = data.get("hourly", {})
     daily  = data.get("daily",  {})
@@ -550,7 +563,9 @@ def get_seeing_forecast(lat=None, lon=None, ai_enabled: bool = False, lang: str 
         "tonight_temp_c":        temp,
         # Go/No-Go
         "go_nogo":  go_nogo,
-        "source":   "Open-Meteo + Qwen3.5-9B" if analysis["ai_powered"] else "Open-Meteo (rule-based fallback)",
+        "source":   "Blended (7Timer! + Open-Meteo)",
         "clearoutside_embed": f"https://clearoutside.com/forecast_embed/{use_lat}/{use_lon}",
         "week_forecast": week_summary,
+        "seeing_arcsec": seeing_arcsec,
+        "hourly_clouds": hourly.get("cloudcover", [])[:24],
     }

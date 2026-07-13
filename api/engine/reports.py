@@ -8,7 +8,7 @@ import json
 import hashlib
 from zoneinfo import ZoneInfo
 
-from .skyfield import _get_skyfield, _get_observer, _get_tz, _sf_time, now_local, _tonight_window
+from .skyfield import _get_skyfield, _get_observer, _get_tz, _sf_time, now_local, _tonight_window, get_twilight_timeline
 from skyfield.api import Star
 from skyfield import almanac
 from .moon import get_moon_info
@@ -42,6 +42,7 @@ def get_tonight_report(lat=None, lon=None, lang: str = "en") -> dict:
     planets = get_planet_positions(now, lat=lat, lon=lon, dusk=dusk, dawn=dawn)
     targets = get_visible_targets(now, lat=lat, lon=lon)
     seeing = get_seeing_forecast(lat=lat, lon=lon, lang=lang)
+    twilight_timeline = get_twilight_timeline(lat=lat, lon=lon)
 
     visible_planets = [p for p in planets if p["visible_tonight"]]
     best_targets = [t for t in targets if t.get("in_fov") and t.get("bortle_min", 99) <= BORTLE_CLASS + 1][:5]
@@ -97,9 +98,11 @@ def get_tonight_report(lat=None, lon=None, lang: str = "en") -> dict:
         "location_timezone": str(_get_tz(lat, lon).key),
         "astronomical_dusk": dusk.strftime("%I:%M %p"),
         "astronomical_dawn": dawn.strftime("%I:%M %p"),
+        "twilight_timeline": twilight_timeline,
         "observing_window_hours": round((dawn - dusk).total_seconds() / 3600, 1),
         "seeing": seeing,
         "moon": moon,
+        "planets": planets,
         "visible_planets": visible_planets,
         "best_targets_tonight": best_targets,
         "must_see": must_see,
