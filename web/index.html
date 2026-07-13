@@ -1008,12 +1008,44 @@
       </p>
 
       <div style="display: flex; flex-direction: column; gap: 15px; margin-top: 20px;">
-        <button id="btn-export-data" class="btn btn-secondary" style="justify-content: center; width: 100%;">
-          📥 Export Backup (JSON)
-        </button>
-        <button id="btn-trigger-import" class="btn btn-primary" style="justify-content: center; width: 100%;">
-          📤 Import Backup (JSON)
-        </button>
+        
+        <div style="background: rgba(255,255,255,0.05); padding: 15px; border-radius: 8px;">
+          <h3 style="margin-top:0; font-size: 1rem;">🌃 Sky Darkness (Bortle Class)</h3>
+          <p style="font-size: 0.8rem; color: var(--text-secondary); margin-bottom: 10px;">Select your light pollution level to filter out washed-out targets.</p>
+          <select id="select-bortle" class="location-input" style="width: 100%; margin-bottom: 0;">
+            <option value="1">Class 1: Excellent dark-sky site</option>
+            <option value="2">Class 2: Typical truly dark site</option>
+            <option value="3">Class 3: Rural sky</option>
+            <option value="4">Class 4: Rural/suburban transition</option>
+            <option value="5">Class 5: Suburban sky</option>
+            <option value="6">Class 6: Bright suburban sky</option>
+            <option value="7">Class 7: Suburban/urban transition</option>
+            <option value="8">Class 8: City sky</option>
+            <option value="9">Class 9: Inner-city sky</option>
+          </select>
+        </div>
+
+        <div style="background: rgba(255,255,255,0.05); padding: 15px; border-radius: 8px;">
+          <h3 style="margin-top:0; font-size: 1rem;">🔔 Push Notifications</h3>
+          <p style="font-size: 0.8rem; color: var(--text-secondary); margin-bottom: 10px;">Get alerted when the ISS is passing or when skies clear up.</p>
+          <button id="btn-subscribe-alerts" class="btn btn-primary" style="justify-content: center; width: 100%;">
+            Enable Native Alerts
+          </button>
+          <button id="btn-test-alert" class="btn btn-secondary" style="justify-content: center; width: 100%; margin-top: 10px; display: none;">
+            Send Test Alert
+          </button>
+        </div>
+
+        <div style="background: rgba(255,255,255,0.05); padding: 15px; border-radius: 8px; margin-top: 10px;">
+          <h3 style="margin-top:0; font-size: 1rem;">💾 Data Backup</h3>
+          <button id="btn-export-data" class="btn btn-secondary" style="justify-content: center; width: 100%; margin-bottom: 10px;">
+            📥 Export Backup (JSON)
+          </button>
+          <button id="btn-trigger-import" class="btn btn-secondary" style="justify-content: center; width: 100%;">
+            📤 Import Backup (JSON)
+          </button>
+        </div>
+        
         <!-- Hidden file input for import -->
         <input type="file" id="input-import-data" accept=".json" style="display: none;">
       </div>

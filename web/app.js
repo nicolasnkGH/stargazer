@@ -98,6 +98,7 @@ if (!activeLoc && savedLocations.length > 0) {
 
 let currentLat = activeLoc ? parseFloat(activeLoc.lat) : null;
 let currentLon = activeLoc ? parseFloat(activeLoc.lon) : null;
+window.currentBortle = localStorage.getItem('stargazer_bortle') || null;
 
 // ── Starfield Canvas ────────────────────────────────────────────────────────
 (function initStarfield() {
@@ -196,7 +197,8 @@ if (coords) {
 async function fetchAPI(path, fallback = null) {
   if (currentLat === null || currentLon === null) return fallback;
   const separator = path.includes('?') ? '&' : '?';
-  const finalPath = `${path}${separator}lat=${currentLat}&lon=${currentLon}&lang=${currentLang}`;
+  let bortleStr = window.currentBortle ? `&bortle=${window.currentBortle}` : '';
+  const finalPath = `${path}${separator}lat=${currentLat}&lon=${currentLon}&lang=${currentLang}${bortleStr}`;
   const cacheKey = `stargazer_cache_${finalPath}`;
   
   // Stale-while-revalidate: return cached data immediately if we have it
@@ -225,7 +227,8 @@ async function fetchAPI(path, fallback = null) {
 async function fetchAndRender(path, renderFn, fallback = null) {
   if (currentLat === null || currentLon === null) return;
   const separator = path.includes('?') ? '&' : '?';
-  const finalPath = `${path}${separator}lat=${currentLat}&lon=${currentLon}&lang=${currentLang}`;
+  let bortleStr = window.currentBortle ? `&bortle=${window.currentBortle}` : '';
+  const finalPath = `${path}${separator}lat=${currentLat}&lon=${currentLon}&lang=${currentLang}${bortleStr}`;
   const cacheKey = `stargazer_cache_${finalPath}`;
   
   const cached = localStorage.getItem(cacheKey);
@@ -1415,7 +1418,7 @@ async function loadWeekly() {
   });
 }
 
-// ── Render: ISS Passes ──────────────────────────────────────────────────────
+
 async function loadISS() {
   await fetchAndRender('/iss?count=4', (data) => {
     const container = document.getElementById('iss-passes');
@@ -1725,7 +1728,7 @@ function renderTargetGrid(targets, liveMap, typeFilter = 'all', equipFilter = 'a
         equipMatch = t.difficulty === 'naked_eye' || t.difficulty === 'easy' || t.magnitude <= 7;
       }
     }
-    return typeMatch && equipMatch;
+    return typeMatch && equipMatch && t.observable !== false;
   });
 
   // 3. Smoothly slice the processed filtered data for chunked rendering
@@ -1906,7 +1909,24 @@ function initLocationUI() {
     btnDataSettings.addEventListener('click', () => {
       const navDropdown = document.getElementById('nav-dropdown');
       if (navDropdown) navDropdown.classList.add('hidden'); // Close nav
+      
+      const selectBortle = document.getElementById('select-bortle');
+      if (selectBortle) {
+        selectBortle.value = window.currentBortle || "6";
+      }
+      
       modalData.classList.remove('hidden');
+    });
+  }
+  
+  const selectBortle = document.getElementById('select-bortle');
+  if (selectBortle) {
+    selectBortle.addEventListener('change', (e) => {
+      window.currentBortle = e.target.value;
+      localStorage.setItem('stargazer_bortle', window.currentBortle);
+      // Reload targets and tonight report
+      loadTonightReport();
+      loadTargets();
     });
   }
 
@@ -1930,8 +1950,111 @@ function initLocationUI() {
       const a = document.createElement('a');
       a.href = url;
       a.download = `stargazer_backup_${new Date().toISOString().split('T')[0]}.json`;
+      document.body.appendChild(a);
       a.click();
+      document.body.removeChild(a);
       URL.revokeObjectURL(url);
+    });
+  }
+
+  // PWA Push Notifications
+  const btnSubscribeAlerts = document.getElementById('btn-subscribe-alerts');
+  const btnTestAlert = document.getElementById('btn-test-alert');
+
+  // Helper: convert base64url VAPID public key to Uint8Array
+  function _urlBase64ToUint8Array(base64String) {
+    const padding = '='.repeat((4 - (base64String.length % 4)) % 4);
+    const base64 = (base64String + padding).replace(/-/g, '+').replace(/_/g, '/');
+    const rawData = atob(base64);
+    return new Uint8Array([...rawData].map(c => c.charCodeAt(0)));
+  }
+
+  async function _getPushSubscription() {
+    if (!('serviceWorker' in navigator) || !('PushManager' in window)) return null;
+    const reg = await navigator.serviceWorker.ready;
+
+    // Fetch VAPID public key from server
+    let vapidKey = null;
+    try {
+      const resp = await fetch(`${API_BASE}/api/push/vapid-key`);
+      if (resp.ok) {
+        const data = await resp.json();
+        vapidKey = data.publicKey;
+      }
+    } catch (e) { /* VAPID not configured — fallback to local-only notifications */ }
+
+    const options = { userVisibleOnly: true };
+    if (vapidKey) {
+      options.applicationServerKey = _urlBase64ToUint8Array(vapidKey);
+    }
+
+    try {
+      const sub = await reg.pushManager.subscribe(options);
+      return sub;
+    } catch (e) {
+      console.warn('pushManager.subscribe failed:', e);
+      return null;
+    }
+  }
+
+  async function _sendSubscriptionToServer(sub) {
+    try {
+      await fetch(`${API_BASE}/api/push/subscribe`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(sub.toJSON())
+      });
+    } catch (e) {
+      console.warn('Failed to register subscription with server:', e);
+    }
+  }
+
+  function _markAlertsEnabled() {
+    if (btnSubscribeAlerts) {
+      btnSubscribeAlerts.textContent = 'Alerts Enabled ✅';
+      btnSubscribeAlerts.disabled = true;
+    }
+    if (btnTestAlert) btnTestAlert.style.display = 'block';
+  }
+
+  if (btnSubscribeAlerts) {
+    // If already granted, reflect state immediately
+    if (Notification.permission === 'granted') {
+      _markAlertsEnabled();
+    }
+
+    btnSubscribeAlerts.addEventListener('click', async () => {
+      const permission = await Notification.requestPermission();
+      if (permission === 'granted') {
+        _markAlertsEnabled();
+        const sub = await _getPushSubscription();
+        if (sub) {
+          await _sendSubscriptionToServer(sub);
+        }
+      } else {
+        alert('Notification permission denied. Check your browser settings to allow notifications for this site.');
+      }
+    });
+  }
+
+  if (btnTestAlert) {
+    btnTestAlert.addEventListener('click', async () => {
+      // Try server-side push first (works in prod with VAPID)
+      try {
+        const resp = await fetch(`${API_BASE}/api/push/test`, { method: 'POST' });
+        if (resp.ok) return; // server sent it
+      } catch (e) { /* fall through to local notification */ }
+
+      // Fallback: local notification via SW (works on localhost without VAPID)
+      if ('serviceWorker' in navigator) {
+        const reg = await navigator.serviceWorker.ready;
+        reg.showNotification('🌌 StarGazer Test Alert', {
+          body: 'Push notifications are working! You\'ll be alerted about ISS passes, auroras, and clear skies.',
+          icon: './assets/ai_stargazer_mascot.png',
+          badge: './assets/ai_stargazer_mascot.png',
+          data: window.location.origin
+        });
+      }
     });
   }
 
@@ -1977,14 +2100,15 @@ function initLocationUI() {
     const driverObj = window.driver.js.driver({
       showProgress: true,
       steps: [
-        { popover: { title: 'Welcome to StarGazer! ✨', description: 'Your personal dashboard for stargazing and astronomy planning. Let\'s take a quick tour.', align: 'center' } },
-        { element: '#btn-location', popover: { title: 'Location Setup', description: 'First, set your observatory location here to get accurate celestial data for your local sky.', side: "bottom", align: 'start' } },
-        { element: '#card-live-sky', popover: { title: 'Live Sky Conditions', description: 'Check the real-time weather, astronomical seeing conditions, and moon phase before heading out.', side: "bottom", align: 'start' } },
-        { element: '#card-active-const', popover: { title: 'Active Constellation', description: 'Explore interactive sky maps of constellations currently visible. Click on the map to unlock it, and then click any star to scan it via SIMBAD!', side: "top", align: 'start' } },
-        { element: '#card-targets', popover: { title: 'Tonight\'s Targets', description: 'Discover planets, galaxies, and nebulae visible tonight, ranked by their peak elevation.', side: "top", align: 'start' } },
-        { element: '#card-iss', popover: { title: 'ISS Tracker', description: 'Track exactly when the International Space Station will fly over your location.', side: "top", align: 'start' } },
-        { element: '#btn-menu', popover: { title: 'Data & Settings', description: 'Don\'t lose your data! Open this menu to export or import backups of your locations, horizon settings, and observation logs.', side: "bottom", align: 'end' } },
-        { element: '#btn-night-mode', popover: { title: 'Night Vision Mode', description: 'Enable the red light overlay to preserve your dark adaptation while stargazing.', side: "left", align: 'end' } }
+        { popover: { title: 'Welcome to StarGazer! ✨', description: 'Your personal dashboard for stargazing and astronomy planning. Let\'s take a quick tour of all the features!', align: 'center' } },
+        { element: '#btn-location', popover: { title: '📍 Location Setup', description: 'Your location is set! You can add more observing spots here any time, including a porch mode to restrict visibility angles.', side: 'bottom', align: 'start' } },
+        { element: '#card-live-sky', popover: { title: '🌤 Live Sky Conditions', description: 'Real-time weather, astronomical seeing, and moon phase for your location — updated every 10 minutes.', side: 'bottom', align: 'start' } },
+        { element: '#card-active-const', popover: { title: '🗺 Active Constellation', description: 'Interactive sky map of constellations currently above you. Click any star to look it up in the SIMBAD database!', side: 'top', align: 'start' } },
+        { element: '#card-targets', popover: { title: '🔭 Tonight\'s Targets', description: 'Galaxies, nebulae, and planets visible tonight, ranked by altitude. Filtered automatically to your sky darkness (Bortle class).', side: 'top', align: 'start' } },
+        { element: '#card-motion', popover: { title: '🚀 Sky Objects in Motion', description: 'Track the ISS, near-Earth asteroids, comets, and meteor showers — all calculated for your exact location.', side: 'top', align: 'start' } },
+        { element: '#btn-menu', popover: { title: '🔔 Push Notifications & Settings', description: 'Click this menu → then “💾 Data & Settings” to enable native push alerts for ISS passes, auroras, and clearing skies. Also set your Bortle Class and back up your data here!', side: 'left', align: 'start' } },
+        { element: '#btn-night-mode', popover: { title: '🔴 Night Vision Mode', description: 'Enable the red overlay to preserve your dark-adapted eyes while observing. Essential for real sessions!', side: 'left', align: 'end' } },
+        { popover: { title: '📱 Install StarGazer as an App', description: 'Get the full PWA experience! In Chrome: tap the install icon (⭳) in the address bar. On iOS Safari: tap Share → “Add to Home Screen”. Once installed, you\'ll get native push notifications directly on your device!', align: 'center' } },
       ]
     });
     driverObj.drive();
@@ -2178,7 +2302,11 @@ async function init() {
               const newLoc = { id: newId, name: locName, lat: lat, lon: lon };
               savedLocations.push(newLoc);
               localStorage.setItem('stargazer_locations', JSON.stringify(savedLocations));
-              activateLocation(newId);
+              // Mark tour to run after reload (first visit)
+              if (!localStorage.getItem('sg_tour_seen')) {
+                localStorage.setItem('sg_tour_pending', '1');
+              }
+              activateLocation(newId); // triggers reload
               if (icon) icon.style.stroke = 'currentColor';
             })
             .catch(() => {
@@ -2186,6 +2314,9 @@ async function init() {
               const newLoc = { id: newId, name: 'GPS Location', lat: lat, lon: lon };
               savedLocations.push(newLoc);
               localStorage.setItem('stargazer_locations', JSON.stringify(savedLocations));
+              if (!localStorage.getItem('sg_tour_seen')) {
+                localStorage.setItem('sg_tour_pending', '1');
+              }
               activateLocation(newId);
               if (icon) icon.style.stroke = 'currentColor';
             });
@@ -2201,8 +2332,33 @@ async function init() {
   if (currentLat === null || currentLon === null) {
     document.getElementById('logo-sub').textContent = 'Location Required';
     document.getElementById('logo-coords').textContent = 'Please enable GPS';
-    if (headerGpsBtn) headerGpsBtn.click();
+    
+    // First visit: auto-trigger GPS then continue init + show tour
+    if (headerGpsBtn) {
+      // Listen for location being set (activateLocation fires a custom event)
+      const onLocationSet = () => {
+        window.removeEventListener('stargazer:locationSet', onLocationSet);
+        // Re-run init now that we have coords
+        init();
+        // Start tour after a short delay so the dashboard renders first
+        setTimeout(() => {
+          if (window.startOnboardingTour) window.startOnboardingTour();
+        }, 800);
+      };
+      window.addEventListener('stargazer:locationSet', onLocationSet);
+      headerGpsBtn.click();
+    }
     return;
+  }
+
+  // Auto-start tour after first GPS location set (flag was set before reload)
+  const tourPending = localStorage.getItem('sg_tour_pending');
+  if (tourPending) {
+    localStorage.removeItem('sg_tour_pending');
+    localStorage.setItem('sg_tour_seen', '1');
+    setTimeout(() => {
+      if (window.startOnboardingTour) window.startOnboardingTour();
+    }, 1200);
   }
 
   updateClearOutside();

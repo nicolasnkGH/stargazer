@@ -15,13 +15,13 @@ _targets_cache: dict = {}
 _TARGETS_TTL = 300  # 5 minutes
 
 
-def _targets_cache_key(lat, lon, constellation):
-    return (round(lat or 0, 2), round(lon or 0, 2), constellation)
+def _targets_cache_key(lat, lon, constellation, bortle):
+    return (round(lat or 0, 2), round(lon or 0, 2), constellation, bortle)
 
 
-def get_visible_targets(dt: Optional[datetime] = None, lat=None, lon=None, constellation: str = "Sco") -> list[dict]:
+def get_visible_targets(dt: Optional[datetime] = None, lat=None, lon=None, constellation: str = "Sco", bortle: Optional[int] = None) -> list[dict]:
     """Return targets for a specific constellation with current altitude/visibility."""
-    key = _targets_cache_key(lat, lon, constellation)
+    key = _targets_cache_key(lat, lon, constellation, bortle)
     now = _time.monotonic()
     cached = _targets_cache.get(key)
     if cached and now - cached["ts"] < _TARGETS_TTL:
@@ -49,7 +49,15 @@ def get_visible_targets(dt: Optional[datetime] = None, lat=None, lon=None, const
         visible = bool(alt.degrees > MIN_ALTITUDE_DEG)
         mag = target.get("magnitude", 99)
         in_limiting_mag = bool(mag <= LIMITING_MAG if mag != 99 else True)
-        observable = bool(visible and in_limiting_mag)
+        
+        # Check light pollution requirement
+        target_bortle_min = target.get("bortle_min", 9)
+        bortle_ok = True
+        if bortle is not None:
+            # If user's sky is worse (higher number) than the target requires (lower number), it's washed out
+            bortle_ok = int(bortle) <= target_bortle_min
+            
+        observable = bool(visible and in_limiting_mag and bortle_ok)
 
         result = {**target}
 

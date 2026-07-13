@@ -36,7 +36,8 @@ Getting started with astronomy can be overwhelming. Standard astronomy apps are 
 ## ✨ Features
 
 - **🔴 Night Vision Mode**: A built-in toggle that turns the entire UI red to preserve your eyes' dark adaptation while out in the field.
-- **📱 Progressive Web App (PWA)**: Install StarGazer directly to your phone's home screen. Includes a Service Worker for aggressive caching, ensuring the dashboard loads blazingly fast even with spotty cellular service out in the dark.
+- **📱 Progressive Web App (PWA) + Native Push Alerts**: Install StarGazer directly to your phone's home screen. The Service Worker provides aggressive caching for fast offline loads. Enable **native OS push notifications** to get alerted when the ISS is passing, auroras are likely, or the skies are clearing — powered by a full VAPID/WebPush backend.
+- **🌃 Dynamic Bortle Class Filtering**: Select your sky darkness level (Bortle Class 1–9) from the Settings panel. Targets are dynamically filtered so you only see objects that are realistically observable from your site's light pollution level.
 - **🌤 Live Weather & AI Seeing Analysis**: Aggregates cloud cover, wind, rain probability, and astronomical seeing conditions (via Open-Meteo & ClearOutside). Uses a **multi-tiered AI analysis system** (Google Gemini 2.5 Flash + Local Qwen Fallback via ROCm) to evaluate the atmosphere and give a definitive "GO" or "NO GO" rating.
 - **🎯 Curated Target Database**: Focuses only on "Must-See" targets (like the Orion Nebula or Andromeda Galaxy) specifically chosen for beginners with small telescopes or binoculars. Features **Chunked Pagination** to handle 50+ deep-sky objects efficiently without degrading performance. AI Recommendations include smart badges, Star-Hopping Guides, and Target Thumbnails.
 - **🔭 Telescope Optics & Eyepiece Guide**: An interactive calculator that instantly computes Magnification, True Field-Of-View (FOV), and Maximum Useful Magnification based on your specific telescope's aperture and focal length, helping you pick the perfect eyepiece for the Moon vs. Planets vs. Deep Sky.
@@ -48,7 +49,7 @@ Getting started with astronomy can be overwhelming. Standard astronomy apps are 
 - **📍 Smart Location & GPS**: Type any city name to automatically geocode your exact coordinates, or click the **Auto-Locate** button to grab your device's GPS and reverse-geocode your current city/town via OpenStreetMap Nominatim.
 - **📋 Pre-Flight Checklist & Observation Log**: A visual pre-observation checklist and a LocalStorage-powered observation log to track what you've seen.
 - **🌍 Multi-Language Support**: Fully localized in English, Spanish, and Portuguese with 100% i18n coverage across all tooltips, dropdowns, and dynamic content.
-- **🧭 Interactive Product Tour**: A guided onboarding tour using `Driver.js` to help new users navigate the dashboard.
+- **🧭 Interactive Product Tour**: A guided 9-step onboarding tour using `Driver.js` that auto-starts on first visit and covers every major feature — including push notifications and PWA install instructions.
 
 ---
 
