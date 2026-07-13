@@ -19,4 +19,4 @@ ENV HOME=/app
 
 EXPOSE 8181
 
-CMD ["uvicorn", "main:app", "--host", "0.0.0.0", "--port", "8181"]
+CMD ["gunicorn", "main:app", "-w", "4", "-k", "uvicorn.workers.UvicornWorker", "-b", "0.0.0.0:8181"]

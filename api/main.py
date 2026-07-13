@@ -35,6 +35,7 @@ from engine import (
     SCORPIUS_TARGETS,
     NEARBY_TARGETS,
 )
+from engine.cache import get_cache, set_cache
 from config import LATITUDE, LONGITUDE, BORTLE_CLASS, TELESCOPE_APERTURE_MM, ELEVATION_M
 from fastapi import Request
 
@@ -196,14 +197,12 @@ def get_moon():
     return response
 
 
-asteroid_cache = {"timestamp": 0, "data": None}
-star_cache = {}
 @app.get("/api/asteroids")
 def get_asteroids():
-    now = datetime.now(ZoneInfo("UTC")).timestamp()
-    if now - asteroid_cache["timestamp"] < 43200 and asteroid_cache["data"]: # 12 hours
-        return JSONResponse(content=asteroid_cache["data"])
-        
+    cache_key = "nasa_asteroids"
+    cached = get_cache(cache_key)
+    if cached:
+        return JSONResponse(content=cached)
     today = datetime.now(ZoneInfo("UTC")).strftime("%Y-%m-%d")
     api_key = os.getenv("NASA_APOD_KEY", os.getenv("NASA_API_KEY", "DEMO_KEY"))
     url = f"https://api.nasa.gov/neo/rest/v1/feed?start_date={today}&end_date={today}&api_key={api_key}"
@@ -228,8 +227,7 @@ def get_asteroids():
                     "is_hazardous": neo["is_potentially_hazardous_asteroid"]
                 })
                 
-            asteroid_cache["timestamp"] = now
-            asteroid_cache["data"] = results
+            set_cache(cache_key, results, ttl_seconds=43200) # 12 hours
             return JSONResponse(content=results)
     except Exception as e:
         print(f"Error fetching asteroids: {e}")
@@ -246,9 +244,10 @@ def get_meteors(count: int = Query(5, ge=1, le=10)):
 
 @app.get("/api/star")
 def get_star(name: Optional[str] = None, ra: Optional[float] = None, dec: Optional[float] = None):
-    cache_key = name if name else f"{ra},{dec}"
-    if cache_key in star_cache:
-        return JSONResponse(content=star_cache[cache_key])
+    cache_key = f"star_{name}" if name else f"star_{ra}_{dec}"
+    cached = get_cache(cache_key)
+    if cached:
+        return JSONResponse(content=cached)
         
     # Use modern SIMBAD TAP API via ADQL
     if name:
@@ -285,9 +284,9 @@ def get_star(name: Optional[str] = None, ra: Optional[float] = None, dec: Option
                 result = {
                     "name": main_id,
                     "spectral_type": sp_type,
-                    "distance": distance_ly
+                    "distance_ly": distance_ly
                 }
-                star_cache[cache_key] = result
+                set_cache(cache_key, result, ttl_seconds=604800) # 1 week
                 return JSONResponse(content=result)
             else:
                 return JSONResponse(content={"error": "Not found"}, status_code=404)

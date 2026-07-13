@@ -12,24 +12,21 @@ from skyfield.api import wgs84, EarthSatellite
 
 from .skyfield import _get_skyfield, _get_tz, _sf_time, now_local
 from .planets import _az_to_direction
+from .cache import get_cache, set_cache
 from config import LATITUDE, LONGITUDE, ELEVATION_M
 
 N, W = 1, -1
 
-_iss_cache: dict = {}
-_ISS_TTL = 300  # 5 minutes
-
-
 def _iss_cache_key(lat, lon, count):
-    return (round(lat or 0, 2), round(lon or 0, 2), count)
+    return f"iss_passes_{round(lat or 0, 2)}_{round(lon or 0, 2)}_{count}"
 
 
 def get_iss_passes(count: int = 3, lat=None, lon=None) -> list[dict]:
     key = _iss_cache_key(lat, lon, count)
-    now_mono = _time.monotonic()
-    cached = _iss_cache.get(key)
-    if cached and now_mono - cached["ts"] < _ISS_TTL:
-        return cached["data"]
+    cached = get_cache(key)
+    if cached:
+        return cached
+
     """
     Predict ISS passes using Skyfield + live TLE from wheretheiss.at.
     """
@@ -40,67 +37,36 @@ def get_iss_passes(count: int = 3, lat=None, lon=None) -> list[dict]:
     observer = wgs84.latlon(_lat * N, abs(_lon) * W, elevation_m=ELEVATION_M)
 
     # ── Step 1: Fetch live ISS TLE with caching ─────────────────────────────────
-    import tempfile, os
     name, line1, line2 = None, None, None
-    cache_file = os.path.join(tempfile.gettempdir(), "iss_tle_cache.json")
-    # Try reading valid cache first (under 24h old)
-    try:
-        import json
-        import time
-        with open(cache_file, "r") as f:
-            c = json.load(f)
-            if time.time() - c.get("timestamp", 0) < 86400:
-                name, line1, line2 = c["name"], c["line1"], c["line2"]
-    except Exception:
-        pass
+    tle_cache_key = "iss_tle_live"
+    
+    tle_data = get_cache(tle_cache_key)
+    if tle_data:
+        name, line1, line2 = tle_data["name"], tle_data["line1"], tle_data["line2"]
 
     if not name:
         try:
-            tle_resp = requests.get(
-                "https://api.wheretheiss.at/v1/satellites/25544/tles",
-                timeout=8,
-            )
+            tle_resp = requests.get("https://api.wheretheiss.at/v1/satellites/25544/tles", timeout=8)
             tle_resp.raise_for_status()
-            tle_data = tle_resp.json()
-            line1 = tle_data["line1"]
-            line2 = tle_data["line2"]
-            name  = tle_data.get("name", "ISS (ZARYA)")
+            t_data = tle_resp.json()
+            line1, line2, name = t_data["line1"], t_data["line2"], t_data.get("name", "ISS (ZARYA)")
         except Exception:
-            # Fallback: try ARISS live ISS TLE
             try:
-                resp = requests.get(
-                    "https://live.ariss.org/iss.txt",
-                    timeout=10,
-                )
+                resp = requests.get("https://live.ariss.org/iss.txt", timeout=10)
                 resp.raise_for_status()
                 lines = [l.strip() for l in resp.text.strip().splitlines() if l.strip()]
-                name  = lines[0]
-                line1 = lines[1]
-                line2 = lines[2]
+                name, line1, line2 = lines[0], lines[1], lines[2]
             except Exception as e:
-                # As a last resort, try reading expired cache if available
-                try:
-                    with open(cache_file, "r") as f:
-                        c = json.load(f)
-                        name, line1, line2 = c["name"], c["line1"], c["line2"]
-                except Exception:
-                    return [{
-                        "rise": "N/A", "set": "N/A",
-                        "peak_alt": "N/A", "peak_az": "S",
-                        "visible": False,
-                        "error": f"Could not fetch TLE and no cache available: {e}",
-                        "fallback_url": f"https://heavens-above.com/PassSummary.aspx?satid=25544&lat={LATITUDE}&lng={LONGITUDE}",
-                    }]
+                return [{
+                    "rise": "N/A", "set": "N/A",
+                    "peak_alt": "N/A", "peak_az": "S",
+                    "visible": False,
+                    "error": f"Could not fetch TLE: {e}",
+                    "fallback_url": f"https://heavens-above.com/PassSummary.aspx?satid=25544&lat={LATITUDE}&lng={LONGITUDE}",
+                }]
 
-        # Save successful fetch to cache
         if name and line1 and line2:
-            try:
-                import json
-                import time
-                with open(cache_file, "w") as f:
-                    json.dump({"name": name, "line1": line1, "line2": line2, "timestamp": time.time()}, f)
-            except Exception:
-                pass
+            set_cache(tle_cache_key, {"name": name, "line1": line1, "line2": line2}, ttl_seconds=86400)
 
     # ── Step 2: Build EarthSatellite and find passes ──────────────────────────
     try:
@@ -141,6 +107,8 @@ def get_iss_passes(count: int = 3, lat=None, lon=None) -> list[dict]:
             "rise": "No passes in next 5 days",
             "set": "N/A", "peak_alt": 0, "peak_az": "S", "visible": False,
         }]
+        
+        set_cache(key, result, ttl_seconds=300)
 
     except Exception as e:
         result = [{

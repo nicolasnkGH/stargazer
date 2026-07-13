@@ -8,6 +8,10 @@ services:
     ports:
       - "8181:8181"
     env_file: .env
+    environment:
+      - REDIS_URL=redis://redis:6379/0
+    depends_on:
+      - redis
     volumes:
       - skyfield_data:/app/.skyfield
       - ./package.json:/app/package.json:ro
@@ -42,6 +46,15 @@ services:
       resources:
         limits:
           cpus: '0.25'
+          memory: 128M
+
+  redis:
+    image: redis:7-alpine
+    container_name: stargazer-redis
+    restart: unless-stopped
+    deploy:
+      resources:
+        limits:
           memory: 128M
 
 volumes:

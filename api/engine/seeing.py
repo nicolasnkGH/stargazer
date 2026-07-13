@@ -12,7 +12,7 @@ from typing import Optional
 
 from config import AI_API_KEY, AI_API_URL, AI_MODEL, FALLBACK_AI_API_URL, FALLBACK_AI_MODEL, LOCAL_AI_URL, LOCAL_AI_MODEL, LATITUDE, LONGITUDE, AI_TIMEOUT
 
-from .cache import _load_ai_cache, _save_ai_cache
+from .cache import _load_ai_cache, _save_ai_cache, get_cache, set_cache
 from .moon import get_moon_info
 from .moon_facts import get_moon_fact
 from .targets import get_visible_targets
@@ -389,30 +389,38 @@ def get_seeing_forecast(lat=None, lon=None, ai_enabled: bool = False, lang: str 
         f"&timezone=auto&forecast_days=7"
     )
 
-    try:
-        resp = requests.get(url, timeout=8)
-        resp.raise_for_status()
-        data = resp.json()
-    except Exception as e:
-        return {
-            "seeing_score": None,
-            "seeing_label": "Could not fetch weather",
-            "seeing_explanation": "",
-            "best_window": "Unknown",
-            "warnings": [],
-            "ai_powered": False,
-            "go_nogo": "❓ UNKNOWN",
-            "clearoutside_embed": f"https://clearoutside.com/forecast_embed/{use_lat}/{use_lon}",
-            "error": str(e),
-        }
+    cache_key_om = f"openmeteo_{use_lat}_{use_lon}"
+    data = get_cache(cache_key_om)
+    if not data:
+        try:
+            resp = requests.get(url, timeout=8)
+            resp.raise_for_status()
+            data = resp.json()
+            set_cache(cache_key_om, data, ttl_seconds=3600)
+        except Exception as e:
+            return {
+                "seeing_score": None,
+                "seeing_label": "Could not fetch weather",
+                "seeing_explanation": "",
+                "best_window": "Unknown",
+                "warnings": [],
+                "ai_powered": False,
+                "go_nogo": "❓ UNKNOWN",
+                "clearoutside_embed": f"https://clearoutside.com/forecast_embed/{use_lat}/{use_lon}",
+                "error": str(e),
+            }
         
     # ── Fetch 7Timer! Seeing Data ──
     seeing_arcsec = "N/A"
     try:
         url_7t = f"http://www.7timer.info/bin/astro.php?lon={use_lon}&lat={use_lat}&ac=0&unit=metric&output=json"
-        resp_7t = requests.get(url_7t, timeout=5)
-        resp_7t.raise_for_status()
-        data_7t = resp_7t.json()
+        cache_key_7t = f"7timer_{use_lat}_{use_lon}"
+        data_7t = get_cache(cache_key_7t)
+        if not data_7t:
+            resp_7t = requests.get(url_7t, timeout=5)
+            resp_7t.raise_for_status()
+            data_7t = resp_7t.json()
+            set_cache(cache_key_7t, data_7t, ttl_seconds=3600)
         s_val = data_7t["dataseries"][0]["seeing"]
         seeing_map = {1: "<0.5\"", 2: "0.5\"-0.75\"", 3: "0.75\"-1\"", 4: "1\"-1.5\"", 5: "1.5\"-2\"", 6: "2\"-2.5\"", 7: "2.5\"-3\"", 8: ">3\""}
         seeing_arcsec = seeing_map.get(s_val, "N/A")
