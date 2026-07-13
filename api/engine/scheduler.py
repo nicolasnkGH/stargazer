@@ -136,7 +136,6 @@ def start_scheduler(lat: float, lon: float):
 
 def stop_scheduler():
     """Stop scheduler gracefully on app shutdown."""
-    global _scheduler
     if _scheduler and _scheduler.running:
         _scheduler.shutdown(wait=False)
         logger.info("Push notification scheduler stopped.")

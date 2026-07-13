@@ -1,0 +1,8 @@
+[flake8]
+exclude =
+    venv,
+    .venv,
+    __pycache__,
+    *.egg-info
+max-line-length = 127
+max-complexity = 10
