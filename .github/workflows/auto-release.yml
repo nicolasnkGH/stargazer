@@ -1,0 +1,76 @@
+name: Auto-Release
+
+on:
+  push:
+    branches:
+      - main
+    paths:
+      - 'package.json'
+
+permissions:
+  contents: write
+
+jobs:
+  release:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Extract version
+        id: version
+        run: |
+          VERSION=$(jq -r .version package.json)
+          echo "VERSION=$VERSION" >> $GITHUB_ENV
+          echo "Extracted version: $VERSION"
+
+      - name: Check if tag exists
+        id: check_tag
+        run: |
+          if git ls-remote --tags origin "refs/tags/v${{ env.VERSION }}" | grep -q "refs/tags"; then
+            echo "TAG_EXISTS=true" >> $GITHUB_ENV
+            echo "Tag v${{ env.VERSION }} already exists."
+          else
+            echo "TAG_EXISTS=false" >> $GITHUB_ENV
+            echo "Tag v${{ env.VERSION }} does not exist."
+          fi
+
+      - name: Generate changelog
+        if: env.TAG_EXISTS == 'false'
+        id: changelog
+        run: |
+          LAST_TAG=$(git describe --tags --abbrev=0 HEAD^ 2>/dev/null || echo "")
+          if [ -z "$LAST_TAG" ]; then
+            LOG=$(git log --pretty=format:"%h %s (%an, %ad)" --date=short)
+          else
+            LOG=$(git log --pretty=format:"%h %s (%an, %ad)" --date=short "$LAST_TAG"..HEAD)
+          fi
+          echo "log<<EOF" >> $GITHUB_OUTPUT
+          echo "$LOG" >> $GITHUB_OUTPUT
+          echo "EOF" >> $GITHUB_OUTPUT
+
+      - name: Create release commit and tag
+        if: env.TAG_EXISTS == 'false'
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git tag -a "v${{ env.VERSION }}" -m "Release v${{ env.VERSION }}"
+          git push origin "v${{ env.VERSION }}"
+
+      - name: Create GitHub Release
+        if: env.TAG_EXISTS == 'false'
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: v${{ env.VERSION }}
+          name: Release v${{ env.VERSION }}
+          body: |
+            ## Changes since last release
+
+            ```
+            ${{ steps.changelog.outputs.log }}
+            ```
+          generate_release_notes: true
+          draft: false
+          prerelease: false

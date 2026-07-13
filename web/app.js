@@ -820,22 +820,22 @@ async function fetchGitHubStars() {
 }
 
 // ── GitHub Version (fetched once) ────────────────────────────────────────────
-let _githubVersionFetched = false;
+let _versionFetched = false;
 async function fetchLatestVersion() {
-  if (_githubVersionFetched) return;
-  _githubVersionFetched = true;
+  if (_versionFetched) return;
+  _versionFetched = true;
   const versionEl = document.getElementById('hero-version-tag');
   if (!versionEl) return;
   try {
-    const res = await fetch('https://api.github.com/repos/nicolasnkGH/stargazer/releases/latest');
+    const res = await fetch(`${API_BASE}/health`);
     if (res.ok) {
       const json = await res.json();
-      if (json && json.tag_name) {
-        versionEl.innerHTML = `<span class="hero-badge-dot hero-badge-dot-green"></span>${json.tag_name}`;
+      if (json && json.version) {
+        versionEl.innerHTML = `<span class="hero-badge-dot hero-badge-dot-green"></span>${json.version}`;
       }
     }
   } catch (e) {
-    console.warn("Could not fetch latest release", e);
+    console.warn("Could not fetch latest version from API", e);
   }
 }
 

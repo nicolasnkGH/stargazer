@@ -164,7 +164,16 @@ async def options_handler(full_path: str):
 
 @app.get("/health")
 def health():
-    return {"status": "ok"}
+    version = "v?.?.?"
+    try:
+        pkg_path = os.path.join(os.path.dirname(__file__), "..", "package.json")
+        with open(pkg_path, "r") as f:
+            pkg_data = json.load(f)
+            if "version" in pkg_data:
+                version = f"v{pkg_data['version']}"
+    except Exception:
+        pass
+    return {"status": "ok", "version": version}
 
 # ── Dynamic API Proxies (NASA & SIMBAD) ──────────────────────────────────────
 
