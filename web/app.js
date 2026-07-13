@@ -706,8 +706,8 @@ function renderSeeing(seeing, data) {
     }
   }
 
-  // Dark window
-  if (data) {
+  // Dark window (Legacy - replaced by Twilight Timeline)
+  if (data && document.getElementById('dark-window')) {
     const lblDark = window.i18n[currentLang].lbl_dark || 'Dark:';
     document.getElementById('dark-window').textContent =
       `${lblDark} ${data.astronomical_dusk || '?'} → ${data.astronomical_dawn || '?'} (${data.observing_window_hours || '?'}h)`;
