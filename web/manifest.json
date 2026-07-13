@@ -2,7 +2,7 @@
   "name": "StarGazer",
   "short_name": "StarGazer",
   "description": "Observatory Dashboard for amateur astronomers.",
-  "start_url": "./index.html",
+  "start_url": "/",
   "display": "standalone",
   "background_color": "#05050f",
   "theme_color": "#05050f",
