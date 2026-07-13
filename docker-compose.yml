@@ -10,6 +10,7 @@ services:
     env_file: .env
     volumes:
       - skyfield_data:/app/.skyfield
+      - ./package.json:/app/package.json:ro
     healthcheck:
       test: ["CMD", "curl", "-f", "http://localhost:8181/health"]
       interval: 30s

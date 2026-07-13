@@ -166,7 +166,11 @@ async def options_handler(full_path: str):
 def health():
     version = "v?.?.?"
     try:
+        # First check parent dir (local dev), then same dir (Docker volume mount)
         pkg_path = os.path.join(os.path.dirname(__file__), "..", "package.json")
+        if not os.path.exists(pkg_path):
+            pkg_path = os.path.join(os.path.dirname(__file__), "package.json")
+            
         with open(pkg_path, "r") as f:
             pkg_data = json.load(f)
             if "version" in pkg_data:
