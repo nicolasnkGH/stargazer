@@ -118,5 +118,5 @@ def get_iss_passes(count: int = 3, lat=None, lon=None) -> list[dict]:
             "fallback_url": f"https://heavens-above.com/PassSummary.aspx?satid=25544&lat={LATITUDE}&lng={LONGITUDE}",
         }]
 
-    _iss_cache[key] = {"data": result, "ts": _time.monotonic()}
+    set_cache(key, result, ttl_seconds=300)
     return result
