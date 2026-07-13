@@ -33,19 +33,20 @@ FAMOUS_CONSTELLATIONS = {
 }
 
 
-def get_tonight_report(lat=None, lon=None, lang: str = "en") -> dict:
+def get_tonight_report(lat=None, lon=None, lang: str = "en", bortle: Optional[int] = None) -> dict:
     """Aggregate data for tonight's dashboard view."""
     now = now_local(lat=lat, lon=lon)
     dusk, dawn = _tonight_window(lat=lat, lon=lon)
 
     moon = get_moon_info(now, lat=lat, lon=lon)
     planets = get_planet_positions(now, lat=lat, lon=lon, dusk=dusk, dawn=dawn)
-    targets = get_visible_targets(now, lat=lat, lon=lon)
+    targets = get_visible_targets(now, lat=lat, lon=lon, bortle=bortle)
     seeing = get_seeing_forecast(lat=lat, lon=lon, lang=lang)
     twilight_timeline = get_twilight_timeline(lat=lat, lon=lon)
 
     visible_planets = [p for p in planets if p["visible_tonight"]]
-    best_targets = [t for t in targets if t.get("in_fov") and t.get("bortle_min", 99) <= BORTLE_CLASS + 1][:5]
+    use_bortle = bortle if bortle is not None else BORTLE_CLASS
+    best_targets = [t for t in targets if t.get("in_fov") and t.get("bortle_min", 99) <= use_bortle + 1][:5]
 
     # Must-see tonight
     must_see = []

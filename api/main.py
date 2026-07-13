@@ -10,8 +10,9 @@ load_dotenv()
 
 from fastapi import FastAPI, Query, Depends, HTTPException, Header, Request
 from typing import Optional, Annotated
-from pydantic import AfterValidator
+from pydantic import AfterValidator, BaseModel
 from fastapi.responses import JSONResponse, PlainTextResponse
+from contextlib import asynccontextmanager
 import uvicorn
 import os
 from datetime import datetime
@@ -28,6 +29,7 @@ from engine import (
     get_iss_passes,
     get_meteor_showers,
     get_seeing_forecast,
+    get_aurora_forecast,
 
     get_constellations,
     get_constellation_window,
@@ -36,6 +38,8 @@ from engine import (
     NEARBY_TARGETS,
 )
 from engine.cache import get_cache, set_cache
+from engine.push import save_subscription, broadcast_notification, PUSH_AVAILABLE, VAPID_PUBLIC_KEY
+from engine.scheduler import start_scheduler, stop_scheduler
 from config import LATITUDE, LONGITUDE, BORTLE_CLASS, TELESCOPE_APERTURE_MM, ELEVATION_M
 from fastapi import Request
 
@@ -104,11 +108,20 @@ async def verify_origin(request: Request):
         raise HTTPException(status_code=403, detail="Unauthorized Origin.")
 
 
+@asynccontextmanager
+async def lifespan(app: FastAPI):
+    """Start and stop the push notification scheduler."""
+    start_scheduler(lat=float(LATITUDE), lon=float(LONGITUDE))
+    yield
+    stop_scheduler()
+
+
 app = FastAPI(
     title="StarGazer API",
     description="Personal astronomy assistant and dashboard API",
     version="2.0.0",
-    dependencies=[Depends(verify_origin)]
+    dependencies=[Depends(verify_origin)],
+    lifespan=lifespan,
 )
 
 
@@ -120,7 +133,7 @@ async def cors_middleware(request: Request, call_next):
     origin = request.headers.get("origin", "")
     if origin and _is_allowed_origin(origin):
         response.headers["Access-Control-Allow-Origin"] = origin
-        response.headers["Access-Control-Allow-Methods"] = "GET, OPTIONS"
+        response.headers["Access-Control-Allow-Methods"] = "GET, POST, OPTIONS"
         response.headers["Access-Control-Allow-Headers"] = "Content-Type"
 
     # Cache-Control for API responses (5 min, matches server-side TTLs)
@@ -242,6 +255,54 @@ def get_meteors(count: int = Query(5, ge=1, le=10)):
         return JSONResponse(status_code=500, content={"error": str(e)})
 
 
+@app.get("/api/aurora")
+def get_aurora(lat: Optional[float] = None):
+    """Live aurora forecast based on NOAA Kp index."""
+    try:
+        use_lat = lat if lat is not None else float(LATITUDE)
+        return get_aurora_forecast(lat=use_lat)
+    except Exception as e:
+        return JSONResponse(status_code=500, content={"error": str(e)})
+
+
+# ── Web Push Notifications ────────────────────────────────────────────────────
+
+class PushSubscriptionRequest(BaseModel):
+    endpoint: str
+    expirationTime: Optional[float] = None
+    keys: dict  # {"p256dh": "...", "auth": "..."}
+
+
+@app.get("/api/push/vapid-key")
+def get_vapid_key():
+    """Return the VAPID public key for the frontend to use with pushManager.subscribe()."""
+    if not VAPID_PUBLIC_KEY:
+        return JSONResponse(status_code=503, content={"error": "VAPID not configured"})
+    return {"publicKey": VAPID_PUBLIC_KEY}
+
+
+@app.post("/api/push/subscribe")
+async def push_subscribe(sub: PushSubscriptionRequest):
+    """Store a browser PushSubscription for future notifications."""
+    ok = save_subscription(sub.model_dump())
+    if not ok:
+        return JSONResponse(status_code=400, content={"error": "Invalid subscription"})
+    return {"status": "subscribed"}
+
+
+@app.post("/api/push/test")
+async def push_test():
+    """Send a test push to all subscriptions (useful for local verification)."""
+    if not PUSH_AVAILABLE:
+        return JSONResponse(status_code=503, content={"error": "VAPID not configured on server"})
+    result = broadcast_notification(
+        title="🌌 StarGazer Test Alert",
+        body="Push notifications are working! You'll be notified about ISS passes, auroras, and clear skies.",
+        url="/"
+    )
+    return result
+
+
 @app.get("/api/star")
 def get_star(name: Optional[str] = None, ra: Optional[float] = None, dec: Optional[float] = None):
     cache_key = f"star_{name}" if name else f"star_{ra}_{dec}"
@@ -313,10 +374,14 @@ def tonight(
     lat: Annotated[Optional[float], AfterValidator(validate_latitude)] = Query(None),
     lon: Annotated[Optional[float], AfterValidator(validate_longitude)] = Query(None),
     lang: str = Query("en"),
+    bortle: Optional[int] = Query(None, ge=1, le=9),
 ):
     """Full tonight's observing report."""
     try:
-        return get_tonight_report(lat=lat, lon=lon, lang=lang)
+        use_lat = lat if lat is not None else float(LATITUDE)
+        use_lon = lon if lon is not None else float(LONGITUDE)
+        use_bortle = bortle if bortle is not None else BORTLE_CLASS
+        return get_tonight_report(lat=use_lat, lon=use_lon, lang=lang, bortle=use_bortle)
     except Exception as e:
         return JSONResponse(status_code=500, content={"error": str(e)})
 
@@ -423,10 +488,12 @@ def targets(
     constellation: str = Query(default="Sco", description="Filter by constellation abbreviation"),
     visible_only: bool = Query(default=False, description="Only return currently visible targets"),
     type_filter: str = Query(default="all", description="Filter by type: all, globular, open, star, double, nebula"),
+    bortle: Optional[int] = Query(None, ge=1, le=9, description="Bortle Class (1-9) for light pollution filtering"),
 ):
     """Full Target database filtered by constellation."""
     try:
-        all_targets = get_visible_targets(lat=lat, lon=lon, constellation=constellation)
+        use_bortle = bortle if bortle is not None else BORTLE_CLASS
+        all_targets = get_visible_targets(lat=lat, lon=lon, constellation=constellation, bortle=use_bortle)
         if visible_only:
             all_targets = [t for t in all_targets if t.get("visible")]
         if type_filter != "all":
