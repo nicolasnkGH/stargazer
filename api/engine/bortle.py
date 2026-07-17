@@ -41,24 +41,23 @@ def _load_bortle_scale() -> list[dict]:
 
 _ADDRESSTYPE_BASE: dict[str, int] = {
     # Dense urban
-    "city": 8,
+    "city": 8,          # handled separately below (defers to reference)
     "borough": 8,
-    "suburb": 7,
+    "suburb": 7,        # handled separately: suburb-of-named-city → 8
     "neighbourhood": 7,
     # Semi-urban
     "town": 6,
-    "municipality": 6,
     # Semi-rural
     "village": 4,
     "quarter": 5,
-    # Rural
+    # Rural / open country
     "hamlet": 3,
     "isolated_dwelling": 2,
     "farm": 2,
-    "county": 3,          # Nominatim returns county when truly in open country
-    "state_district": 3,
-    "state": 3,
-    "country": 4,
+    "county": 3,          # US: Nominatim returns county for open countryside
+    # Note: 'municipality', 'state_district', 'state', 'country' are intentionally
+    # omitted — they are too coarse (Brazil's municipalities cover everything from
+    # tiny villages to São Paulo). These fall through to reference interpolation.
 }
 
 # Population breakpoints → Bortle offset adjustment
@@ -212,6 +211,20 @@ _REFERENCE_POINTS = [
     ("Santiago Chile",        -33.45,   -70.67,   8),
     ("Atacama Desert Chile",  -23.00,   -67.50,   1),
     ("Rural Brazil",          -10.00,   -55.00,   2),
+    # Brazil — medium cities and rural SE
+    ("Rio de Janeiro city",   -22.91,   -43.17,   9),
+    ("Campinas SP",           -22.91,   -47.06,   7),
+    ("Belo Horizonte MG",     -19.92,   -43.94,   8),
+    ("Curitiba PR",           -25.43,   -49.27,   7),
+    ("Florianopolis SC",      -27.60,   -48.55,   6),
+    ("Nova Friburgo RJ",      -22.28,   -42.53,   5),  # mountain city, Atlantic Forest
+    ("Petropolis RJ",         -22.51,   -43.17,   6),
+    ("Rural Minas Gerais",    -18.00,   -46.00,   3),
+    ("Rural Goias",           -15.00,   -49.00,   3),
+    ("Rural Mato Grosso",     -13.00,   -56.00,   2),
+    ("Rural Para",             -4.00,   -53.00,   2),
+    ("Rural Parana",          -24.50,   -52.00,   4),
+    ("Rural RJ interior",     -22.00,   -43.50,   4),
     # ── Asia ──
     ("Tokyo Japan",            35.68,   139.69,   9),
     ("Beijing China",          39.91,   116.39,   9),
@@ -338,20 +351,25 @@ def get_bortle_class(lat: float, lon: float) -> int:
     # Primary: Nominatim settlement type
     bortle = _fetch_bortle_from_nominatim(lat, lon)
 
-    if bortle is None:
+    # Nominatim returned something useful — use it as primary truth,
+    # but nudge it 1 step toward the reference if they disagree significantly.
+    # This avoids the 50/50 average destroying accuracy in data-sparse regions.
+    if bortle is not None:
+        ref_estimate = _estimate_bortle_from_references(lat, lon)
+        diff = ref_estimate - bortle
+        if abs(diff) > 3:
+            # Big discrepancy: nudge 1 step toward reference, don't average fully
+            bortle += 1 if diff > 0 else -1
+            logger.debug(
+                f"Bortle nudged 1 toward reference (nominatim={bortle}, ref={ref_estimate}) "
+                f"at ({lat:.2f}, {lon:.2f})"
+            )
+        # If diff <= 3: trust Nominatim completely
+        logger.info(f"Bortle final (nominatim-led): {bortle} at ({lat:.2f}, {lon:.2f})")
+    else:
         # Fallback: reference-point interpolation
         bortle = _estimate_bortle_from_references(lat, lon)
-        logger.info(f"Bortle fallback estimate: {bortle} at ({lat:.2f}, {lon:.2f})")
-    else:
-        # Blend: cap Nominatim result by reference-point estimate
-        # This prevents a city result from overriding an obviously dark location
-        ref_estimate = _estimate_bortle_from_references(lat, lon)
-        # If estimates differ by more than 2, average them
-        if abs(bortle - ref_estimate) > 2:
-            bortle = round((bortle + ref_estimate) / 2)
-            logger.debug(
-                f"Bortle blended (nominatim vs reference differed >2): {bortle}"
-            )
+        logger.info(f"Bortle fallback (reference): {bortle} at ({lat:.2f}, {lon:.2f})")
 
     bortle = max(1, min(9, bortle))
     set_cache(cache_key, bortle, ttl_seconds=86400)  # 24h
