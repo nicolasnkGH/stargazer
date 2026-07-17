@@ -538,10 +538,28 @@ function renderSeeing(seeing, data) {
   // ── Hourly Cloud Forecast Bar Chart ──
   const hcContainer = document.getElementById('hourly-clouds-container');
   const hcChart = document.getElementById('hourly-clouds-chart');
+  const hcLabels = document.getElementById('hourly-clouds-labels');
   if (hcContainer && hcChart && seeing.hourly_clouds && seeing.hourly_clouds.length > 0) {
     hcChart.innerHTML = '';
+    if (hcLabels) hcLabels.innerHTML = '';
+    
+    // Get the current hour in the target timezone (or local as fallback)
+    let startHour = new Date().getHours();
+    if (data.location_timezone) {
+      try {
+        const parts = new Intl.DateTimeFormat('en-US', {
+          timeZone: data.location_timezone,
+          hour: 'numeric',
+          hour12: false
+        }).formatToParts(new Date());
+        startHour = parseInt(parts.find(p => p.type === 'hour').value, 10);
+      } catch (e) {
+        console.warn("Timezone parse error:", e);
+      }
+    }
+
     // Draw 24 bars
-    seeing.hourly_clouds.forEach(cloudPct => {
+    seeing.hourly_clouds.forEach((cloudPct, i) => {
       const bar = document.createElement('div');
       bar.style.flex = '1';
       // Map 0% cloud -> green, 100% -> red
@@ -554,8 +572,25 @@ function renderSeeing(seeing, data) {
       bar.style.backgroundColor = color;
       bar.style.borderRadius = '2px 2px 0 0';
       bar.style.opacity = '0.9';
-      bar.title = `${cloudPct}% cloud cover`;
+      
+      const hourVal = (startHour + i) % 24;
+      const ampm = hourVal >= 12 ? 'pm' : 'am';
+      const hr12 = hourVal % 12 || 12;
+      const timeStr = `${hr12}${ampm}`;
+      
+      bar.title = `${timeStr} - ${cloudPct}% cloud cover`;
       hcChart.appendChild(bar);
+      
+      // Add labels every 4 hours + last hour
+      if (hcLabels) {
+        if (i === 0 || i === 4 || i === 8 || i === 12 || i === 16 || i === 20 || i === 23) {
+          const lbl = document.createElement('div');
+          lbl.textContent = i === 0 ? "Now" : timeStr;
+          lbl.style.flex = "1";
+          lbl.style.textAlign = i === 0 ? "left" : (i === 23 ? "right" : "center");
+          hcLabels.appendChild(lbl);
+        }
+      }
     });
     hcContainer.style.display = '';
   }
@@ -2212,30 +2247,71 @@ function initLocationUI() {
   let citySearchTimeout = null;
   const cityInput = document.getElementById('input-city-search');
   const btnCitySearch = document.getElementById('btn-city-search');
+  const suggestionsBox = document.getElementById('city-search-suggestions');
+  
+  // Close suggestions when clicking outside
+  document.addEventListener('click', (e) => {
+    if (suggestionsBox && !suggestionsBox.contains(e.target) && e.target !== cityInput) {
+      suggestionsBox.style.display = 'none';
+    }
+  });
   
   const performCitySearch = () => {
     const query = cityInput.value.trim();
-    if (!query) return;
+    if (!query) {
+      if (suggestionsBox) suggestionsBox.style.display = 'none';
+      return;
+    }
     
     const oldText = btnCitySearch.textContent;
     btnCitySearch.textContent = '⏳';
     btnCitySearch.disabled = true;
     
-    fetch(`https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(query)}&limit=1`)
+    fetch(`https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(query)}&limit=5`)
       .then(res => res.json())
       .then(data => {
+        if (!suggestionsBox) return;
+        
+        suggestionsBox.innerHTML = '';
         if (data && data.length > 0) {
-          const result = data[0];
-          inputLat.value = parseFloat(result.lat).toFixed(4);
-          inputLon.value = parseFloat(result.lon).toFixed(4);
-          
-          // Clean up the display name for the profile name
-          const parts = result.display_name.split(',');
-          if (parts.length > 1) {
-             inputName.value = `${parts[0].trim()}, ${parts[1].trim()}`;
-          } else {
-             inputName.value = parts[0].trim();
-          }
+          data.forEach(result => {
+            const item = document.createElement('div');
+            item.style.padding = '8px 12px';
+            item.style.cursor = 'pointer';
+            item.style.borderBottom = '1px solid rgba(255,255,255,0.05)';
+            item.style.fontSize = '0.9rem';
+            item.textContent = result.display_name;
+            
+            // Hover effect
+            item.addEventListener('mouseenter', () => item.style.backgroundColor = 'rgba(255,255,255,0.1)');
+            item.addEventListener('mouseleave', () => item.style.backgroundColor = 'transparent');
+            
+            item.addEventListener('click', () => {
+              inputLat.value = parseFloat(result.lat).toFixed(4);
+              inputLon.value = parseFloat(result.lon).toFixed(4);
+              
+              const parts = result.display_name.split(',');
+              if (parts.length > 1) {
+                 inputName.value = `${parts[0].trim()}, ${parts[1].trim()}`;
+              } else {
+                 inputName.value = parts[0].trim();
+              }
+              
+              cityInput.value = result.display_name;
+              suggestionsBox.style.display = 'none';
+            });
+            
+            suggestionsBox.appendChild(item);
+          });
+          suggestionsBox.style.display = 'block';
+        } else {
+          const item = document.createElement('div');
+          item.style.padding = '8px 12px';
+          item.style.fontSize = '0.9rem';
+          item.style.color = 'var(--text-secondary)';
+          item.textContent = 'No results found.';
+          suggestionsBox.appendChild(item);
+          suggestionsBox.style.display = 'block';
         }
       })
       .catch(err => {
