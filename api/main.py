@@ -395,8 +395,7 @@ def tonight(
     try:
         use_lat = lat if lat is not None else float(LATITUDE)
         use_lon = lon if lon is not None else float(LONGITUDE)
-        use_bortle = bortle if bortle is not None else BORTLE_CLASS
-        return get_tonight_report(lat=use_lat, lon=use_lon, lang=lang, bortle=use_bortle)
+        return get_tonight_report(lat=use_lat, lon=use_lon, lang=lang, bortle=bortle)
     except Exception as e:
         return JSONResponse(status_code=500, content={"error": str(e)})
 
