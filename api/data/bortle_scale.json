@@ -1,0 +1,11 @@
+[
+  {"class": 1, "name": "Dark Sky Site", "description": "True darkness. Milky Way casts shadows. ZHR > 50 for major showers.", "mag_limit": 7.6},
+  {"class": 2, "name": "Typical Dark Site", "description": "Unspoiled darkness. Milky Way dominates the sky. ZHR > 40.", "mag_limit": 7.2},
+  {"class": 3, "name": "Rural Sky", "description": "Light pollution is invisible. Milky Way has fine texture. ZHR > 30.", "mag_limit": 6.5},
+  {"class": 4, "name": "Rural/Suburban Transition", "description": "Faint glow on horizon. Milky Way still visible but dimmed. ZHR > 20.", "mag_limit": 6.0},
+  {"class": 5, "name": "Suburban Sky", "description": "Sky glow dominates most of the sky. Milky Way barely visible. ZHR > 10.", "mag_limit": 5.1},
+  {"class": 6, "name": "Bright Suburban Sky", "description": "Suburban skyglow brightens the whole sky. Milky Way not visible. ZHR > 5.", "mag_limit": 4.5},
+  {"class": 7, "name": "City Fringe", "description": "Sky is washed out near the zenith. Only brightest stars visible. ZHR > 2.", "mag_limit": 4.0},
+  {"class": 8, "name": "City Sky", "description": "Bright sky with almost no visible stars. Only the Moon and planets visible.", "mag_limit": 3.5},
+  {"class": 9, "name": "Center of City", "description": "Bright glare from streetlights. No stars visible except near zenith. ZHR < 2.", "mag_limit": 3.0}
+]

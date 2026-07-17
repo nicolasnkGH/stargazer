@@ -16,6 +16,7 @@ from .iss import get_iss_passes
 from .meteors import get_meteor_showers
 from .seeing import get_seeing_forecast
 from .aurora import get_aurora_forecast
+from .bortle import get_bortle_class, get_bortle_info
 from .reports import (
     get_tonight_report,
     get_weekly_report,
@@ -53,4 +54,6 @@ __all__ = [
     "_planet_emoji",
     "_az_to_direction",
     "_rate_night",
+    "get_bortle_class",
+    "get_bortle_info",
 ]
