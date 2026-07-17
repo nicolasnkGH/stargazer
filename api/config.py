@@ -10,7 +10,13 @@ import json
 # --- StarGazer Configuration ---
 LATITUDE = float(os.getenv("LATITUDE", "40.0638"))
 LONGITUDE = float(os.getenv("LONGITUDE", "-83.0457"))
-BORTLE_CLASS = int(os.getenv("BORTLE_CLASS", "6"))
+_BORTLE_OVERRIDE = os.getenv("BORTLE_CLASS")
+if _BORTLE_OVERRIDE is not None:
+    BORTLE_CLASS = int(_BORTLE_OVERRIDE)
+else:
+    # Lazy import to avoid circular dependency with engine/__init__.py
+    from engine.bortle import get_bortle_class
+    BORTLE_CLASS = get_bortle_class(float(LATITUDE), float(LONGITUDE))
 TELESCOPE_APERTURE_MM = int(os.getenv("TELESCOPE_APERTURE_MM", "130"))
 ELEVATION_M = int(os.getenv("ELEVATION_M", "250"))
 TIMEZONE = os.getenv("OBSERVER_TIMEZONE", "America/New_York")

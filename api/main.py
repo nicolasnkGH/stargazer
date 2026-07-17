@@ -30,6 +30,7 @@ from engine import (
     get_meteor_showers,
     get_seeing_forecast,
     get_aurora_forecast,
+    get_bortle_info,
 
     get_constellations,
     get_constellation_window,
@@ -261,6 +262,20 @@ def get_aurora(lat: Optional[float] = None):
     try:
         use_lat = lat if lat is not None else float(LATITUDE)
         return get_aurora_forecast(lat=use_lat)
+    except Exception as e:
+        return JSONResponse(status_code=500, content={"error": str(e)})
+
+
+@app.get("/api/bortle")
+def get_bortle(
+    lat: Annotated[Optional[float], AfterValidator(validate_latitude)] = Query(None),
+    lon: Annotated[Optional[float], AfterValidator(validate_longitude)] = Query(None),
+):
+    """Estimate Bortle light pollution class from coordinates."""
+    try:
+        use_lat = lat if lat is not None else float(LATITUDE)
+        use_lon = lon if lon is not None else float(LONGITUDE)
+        return get_bortle_info(lat=use_lat, lon=use_lon)
     except Exception as e:
         return JSONResponse(status_code=500, content={"error": str(e)})
 
