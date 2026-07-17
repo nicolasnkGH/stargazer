@@ -795,10 +795,17 @@ const now = new Date();
     }
   }
 
-  // Bortle scale
   const heroBortle = document.getElementById('hero-bortle');
-if (heroBortle && data.telescope?.bortle != null) {
+  if (heroBortle && data.telescope?.bortle != null) {
     heroBortle.textContent = `B${data.telescope.bortle}`;
+    
+    // Auto-sync the dropdown if the user hasn't manually overridden it
+    if (!window.currentBortle) {
+      const selectBortle = document.getElementById('select-bortle');
+      if (selectBortle) {
+        selectBortle.value = data.telescope.bortle.toString();
+      }
+    }
   }
 }
 

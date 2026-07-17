@@ -45,7 +45,13 @@ def get_tonight_report(lat=None, lon=None, lang: str = "en", bortle: Optional[in
     twilight_timeline = get_twilight_timeline(lat=lat, lon=lon)
 
     visible_planets = [p for p in planets if p["visible_tonight"]]
-    use_bortle = bortle if bortle is not None else BORTLE_CLASS
+    
+    if bortle is not None:
+        use_bortle = bortle
+    else:
+        from .bortle import get_bortle_class
+        use_bortle = get_bortle_class(lat, lon) if lat and lon else BORTLE_CLASS
+        
     best_targets = [t for t in targets if t.get("in_fov") and t.get("bortle_min", 99) <= use_bortle + 1][:5]
 
     # Must-see tonight
@@ -110,7 +116,7 @@ def get_tonight_report(lat=None, lon=None, lang: str = "en", bortle: Optional[in
         "planet_fact": PLANET_FACTS[idx],
         "telescope": {
             "aperture_mm": TELESCOPE_APERTURE_MM,
-            "bortle": BORTLE_CLASS,
+            "bortle": use_bortle,
             "limiting_mag": LIMITING_MAG,
         }
     }
