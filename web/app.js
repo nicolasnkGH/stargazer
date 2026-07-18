@@ -66,13 +66,15 @@ window.showInfo = function(msg, event, sticky = false) {
 };
 
 // ── Configuration ──────────────────────────────────────────────────────────
-let API_BASE;
-if (window.location.hostname.includes('nick-t.net')) {
-  API_BASE = 'https://stargazerapi.nick-t.net';
-} else if (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1') {
-  API_BASE = 'http://localhost:8181';
-} else {
-  API_BASE = '/api'; // Fallback for Docker LAN self-hosting where Nginx is the proxy
+let API_BASE = localStorage.getItem('stargazer_api_override');
+if (!API_BASE) {
+  if (window.location.hostname.includes('nick-t.net')) {
+    API_BASE = 'https://stargazerapi.nick-t.net';
+  } else if (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1') {
+    API_BASE = 'http://localhost:8181';
+  } else {
+    API_BASE = '/api'; // Fallback for Docker LAN self-hosting where Nginx is the proxy
+  }
 }
 
 const DEFAULT_LOCATIONS = [];
@@ -1972,6 +1974,28 @@ function initLocationUI() {
     });
   }
 
+  // API Server Override logic
+  const inputApiOverride = document.getElementById('input-api-override');
+  const btnSaveApi = document.getElementById('btn-save-api');
+  
+  if (inputApiOverride && btnSaveApi) {
+    // Init value
+    inputApiOverride.value = localStorage.getItem('stargazer_api_override') || '';
+    
+    btnSaveApi.addEventListener('click', () => {
+      const val = inputApiOverride.value.trim();
+      if (val) {
+        // Basic validation: ensure it doesn't end with a slash
+        const cleanVal = val.replace(/\/$/, '');
+        localStorage.setItem('stargazer_api_override', cleanVal);
+      } else {
+        localStorage.removeItem('stargazer_api_override');
+      }
+      
+      // We must reload the page so the API_BASE constant is re-evaluated globally
+      window.location.reload();
+    });
+  }
   if (btnCloseData) {
     btnCloseData.addEventListener('click', () => {
       modalData.classList.add('hidden');
