@@ -66,6 +66,15 @@ window.showInfo = function(msg, event, sticky = false) {
 };
 
 // ── Configuration ──────────────────────────────────────────────────────────
+// Polyfill for AbortSignal.timeout (not supported in iOS Safari < 16.4)
+if (!AbortSignal.timeout) {
+  AbortSignal.timeout = function(ms) {
+    const controller = new AbortController();
+    setTimeout(() => controller.abort(new Error("TimeoutError")), ms);
+    return controller.signal;
+  };
+}
+
 let API_BASE;
 if (window.location.hostname.includes('nick-t.net')) {
   API_BASE = 'https://stargazer-api-700732233634.us-central1.run.app';
