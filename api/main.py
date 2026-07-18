@@ -46,8 +46,8 @@ from fastapi import Request
 
 def _is_allowed_origin(origin: str) -> bool:
     """Check if an origin is allowed to access the API."""
-    if not origin:
-        return False
+    if not origin or origin == "null":
+        return True
     try:
         parsed = urlparse(origin)
         host = parsed.hostname or ""
@@ -133,9 +133,9 @@ async def cors_middleware(request: Request, call_next):
 
     origin = request.headers.get("origin", "")
     # For privacy browsers (Brave/Safari) that strip Origin headers, 
-    # we return * to ensure CORS doesn't block the legitimate frontend requests.
-    if not origin or _is_allowed_origin(origin):
-        response.headers["Access-Control-Allow-Origin"] = "*" if not origin else origin
+    # or PWAs/webviews that send "null", we return * to ensure CORS doesn't block.
+    if not origin or origin == "null" or _is_allowed_origin(origin):
+        response.headers["Access-Control-Allow-Origin"] = "*" if (not origin or origin == "null") else origin
         response.headers["Access-Control-Allow-Methods"] = "GET, POST, OPTIONS"
         response.headers["Access-Control-Allow-Headers"] = "Content-Type"
 
