@@ -2912,10 +2912,7 @@ document.addEventListener('DOMContentLoaded', () => {
     function onStart(e) {
       // Don't drag if clicking dismiss button
       if (e.target.classList.contains('floating-btn-dismiss')) return;
-      // Don't drag if clicking inner buttons
-      if (e.target.tagName === 'BUTTON' && e.target.id !== '') {
-        // Allow dragging when clicking the main button
-      }
+      
       isDragging = true;
       hasMoved = false;
       el.classList.add('dragging');
@@ -2929,8 +2926,8 @@ document.addEventListener('DOMContentLoaded', () => {
       startTop = rect.top;
       startRight = window.innerWidth - rect.right;
       startBottom = window.innerHeight - rect.bottom;
-
-      if (e.touches) e.preventDefault();
+      
+      // Do NOT prevent default here on touchstart, otherwise standard clicks/taps are completely blocked on mobile
     }
 
     function onMove(e) {
@@ -2939,14 +2936,17 @@ document.addEventListener('DOMContentLoaded', () => {
       const dx = touch.clientX - startX;
       const dy = touch.clientY - startY;
 
-      if (Math.abs(dx) > 3 || Math.abs(dy) > 3) hasMoved = true;
+      if (Math.abs(dx) > 5 || Math.abs(dy) > 5) {
+        hasMoved = true;
+      }
 
       el.style.left = (startLeft + dx) + 'px';
       el.style.top = (startTop + dy) + 'px';
       el.style.bottom = 'auto';
       el.style.right = 'auto';
 
-      if (e.touches) e.preventDefault();
+      // Prevent scrolling only when actually dragging
+      if (e.touches && hasMoved) e.preventDefault();
     }
 
     function onEnd() {
@@ -2971,8 +2971,17 @@ document.addEventListener('DOMContentLoaded', () => {
       } catch {}
     }
 
+    // Intercept click event if a drag occurred, preventing click action from firing
+    el.addEventListener('click', (e) => {
+      if (hasMoved) {
+        e.preventDefault();
+        e.stopPropagation();
+        hasMoved = false;
+      }
+    }, true);
+
     // Touch events
-    el.addEventListener('touchstart', onStart, { passive: false });
+    el.addEventListener('touchstart', onStart, { passive: true });
     el.addEventListener('touchmove', onMove, { passive: false });
     el.addEventListener('touchend', onEnd);
 
