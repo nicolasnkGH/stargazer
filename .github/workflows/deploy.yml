@@ -63,36 +63,26 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
   deploy:
-    runs-on: self-hosted
+    runs-on: ubuntu-latest
+    needs: validate
     if: (github.event_name == 'push' || (github.event_name == 'pull_request' && github.event.pull_request.merged == true)) && !startsWith(github.ref, 'refs/tags/')
     steps:
       - uses: actions/checkout@v3
 
-      - name: Deploy to Server
-        run: |
-          # The runner has checked out the latest code in the current directory.
-          # Sync it over to the live directory using tar (since rsync isn't installed)
-          mkdir -p /opt/stargazer
-          tar -cf - --exclude=.git . | (cd /opt/stargazer && tar -xf -)
-          cd /opt/stargazer
-          if [ ! -f .env ]; then
-            echo "No .env found, initializing from .env.example"
-            cp .env.example .env
-          else
-            echo "Existing .env found, preserving it."
-          fi
-          docker compose up -d --build
+      - name: Google Auth
+        uses: google-github-actions/auth@v2
+        with:
+          credentials_json: ${{ secrets.GCP_SA_KEY }}
 
-      - name: Health Check Verification
-        working-directory: /opt/stargazer
-        run: |
-          echo "Waiting for API to start..."
-          sleep 10
-          docker compose exec -T stargazer-api curl -f http://localhost:8181/health || (echo "Health check failed" && docker compose logs && exit 1)
-          echo "Deployment successful and healthy!"
+      - name: Deploy to Cloud Run
+        uses: google-github-actions/deploy-cloudrun@v2
+        with:
+          service: ${{ secrets.GCP_SERVICE_NAME }}
+          region: us-central1
+          source: api/
 
   deploy-tag:
-    runs-on: self-hosted
+    runs-on: ubuntu-latest
     if: github.event_name == 'push' && startsWith(github.ref, 'refs/tags/')
     steps:
       - uses: actions/checkout@v3
@@ -103,31 +93,20 @@ jobs:
         id: version
         run: echo "version=${GITHUB_REF#refs/tags/}" >> $GITHUB_OUTPUT
 
-      - name: Update version in HTML and API
+      - name: Update version in API
         run: |
           VERSION="${{ steps.version.outputs.version }}"
-          # Update HTML version badge
-          sed -i "s/v[0-9]*\.[0-9]*\.[0-9]*.*/${VERSION}/" web/index.html
           # Update API version
           sed -i "s/version=\"[0-9]*\.[0-9]*\.[0-9]*\"/version=\"${VERSION#v}\"/" api/main.py
 
-      - name: Deploy to Server
-        run: |
-          mkdir -p /opt/stargazer
-          tar -cf - --exclude=.git . | (cd /opt/stargazer && tar -xf -)
-          cd /opt/stargazer
-          if [ ! -f .env ]; then
-            echo "No .env found, initializing from .env.example"
-            cp .env.example .env
-          else
-            echo "Existing .env found, preserving it."
-          fi
-          docker compose up -d --build
+      - name: Google Auth
+        uses: google-github-actions/auth@v2
+        with:
+          credentials_json: ${{ secrets.GCP_SA_KEY }}
 
-      - name: Health Check Verification
-        working-directory: /opt/stargazer
-        run: |
-          echo "Waiting for API to start..."
-          sleep 10
-          docker compose exec -T stargazer-api curl -f http://localhost:8181/health || (echo "Health check failed" && docker compose logs && exit 1)
-          echo "Deployment of ${{ steps.version.outputs.version }} successful and healthy!"
+      - name: Deploy to Cloud Run
+        uses: google-github-actions/deploy-cloudrun@v2
+        with:
+          service: ${{ secrets.GCP_SERVICE_NAME }}
+          region: us-central1
+          source: api/
