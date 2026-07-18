@@ -76,13 +76,12 @@ if (!AbortSignal.timeout) {
 }
 
 let API_BASE;
-if (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1') {
+if (window.location.hostname.includes('nick-t.net')) {
+  API_BASE = 'https://stargazer-api-700732233634.us-central1.run.app';
+} else if (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1') {
   API_BASE = 'http://localhost:8181';
 } else {
-  // Production / Cloudflare Pages
-  // Uses _redirects to proxy /api/* to Cloud Run. 
-  // This bypasses all Safari ITP / CORS / AdBlocker cross-site issues.
-  API_BASE = '/api';
+  API_BASE = '/api'; // Fallback for Docker LAN self-hosting where Nginx is the proxy
 }
 
 const DEFAULT_LOCATIONS = [
