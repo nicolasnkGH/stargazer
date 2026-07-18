@@ -34,10 +34,6 @@
   const PARALLAX_STRENGTH_Y = 8;   // max vertical camera offset
   const PARALLAX_LERP = 0.04;      // smoothing factor per frame
 
-  window.addEventListener('mousemove', (e) => {
-    mouse.x = (e.clientX / window.innerWidth) * 2 - 1;
-    mouse.y = (e.clientY / window.innerHeight) * 2 - 1;
-  });
 
   const renderer = new THREE.WebGLRenderer({ canvas, alpha: true, antialias: true });
   renderer.setPixelRatio(Math.min(window.devicePixelRatio, 1.5));
@@ -342,12 +338,6 @@
     sun.mesh.scale.setScalar(pulse);
     sunLight.intensity = 5.0 * pulse;
 
-    // Interactive mouse parallax: smoothly ease the camera toward the
-    // mouse-driven offset so pans/tilts feel gentle rather than snappy.
-    parallax.x = THREE.MathUtils.lerp(parallax.x, mouse.x, PARALLAX_LERP);
-    parallax.y = THREE.MathUtils.lerp(parallax.y, mouse.y, PARALLAX_LERP);
-    camera.position.x = CAMERA_BASE.x + parallax.x * PARALLAX_STRENGTH_X;
-    camera.position.y = CAMERA_BASE.y - parallax.y * PARALLAX_STRENGTH_Y;
     camera.lookAt(LOOK_BASE);
 
     renderer.render(scene, camera);

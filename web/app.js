@@ -142,7 +142,9 @@ window.currentBortle = localStorage.getItem('stargazer_bortle') || null;
     stars.forEach(s => {
       ctx.fillStyle = s.color;
       ctx.globalAlpha = s.alpha;
-      ctx.fillRect(s.x, s.y, s.r * 2, s.r * 2);
+      ctx.beginPath();
+      ctx.arc(s.x, s.y, s.r, 0, Math.PI * 2);
+      ctx.fill();
     });
     ctx.globalAlpha = 1;
     // Milky Way subtle glow
