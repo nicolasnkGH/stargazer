@@ -85,7 +85,7 @@ if (window.location.hostname.includes('nick-t.net')) {
 }
 
 const DEFAULT_LOCATIONS = [
-  { id: 'default-columbus', name: 'Worthington Hills, OH', lat: 40.126, lon: -83.037 }
+  { id: 'default-mauna-kea', name: 'Mauna Kea Observatory, HI', lat: 19.8206, lon: -155.4681 }
 ];
 
 let savedLocations = DEFAULT_LOCATIONS;
@@ -2384,28 +2384,43 @@ function initLocationUI() {
 async function init() {
   initLocationUI();
 
-  // --- Manage Default Location Banner ---
-  const banner = document.getElementById('default-location-banner');
-  if (banner) {
-    if (activeLocId === 'default-columbus' || !localStorage.getItem('stargazer_locations')) {
-      banner.classList.remove('hidden');
-    } else {
-      banner.classList.add('hidden');
+  // --- First-time Welcome Location Prompt ---
+  const welcomeModal = document.getElementById('welcome-modal');
+  if (welcomeModal) {
+    const welcomeSeen = localStorage.getItem('stargazer_welcome_seen');
+    const hasCustomLocations = localStorage.getItem('stargazer_locations');
+    
+    if (!welcomeSeen && !hasCustomLocations && activeLocId === 'default-mauna-kea') {
+      welcomeModal.classList.remove('hidden');
     }
-  }
-  const btnBannerGps = document.getElementById('btn-banner-gps');
-  if (btnBannerGps) {
-    btnBannerGps.addEventListener('click', () => {
-      const headerGpsBtn = document.getElementById('btn-gps-header');
-      if (headerGpsBtn) headerGpsBtn.click();
-    });
-  }
-  const btnBannerManual = document.getElementById('btn-banner-manual');
-  if (btnBannerManual) {
-    btnBannerManual.addEventListener('click', () => {
-      const btnLoc = document.getElementById('btn-location');
-      if (btnLoc) btnLoc.click();
-    });
+    
+    const btnWelcomeGps = document.getElementById('btn-welcome-gps');
+    if (btnWelcomeGps) {
+      btnWelcomeGps.addEventListener('click', () => {
+        welcomeModal.classList.add('hidden');
+        localStorage.setItem('stargazer_welcome_seen', 'true');
+        const headerGpsBtn = document.getElementById('btn-gps-header');
+        if (headerGpsBtn) headerGpsBtn.click();
+      });
+    }
+    
+    const btnWelcomeManual = document.getElementById('btn-welcome-manual');
+    if (btnWelcomeManual) {
+      btnWelcomeManual.addEventListener('click', () => {
+        welcomeModal.classList.add('hidden');
+        localStorage.setItem('stargazer_welcome_seen', 'true');
+        const btnLoc = document.getElementById('btn-location');
+        if (btnLoc) btnLoc.click();
+      });
+    }
+    
+    const btnWelcomeSkip = document.getElementById('btn-welcome-skip');
+    if (btnWelcomeSkip) {
+      btnWelcomeSkip.addEventListener('click', () => {
+        welcomeModal.classList.add('hidden');
+        localStorage.setItem('stargazer_welcome_seen', 'true');
+      });
+    }
   }
 
   // --- Auto-detect GPS from Header ---
