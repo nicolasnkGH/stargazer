@@ -103,7 +103,7 @@
             Collaborate <i data-lucide="arrow-up-right" style="width:12px;height:12px;margin-left:4px;"></i>
           </a>
           <button id="btn-unit-toggle" class="icon-btn" title="Toggle Units">°C/km</button>
-          <select id="lang-select" class="lang-select desktop-only"><option value="en">EN</option><option value="es">ES</option><option value="pt">PT</option></select>
+          <select id="lang-select" class="lang-select desktop-only" aria-label="Language Selector"><option value="en">EN</option><option value="es">ES</option><option value="pt">PT</option></select>
           <button id="btn-about" class="icon-btn" title="Dashboard Tour" data-i18n="tour_btn"><i data-lucide="info" style="width:18px;height:18px;stroke:currentColor;stroke-width:1.5;"></i></button>
           
           <div style="position: relative;">
@@ -499,7 +499,7 @@
       <section class="card" id="card-active-const">
         <div class="card-header">
           <div class="ac-select-wrap">
-            <select id="ac-select" class="ac-select">
+            <select id="ac-select" class="ac-select" aria-label="Select active constellation">
               <option value="Sco">🦂 Scorpius</option>
               <option value="UMa">🐻 Ursa Major</option>
               <option value="Ori">🏹 Orion</option>
@@ -712,7 +712,7 @@
         
         <div style="margin-bottom: 16px;">
           <label style="font-size: 0.8rem; color: var(--text-secondary); display: block; margin-bottom: 4px;">What do you want to observe?</label>
-          <select id="calc-target-type" style="width: 100%; background: rgba(0,0,0,0.4); border: 1px solid rgba(255,255,255,0.2); color: var(--text-primary); border-radius: 4px; padding: 8px;" onchange="updateOptics()">
+          <select id="calc-target-type" aria-label="Optics Target Type" style="width: 100%; background: rgba(0,0,0,0.4); border: 1px solid rgba(255,255,255,0.2); color: var(--text-primary); border-radius: 4px; padding: 8px;" onchange="updateOptics()">
             <option value="planets">Planets (Jupiter, Saturn, Mars)</option>
             <option value="moon">The Moon</option>
             <option value="clusters">Star Clusters (Globular & Open)</option>
@@ -726,19 +726,19 @@
 
         <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 12px;">
           <div>
-            <label style="font-size: 0.8rem; color: var(--text-secondary);">Telescope Focal Length (mm)</label>
+            <label for="calc-scope-fl" style="font-size: 0.8rem; color: var(--text-secondary);">Telescope Focal Length (mm)</label>
             <input type="number" id="calc-scope-fl" value="650" style="width: 100%; background: rgba(0,0,0,0.2); border: 1px solid rgba(255,255,255,0.1); color: var(--text-primary); border-radius: 4px; padding: 6px;" oninput="updateOptics()">
           </div>
           <div>
-            <label style="font-size: 0.8rem; color: var(--text-secondary);">Telescope Aperture (mm)</label>
+            <label for="calc-scope-ap" style="font-size: 0.8rem; color: var(--text-secondary);">Telescope Aperture (mm)</label>
             <input type="number" id="calc-scope-ap" value="130" style="width: 100%; background: rgba(0,0,0,0.2); border: 1px solid rgba(255,255,255,0.1); color: var(--text-primary); border-radius: 4px; padding: 6px;" oninput="updateOptics()">
           </div>
           <div>
-            <label style="font-size: 0.8rem; color: var(--text-secondary);">Eyepiece Focal Length (mm)</label>
+            <label for="calc-ep-fl" style="font-size: 0.8rem; color: var(--text-secondary);">Eyepiece Focal Length (mm)</label>
             <input type="number" id="calc-ep-fl" value="25" style="width: 100%; background: rgba(0,0,0,0.2); border: 1px solid rgba(255,255,255,0.1); color: var(--text-primary); border-radius: 4px; padding: 6px;" oninput="updateOptics()">
           </div>
           <div>
-            <label style="font-size: 0.8rem; color: var(--text-secondary);">Apparent FOV (°)</label>
+            <label for="calc-ep-afov" style="font-size: 0.8rem; color: var(--text-secondary);">Apparent FOV (°)</label>
             <input type="number" id="calc-ep-afov" value="52" style="width: 100%; background: rgba(0,0,0,0.2); border: 1px solid rgba(255,255,255,0.1); color: var(--text-primary); border-radius: 4px; padding: 6px;" oninput="updateOptics()">
           </div>
         </div>
@@ -838,11 +838,11 @@
         <p style="font-size: 0.75rem; color: var(--text-secondary); margin-bottom: 12px; margin-top: -5px;">Only show objects visible between specific compass headings.</p>
         <div id="porch-mode-inputs" style="display: none; gap: 10px;">
           <div class="input-group" style="flex: 1;">
-            <label>Min Azimuth (0-360°)</label>
+            <label for="input-porch-min">Min Azimuth (0-360°)</label>
             <input type="number" id="input-porch-min" placeholder="90" min="0" max="360" />
           </div>
           <div class="input-group" style="flex: 1;">
-            <label>Max Azimuth (0-360°)</label>
+            <label for="input-porch-max">Max Azimuth (0-360°)</label>
             <input type="number" id="input-porch-max" placeholder="270" min="0" max="360" />
           </div>
         </div>
@@ -1015,7 +1015,7 @@
         <div style="background: rgba(255,255,255,0.05); padding: 15px; border-radius: 8px;">
           <h3 style="margin-top:0; font-size: 1rem;">🌃 Sky Darkness (Bortle Class)</h3>
           <p style="font-size: 0.8rem; color: var(--text-secondary); margin-bottom: 10px;">Select your light pollution level to filter out washed-out targets.</p>
-          <select id="select-bortle" class="location-input" style="width: 100%; margin-bottom: 0;">
+          <select id="select-bortle" class="location-input" aria-label="Sky Darkness (Bortle Class)" style="width: 100%; margin-bottom: 0;">
             <option value="1">Class 1: Excellent dark-sky site</option>
             <option value="2">Class 2: Typical truly dark site</option>
             <option value="3">Class 3: Rural sky</option>
