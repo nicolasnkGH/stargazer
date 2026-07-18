@@ -245,6 +245,7 @@ Respond ONLY with valid JSON — no markdown, no explanation outside the JSON:
         
         # If in a serverless environment (like Cloud Run), CPU is throttled after HTTP response returns.
         # Run synchronously to ensure execution finishes before the request completes.
+        import os
         if os.getenv("K_SERVICE"):
             _background_ai_task(payload, headers, current_hash, (weather, moon_illum, moon_alt, moon_dist))
             # Reload from cache to get the computed data
