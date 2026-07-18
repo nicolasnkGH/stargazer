@@ -137,7 +137,7 @@ async def cors_middleware(request: Request, call_next):
     if not origin or origin == "null" or _is_allowed_origin(origin):
         response.headers["Access-Control-Allow-Origin"] = "*" if (not origin or origin == "null") else origin
         response.headers["Access-Control-Allow-Methods"] = "GET, POST, OPTIONS"
-        response.headers["Access-Control-Allow-Headers"] = "Content-Type"
+        response.headers["Access-Control-Allow-Headers"] = "*"
 
     # Cache-Control for API responses (5 min, matches server-side TTLs)
     if not request.url.path.startswith("/api/"):
