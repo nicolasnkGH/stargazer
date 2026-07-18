@@ -1080,6 +1080,8 @@ body {
   border-radius: 12px;
   max-width: 400px;
   width: 90%;
+  max-height: 85vh;
+  overflow-y: auto;
   border: 1px solid var(--border-color);
   box-shadow: 0 10px 30px rgba(0,0,0,0.5);
 }
