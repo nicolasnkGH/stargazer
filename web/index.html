@@ -170,6 +170,18 @@
     </section>
 
   <main class="main">
+    <!-- Default Location Warning Banner -->
+    <div id="default-location-banner" class="hidden" style="background: rgba(239, 68, 68, 0.12); border: 1px dashed rgba(239, 68, 68, 0.3); border-radius: 12px; padding: 16px 20px; margin: 0 auto 20px auto; max-width: 1200px; width: 90%; display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 15px; color: #fca5a5; font-size: 0.9rem; z-index: 100; box-sizing: border-box;">
+      <div style="display: flex; align-items: center; gap: 12px; flex: 1; min-width: 280px;">
+        <i data-lucide="alert-triangle" style="width: 22px; height: 22px; color: #ef4444; flex-shrink: 0;"></i>
+        <span><strong>Viewing Default Location:</strong> You are seeing astronomy conditions for <strong>Worthington Hills, OH</strong>. Set your actual location to personalize stargazing forecasts!</span>
+      </div>
+      <div style="display: flex; gap: 10px; flex-shrink: 0;">
+        <button id="btn-banner-gps" class="btn btn-primary" style="padding: 8px 14px; font-size: 0.85rem; background: #3b82f6; display: flex; align-items: center; gap: 6px; cursor: pointer; border-radius: 6px;"><i data-lucide="crosshair" style="width:14px;height:14px;"></i> Detect Location</button>
+        <button id="btn-banner-manual" class="btn btn-secondary" style="padding: 8px 14px; font-size: 0.85rem; background: rgba(255,255,255,0.08); border: 1px solid rgba(255,255,255,0.1); cursor: pointer; border-radius: 6px;">Select City</button>
+      </div>
+    </div>
+
     <!-- ── Go/No-Go Banner ── -->
     <section id="gonogo-banner" class="gonogo-banner loading-state">
       <div class="gonogo-inner" style="padding-left: 8px; padding-right: 8px;">
@@ -1068,10 +1080,10 @@
   <noscript><link rel="stylesheet" href="https://aladin.u-strasbg.fr/AladinLite/api/v2/latest/aladin.min.css" /></noscript>
   <script type="text/javascript" src="https://aladin.u-strasbg.fr/AladinLite/api/v2/latest/aladin.min.js" charset="utf-8" defer></script>
 
-  <script src="translations.js?v=60" defer></script>
-  <script src="moon3d.js?v=60" defer></script>
-  <script src="planets3d.js?v=60" defer></script>
-  <script src="hero-solar-system.js?v=60" defer></script>
-  <script src="app.js?v=60" defer></script>
+  <script src="translations.js?v=61" defer></script>
+  <script src="moon3d.js?v=61" defer></script>
+  <script src="planets3d.js?v=61" defer></script>
+  <script src="hero-solar-system.js?v=61" defer></script>
+  <script src="app.js?v=61" defer></script>
 </body>
 </html>

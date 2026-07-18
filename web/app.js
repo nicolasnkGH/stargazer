@@ -2384,6 +2384,30 @@ function initLocationUI() {
 async function init() {
   initLocationUI();
 
+  // --- Manage Default Location Banner ---
+  const banner = document.getElementById('default-location-banner');
+  if (banner) {
+    if (activeLocId === 'default-columbus' || !localStorage.getItem('stargazer_locations')) {
+      banner.classList.remove('hidden');
+    } else {
+      banner.classList.add('hidden');
+    }
+  }
+  const btnBannerGps = document.getElementById('btn-banner-gps');
+  if (btnBannerGps) {
+    btnBannerGps.addEventListener('click', () => {
+      const headerGpsBtn = document.getElementById('btn-gps-header');
+      if (headerGpsBtn) headerGpsBtn.click();
+    });
+  }
+  const btnBannerManual = document.getElementById('btn-banner-manual');
+  if (btnBannerManual) {
+    btnBannerManual.addEventListener('click', () => {
+      const btnLoc = document.getElementById('btn-location');
+      if (btnLoc) btnLoc.click();
+    });
+  }
+
   // --- Auto-detect GPS from Header ---
   const headerGpsBtn = document.getElementById('btn-gps-header');
   if (headerGpsBtn && !headerGpsBtn.dataset.bound) {
