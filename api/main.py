@@ -105,7 +105,7 @@ async def verify_origin(request: Request):
         return
 
     origin = request.headers.get("origin") or request.headers.get("referer", "")
-    if not origin or not _is_allowed_origin(origin):
+    if origin and not _is_allowed_origin(origin):
         raise HTTPException(status_code=403, detail="Unauthorized Origin.")
 
 
@@ -132,8 +132,10 @@ async def cors_middleware(request: Request, call_next):
     response = await call_next(request)
 
     origin = request.headers.get("origin", "")
-    if origin and _is_allowed_origin(origin):
-        response.headers["Access-Control-Allow-Origin"] = origin
+    # For privacy browsers (Brave/Safari) that strip Origin headers, 
+    # we return * to ensure CORS doesn't block the legitimate frontend requests.
+    if not origin or _is_allowed_origin(origin):
+        response.headers["Access-Control-Allow-Origin"] = "*" if not origin else origin
         response.headers["Access-Control-Allow-Methods"] = "GET, POST, OPTIONS"
         response.headers["Access-Control-Allow-Headers"] = "Content-Type"
 
