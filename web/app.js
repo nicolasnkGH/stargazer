@@ -2081,23 +2081,29 @@ function initLocationUI() {
   }
 
   if (btnSubscribeAlerts) {
-    // If already granted, reflect state immediately
-    if (Notification.permission === 'granted') {
-      _markAlertsEnabled();
-    }
-
-    btnSubscribeAlerts.addEventListener('click', async () => {
-      const permission = await Notification.requestPermission();
-      if (permission === 'granted') {
+    if (typeof Notification === 'undefined') {
+      btnSubscribeAlerts.textContent = 'Push Alerts Unsupported ⚠️';
+      btnSubscribeAlerts.disabled = true;
+      btnSubscribeAlerts.title = 'Add this app to your Home Screen (Share -> Add to Home Screen) to enable alerts.';
+    } else {
+      // If already granted, reflect state immediately
+      if (Notification.permission === 'granted') {
         _markAlertsEnabled();
-        const sub = await _getPushSubscription();
-        if (sub) {
-          await _sendSubscriptionToServer(sub);
-        }
-      } else {
-        alert('Notification permission denied. Check your browser settings to allow notifications for this site.');
       }
-    });
+
+      btnSubscribeAlerts.addEventListener('click', async () => {
+        const permission = await Notification.requestPermission();
+        if (permission === 'granted') {
+          _markAlertsEnabled();
+          const sub = await _getPushSubscription();
+          if (sub) {
+            await _sendSubscriptionToServer(sub);
+          }
+        } else {
+          alert('Notification permission denied. Check your browser settings to allow notifications for this site.');
+        }
+      });
+    }
   }
 
   if (btnTestAlert) {
