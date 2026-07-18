@@ -1939,6 +1939,14 @@ function initLocationUI() {
     modal.classList.remove('hidden');
   });
 
+  const btnLocText = document.getElementById('btn-location-text');
+  if (btnLocText) {
+    btnLocText.addEventListener('click', () => {
+      renderList();
+      modal.classList.remove('hidden');
+    });
+  }
+
   document.getElementById('btn-close-loc').addEventListener('click', () => {
     modal.classList.add('hidden');
   });

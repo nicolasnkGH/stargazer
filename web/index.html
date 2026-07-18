@@ -84,8 +84,11 @@
         <div class="telemetry-item location-item">
           <button id="btn-location" class="location-btn" title="Set Location"><i data-lucide="map-pin" style="width:14px;height:14px;stroke:currentColor;stroke-width:1.5;"></i></button>
           <button id="btn-gps-header" class="location-btn" title="Auto-detect Location"><i data-lucide="crosshair" style="width:14px;height:14px;stroke:currentColor;stroke-width:1.5;"></i></button>
-          <div style="display:flex; flex-direction:column; line-height:1.2;">
-            <span id="logo-sub" style="font-weight:600; color:var(--text-primary);" data-i18n="loading_loc">Loading...</span>
+          <div id="btn-location-text" style="display:flex; flex-direction:column; line-height:1.2; cursor:pointer; padding: 2px 6px; border-radius: 4px; transition: background 0.2s;" onmouseover="this.style.background='rgba(255,255,255,0.05)'" onmouseout="this.style.background='transparent'">
+            <div style="display:flex; align-items:center; gap: 4px;">
+              <span id="logo-sub" style="font-weight:600; color:var(--text-primary);" data-i18n="loading_loc">Loading...</span>
+              <i data-lucide="pencil" style="width:12px;height:12px;stroke:var(--text-dim);stroke-width:1.5;"></i>
+            </div>
             <span id="logo-coords" style="font-size:0.65rem; color:var(--text-dim);">Lat: --, Lon: --</span>
           </div>
         </div>
