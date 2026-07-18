@@ -243,6 +243,14 @@ Respond ONLY with valid JSON — no markdown, no explanation outside the JSON:
         cache_db[current_hash] = {"timestamp": int(time.time()), "data": {"status": "processing"}}
         _save_ai_cache(cache_db)
         
+        # If in a serverless environment (like Cloud Run), CPU is throttled after HTTP response returns.
+        # Run synchronously to ensure execution finishes before the request completes.
+        if os.getenv("K_SERVICE"):
+            _background_ai_task(payload, headers, current_hash, (weather, moon_illum, moon_alt, moon_dist))
+            # Reload from cache to get the computed data
+            cache_db = _load_ai_cache()
+            return cache_db.get(current_hash, {}).get("data", {"status": "processing"})
+        
         t = threading.Thread(target=_background_ai_task, args=(payload, headers, current_hash, (weather, moon_illum, moon_alt, moon_dist)))
         t.start()
         
