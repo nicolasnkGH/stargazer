@@ -44,3 +44,4 @@ api/test_sun.py
 
 # Node.js
 node_modules/
+api/data/ai_cache.json
