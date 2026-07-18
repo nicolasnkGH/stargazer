@@ -1,5 +1,5 @@
 const API_BASE = window.location.hostname.includes('nick-t.net')
-  ? 'https://stargazerapi.nick-t.net'
+  ? 'https://stargazer-api-700732233634.us-central1.run.app'
   : `http://${window.location.hostname}:8181`;
 
 async function fetchAPI(path) {

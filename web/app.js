@@ -68,7 +68,7 @@ window.showInfo = function(msg, event, sticky = false) {
 // ── Configuration ──────────────────────────────────────────────────────────
 let API_BASE;
 if (window.location.hostname.includes('nick-t.net')) {
-  API_BASE = 'https://stargazerapi.nick-t.net';
+  API_BASE = 'https://stargazer-api-700732233634.us-central1.run.app';
 } else if (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1') {
   API_BASE = 'http://localhost:8181';
 } else {
