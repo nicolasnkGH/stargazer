@@ -75,7 +75,9 @@ if (window.location.hostname.includes('nick-t.net')) {
   API_BASE = '/api'; // Fallback for Docker LAN self-hosting where Nginx is the proxy
 }
 
-const DEFAULT_LOCATIONS = [];
+const DEFAULT_LOCATIONS = [
+  { id: 'default-columbus', name: 'Worthington Hills, OH', lat: 40.126, lon: -83.037 }
+];
 
 let savedLocations = DEFAULT_LOCATIONS;
 try {
