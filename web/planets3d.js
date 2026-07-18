@@ -314,138 +314,137 @@ function initPlanets3D() {
 
   const loader = new THREE.TextureLoader();
 
-  requestAnimationFrame(() => {
-    containers.forEach(container => {
-      const name = (container.dataset.planet || 'mercury').toLowerCase();
-      const cfg  = CFG[name] || CFG.mercury;
+  // Lazy setup a single planet container when it scrolls into view
+  function setupSinglePlanet3D(container) {
+    const name = (container.dataset.planet || 'mercury').toLowerCase();
+    const cfg  = CFG[name] || CFG.mercury;
 
-      container.innerHTML = '';
+    container.innerHTML = '';
 
-      // ── Renderer — identical to moon3d.js ──
-      // Use full container dimensions (rectangular), not forced square
-      const width  = container.clientWidth  || 300;
-      const height = container.clientHeight || 200;
+    const width  = container.clientWidth  || 300;
+    const height = container.clientHeight || 200;
 
-      const renderer = new THREE.WebGLRenderer({ antialias: true });
-      renderer.setClearColor(0x050510, 1);
-      renderer.setSize(width, height);
-      renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, 1.5));
-      container.appendChild(renderer.domElement);
+    const renderer = new THREE.WebGLRenderer({ antialias: true });
+    renderer.setClearColor(0x050510, 1);
+    renderer.setSize(width, height);
+    renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, 1.5));
+    container.appendChild(renderer.domElement);
 
-      // Scene & camera — same FOV/distance as moon3d.js
-      const scene  = new THREE.Scene();
-      scene.fog = new THREE.FogExp2(0x050510, 0.06);
-      const camera = new THREE.PerspectiveCamera(45, width / height, 0.1, 1000);
-      camera.position.z = 3.5;
+    const scene  = new THREE.Scene();
+    scene.fog = new THREE.FogExp2(0x050510, 0.06);
+    const camera = new THREE.PerspectiveCamera(45, width / height, 0.1, 1000);
+    camera.position.z = 3.5;
 
-      // Lighting — soft, natural illumination (no harsh terminator)
-      const ambient  = new THREE.AmbientLight(0x303050, 0.35);
-      const keyLight = new THREE.DirectionalLight(0xfff5e6, 1.2);
-      keyLight.position.set(-2, 1, 2);
-      const fillLight = new THREE.DirectionalLight(0x8090b0, 0.25);
-      fillLight.position.set(2, -0.5, 1);
-      const rimLight = new THREE.DirectionalLight(0x4040a0, 0.15);
-      rimLight.position.set(5, 0, -5);
-      scene.add(ambient, keyLight, fillLight, rimLight);
+    const ambient  = new THREE.AmbientLight(0x303050, 0.35);
+    const keyLight = new THREE.DirectionalLight(0xfff5e6, 1.2);
+    keyLight.position.set(-2, 1, 2);
+    const fillLight = new THREE.DirectionalLight(0x8090b0, 0.25);
+    fillLight.position.set(2, -0.5, 1);
+    const rimLight = new THREE.DirectionalLight(0x4040a0, 0.15);
+    rimLight.position.set(5, 0, -5);
+    scene.add(ambient, keyLight, fillLight, rimLight);
 
-      // OrbitControls — drag to rotate, scroll to zoom (same as moon3d.js)
-      const controls = new THREE.OrbitControls(camera, renderer.domElement);
-      controls.enablePan = false;
-      controls.enableZoom = true;
-      controls.minDistance = 1.5;
-      controls.maxDistance = 6;
-      controls.autoRotate = false;
-      controls.autoRotateSpeed = 0.5;
+    const controls = new THREE.OrbitControls(camera, renderer.domElement);
+    controls.enablePan = false;
+    controls.enableZoom = true;
+    controls.minDistance = 1.5;
+    controls.maxDistance = 6;
+    controls.autoRotate = false;
+    controls.autoRotateSpeed = 0.5;
 
-      let _planetRotateTimer = null;
-      let planetIdle = true;
-      renderer.domElement.addEventListener('pointerdown', () => {
-        planetIdle = false;
-        clearTimeout(_planetRotateTimer);
+    let _planetRotateTimer = null;
+    let planetIdle = true;
+    renderer.domElement.addEventListener('pointerdown', () => {
+      planetIdle = false;
+      clearTimeout(_planetRotateTimer);
+    });
+    renderer.domElement.addEventListener('pointerup', () => {
+      _planetRotateTimer = setTimeout(() => { planetIdle = true; }, 2000);
+    });
+
+    const geo = new THREE.SphereGeometry(1, 48, 48);
+
+    function buildSphere(texture) {
+      const bumpCanvas = makePlanetBump(name);
+      const bumpTexture = new THREE.CanvasTexture(bumpCanvas);
+      const mat = new THREE.MeshStandardMaterial({
+        map:       texture,
+        bumpMap:   bumpTexture,
+        bumpScale: cfg.bumpScale || 0.01,
+        roughness: 0.95,
+        metalness: 0.0,
       });
-      renderer.domElement.addEventListener('pointerup', () => {
-        _planetRotateTimer = setTimeout(() => { planetIdle = true; }, 2000);
-      });
+      const mesh = new THREE.Mesh(geo, mat);
+      mesh.rotation.x = THREE.MathUtils.degToRad(cfg.tilt || 0);
+      scene.add(mesh);
 
-      // Geometry
-      const geo = new THREE.SphereGeometry(1, 48, 48);
-
-      // Material — created after texture loads
-      function buildSphere(texture) {
-        const bumpCanvas = makePlanetBump(name);
-        const bumpTexture = new THREE.CanvasTexture(bumpCanvas);
-        const mat = new THREE.MeshStandardMaterial({
-          map:       texture,
-          bumpMap:   bumpTexture,
-          bumpScale: cfg.bumpScale || 0.01,
-          roughness: 0.95,
-          metalness: 0.0,
-        });
-        const mesh = new THREE.Mesh(geo, mat);
-        mesh.rotation.x = THREE.MathUtils.degToRad(cfg.tilt || 0);
-        scene.add(mesh);
-
-        // Saturn ring
-        if (cfg.hasRing && cfg.ringTex) {
-          loader.load(cfg.ringTex, ringTex => {
-            const ringMat = new THREE.MeshBasicMaterial({
-              map: ringTex, side: THREE.DoubleSide, transparent: true, opacity: 0.92,
-            });
-            const ring = new THREE.Mesh(makeSaturnRingGeo(), ringMat);
-            ring.rotation.x = Math.PI / 2;
-            scene.add(ring);
+      if (cfg.hasRing && cfg.ringTex) {
+        loader.load(cfg.ringTex, ringTex => {
+          const ringMat = new THREE.MeshBasicMaterial({
+            map: ringTex, side: THREE.DoubleSide, transparent: true, opacity: 0.92,
           });
-        } else if (cfg.hasRing) {
-          // Fallback procedural ring if no file
-          const ringMat = new THREE.MeshBasicMaterial({ color: 0xc8b890, side: THREE.DoubleSide, transparent: true, opacity: 0.65 });
           const ring = new THREE.Mesh(makeSaturnRingGeo(), ringMat);
           ring.rotation.x = Math.PI / 2;
           scene.add(ring);
-        }
-
-        // First render immediately
-        renderer.render(scene, camera);
-
-        // IntersectionObserver — pause off-screen planets
-        const entry = { renderer, scene, camera, mesh, controls, rotSpeed: cfg.speed, idle: true, paused: false, disposed: false, observer: null, resizeObserver: null };
-        const io = new IntersectionObserver(([e]) => { entry.paused = !e.isIntersecting; }, { threshold: 0.05 });
-        io.observe(container);
-        entry.observer = io;
-
-        // ResizeObserver — keep camera aspect & renderer size in sync
-        const ro = new ResizeObserver(entries => {
-          for (const e of entries) {
-            const { width, height } = e.contentRect;
-            if (width === 0 || height === 0) return;
-            camera.aspect = width / height;
-            camera.updateProjectionMatrix();
-            renderer.setSize(width, height);
-          }
         });
-        ro.observe(container);
-        entry.resizeObserver = ro;
-
-        active.push(entry);
-
-        // Start shared loop if not running
-        if (!rafId) rafId = requestAnimationFrame(loop);
+      } else if (cfg.hasRing) {
+        const ringMat = new THREE.MeshBasicMaterial({ color: 0xc8b890, side: THREE.DoubleSide, transparent: true, opacity: 0.65 });
+        const ring = new THREE.Mesh(makeSaturnRingGeo(), ringMat);
+        ring.rotation.x = Math.PI / 2;
+        scene.add(ring);
       }
 
-      // Load real texture file if available, otherwise procedural
-      if (cfg.tex) {
-        loader.load(
-          cfg.tex,
-          tex => { buildSphere(tex); },          // onLoad
-          undefined,                              // onProgress
-          () => {                                 // onError — fall back to procedural
-            console.warn(`planets3d: failed to load ${cfg.tex}, using procedural`);
-            buildSphere(makeProceduralTexture(name));
-          }
-        );
-      } else {
-        buildSphere(makeProceduralTexture(name));
+      renderer.render(scene, camera);
+
+      const entry = { renderer, scene, camera, mesh, controls, rotSpeed: cfg.speed, idle: true, paused: false, disposed: false, observer: null, resizeObserver: null };
+      const io = new IntersectionObserver(([e]) => { entry.paused = !e.isIntersecting; }, { threshold: 0.05 });
+      io.observe(container);
+      entry.observer = io;
+
+      const ro = new ResizeObserver(entries => {
+        for (const e of entries) {
+          const { width, height } = e.contentRect;
+          if (width === 0 || height === 0) return;
+          camera.aspect = width / height;
+          camera.updateProjectionMatrix();
+          renderer.setSize(width, height);
+        }
+      });
+      ro.observe(container);
+      entry.resizeObserver = ro;
+
+      active.push(entry);
+
+      if (!rafId) rafId = requestAnimationFrame(loop);
+    }
+
+    if (cfg.tex) {
+      loader.load(
+        cfg.tex,
+        tex => { buildSphere(tex); },
+        undefined,
+        () => {
+          console.warn(`planets3d: failed to load ${cfg.tex}, using procedural`);
+          buildSphere(makeProceduralTexture(name));
+        }
+      );
+    } else {
+      buildSphere(makeProceduralTexture(name));
+    }
+  }
+
+  // Setup intersection observer to only load planets that scroll into view
+  const loadObserver = new IntersectionObserver((entries, obs) => {
+    entries.forEach(entry => {
+      if (entry.isIntersecting) {
+        obs.unobserve(entry.target);
+        setupSinglePlanet3D(entry.target);
       }
     });
+  }, { threshold: 0.05 });
+
+  containers.forEach(container => {
+    loadObserver.observe(container);
   });
 }
 

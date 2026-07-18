@@ -7,8 +7,18 @@ function initMoon3D() {
   const container = document.getElementById('moon-3d-container');
   if (!container || typeof THREE === 'undefined') return;
 
-  container.innerHTML = '';
+  const observer = new IntersectionObserver((entries, obs) => {
+    entries.forEach(entry => {
+      if (entry.isIntersecting) {
+        obs.unobserve(container);
+        setupMoon3D(container);
+      }
+    });
+  }, { threshold: 0.05 });
+  observer.observe(container);
+}
 
+function setupMoon3D(container) {
   const width  = container.clientWidth  || 300;
   const height = container.clientHeight || 200;
 
