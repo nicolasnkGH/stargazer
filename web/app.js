@@ -822,6 +822,10 @@ function renderMoon(moon) {
     else if (impact.includes('below horizon')) impact = dict.moon_below || impact;
   }
   document.getElementById('dso-impact').textContent = impact;
+  
+  if (window.updateMoon3DPhase && moon.illumination_pct !== undefined) {
+    window.updateMoon3DPhase(moon.illumination_pct, moon.phase_name);
+  }
 }
 
 // ── Hero Stats (dark-in time, bortle) ──────────────────────────────────────
@@ -1420,16 +1424,25 @@ function renderAlerts(alerts) {
       if (title.includes(pl)) title = title.replace(pl, dict[`planet_${pl.toLowerCase()}`] || pl);
     });
 
+    const addButton = a.type === 'planet' ? `
+      <button class="filter-btn" onclick="addToPlan('${a.planet_name.toLowerCase()}', '${a.planet_name}', 0, 0)" style="margin-left: auto; padding: 2px 8px; font-size: 0.75rem; background: rgba(59, 130, 246, 0.15); border-color: rgba(59, 130, 246, 0.3); color: #93c5fd; cursor: pointer; border-radius: 4px; font-weight: 600; white-space: nowrap;">Add to Plan +</button>
+    ` : (a.type === 'constellation' ? `
+      <button class="filter-btn" onclick="addToPlan('${a.constellation_abbr.toLowerCase()}', '${a.constellation_name}', 0, 0)" style="margin-left: auto; padding: 2px 8px; font-size: 0.75rem; background: rgba(59, 130, 246, 0.15); border-color: rgba(59, 130, 246, 0.3); color: #93c5fd; cursor: pointer; border-radius: 4px; font-weight: 600; white-space: nowrap;">Add to Plan +</button>
+    ` : '');
+
     return `
-      <div class="must-see-item" style="animation-delay: ${i * 0.08}s; flex-shrink: 0;">
-        <div class="must-see-icon">${a.icon}</div>
-        <div class="must-see-content">
-          <div class="must-see-title-row">
-            <span class="must-see-title">${title}</span>
-            ${a.meta ? `<span class="must-see-meta">${a.meta}</span>` : ''}
+      <div class="must-see-item" style="animation-delay: ${i * 0.08}s; flex-shrink: 0; display: flex; align-items: center; justify-content: space-between; gap: 12px; width: 100%;">
+        <div style="display: flex; align-items: center; gap: 12px; flex-grow: 1;">
+          <div class="must-see-icon">${a.icon}</div>
+          <div class="must-see-content">
+            <div class="must-see-title-row">
+              <span class="must-see-title">${title}</span>
+              ${a.meta ? `<span class="must-see-meta">${a.meta}</span>` : ''}
+            </div>
+            <div class="must-see-subtitle">${a.subtitle}</div>
           </div>
-          <div class="must-see-subtitle">${a.subtitle}</div>
         </div>
+        ${addButton}
       </div>
     `;
   }).join('');

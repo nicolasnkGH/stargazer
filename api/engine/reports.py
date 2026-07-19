@@ -67,7 +67,9 @@ def get_tonight_report(lat=None, lon=None, lang: str = "en", bortle: Optional[in
             "subtitle": "Excellent conditions",
             "icon": best_c['emoji'],
             "meta": "Excellent",
-            "type": "constellation"
+            "type": "constellation",
+            "constellation_abbr": best_c['abbr'],
+            "constellation_name": best_c['name']
         })
 
     planet_facts = {
@@ -86,7 +88,8 @@ def get_tonight_report(lat=None, lon=None, lang: str = "en", bortle: Optional[in
             "subtitle": fact,
             "icon": p['emoji'],
             "meta": f"{p['altitude_deg']}° {p['direction']} ({p['azimuth_deg']}°)",
-            "type": "planet"
+            "type": "planet",
+            "planet_name": p['name']
         })
     if moon["illumination_pct"] < 15:
         must_see.append({
