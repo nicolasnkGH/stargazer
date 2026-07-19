@@ -2128,7 +2128,7 @@ function renderTargetGrid(targets, liveMap, typeFilter = 'all', equipFilter = 'a
         <div class="tc-desc">${tDesc}</div>
         ${t.horizon_note ? `<div class="tc-horizon-note">${t.horizon_note}</div>` : ''}
         <div class="tc-footer" style="flex-wrap: wrap; gap: 8px;">
-          <div style="display: flex; gap: 6px; width: 100%;">
+          <div style="display: flex; gap: 6px; width: 100%; flex-wrap: wrap;">
             <button class="btn-fov" data-fov-ra="${t.ra_hours * 15}" data-fov-dec="${t.dec_degrees}" data-fov-name="${escapeForSingleQuotedString(t.name)}">Simulate View 🔭</button>
             <button class="btn-fov" data-plan-id="${t.id}" data-plan-name="${escapeForSingleQuotedString(t.name)}" data-ra="${t.ra_hours * 15}" data-dec="${t.dec_degrees}" style="background: rgba(59, 130, 246, 0.15); border-color: rgba(59, 130, 246, 0.3); color: #93c5fd;">Add to Plan +</button>
             <button class="btn-fov" data-gallery-id="${t.id}" data-gallery-name="${escapeForSingleQuotedString(t.name)}" style="background: rgba(34, 197, 94, 0.15); border-color: rgba(34, 197, 94, 0.3); color: #86efac;">Gallery & Share 📷</button>
@@ -3094,22 +3094,9 @@ function adjustSolarSystemIframe() {
   const iframe = document.getElementById('solar-scope-iframe');
   if (!container || !iframe) return;
 
-  if (window.innerWidth < 768) {
-    // NASA Eyes UI squishes and overlaps on narrow screens.
-    // We give it a virtual width of 800px so it lays out cleanly, then scale it down to fit.
-    const virtualWidth = 800;
-    const scale = container.clientWidth / virtualWidth;
-    const virtualHeight = container.clientHeight / scale;
-
-    iframe.style.width = `${virtualWidth}px`;
-    iframe.style.height = `${virtualHeight}px`;
-    iframe.style.transform = `scale(${scale})`;
-    iframe.style.transformOrigin = 'top left';
-  } else {
-    iframe.style.width = '100%';
-    iframe.style.height = '100%';
-    iframe.style.transform = 'none';
-  }
+  iframe.style.width = '100%';
+  iframe.style.height = '100%';
+  iframe.style.transform = 'none';
 }
 
 function isSolarSystemFullscreen() {
@@ -4108,8 +4095,13 @@ document.addEventListener('DOMContentLoaded', () => {
     }
   }
 
-  tabView?.addEventListener('click', () => switchGalleryTab('view'));
-  tabUpload?.addEventListener('click', () => switchGalleryTab('upload'));
+  document.addEventListener('click', (e) => {
+    if (e.target.closest('#gallery-tab-view')) {
+      switchGalleryTab('view');
+    } else if (e.target.closest('#gallery-tab-upload')) {
+      switchGalleryTab('upload');
+    }
+  });
   closeGalleryBtn?.addEventListener('click', () => galleryModal.classList.add('hidden'));
 
   // Close on outside click
