@@ -1345,8 +1345,8 @@ function renderBestTargets(targets) {
   const dict = window.i18n[currentLang] || window.i18n['en'];
   window.lastBestTargetsHTML = targets.map((t, i) => {
     const name = t.name || 'Target';
-    const safeName = name.replace(/'/g, "\\'");
-    const safeId = (t.id || name.toLowerCase().replace(/\s+/g, '_')).replace(/'/g, "\\'");
+    const safeName = name.replace(/\\/g, "\\\\").replace(/'/g, "\\'");
+    const safeId = (t.id || name.toLowerCase().replace(/\s+/g, '_')).replace(/\\/g, "\\\\").replace(/'/g, "\\'");
     const raDeg = Number(t.ra_hours || 0) * 15;
     const decDeg = Number(t.dec_degrees || 0);
     const metaBits = [];
