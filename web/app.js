@@ -302,6 +302,7 @@ async function loadTonightReport() {
     renderMoon(data.moon);
     renderPlanets(data.planets || data.visible_planets || [], data.planet_fact);
     renderAlerts(data.must_see || []);
+    renderBestTargets(data.best_targets_tonight || []);
     updateHeroStats(data);
 
     // Fire off async AI fetch and GitHub stars now that the UI is rendered
@@ -1334,13 +1335,55 @@ function renderPlanets(planets, factStr) {
   }
 }
 
+function renderBestTargets(targets) {
+  if (!Array.isArray(targets) || targets.length === 0) {
+    window.lastBestTargetsHTML = '';
+    updateUnifiedCard();
+    return;
+  }
+
+  const dict = window.i18n[currentLang] || window.i18n['en'];
+  window.lastBestTargetsHTML = targets.map((t, i) => {
+    const name = t.name || 'Target';
+    const safeName = name.replace(/'/g, "\\'");
+    const safeId = (t.id || name.toLowerCase().replace(/\s+/g, '_')).replace(/'/g, "\\'");
+    const raDeg = Number(t.ra_hours || 0) * 15;
+    const decDeg = Number(t.dec_degrees || 0);
+    const metaBits = [];
+    if (t.constellation) metaBits.push(t.constellation);
+    if (t.magnitude !== undefined && t.magnitude !== null) metaBits.push(`Mag ${t.magnitude}`);
+    if (t.altitude_deg !== undefined && t.altitude_deg !== null) {
+      const direction = t.direction ? ` ${t.direction}` : '';
+      metaBits.push(`${t.altitude_deg}°${direction}`);
+    }
+
+    return `
+      <div class="must-see-item" style="animation-delay: ${i * 0.08}s; flex-shrink: 0; display: flex; align-items: center; justify-content: space-between; gap: 12px; width: 100%;">
+        <div style="display: flex; align-items: center; gap: 12px; flex-grow: 1;">
+          <div class="must-see-icon">${t.emoji || '✨'}</div>
+          <div class="must-see-content">
+            <div class="must-see-title-row">
+              <span class="must-see-title">${name}</span>
+              ${metaBits.length ? `<span class="must-see-meta">${metaBits.join(' • ')}</span>` : ''}
+            </div>
+            <div class="must-see-subtitle">${t.description || t.reason || t.type || dict.info_ai || 'Best target for tonight'}</div>
+          </div>
+        </div>
+        <button class="filter-btn" onclick="addToPlan('${safeId}', '${safeName}', ${raDeg}, ${decDeg})" style="margin-left: auto; padding: 2px 8px; font-size: 0.75rem; background: rgba(59, 130, 246, 0.15); border-color: rgba(59, 130, 246, 0.3); color: #93c5fd; cursor: pointer; border-radius: 4px; font-weight: 600; white-space: nowrap;">Add to Plan +</button>
+      </div>
+    `;
+  }).join('');
+
+  updateUnifiedCard();
+}
+
 function updateUnifiedCard() {
   const list = document.getElementById('ai-targets-list');
   const card = document.getElementById('card-ai-targets');
   if (!list || !card) return;
   
   const alertsHtml = window.lastAlertsHTML || '';
-  const aiHtml = window.lastAIHTML || '';
+  const aiHtml = window.lastAIHTML || window.lastBestTargetsHTML || '';
   const factStr = window.lastPlanetFact || '';
   const briefing = window.lastBriefing || null;
   
