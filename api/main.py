@@ -537,7 +537,7 @@ def constellation_window(
     except Exception as e:
         return JSONResponse(status_code=500, content={"error": str(e)})
 
-from engine.gallery import add_gallery_entry, get_gallery_entries, get_gallery_image
+from engine.gallery import add_gallery_entry, get_gallery_entries, get_gallery_image, report_image, get_gallery_counts
 import base64
 from fastapi import Response
 
@@ -592,3 +592,18 @@ def get_image(entry_id: int):
 
 if __name__ == "__main__":
     uvicorn.run("main:app", host="0.0.0.0", port=8181, reload=False)
+
+@app.get("/api/gallery/counts")
+def get_counts():
+    try:
+        return get_gallery_counts()
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+@app.post("/api/gallery/image/{image_id}/report")
+def report_gallery_image(image_id: int):
+    try:
+        report_image(image_id)
+        return {"status": "reported"}
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))

@@ -292,7 +292,10 @@
             <div><span class="ti-label" data-i18n="lbl_alt">Alt</span> <span id="moon-alt">—</span> <span class="ux-tooltip" data-tooltip="Altitude: How high above the horizon an object is. 90° is straight up.">ℹ️</span></div>
           </div>
           <div class="dso-impact" id="dso-impact">Loading…</div>
-          <button class="btn btn-primary" data-plan-id="moon" data-plan-name="Moon" data-ra="0" data-dec="0" style="width: 100%; margin-top: 12px; font-size: 0.85rem; padding: 6px 12px; background: rgba(59, 130, 246, 0.15); border: 1px solid rgba(59, 130, 246, 0.3); color: #93c5fd; border-radius: 6px; cursor: pointer; font-weight: 600;">Add Moon to Plan +</button>
+          <div style="display:flex; gap: 8px; flex-wrap: wrap;">
+            <button class="btn btn-primary" data-plan-id="moon" data-plan-name="Moon" data-ra="0" data-dec="0" style="flex-grow: 1; margin-top: 12px; font-size: 0.85rem; padding: 6px 12px; background: rgba(59, 130, 246, 0.15); border: 1px solid rgba(59, 130, 246, 0.3); color: #93c5fd; border-radius: 6px; cursor: pointer; font-weight: 600;">Add Moon to Plan +</button>
+            <button class="filter-btn" id="moon-gallery-btn" onclick="openGalleryModal('moon', 'Moon')" style="margin-top: 12px; padding: 6px 12px; font-size: 0.85rem; background: rgba(168, 85, 247, 0.15); border-color: rgba(168, 85, 247, 0.3); color: #d8b4fe; border-radius: 6px; cursor: pointer;" title="Community Gallery & Uploads">📸</button>
+          </div>
           <!-- Moon Fact — standardized fact card -->
           <div class="motion-facts-wrap" id="moon-fact-wrap" style="display:none; margin-top:12px;">
             <div class="motion-facts-header">
@@ -1185,6 +1188,12 @@
       <div id="aladin-lite-div" style="width:100%; height:400px; background: black; border: 1px solid rgba(255,255,255,0.1); border-radius: 8px;"></div>
       <button id="close-fov-btn" class="modal-close" style="margin-top: 15px; width: 100%;">Close Simulator</button>
     </div>
+  </div>
+
+  <!-- Lightbox Modal -->
+  <div id="lightbox-modal" class="modal hidden" style="z-index: 20000;">
+    <div style="position: absolute; top: 20px; right: 20px; cursor: pointer; color: white; font-size: 2.5rem; line-height: 1; background: rgba(0,0,0,0.5); border-radius: 50%; width: 44px; height: 44px; display: flex; align-items: center; justify-content: center; z-index: 20001;" onclick="closeLightbox()">&times;</div>
+    <img id="lightbox-img" style="max-width: 95vw; max-height: 95vh; object-fit: contain; cursor: zoom-out;" onclick="closeLightbox()">
   </div>
 
   <!-- Gallery Modal -->
