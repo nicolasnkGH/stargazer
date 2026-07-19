@@ -3498,10 +3498,6 @@ function rescheduleAllPlanNotifications() {
   }
   window.scheduledPlanTimers = {};
 
-  if (typeof Notification === 'undefined' || Notification.permission !== 'granted') {
-    return;
-  }
-
   const now = new Date();
   
   nightPlan.forEach((item) => {
@@ -3522,20 +3518,31 @@ function rescheduleAllPlanNotifications() {
     }
 
     const timerId = setTimeout(async () => {
-      if ('serviceWorker' in navigator) {
-        const reg = await navigator.serviceWorker.ready;
-        reg.showNotification(`🔭 Plan My Night Alert`, {
-          body: `It's time to observe: ${item.name}! Your scheduled slot starts now (${item.startTime} - ${item.endTime}).`,
-          icon: './assets/ai_stargazer_mascot.png',
-          badge: './assets/ai_stargazer_mascot.png',
-          data: window.location.origin,
-          tag: `plan-${item.id}`
-        });
-      } else {
-        new Notification(`🔭 Plan My Night Alert`, {
-          body: `It's time to observe: ${item.name}! Your scheduled slot starts now (${item.startTime} - ${item.endTime}).`,
-          tag: `plan-${item.id}`
-        });
+      // Always show in-app fallback toast for foreground users (or users who blocked native notifications)
+      if (window.showInfo) {
+        window.showInfo(`<b>🔭 Plan My Night</b><br>It's time to observe: ${item.name}! (${item.startTime})`, null, true);
+      }
+
+      if (typeof Notification !== 'undefined' && Notification.permission === 'granted') {
+        if ('serviceWorker' in navigator) {
+          try {
+            const reg = await navigator.serviceWorker.ready;
+            reg.showNotification(`🔭 Plan My Night Alert`, {
+              body: `It's time to observe: ${item.name}! Your scheduled slot starts now (${item.startTime} - ${item.endTime}).`,
+              icon: './assets/ai_stargazer_mascot.png',
+              badge: './assets/ai_stargazer_mascot.png',
+              data: window.location.origin,
+              tag: `plan-${item.id}`
+            });
+          } catch(e) {
+            console.error('SW notification failed', e);
+          }
+        } else {
+          new Notification(`🔭 Plan My Night Alert`, {
+            body: `It's time to observe: ${item.name}! Your scheduled slot starts now (${item.startTime} - ${item.endTime}).`,
+            tag: `plan-${item.id}`
+          });
+        }
       }
     }, delayMs);
 
