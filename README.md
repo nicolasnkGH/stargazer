@@ -45,6 +45,8 @@ Getting started with amateur astronomy can be overwhelming. Commercial star char
 
 ### 🌤️ Weather & Astronomy Engines
 * **🧠 AI Seeing Analysis & Fallback Planner:** Aggregates live cloud, humidity, temperature, and upper-atmosphere wind data to output a definitive "GO / NO GO" verdict via **Google Gemini**. If conditions are poor, the AI generates personalized **fallback suggestions** for indoor astronomy activities.
+* **📸 Community Gallery & Safe Uploads:** Visitors can share astrophotos via the UI. Images are compressed client-side before upload and pass through an AI safety verification step (optional, depending on `AI_API_KEY`) before being hosted by the backend.
+* **🛠️ UI Robustness Improvements:** Improved the AI "Must-See & AI Picks" fallback behavior and fixed Add-to-Plan button handling so actions work reliably for dynamically injected content.
 * **📅 Event of the Night Integration:** Automatically alerts you to major astronomical events happening tonight (e.g., meteor shower peaks, equinoxes, alignments) with a quick **"Add to Plan +"** option to schedule them.
 * **🪐 Planet Tracker:** Computes real-time altitude, azimuth, magnitude, constellation location, and light travel time for the naked-eye planets.
 * **⚡ Aurora & Space Weather Monitor:** Displays planetary Kp-index readings, solar storm warnings, and active alert feeds in real-time from NOAA SWPC, predicting local aurora visibility probability based on latitude.

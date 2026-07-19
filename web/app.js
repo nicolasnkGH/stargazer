@@ -75,6 +75,47 @@ if (!AbortSignal.timeout) {
   };
 }
 
+// Delegated handler for Add-to-Plan buttons.
+document.addEventListener('click', function (e) {
+  const btn = e.target.closest('button.filter-btn, button.btn-fov, button.btn');
+    if (!btn || !btn.dataset) return;
+
+  // Prefer data-* attributes when present (more robust than onclick strings)
+  if (btn.dataset && (btn.dataset.planId || btn.dataset.planName)) {
+    const pid = btn.dataset.planId || btn.dataset.planName || btn.textContent || '';
+    const pname = btn.dataset.planName || btn.dataset.planId || btn.getAttribute('aria-label') || btn.textContent || 'Target';
+    const pra = Number(btn.dataset.ra || 0);
+    const pdec = Number(btn.dataset.dec || 0);
+    try { window.addToPlan(pid, pname, pra, pdec); } catch (err) { console.warn('addToPlan failed', err); }
+    return;
+  }
+
+  // Fallback: parse inline onclick="addToPlan('id','Name', 0, 0)"
+  try {
+    const onclick = btn.getAttribute && btn.getAttribute('onclick');
+    if (onclick && onclick.includes('addToPlan')) {
+      const m = onclick.match(/addToPlan\(([^)]*)\)/);
+      if (m && m[1]) {
+        // Evaluate arguments safely by constructing an array expression
+        // Replace single quotes with double quotes to help JSON parse numbers/strings
+        const argsSrc = m[1];
+        let parsedArgs = [];
+        try {
+          parsedArgs = Function('return [' + argsSrc + ']')();
+        } catch (e) {
+          // Last resort: manual split (naive)
+          parsedArgs = argsSrc.split(',').map(s => s.trim().replace(/^['"]|['"]$/g, ''));
+        }
+        const [pid, pname, pra = 0, pdec = 0] = parsedArgs;
+        try { window.addToPlan(pid, pname, Number(pra), Number(pdec)); } catch (err) { console.warn('addToPlan fallback failed', err); }
+        return;
+      }
+    }
+  } catch (err) {
+    console.warn('Error handling delegated addToPlan click', err);
+  }
+});
+
 let API_BASE;
 if (window.location.hostname.includes('nick-t.net')) {
   API_BASE = 'https://stargazer-api-700732233634.us-central1.run.app';
@@ -215,7 +256,7 @@ async function fetchAPI(path, fallback = null) {
   const cacheKey = `stargazer_cache_${finalPath}`;
   
   // Stale-while-revalidate: return cached data immediately if we have it
-  const cached = localStorage.getItem(cacheKey);
+  const cached = localStorage.getItem(cacheKey) || null;
   let parsedCache = null;
   if (cached) {
     try { 
@@ -241,7 +282,7 @@ async function fetchAndRender(path, renderFn, fallback = null) {
   if (currentLat === null || currentLon === null) return;
   const separator = path.includes('?') ? '&' : '?';
   let bortleStr = window.currentBortle ? `&bortle=${window.currentBortle}` : '';
-  const finalPath = `${path}${separator}lat=${currentLat}&lon=${currentLon}&lang=${currentLang}${bortleStr}`;
+  const finalPath = `${path}${separator}lat=${currentLat}&lon=${currentLon}&lang=${currentLang}${bortleStr}`.replace(/&+/g, '&').replace(/^\?&/, '?');
   const cacheKey = `stargazer_cache_${finalPath}`;
   
   const cached = localStorage.getItem(cacheKey);
@@ -734,6 +775,24 @@ function renderSeeing(seeing, data) {
         titleRow.appendChild(title);
         titleRow.appendChild(badgeContainer);
         
+        // Add-to-Plan button for AI recommendations (keeps Add action available
+        // even after innerHTML is inserted into the unified card).
+        try {
+          const addBtn = document.createElement('button');
+          addBtn.className = 'filter-btn';
+          addBtn.style.cssText = 'margin-left: 12px; padding: 4px 10px; font-size: 0.75rem; background: rgba(59, 130, 246, 0.15); border-color: rgba(59, 130, 246, 0.3); color: #93c5fd; cursor: pointer; border-radius: 4px; font-weight: 600;';
+          const aiId = 'ai_' + (t.name || 'target').replace(/\s+/g, '_').toLowerCase().replace(/'/g, "\\'");
+          const safeName = (t.name || 'Target').replace(/'/g, "\\'");
+          addBtn.dataset.planId = aiId;
+          addBtn.dataset.planName = safeName;
+          addBtn.dataset.ra = '0';
+          addBtn.dataset.dec = '0';
+          addBtn.textContent = 'Add to Plan +';
+          badgeContainer.appendChild(addBtn);
+        } catch (err) {
+          // Non-fatal — if DOM creation fails, continue without crash
+          console.warn('Failed to add AI Add-to-Plan button', err);
+        }
         const reason = document.createElement('div');
         reason.style.fontSize = '0.85rem';
         reason.style.color = '#94a3b8';
@@ -1310,7 +1369,7 @@ function renderPlanets(planets, factStr) {
             <span class="planet-name">${p.emoji} ${pName}</span>
             <span class="planet-const-pill" title="Currently in this constellation">${p.constellation || ''}</span>
             ${isBlocked ? '<span class="blocked-badge" title="Hidden behind your custom horizon limits">Blocked by Horizon</span>' : ''}
-            ${p.visible_tonight ? `<button class="filter-btn" onclick="addToPlan('${p.name.toLowerCase()}', '${p.name}', 0, 0)" style="margin-left: auto; padding: 2px 8px; font-size: 0.75rem; background: rgba(59, 130, 246, 0.15); border-color: rgba(59, 130, 246, 0.3); color: #93c5fd; cursor: pointer; border-radius: 4px; font-weight: 600;">Add to Plan +</button>` : ''}
+            ${p.visible_tonight ? `<button class="filter-btn" data-plan-id="${p.name.toLowerCase()}" data-plan-name="${p.name}" data-ra="0" data-dec="0" style="margin-left: auto; padding: 2px 8px; font-size: 0.75rem; background: rgba(59, 130, 246, 0.15); border-color: rgba(59, 130, 246, 0.3); color: #93c5fd; cursor: pointer; border-radius: 4px; font-weight: 600;">Add to Plan +</button>` : ''}
           </div>
           <div class="planet-meta-row">
             <span class="planet-alt" style="color:${altColor}" title="How high above the horizon">📐 Altitude: ${p.altitude_deg}° — ${altLabel}</span>
@@ -1375,7 +1434,7 @@ function renderBestTargets(targets) {
             <div class="must-see-subtitle">${t.description || t.reason || t.type || dict.info_ai || 'Best target for tonight'}</div>
           </div>
         </div>
-        <button class="filter-btn" onclick="addToPlan('${safeId}', '${safeName}', ${raDeg}, ${decDeg})" style="margin-left: auto; padding: 2px 8px; font-size: 0.75rem; background: rgba(59, 130, 246, 0.15); border-color: rgba(59, 130, 246, 0.3); color: #93c5fd; cursor: pointer; border-radius: 4px; font-weight: 600; white-space: nowrap;">Add to Plan +</button>
+        <button class="filter-btn" data-plan-id="${safeId}" data-plan-name="${safeName}" data-ra="${raDeg}" data-dec="${decDeg}" style="margin-left: auto; padding: 2px 8px; font-size: 0.75rem; background: rgba(59, 130, 246, 0.15); border-color: rgba(59, 130, 246, 0.3); color: #93c5fd; cursor: pointer; border-radius: 4px; font-weight: 600; white-space: nowrap;">Add to Plan +</button>
       </div>
     `;
   }).join('');
@@ -1422,7 +1481,7 @@ function updateUnifiedCard() {
           <div style="font-size: 0.85rem; color: #fbcfe8; line-height: 1.4; margin-bottom: 8px;">
             ${eventObj.description}
           </div>
-          <button class="filter-btn" onclick="addToPlan('event_${eventObj.name.replace(/\\s+/g, '_').toLowerCase()}', '${eventObj.name.replace(/'/g, "\\'")}', 0, 0)" style="padding: 4px 10px; font-size: 0.75rem; background: rgba(236, 72, 153, 0.15); border-color: rgba(236, 72, 153, 0.3); color: #fbcfe8; cursor: pointer; border-radius: 4px; font-weight: 600;">Add to Plan +</button>
+          <button class="filter-btn" data-plan-id="event_${eventObj.name.replace(/\\s+/g, '_').toLowerCase()}" data-plan-name="${eventObj.name.replace(/'/g, "\\'")}" data-ra="0" data-dec="0" style="padding: 4px 10px; font-size: 0.75rem; background: rgba(236, 72, 153, 0.15); border-color: rgba(236, 72, 153, 0.3); color: #fbcfe8; cursor: pointer; border-radius: 4px; font-weight: 600;">Add to Plan +</button>
         </div>
       </div>
     </div>
@@ -1498,9 +1557,9 @@ function renderAlerts(alerts) {
     });
 
     const addButton = a.type === 'planet' ? `
-      <button class="filter-btn" onclick="addToPlan('${a.planet_name.toLowerCase()}', '${a.planet_name}', 0, 0)" style="margin-left: auto; padding: 2px 8px; font-size: 0.75rem; background: rgba(59, 130, 246, 0.15); border-color: rgba(59, 130, 246, 0.3); color: #93c5fd; cursor: pointer; border-radius: 4px; font-weight: 600; white-space: nowrap;">Add to Plan +</button>
+      <button class="filter-btn" data-plan-id="${a.planet_name.toLowerCase()}" data-plan-name="${a.planet_name}" data-ra="0" data-dec="0" style="margin-left: auto; padding: 2px 8px; font-size: 0.75rem; background: rgba(59, 130, 246, 0.15); border-color: rgba(59, 130, 246, 0.3); color: #93c5fd; cursor: pointer; border-radius: 4px; font-weight: 600; white-space: nowrap;">Add to Plan +</button>
     ` : (a.type === 'constellation' ? `
-      <button class="filter-btn" onclick="addToPlan('${a.constellation_abbr.toLowerCase()}', '${a.constellation_name}', 0, 0)" style="margin-left: auto; padding: 2px 8px; font-size: 0.75rem; background: rgba(59, 130, 246, 0.15); border-color: rgba(59, 130, 246, 0.3); color: #93c5fd; cursor: pointer; border-radius: 4px; font-weight: 600; white-space: nowrap;">Add to Plan +</button>
+      <button class="filter-btn" data-plan-id="${a.constellation_abbr.toLowerCase()}" data-plan-name="${a.constellation_name}" data-ra="0" data-dec="0" style="margin-left: auto; padding: 2px 8px; font-size: 0.75rem; background: rgba(59, 130, 246, 0.15); border-color: rgba(59, 130, 246, 0.3); color: #93c5fd; cursor: pointer; border-radius: 4px; font-weight: 600; white-space: nowrap;">Add to Plan +</button>
     ` : '');
 
     return `
@@ -1980,7 +2039,7 @@ function renderTargetGrid(targets, liveMap, typeFilter = 'all', equipFilter = 'a
         <div class="tc-footer" style="flex-wrap: wrap; gap: 8px;">
           <div style="display: flex; gap: 6px; width: 100%;">
             <button class="btn-fov" onclick="openFovModal(${t.ra_hours * 15}, ${t.dec_degrees}, '${t.name.replace(/'/g, "\\'")}')">Simulate View 🔭</button>
-            <button class="btn-fov" onclick="addToPlan('${t.id}', '${t.name.replace(/'/g, "\\'")}', ${t.ra_hours * 15}, ${t.dec_degrees})" style="background: rgba(59, 130, 246, 0.15); border-color: rgba(59, 130, 246, 0.3); color: #93c5fd;">Add to Plan +</button>
+            <button class="btn-fov" data-plan-id="${t.id}" data-plan-name="${t.name.replace(/'/g, "\\'")}" data-ra="${t.ra_hours * 15}" data-dec="${t.dec_degrees}" style="background: rgba(59, 130, 246, 0.15); border-color: rgba(59, 130, 246, 0.3); color: #93c5fd;">Add to Plan +</button>
             <button class="btn-fov" onclick="openGalleryModal('${t.id}', '${t.name.replace(/'/g, "\\'")}')" style="background: rgba(34, 197, 94, 0.15); border-color: rgba(34, 197, 94, 0.3); color: #86efac;">Gallery & Share 📷</button>
           </div>
           <span class="tc-equipment">${t.equipment || '🔭 Telescope'}</span>
@@ -3553,7 +3612,12 @@ try {
 }
 
 window.addToPlan = function(id, name, ra, dec) {
-  const existing = nightPlan.find(item => item.id.toLowerCase() === id.toLowerCase());
+  if (!id) id = (name || 'target');
+  // Normalize id to stable lowercase underscore form
+  let normId = String(id).trim().toLowerCase();
+  normId = normId.replace(/\s+/g, '_');
+  const existing = nightPlan.find(item => String(item.id || '').toLowerCase() === normId);
+  id = normId;
   if (existing) {
     showInfo(`⚠️ ${name} is already in your night plan!`, null, false);
     return;
