@@ -902,16 +902,10 @@ function renderSeeing(seeing, data) {
         dummyContainer.appendChild(wrap);
       });
       window.lastAIHTML = dummyContainer.innerHTML;
-      aiTargetsCard.style.display = 'flex';
-      updateUnifiedCard();
-    } else if (window.lastBestTargetsHTML) {
-      // Keep the card visible and preserve the fallback shortlist when the AI
-      // response is empty or rule-based.
-      window.lastAIHTML = window.lastBestTargetsHTML;
-      aiTargetsCard.style.display = 'flex';
       updateUnifiedCard();
     } else {
-      aiTargetsCard.style.display = 'none';
+      window.lastAIHTML = window.lastBestTargetsHTML || '';
+      updateUnifiedCard();
     }
   }
 
