@@ -1,4 +1,4 @@
-const CACHE_NAME = 'stargazer-cache-v18';
+const CACHE_NAME = 'stargazer-cache-v19';
 const STATIC_ASSETS = [
   './',
   './index.html',
@@ -40,11 +40,9 @@ self.addEventListener('fetch', (event) => {
   }
   const url = new URL(event.request.url);
   
-  // For API calls, always go to the network first
+  // For API calls, bypass the Service Worker and go to network directly.
+  // app.js handles local storage cache fallbacks when offline.
   if (url.pathname.startsWith('/api') || url.pathname.includes('/targets') || url.pathname.includes('/tonight') || url.pathname.includes('/iss') || url.pathname.includes('/seeing')) {
-    event.respondWith(
-      fetch(event.request).catch(() => caches.match(event.request))
-    );
     return;
   }
 

@@ -351,6 +351,7 @@ async function fetchAPI(path, fallback = null) {
 }
 
 // SWR wrapper for immediate render
+// SWR wrapper for immediate render with 4-hour TTL caching
 async function fetchAndRender(path, renderFn, fallback = null) {
   if (currentLat === null || currentLon === null) return;
   const separator = path.includes('?') ? '&' : '?';
@@ -359,11 +360,30 @@ async function fetchAndRender(path, renderFn, fallback = null) {
   const cacheKey = `stargazer_cache_${finalPath}`;
   
   const cached = localStorage.getItem(cacheKey);
+  let parsedCache = null;
+  let isFresh = false;
+  
   if (cached) {
     try { 
       const p = JSON.parse(cached); 
-      if (p !== null && typeof p === 'object') renderFn(p); 
+      if (p !== null && typeof p === 'object') {
+        if ('value' in p && 'timestamp' in p) {
+          parsedCache = p.value;
+          // 4 hours TTL (14,400,000 ms)
+          if (Date.now() - p.timestamp < 14400000) {
+            isFresh = true;
+          }
+        } else {
+          // Backward compatibility for raw JSON
+          parsedCache = p;
+        }
+        renderFn(parsedCache); 
+      }
     } catch(e) {}
+  }
+
+  if (isFresh) {
+    return; // Cache is fresh, skip network fetch
   }
 
   try {
@@ -374,18 +394,22 @@ async function fetchAndRender(path, renderFn, fallback = null) {
     if (!resp.ok) throw new Error(`HTTP ${resp.status}`);
     const data = await resp.json();
     
+    // Save to cache with timestamp
+    const cacheObj = {
+      value: data,
+      timestamp: Date.now()
+    };
+    localStorage.setItem(cacheKey, JSON.stringify(cacheObj));
+    
     // Only re-render if data has changed
     const freshString = JSON.stringify(data);
-    if (!cached || cached !== freshString) {
-      localStorage.setItem(cacheKey, freshString);
+    const oldString = parsedCache ? JSON.stringify(parsedCache) : '';
+    if (oldString !== freshString) {
       renderFn(data); // Re-render with fresh data
-    } else {
-      // Data unchanged, no need to touch the DOM
-      localStorage.setItem(cacheKey, freshString);
     }
   } catch (e) {
     console.warn(`API ${path} failed:`, e.message);
-    if (!cached) renderFn(fallback);
+    if (!parsedCache) renderFn(fallback);
   }
 }
 
@@ -3314,38 +3338,55 @@ document.getElementById('close-star-btn')?.addEventListener('click', () => {
   document.getElementById('star-modal').classList.add('hidden');
 });
 
+// Generic fetch-with-cache helper (TTL = 4 hours)
+async function fetchWithCache(cacheKey, url, defaultVal = null) {
+  const cached = localStorage.getItem(cacheKey);
+  if (cached) {
+    try {
+      const p = JSON.parse(cached);
+      if (p && p.value && p.timestamp) {
+        // Skip network request if fresh (4 hours)
+        if (Date.now() - p.timestamp < 14400000) {
+          return p.value;
+        }
+      }
+    } catch(e) {}
+  }
+  
+  try {
+    const res = await fetch(url);
+    if (!res.ok) throw new Error("HTTP error");
+    const data = await res.json();
+    localStorage.setItem(cacheKey, JSON.stringify({
+      value: data,
+      timestamp: Date.now()
+    }));
+    return data;
+  } catch(e) {
+    console.warn(`Fetch to ${url} failed, fallback to cache:`, e);
+    if (cached) {
+      try {
+        const p = JSON.parse(cached);
+        return p.value || p;
+      } catch(err) {}
+    }
+    return defaultVal;
+  }
+}
+
 document.addEventListener('DOMContentLoaded', () => {
 
-  
   // Fetch Asteroids
-  fetch(`${API_BASE}/api/asteroids`)
-    .then(r => {
-      if (!r.ok) throw new Error('API Error');
-      return r.json();
-    })
-    .catch(err => {
-      console.warn("Asteroid API failed, falling back to cache.", err);
-      return [];
-    })
+  fetchWithCache('stargazer_asteroids_cache_v2', `${API_BASE}/api/asteroids`, [])
     .then(data => {
       const list = document.getElementById('asteroids-list');
       if (!list) return;
       const dict = window.i18n[currentLang] || window.i18n['en'];
       
       if (!data || data.length === 0) {
-        const cachedStr = localStorage.getItem('stargazer_asteroids_cache');
-        if (cachedStr) {
-          try { data = JSON.parse(cachedStr); } catch(e) {}
-        }
-      }
-      
-      if (!data || data.length === 0) {
         list.innerHTML = `<div style="color:#ef4444; font-size:0.85rem; padding:10px;">Failed to load Asteroid data. The API might be rate limited.</div>`;
         return;
       }
-      
-      // Save valid data to cache
-      localStorage.setItem('stargazer_asteroids_cache', JSON.stringify(data));
       
       list.innerHTML = '';
       data.forEach(a => {
@@ -3397,33 +3438,16 @@ document.addEventListener('DOMContentLoaded', () => {
     });
 
   // Fetch Meteor Showers
-  fetch(`${API_BASE}/api/meteors?count=5`)
-    .then(r => {
-      if (!r.ok) throw new Error('API Error');
-      return r.json();
-    })
-    .catch(err => {
-      console.warn("Meteor showers API failed, falling back to cache.", err);
-      return null;
-    })
+  fetchWithCache('stargazer_meteors_cache_v2', `${API_BASE}/api/meteors?count=5`, null)
     .then(data => {
       const list = document.getElementById('meteors-list');
       if (!list) return;
 
       let showers = data && data.showers;
       if (!showers || showers.length === 0) {
-        const cachedStr = localStorage.getItem('stargazer_meteors_cache');
-        if (cachedStr) {
-          try { showers = JSON.parse(cachedStr); } catch(e) {}
-        }
-      }
-
-      if (!showers || showers.length === 0) {
         list.innerHTML = `<div style="color:#ef4444; font-size:0.85rem; padding:10px;">Failed to load meteor shower schedule.</div>`;
         return;
       }
-
-      localStorage.setItem('stargazer_meteors_cache', JSON.stringify(showers));
 
       list.innerHTML = showers.map((s, i) => {
         const peak = new Date(s.peak_date + 'T00:00:00Z');
