@@ -3509,8 +3509,17 @@ function rescheduleAllPlanNotifications() {
     if (item.startHour < 12 && now.getHours() >= 12) {
       targetTime.setDate(targetTime.getDate() + 1);
     }
-    const delayMs = targetTime.getTime() - now.getTime();
-    if (delayMs <= 0) return;
+    let delayMs = targetTime.getTime() - now.getTime();
+    
+    // If start time is past but we are still inside the 1-hour window, notify immediately
+    if (delayMs <= 0) {
+      const endTime = new Date(targetTime.getTime() + 60 * 60 * 1000);
+      if (now.getTime() < endTime.getTime()) {
+        delayMs = 10;
+      } else {
+        return;
+      }
+    }
 
     const timerId = setTimeout(async () => {
       if ('serviceWorker' in navigator) {
@@ -3519,11 +3528,13 @@ function rescheduleAllPlanNotifications() {
           body: `It's time to observe: ${item.name}! Your scheduled slot starts now (${item.startTime} - ${item.endTime}).`,
           icon: './assets/ai_stargazer_mascot.png',
           badge: './assets/ai_stargazer_mascot.png',
-          data: window.location.origin
+          data: window.location.origin,
+          tag: `plan-${item.id}`
         });
       } else {
         new Notification(`🔭 Plan My Night Alert`, {
           body: `It's time to observe: ${item.name}! Your scheduled slot starts now (${item.startTime} - ${item.endTime}).`,
+          tag: `plan-${item.id}`
         });
       }
     }, delayMs);
