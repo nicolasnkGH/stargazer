@@ -22,9 +22,14 @@ def init_db():
             comment TEXT NOT NULL,
             note TEXT,
             image_data TEXT NOT NULL,
-            created_at TEXT NOT NULL
+            created_at TEXT NOT NULL,
+            reported INTEGER DEFAULT 0
         )
     """)
+    try:
+        cursor.execute("ALTER TABLE gallery ADD COLUMN reported INTEGER DEFAULT 0")
+    except sqlite3.OperationalError:
+        pass # Column already exists
     conn.commit()
     conn.close()
 
@@ -161,3 +166,18 @@ def get_gallery_image(entry_id: int) -> str:
 def datetime_now_str():
     from datetime import datetime
     return datetime.utcnow().strftime("%Y-%m-%d %H:%M:%S UTC")
+
+def report_image(image_id: int):
+    conn = sqlite3.connect(DB_PATH)
+    cursor = conn.cursor()
+    cursor.execute("UPDATE gallery SET reported = reported + 1 WHERE id = ?", (image_id,))
+    conn.commit()
+    conn.close()
+
+def get_gallery_counts() -> dict:
+    conn = sqlite3.connect(DB_PATH)
+    cursor = conn.cursor()
+    cursor.execute("SELECT target_id, COUNT(*) FROM gallery WHERE reported = 0 GROUP BY target_id")
+    rows = cursor.fetchall()
+    conn.close()
+    return {row[0]: row[1] for row in rows}
