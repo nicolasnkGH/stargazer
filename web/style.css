@@ -76,6 +76,10 @@ body {
 /* ── Layout ────────────────────────────────────────────────────────────── */
 .header, .main, .footer { position: relative; z-index: 1; }
 
+.hidden {
+  display: none !important;
+}
+
 .main {
   max-width: var(--max-width);
   margin: 0 auto;
