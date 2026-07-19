@@ -3,6 +3,10 @@ window.currentLang = currentLang;
 
 let isMetric = localStorage.getItem('stargazer_units') !== 'imperial';
 
+function escapeForSingleQuotedString(s) {
+  return String(s).replace(/\\/g, "\\\\").replace(/'/g, "\\'");
+}
+
 function translateDate(dateStr) {
   if (!dateStr || currentLang === 'en') return dateStr;
   const dict = window.i18n[currentLang];
@@ -781,8 +785,8 @@ function renderSeeing(seeing, data) {
           const addBtn = document.createElement('button');
           addBtn.className = 'filter-btn';
           addBtn.style.cssText = 'margin-left: 12px; padding: 4px 10px; font-size: 0.75rem; background: rgba(59, 130, 246, 0.15); border-color: rgba(59, 130, 246, 0.3); color: #93c5fd; cursor: pointer; border-radius: 4px; font-weight: 600;';
-          const aiId = 'ai_' + (t.name || 'target').replace(/\s+/g, '_').toLowerCase().replace(/'/g, "\\'");
-          const safeName = (t.name || 'Target').replace(/'/g, "\\'");
+          const aiId = 'ai_' + escapeForSingleQuotedString((t.name || 'target').replace(/\s+/g, '_').toLowerCase());
+          const safeName = escapeForSingleQuotedString(t.name || 'Target');
           addBtn.dataset.planId = aiId;
           addBtn.dataset.planName = safeName;
           addBtn.dataset.ra = '0';
