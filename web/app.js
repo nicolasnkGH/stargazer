@@ -3469,8 +3469,13 @@ window.addToPlan = function(id, name, ra, dec) {
     return;
   }
   
-  const slotCount = nightPlan.length;
-  const startHour = (20 + slotCount) % 24;
+  const currentHour = new Date().getHours();
+  const initialHour = currentHour >= 20 ? currentHour : 20;
+  
+  let startHour = initialHour;
+  if (nightPlan.length > 0) {
+    startHour = nightPlan[nightPlan.length - 1].endHour;
+  }
   const endHour = (startHour + 1) % 24;
   
   const formatTime = (h) => {
@@ -3505,8 +3510,11 @@ window.addToPlan = function(id, name, ra, dec) {
 
 window.removeFromPlan = function(index) {
   nightPlan.splice(index, 1);
+  const currentHour = new Date().getHours();
+  const initialHour = currentHour >= 20 ? currentHour : 20;
+  let runningHour = initialHour;
   nightPlan.forEach((item, idx) => {
-    const startHour = (20 + idx) % 24;
+    const startHour = runningHour;
     const endHour = (startHour + 1) % 24;
     const formatTime = (h) => {
       const period = h >= 12 ? 'PM' : 'AM';
@@ -3517,6 +3525,7 @@ window.removeFromPlan = function(index) {
     item.endHour = endHour;
     item.startTime = formatTime(startHour);
     item.endTime = formatTime(endHour);
+    runningHour = endHour;
   });
   saveAndRenderPlan();
 };
@@ -3532,8 +3541,11 @@ window.movePlanItem = function(index, direction) {
     nightPlan[index + 1] = temp;
   }
   
+  const currentHour = new Date().getHours();
+  const initialHour = currentHour >= 20 ? currentHour : 20;
+  let runningHour = initialHour;
   nightPlan.forEach((item, idx) => {
-    const startHour = (20 + idx) % 24;
+    const startHour = runningHour;
     const endHour = (startHour + 1) % 24;
     const formatTime = (h) => {
       const period = h >= 12 ? 'PM' : 'AM';
@@ -3544,6 +3556,7 @@ window.movePlanItem = function(index, direction) {
     item.endHour = endHour;
     item.startTime = formatTime(startHour);
     item.endTime = formatTime(endHour);
+    runningHour = endHour;
   });
   
   saveAndRenderPlan();
