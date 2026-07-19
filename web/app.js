@@ -3285,7 +3285,7 @@ document.addEventListener('DOMContentLoaded', () => {
     } catch {}
 
     // Hide if previously dismissed
-    if (localStorage.getItem(id + '_dismissed') === '1') {
+    if (localStorage.getItem('stargazer_' + id + '_dismissed') === '1') {
       el.style.display = 'none';
     }
 
