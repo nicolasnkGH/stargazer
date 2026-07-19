@@ -2715,8 +2715,18 @@ async function init() {
 
   // --- Register Service Worker for PWA ---
   if ('serviceWorker' in navigator) {
-    navigator.serviceWorker.register('sw.js')
-      .then(reg => console.log('Service Worker registered', reg))
+    navigator.serviceWorker.register('sw.js', { updateViaCache: 'none' })
+      .then(reg => {
+        console.log('Service Worker registered', reg);
+
+        const checkForUpdate = () => reg.update().catch(() => {});
+        checkForUpdate();
+        window.addEventListener('focus', checkForUpdate);
+
+        navigator.serviceWorker.addEventListener('controllerchange', () => {
+          window.location.reload();
+        });
+      })
       .catch(err => console.error('Service Worker registration failed', err));
   }
 

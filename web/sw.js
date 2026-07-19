@@ -1,4 +1,4 @@
-const CACHE_NAME = 'stargazer-cache-v15';
+const CACHE_NAME = 'stargazer-cache-v16';
 const STATIC_ASSETS = [
   './',
   './index.html',
@@ -41,6 +41,14 @@ self.addEventListener('fetch', (event) => {
   if (url.pathname.startsWith('/api') || url.pathname.includes('/targets') || url.pathname.includes('/tonight') || url.pathname.includes('/iss') || url.pathname.includes('/seeing')) {
     event.respondWith(
       fetch(event.request).catch(() => caches.match(event.request))
+    );
+    return;
+  }
+
+  // HTML navigations should prefer the network so installed PWAs pick up new releases quickly.
+  if (event.request.mode === 'navigate' || event.request.destination === 'document') {
+    event.respondWith(
+      fetch(event.request).catch(() => caches.match('./index.html'))
     );
     return;
   }
