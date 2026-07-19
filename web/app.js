@@ -3689,16 +3689,28 @@ function renderNightPlan() {
   if (emptyState) emptyState.style.display = 'none';
   listContainer?.classList.remove('hidden');
   if (listContainer) listContainer.style.display = 'flex';
-  
   if (listContainer) {
     listContainer.innerHTML = nightPlan.map((item, idx) => {
+      const isHourDark = (hour) => {
+        const dusk = window.nightDuskHour !== undefined ? window.nightDuskHour : 18.5;
+        const dawn = window.nightDawnHour !== undefined ? window.nightDawnHour : 5.5;
+        if (dusk < dawn) {
+          return hour >= dusk && hour <= dawn;
+        } else {
+          return hour >= dusk || hour <= dawn;
+        }
+      };
+      
+      const startInDark = isHourDark(item.startHour);
+      const warningText = !startInDark ? '<span style="color: #f87171; font-weight: 600; margin-left: 6px;" title="This slot is outside astronomical dark hours for your location">⚠️ Outside dark window (Daylight/Twilight)</span>' : '';
+
       return `
         <div style="display: flex; align-items: center; justify-content: space-between; padding: 12px; background: rgba(255,255,255,0.02); border-radius: 8px; border: 1px solid rgba(255,255,255,0.05); gap: 10px;">
           <div style="display: flex; align-items: center; gap: 10px;">
             <span style="font-weight: 700; color: #a855f7; font-size: 0.9rem;">#${idx + 1}</span>
             <div>
               <div style="font-weight: 600; color: #fff; font-size: 0.9rem;">${item.name}</div>
-              <div style="font-size: 0.75rem; color: var(--text-dim); margin-top: 2px;">Observing window: ${item.startTime} - ${item.endTime}</div>
+              <div style="font-size: 0.75rem; color: var(--text-dim); margin-top: 2px; display: flex; align-items: center; flex-wrap: wrap;">Scheduled slot: <strong style="color: #e2e8f0; margin-left: 4px;">${item.startTime} - ${item.endTime}</strong> ${warningText}</div>
             </div>
           </div>
           <div style="display: flex; gap: 6px;">
