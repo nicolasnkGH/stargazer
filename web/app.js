@@ -1932,6 +1932,7 @@ function renderTargetGrid(targets, liveMap, typeFilter = 'all', equipFilter = 'a
           <div style="display: flex; gap: 6px; width: 100%;">
             <button class="btn-fov" onclick="openFovModal(${t.ra_hours * 15}, ${t.dec_degrees}, '${t.name.replace(/'/g, "\\'")}')">Simulate View 🔭</button>
             <button class="btn-fov" onclick="addToPlan('${t.id}', '${t.name.replace(/'/g, "\\'")}', ${t.ra_hours * 15}, ${t.dec_degrees})" style="background: rgba(59, 130, 246, 0.15); border-color: rgba(59, 130, 246, 0.3); color: #93c5fd;">Add to Plan +</button>
+            <button class="btn-fov" onclick="openGalleryModal('${t.id}', '${t.name.replace(/'/g, "\\'")}')" style="background: rgba(34, 197, 94, 0.15); border-color: rgba(34, 197, 94, 0.3); color: #86efac;">Gallery & Share 📷</button>
           </div>
           <span class="tc-equipment">${t.equipment || '🔭 Telescope'}</span>
           ${(t.difficulty && t.difficulty.toUpperCase().replace('_', ' ') !== 'NAKED EYE') ? `<span class="tc-difficulty ${t.difficulty.replace(' ', '_')}">${t.difficulty.replace('_', ' ')}</span>` : ''}
@@ -3503,9 +3504,9 @@ try {
 }
 
 window.addToPlan = function(id, name, ra, dec) {
-  const existing = nightPlan.find(item => item.id === id);
+  const existing = nightPlan.find(item => item.id.toLowerCase() === id.toLowerCase());
   if (existing) {
-    alert(`${name} is already in your night plan!`);
+    showInfo(`⚠️ ${name} is already in your night plan!`, null, false);
     return;
   }
   
@@ -3538,7 +3539,7 @@ window.addToPlan = function(id, name, ra, dec) {
   nightPlan.push(newEntry);
   saveAndRenderPlan();
   
-  alert(`Added ${name} to your Night Plan!`);
+  showInfo(`✅ Added ${name} to your Night Plan!`, null, false);
 
   // Request notification permission if not already granted
   if (typeof Notification !== 'undefined' && Notification.permission === 'default') {
@@ -3815,5 +3816,207 @@ document.addEventListener('DOMContentLoaded', () => {
       }
     });
   });
+
+  // ── Gallery & Share System ────────────────────────────────────────────────
+  const galleryModal = document.getElementById('gallery-modal');
+  const closeGalleryBtn = document.getElementById('close-gallery-btn');
+  const tabView = document.getElementById('gallery-tab-view');
+  const tabUpload = document.getElementById('gallery-tab-upload');
+  const viewContent = document.getElementById('gallery-view-content');
+  const uploadForm = document.getElementById('gallery-upload-form');
+  const fileInput = document.getElementById('gallery-file-input');
+  const previewDiv = document.getElementById('gallery-image-preview');
+  const previewImg = document.getElementById('gallery-preview-img');
+
+  window.openGalleryModal = async function(targetId, targetName) {
+    document.getElementById('gallery-target-id').value = targetId;
+    document.getElementById('gallery-target-name').value = targetName;
+    document.getElementById('gallery-modal-title').textContent = `Gallery & Astro-Share: ${targetName}`;
+    
+    // Reset form
+    uploadForm.reset();
+    previewDiv.style.display = 'none';
+    
+    // Switch to view tab
+    switchGalleryTab('view');
+    
+    // Load images
+    await loadGalleryImages(targetId);
+    
+    galleryModal.classList.remove('hidden');
+  };
+
+  function switchGalleryTab(tab) {
+    if (tab === 'view') {
+      tabView.classList.add('active');
+      tabUpload.classList.remove('active');
+      viewContent.classList.remove('hidden');
+      uploadForm.classList.add('hidden');
+    } else {
+      tabView.classList.remove('active');
+      tabUpload.classList.add('active');
+      viewContent.classList.add('hidden');
+      uploadForm.classList.remove('hidden');
+    }
+  }
+
+  tabView?.addEventListener('click', () => switchGalleryTab('view'));
+  tabUpload?.addEventListener('click', () => switchGalleryTab('upload'));
+  closeGalleryBtn?.addEventListener('click', () => galleryModal.classList.add('hidden'));
+
+  // Close on outside click
+  window.addEventListener('click', (e) => {
+    if (e.target === galleryModal) {
+      galleryModal.classList.add('hidden');
+    }
+  });
+
+  // Handle file preview and compression
+  let compressedImageBase64 = '';
+  fileInput?.addEventListener('change', (e) => {
+    const file = e.target.files[0];
+    if (!file) return;
+
+    const reader = new FileReader();
+    reader.onload = function(event) {
+      const img = new Image();
+      img.onload = function() {
+        // Canvas compression
+        const canvas = document.createElement('canvas');
+        const MAX_WIDTH = 1200;
+        let width = img.width;
+        let height = img.height;
+
+        if (width > MAX_WIDTH) {
+          height = Math.round((height * MAX_WIDTH) / width);
+          width = MAX_WIDTH;
+        }
+
+        canvas.width = width;
+        canvas.height = height;
+        const ctx = canvas.getContext('2d');
+        ctx.drawImage(img, 0, 0, width, height);
+
+        compressedImageBase64 = canvas.toDataURL('image/jpeg', 0.85);
+        previewImg.src = compressedImageBase64;
+        previewDiv.style.display = 'flex';
+      };
+      img.src = event.target.result;
+    };
+    reader.readAsDataURL(file);
+  });
+
+  async function loadGalleryImages(targetId) {
+    const container = document.getElementById('gallery-list-container');
+    if (!container) return;
+
+    container.innerHTML = '<div style="text-align:center; padding: 20px; color:var(--text-dim);">Loading shared images...</div>';
+
+    try {
+      const res = await fetch(`${API_BASE}/api/gallery?target_id=${targetId}`);
+      if (res.ok) {
+        const list = await res.json();
+        if (list.length === 0) {
+          container.innerHTML = '<div style="text-align:center; padding: 30px 10px; color:var(--text-dim);">No photos shared for this object yet. Be the first to share!</div>';
+          return;
+        }
+
+        container.innerHTML = list.map(item => `
+          <div style="background: rgba(255,255,255,0.02); border: 1px solid rgba(255,255,255,0.05); border-radius: 8px; padding: 12px; display: flex; flex-direction: column; gap: 8px;">
+            <div style="width: 100%; border-radius: 6px; overflow: hidden; background: #000; display: flex; align-items: center; justify-content: center; max-height: 250px;">
+              <img src="${API_BASE}/api/gallery/image/${item.id}" alt="${item.target_name}" style="max-width: 100%; max-height: 250px; object-fit: contain;">
+            </div>
+            <div style="font-size: 0.85rem; color: #fff; font-weight: 600;">
+              👤 Shared by: ${escapeHtml(item.author)}
+            </div>
+            <div style="font-size: 0.75rem; color: var(--text-dim); display: flex; flex-direction: column; gap: 2px;">
+              <span>📍 Location: ${escapeHtml(item.location)}</span>
+              <span>🔭 Gear Used: ${escapeHtml(item.gear)}</span>
+              ${item.note ? `<span>📝 Note: ${escapeHtml(item.note)}</span>` : ''}
+              <span>📅 Date: ${item.created_at}</span>
+            </div>
+            <div style="background: rgba(0,0,0,0.2); padding: 8px; border-radius: 6px; font-size: 0.8rem; color: #cbd5e1; border: 1px solid rgba(255,255,255,0.02);">
+              <strong>💬 Comment:</strong> ${escapeHtml(item.comment)}
+            </div>
+          </div>
+        `).join('');
+      } else {
+        container.innerHTML = '<div style="text-align:center; padding:20px; color:#f87171;">Failed to load shared images</div>';
+      }
+    } catch (e) {
+      console.error(e);
+      container.innerHTML = '<div style="text-align:center; padding:20px; color:#f87171;">Connection error</div>';
+    }
+  }
+
+  // Handle Form Submission
+  uploadForm?.addEventListener('submit', async (e) => {
+    e.preventDefault();
+
+    const targetId = document.getElementById('gallery-target-id').value;
+    const targetName = document.getElementById('gallery-target-name').value;
+    const author = document.getElementById('gallery-author').value.trim();
+    const location = document.getElementById('gallery-location').value.trim();
+    const gear = document.getElementById('gallery-gear').value.trim();
+    const comment = document.getElementById('gallery-comment').value.trim();
+    const note = document.getElementById('gallery-note').value.trim();
+    const submitBtn = document.getElementById('gallery-submit-btn');
+
+    if (!compressedImageBase64) {
+      showInfo('⚠️ Please select an image first.', null, false);
+      return;
+    }
+
+    submitBtn.disabled = true;
+    submitBtn.textContent = 'Verifying Safety & Uploading... ⏳';
+
+    try {
+      const res = await fetch(`${API_BASE}/api/gallery`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({
+          target_id: targetId,
+          target_name: targetName,
+          author: author,
+          location: location,
+          gear: gear,
+          comment: comment,
+          note: note || null,
+          image_data: compressedImageBase64
+        })
+      });
+
+      if (res.ok) {
+        showInfo('🎉 Image shared successfully!', null, false);
+        uploadForm.reset();
+        previewDiv.style.display = 'none';
+        compressedImageBase64 = '';
+        switchGalleryTab('view');
+        await loadGalleryImages(targetId);
+      } else {
+        const errorData = await res.json();
+        const msg = errorData.detail || 'Upload failed.';
+        showInfo(`❌ ${msg}`, null, true);
+      }
+    } catch (e) {
+      console.error(e);
+      showInfo('❌ Connection error during upload.', null, false);
+    } finally {
+      submitBtn.disabled = false;
+      submitBtn.textContent = 'Submit for Safety Verification & Share 🚀';
+    }
+  });
+
+  function escapeHtml(str) {
+    if (!str) return '';
+    return str
+      .replace(/&/g, "&amp;")
+      .replace(/</g, "&lt;")
+      .replace(/>/g, "&gt;")
+      .replace(/"/g, "&quot;")
+      .replace(/'/g, "&#039;");
+  }
 });
 // Dummy comment to trigger new build pipeline run after Cloudflare Page build got stuck.

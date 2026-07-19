@@ -537,5 +537,58 @@ def constellation_window(
     except Exception as e:
         return JSONResponse(status_code=500, content={"error": str(e)})
 
+from engine.gallery import add_gallery_entry, get_gallery_entries, get_gallery_image
+import base64
+from fastapi import Response
+
+class GalleryUploadRequest(BaseModel):
+    target_id: str
+    target_name: str
+    author: str
+    location: str
+    gear: str
+    comment: str
+    note: Optional[str] = None
+    image_data: str
+
+@app.post("/api/gallery")
+def upload_to_gallery(req: GalleryUploadRequest):
+    try:
+        entry = add_gallery_entry(
+            target_id=req.target_id,
+            target_name=req.target_name,
+            author=req.author,
+            location=req.location,
+            gear=req.gear,
+            comment=req.comment,
+            note=req.note,
+            image_base64=req.image_data
+        )
+        return {"status": "ok", "entry": entry}
+    except ValueError as ve:
+        raise HTTPException(status_code=400, detail=str(ve))
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+@app.get("/api/gallery")
+def list_gallery(target_id: Optional[str] = None):
+    try:
+        return get_gallery_entries(target_id=target_id)
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+@app.get("/api/gallery/image/{entry_id}")
+def get_image(entry_id: int):
+    try:
+        data = get_gallery_image(entry_id)
+        if not data:
+            raise HTTPException(status_code=404, detail="Image not found")
+        if "," in data:
+            data = data.split(",")[1]
+        image_bytes = base64.b64decode(data)
+        return Response(content=image_bytes, media_type="image/jpeg")
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
 if __name__ == "__main__":
     uvicorn.run("main:app", host="0.0.0.0", port=8181, reload=False)

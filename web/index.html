@@ -1185,6 +1185,71 @@
     </div>
   </div>
 
+  <!-- Gallery Modal -->
+  <div id="gallery-modal" class="modal hidden">
+    <div class="modal-content" style="max-width: 600px; background: #0f172a; border: 1px solid rgba(255,255,255,0.1); border-radius: 12px; padding: 24px; color: #fff;">
+      <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
+        <h2 id="gallery-modal-title" style="margin: 0; color: #fff; font-size: 1.3rem;">Astro-Imaging Share</h2>
+        <button id="close-gallery-btn" class="modal-close" style="background: none; border: none; color: #94a3b8; font-size: 1.5rem; cursor: pointer; padding: 0 4px; line-height: 1;">&times;</button>
+      </div>
+      
+      <!-- Sub-tabs: View Gallery vs Upload Photo -->
+      <div style="display: flex; gap: 10px; margin-bottom: 20px; border-bottom: 1px solid rgba(255,255,255,0.1); padding-bottom: 10px;">
+        <button type="button" id="gallery-tab-view" class="filter-btn active" style="flex: 1;">Shared Images 🖼️</button>
+        <button type="button" id="gallery-tab-upload" class="filter-btn" style="flex: 1;">Upload Photo 📤</button>
+      </div>
+
+      <!-- Tab Content: View Shared Images -->
+      <div id="gallery-view-content">
+        <div id="gallery-list-container" style="max-height: 380px; overflow-y: auto; display: flex; flex-direction: column; gap: 16px;">
+          <div style="text-align: center; color: var(--text-dim); padding: 20px;">No photos shared for this object yet. Be the first to share!</div>
+        </div>
+      </div>
+
+      <!-- Tab Content: Upload Form -->
+      <form id="gallery-upload-form" class="hidden" style="display: flex; flex-direction: column; gap: 14px;">
+        <input type="hidden" id="gallery-target-id">
+        <input type="hidden" id="gallery-target-name">
+
+        <div>
+          <label style="display: block; font-size: 0.8rem; color: var(--text-dim); margin-bottom: 4px;">Choose Image *</label>
+          <input type="file" id="gallery-file-input" accept="image/*" required style="width: 100%; font-size: 0.85rem; background: rgba(255,255,255,0.03); border: 1px dashed rgba(255,255,255,0.15); padding: 12px; border-radius: 6px; cursor: pointer; color: #cbd5e1;">
+          <div id="gallery-image-preview" style="margin-top: 10px; max-height: 150px; border-radius: 6px; overflow: hidden; display: none; background: #000; align-items: center; justify-content: center;">
+            <img id="gallery-preview-img" style="max-height: 150px; max-width: 100%; object-fit: contain;">
+          </div>
+        </div>
+
+        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px;">
+          <div>
+            <label style="display: block; font-size: 0.8rem; color: var(--text-dim); margin-bottom: 4px;">Observer Name *</label>
+            <input type="text" id="gallery-author" required placeholder="e.g. John Doe" style="width: 100%; padding: 8px 10px; font-size: 0.85rem; border-radius: 6px; border: 1px solid rgba(255,255,255,0.1); background: rgba(255,255,255,0.02); color: #fff;">
+          </div>
+          <div>
+            <label style="display: block; font-size: 0.8rem; color: var(--text-dim); margin-bottom: 4px;">Observation Location *</label>
+            <input type="text" id="gallery-location" required placeholder="e.g. Cherry Springs Park" style="width: 100%; padding: 8px 10px; font-size: 0.85rem; border-radius: 6px; border: 1px solid rgba(255,255,255,0.1); background: rgba(255,255,255,0.02); color: #fff;">
+          </div>
+        </div>
+
+        <div>
+          <label style="display: block; font-size: 0.8rem; color: var(--text-dim); margin-bottom: 4px;">Gear Used *</label>
+          <input type="text" id="gallery-gear" required placeholder="e.g. Celestron 130SLT, 25mm Eyepiece" style="width: 100%; padding: 8px 10px; font-size: 0.85rem; border-radius: 6px; border: 1px solid rgba(255,255,255,0.1); background: rgba(255,255,255,0.02); color: #fff;">
+        </div>
+
+        <div>
+          <label style="display: block; font-size: 0.8rem; color: var(--text-dim); margin-bottom: 4px;">Comment / Description *</label>
+          <textarea id="gallery-comment" required placeholder="e.g. Beautiful crisp details!" rows="3" style="width: 100%; padding: 8px 10px; font-size: 0.85rem; border-radius: 6px; border: 1px solid rgba(255,255,255,0.1); background: rgba(255,255,255,0.02); color: #fff; resize: vertical;"></textarea>
+        </div>
+
+        <div>
+          <label style="display: block; font-size: 0.8rem; color: var(--text-dim); margin-bottom: 4px;">Additional Notes (Optional)</label>
+          <input type="text" id="gallery-note" placeholder="e.g. Sky transparency was 8/10." style="width: 100%; padding: 8px 10px; font-size: 0.85rem; border-radius: 6px; border: 1px solid rgba(255,255,255,0.1); background: rgba(255,255,255,0.02); color: #fff;">
+        </div>
+
+        <button type="submit" id="gallery-submit-btn" class="btn btn-primary" style="width: 100%; margin-top: 10px; font-weight: 600; padding: 10px;">Submit for Safety Verification & Share 🚀</button>
+      </form>
+    </div>
+  </div>
+
   <!-- Star Info Modal -->
   <div id="star-modal" class="modal hidden">
     <div class="modal-content" style="max-width: 400px;">
