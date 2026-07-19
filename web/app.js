@@ -65,6 +65,67 @@ window.showInfo = function(msg, event, sticky = false) {
   }
 };
 
+
+// Delegated handler for interactive elements
+document.addEventListener('click', function (e) {
+  const target = e.target;
+  if (!target) return;
+
+  const planBtn = target.closest('[data-plan-id]');
+  if (planBtn && planBtn.dataset) {
+    const id = planBtn.dataset.planId;
+    const name = planBtn.dataset.planName || id;
+    const ra = Number(planBtn.dataset.ra || 0);
+    const dec = Number(planBtn.dataset.dec || 0);
+    try { window.addToPlan(id, name, ra, dec); } catch (err) {}
+    return;
+  }
+
+  const fovBtn = target.closest('[data-fov-ra]');
+  if (fovBtn && fovBtn.dataset) {
+    const ra = Number(fovBtn.dataset.fovRa || 0);
+    const dec = Number(fovBtn.dataset.fovDec || 0);
+    const name = fovBtn.dataset.fovName || '';
+    try { window.openFovModal(ra, dec, name); } catch (err) {}
+    return;
+  }
+
+  const locInfo = target.closest('[data-activate-location-id]');
+  if (locInfo && locInfo.dataset) {
+    window.activateLocation(locInfo.dataset.activateLocationId);
+    return;
+  }
+
+  const locDel = target.closest('[data-delete-location-id]');
+  if (locDel && locDel.dataset) {
+    window.deleteLocation(locDel.dataset.deleteLocationId);
+    return;
+  }
+
+  const dot = target.closest('[data-fact-type]');
+  if (dot && dot.dataset) {
+    const type = dot.dataset.factType;
+    const idx = Number(dot.dataset.factIdx || 0);
+    try { window.goMotionFact(type, idx); } catch (err) {}
+    return;
+  }
+
+  const moveBtn = target.closest('[data-move-plan-idx]');
+  if (moveBtn && moveBtn.dataset) {
+    const idx = Number(moveBtn.dataset.movePlanIdx);
+    const dir = moveBtn.dataset.movePlanDir;
+    try { window.movePlanItem(idx, dir); } catch (err) {}
+    return;
+  }
+
+  const removeBtn = target.closest('[data-remove-plan-idx]');
+  if (removeBtn && removeBtn.dataset) {
+    const idx = Number(removeBtn.dataset.removePlanIdx);
+    try { window.removeFromPlan(idx); } catch (err) {}
+    return;
+  }
+});
+
 // ── Configuration ──────────────────────────────────────────────────────────
 // Polyfill for AbortSignal.timeout (not supported in iOS Safari < 16.4)
 if (!AbortSignal.timeout) {
@@ -1268,7 +1329,7 @@ function renderPlanets(planets, factStr) {
             <span class="planet-name">${p.emoji} ${pName}</span>
             <span class="planet-const-pill" title="Currently in this constellation">${p.constellation || ''}</span>
             ${isBlocked ? '<span class="blocked-badge" title="Hidden behind your custom horizon limits">Blocked by Horizon</span>' : ''}
-            <button class="filter-btn" onclick="addToPlan('${p.name.toLowerCase()}', '${p.name}', 0, 0)" style="margin-left: auto; padding: 2px 8px; font-size: 0.75rem; background: rgba(59, 130, 246, 0.15); border-color: rgba(59, 130, 246, 0.3); color: #93c5fd; cursor: pointer; border-radius: 4px; font-weight: 600;">${dict.btn_add_to_plan || 'Add to Plan +'}</button>
+            <button class="filter-btn" data-plan-id="${p.name.toLowerCase()}" data-plan-name="${p.name.replace(/"/g, '&quot;')}" data-ra="0" data-dec="0" style="margin-left: auto; padding: 2px 8px; font-size: 0.75rem; background: rgba(59, 130, 246, 0.15); border-color: rgba(59, 130, 246, 0.3); color: #93c5fd; cursor: pointer; border-radius: 4px; font-weight: 600;">${dict.btn_add_to_plan || 'Add to Plan +'}</button>
           </div>
           <div class="planet-meta-row">
             <span class="planet-alt" style="color:${altColor}" title="How high above the horizon">📐 Altitude: ${p.altitude_deg}° — ${altLabel}</span>
@@ -1583,7 +1644,7 @@ function initMotionFacts() {
     const dotsEl = document.getElementById(`${type}-fact-dots`);
     if (dotsEl) {
       dotsEl.innerHTML = facts.map((_, i) =>
-        `<span class="motion-fact-dot${i === 0 ? ' active' : ''}" onclick="goMotionFact('${type}',${i})"></span>`
+        `<span class="motion-fact-dot${i === 0 ? ' active' : ''}" data-fact-type="${type}" data-fact-idx="${i}"></span>`
       ).join('');
     }
     // Show first fact
@@ -1833,8 +1894,8 @@ function renderTargetGrid(targets, liveMap, typeFilter = 'all', equipFilter = 'a
         ${t.horizon_note ? `<div class="tc-horizon-note">${t.horizon_note}</div>` : ''}
         <div class="tc-footer" style="flex-wrap: wrap; gap: 8px;">
           <div style="display: flex; gap: 6px; width: 100%;">
-            <button class="btn-fov" onclick="openFovModal(${t.ra_hours * 15}, ${t.dec_degrees}, '${t.name.replace(/'/g, "\\'")}')">${dict.btn_simulate_view || 'Simulate View 🔭'}</button>
-            <button class="btn-fov" onclick="addToPlan('${t.id}', '${t.name.replace(/'/g, "\\'")}', ${t.ra_hours * 15}, ${t.dec_degrees})" style="background: rgba(59, 130, 246, 0.15); border-color: rgba(59, 130, 246, 0.3); color: #93c5fd;">${dict.btn_add_to_plan || 'Add to Plan +'}</button>
+            <button class="btn-fov" data-fov-ra="${t.ra_hours * 15}" data-fov-dec="${t.dec_degrees}" data-fov-name="${t.name.replace(/"/g, '&quot;')}">${dict.btn_simulate_view || 'Simulate View 🔭'}</button>
+            <button class="btn-fov" data-plan-id="${t.id}" data-plan-name="${t.name.replace(/"/g, '&quot;')}" data-ra="${t.ra_hours * 15}" data-dec="${t.dec_degrees}" style="background: rgba(59, 130, 246, 0.15); border-color: rgba(59, 130, 246, 0.3); color: #93c5fd;">${dict.btn_add_to_plan || 'Add to Plan +'}</button>
           </div>
           <span class="tc-equipment">${t.equipment || '🔭 Telescope'}</span>
           ${(t.difficulty && t.difficulty.replace('_', ' ') !== 'NAKED EYE') ? `<span class="tc-difficulty ${t.difficulty.replace(' ', '_')}">${t.difficulty.replace('_', ' ')}</span>` : ''}
@@ -1929,11 +1990,11 @@ function initLocationUI() {
   function renderList() {
     listEl.innerHTML = savedLocations.map(l => `
       <div class="loc-item ${l.id === activeLocId ? 'active' : ''}">
-        <div class="loc-info" onclick="activateLocation('${l.id}')">
+        <div class="loc-info" data-activate-location-id="${l.id}">
           <div class="loc-name">${l.name}</div>
           <div class="loc-coords">${l.lat.toFixed(4)}, ${l.lon.toFixed(4)}</div>
         </div>
-        ${l.id !== 'default' ? `<button class="loc-del" onclick="deleteLocation('${l.id}')">✕</button>` : ''}
+        ${l.id !== 'default' ? `<button class="loc-del" data-delete-location-id="${l.id}">✕</button>` : ''}
       </div>
     `).join('');
   }
@@ -3597,9 +3658,9 @@ function renderNightPlan() {
             </div>
           </div>
           <div style="display: flex; gap: 6px;">
-            <button class="filter-btn" onclick="movePlanItem(${idx}, 'up')" style="padding: 4px 8px;" ${idx === 0 ? 'disabled' : ''}>↑</button>
-            <button class="filter-btn" onclick="movePlanItem(${idx}, 'down')" style="padding: 4px 8px;" ${idx === nightPlan.length - 1 ? 'disabled' : ''}>↓</button>
-            <button class="filter-btn" onclick="removeFromPlan(${idx})" style="padding: 4px 8px; background: rgba(239, 68, 68, 0.1); border-color: rgba(239, 68, 68, 0.2); color: #f87171;">Remove</button>
+            <button class="filter-btn" data-move-plan-idx="${idx}" data-move-plan-dir="up" style="padding: 4px 8px;" ${idx === 0 ? 'disabled' : ''}>↑</button>
+            <button class="filter-btn" data-move-plan-idx="${idx}" data-move-plan-dir="down" style="padding: 4px 8px;" ${idx === nightPlan.length - 1 ? 'disabled' : ''}>↓</button>
+            <button class="filter-btn" data-remove-plan-idx="${idx}" style="padding: 4px 8px; background: rgba(239, 68, 68, 0.1); border-color: rgba(239, 68, 68, 0.2); color: #f87171;">Remove</button>
           </div>
         </div>
       `;
