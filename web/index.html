@@ -134,6 +134,7 @@
                   <a href="https://in-the-sky.org/newscal.php" target="_blank" class="nav-submenu-link">In-The-Sky.org</a>
                   <a href="https://www.heavens-above.com/" target="_blank" class="nav-submenu-link">Heavens-Above</a>
                   <a href="https://www.astrob.in" target="_blank" class="nav-submenu-link">AstroBin</a>
+                  <a href="https://www.solarsystemscope.com" target="_blank" class="nav-submenu-link">Solar System Scope</a>
                 </div>
               </div>
             </div>
@@ -575,6 +576,29 @@
           </div>
         </div>
       </section>
+      
+      <!-- ── 3D Interactive Solar System Card ── -->
+      <section class="card" id="card-solar-system-scope" style="margin-bottom: 20px;">
+        <div class="card-header" style="display: flex; justify-content: space-between; align-items: center;">
+          <div style="display: flex; align-items: center; gap: 8px;">
+            <span class="card-icon"><i data-lucide="orbit"></i></span>
+            <div>
+              <h2 class="card-title" style="margin: 0; line-height: 1.2;">Interactive 3D Solar System</h2>
+              <div style="font-size: 0.7rem; color: var(--text-dim); margin-top: 2px;">Model by <a href="https://www.solarsystemscope.com" target="_blank" style="color: #3b82f6; text-decoration: none;" onmouseover="this.style.textDecoration='underline'" onmouseout="this.style.textDecoration='none'">Solar System Scope</a></div>
+            </div>
+          </div>
+          <button id="btn-solar-fullscreen" style="background: none; border: none; color: var(--text-dim); cursor: pointer; padding: 4px; display: flex; align-items: center; transition: color 0.2s;" onmouseover="this.style.color='var(--text-light)'" onmouseout="this.style.color='var(--text-dim)'" title="Full Screen"><i data-lucide="maximize" style="width:16px;height:16px;"></i></button>
+        </div>
+        <div class="card-body" style="padding: 0; overflow: hidden; border-radius: 0 0 12px 12px; height: 450px; position: relative;">
+          <!-- Interactivity overlay (Click to enable mouse controls, so scroll doesn't get captured by mistake) -->
+          <div id="solar-scope-overlay" style="position: absolute; top:0; left:0; width:100%; height:100%; background: rgba(15,23,42,0.45); display: flex; align-items: center; justify-content: center; z-index: 5; cursor: pointer; transition: opacity 0.3s; backdrop-filter: blur(2px);" onclick="this.style.pointerEvents='none'; this.style.opacity='0'; document.getElementById('solar-scope-iframe').style.pointerEvents='auto';">
+            <div style="background: rgba(15,23,42,0.9); padding: 10px 20px; border-radius: 20px; font-size: 0.85rem; border: 1px solid rgba(255,255,255,0.2); backdrop-filter: blur(4px); display:flex; align-items:center; gap:8px; color: #fff;">
+              <i data-lucide="mouse-pointer-click" style="width:16px;height:16px;"></i> Click to Interact with 3D Model
+            </div>
+          </div>
+          <iframe id="solar-scope-iframe" src="https://www.solarsystemscope.com/iframe" style="width: 100%; height: 100%; border: none; pointer-events: none;" allow="fullscreen"></iframe>
+        </div>
+      </section>
 
     <!-- ── Clear Outside Weather Embed ── -->
     <section id="card-weather" class="card card-weather">
@@ -933,6 +957,7 @@
           <li><a href="https://in-the-sky.org/newscal.php" target="_blank">In-The-Sky.org</a></li>
           <li><a href="https://www.heavens-above.com/" target="_blank">Heavens-Above</a></li>
           <li><a href="https://www.astrob.in" target="_blank">AstroBin</a></li>
+          <li><a href="https://www.solarsystemscope.com" target="_blank">Solar System Scope</a></li>
         </ul>
       </div>
       <div class="footer-col">
