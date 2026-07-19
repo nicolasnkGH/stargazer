@@ -1414,8 +1414,8 @@ function renderBestTargets(targets) {
   const dict = window.i18n[currentLang] || window.i18n['en'];
   window.lastBestTargetsHTML = targets.map((t, i) => {
     const name = t.name || 'Target';
-    const safeName = name.replace(/\\/g, "\\\\").replace(/'/g, "\\'");
-    const safeId = (t.id || name.toLowerCase().replace(/\s+/g, '_')).replace(/\\/g, "\\\\").replace(/'/g, "\\'");
+    const safeName = escapeForSingleQuotedString(name);
+    const safeId = escapeForSingleQuotedString(t.id || name.toLowerCase().replace(/\s+/g, '_'));
     const raDeg = Number(t.ra_hours || 0) * 15;
     const decDeg = Number(t.dec_degrees || 0);
     const metaBits = [];
@@ -1485,7 +1485,7 @@ function updateUnifiedCard() {
           <div style="font-size: 0.85rem; color: #fbcfe8; line-height: 1.4; margin-bottom: 8px;">
             ${eventObj.description}
           </div>
-          <button class="filter-btn" data-plan-id="event_${eventObj.name.replace(/\\s+/g, '_').toLowerCase()}" data-plan-name="${eventObj.name.replace(/'/g, "\\'")}" data-ra="0" data-dec="0" style="padding: 4px 10px; font-size: 0.75rem; background: rgba(236, 72, 153, 0.15); border-color: rgba(236, 72, 153, 0.3); color: #fbcfe8; cursor: pointer; border-radius: 4px; font-weight: 600;">Add to Plan +</button>
+          <button class="filter-btn" data-plan-id="event_${escapeForSingleQuotedString(eventObj.name.replace(/\s+/g, '_').toLowerCase())}" data-plan-name="${escapeForSingleQuotedString(eventObj.name)}" data-ra="0" data-dec="0" style="padding: 4px 10px; font-size: 0.75rem; background: rgba(236, 72, 153, 0.15); border-color: rgba(236, 72, 153, 0.3); color: #fbcfe8; cursor: pointer; border-radius: 4px; font-weight: 600;">Add to Plan +</button>
         </div>
       </div>
     </div>
@@ -2042,9 +2042,9 @@ function renderTargetGrid(targets, liveMap, typeFilter = 'all', equipFilter = 'a
         ${t.horizon_note ? `<div class="tc-horizon-note">${t.horizon_note}</div>` : ''}
         <div class="tc-footer" style="flex-wrap: wrap; gap: 8px;">
           <div style="display: flex; gap: 6px; width: 100%;">
-            <button class="btn-fov" onclick="openFovModal(${t.ra_hours * 15}, ${t.dec_degrees}, '${t.name.replace(/'/g, "\\'")}')">Simulate View 🔭</button>
-            <button class="btn-fov" data-plan-id="${t.id}" data-plan-name="${t.name.replace(/'/g, "\\'")}" data-ra="${t.ra_hours * 15}" data-dec="${t.dec_degrees}" style="background: rgba(59, 130, 246, 0.15); border-color: rgba(59, 130, 246, 0.3); color: #93c5fd;">Add to Plan +</button>
-            <button class="btn-fov" onclick="openGalleryModal('${t.id}', '${t.name.replace(/'/g, "\\'")}')" style="background: rgba(34, 197, 94, 0.15); border-color: rgba(34, 197, 94, 0.3); color: #86efac;">Gallery & Share 📷</button>
+            <button class="btn-fov" onclick="openFovModal(${t.ra_hours * 15}, ${t.dec_degrees}, '${escapeForSingleQuotedString(t.name)}')">Simulate View 🔭</button>
+            <button class="btn-fov" data-plan-id="${t.id}" data-plan-name="${escapeForSingleQuotedString(t.name)}" data-ra="${t.ra_hours * 15}" data-dec="${t.dec_degrees}" style="background: rgba(59, 130, 246, 0.15); border-color: rgba(59, 130, 246, 0.3); color: #93c5fd;">Add to Plan +</button>
+            <button class="btn-fov" onclick="openGalleryModal('${t.id}', '${escapeForSingleQuotedString(t.name)}')" style="background: rgba(34, 197, 94, 0.15); border-color: rgba(34, 197, 94, 0.3); color: #86efac;">Gallery & Share 📷</button>
           </div>
           <span class="tc-equipment">${t.equipment || '🔭 Telescope'}</span>
           ${(t.difficulty && t.difficulty.toUpperCase().replace('_', ' ') !== 'NAKED EYE') ? `<span class="tc-difficulty ${t.difficulty.replace(' ', '_')}">${t.difficulty.replace('_', ' ')}</span>` : ''}
