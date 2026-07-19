@@ -2062,7 +2062,12 @@ function renderTargetGrid(targets, liveMap, typeFilter = 'all', equipFilter = 'a
   const filtered = targets.filter(t => {
     let typeMatch = true;
     if (typeFilter !== 'all') {
-      typeMatch = t.type.toLowerCase().includes(typeFilter);
+      if (typeFilter === 'has-images') {
+        const safeId = t.id || t.name.toLowerCase().replace(/\s+/g, '_');
+        typeMatch = !!(window.galleryCounts && window.galleryCounts[safeId]);
+      } else {
+        typeMatch = t.type.toLowerCase().includes(typeFilter);
+      }
     }
     
     let equipMatch = true;
@@ -4155,6 +4160,13 @@ document.addEventListener('DOMContentLoaded', () => {
         compressedImageBase64 = canvas.toDataURL('image/jpeg', 0.85);
         previewImg.src = compressedImageBase64;
         previewDiv.style.display = 'flex';
+      };
+      img.onerror = function() {
+        showInfo('❌ Unsupported image format. If you are uploading a HEIC/HEIF image (e.g. from an iPhone), please convert it to JPEG or PNG first.', null, true);
+        fileInput.value = '';
+        compressedImageBase64 = '';
+        previewDiv.style.display = 'none';
+        if (previewImg) previewImg.src = '';
       };
       img.src = event.target.result;
     };
