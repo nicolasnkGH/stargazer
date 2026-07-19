@@ -369,14 +369,63 @@ def _rule_based_seeing_score(weather: dict, moon_illum: float, moon_alt: float, 
 
     moon_fact = get_moon_fact(phase_name, moon_illum, moon_distance_km, today=date.today())
 
+    explanation_parts = []
+    if cloud < 20:
+        explanation_parts.append("Tonight's skies are exceptionally clear, offering excellent transparency.")
+    elif cloud < 50:
+        explanation_parts.append("Expect partially cloudy skies tonight; some targets might be obscured.")
+    else:
+        explanation_parts.append("Overcast skies will severely limit visibility and telescope observing tonight.")
+        
+    if precip > 30:
+        explanation_parts.append("High risk of rain/precipitation; keep your equipment covered.")
+    if wind_s > 25:
+        explanation_parts.append("Breezy surface winds might cause telescope vibrations.")
+    if spread is not None and spread < 3:
+        explanation_parts.append("High dew risk — expect lens condensation tonight.")
+        
+    if moon_illum > 60 and moon_alt > 15:
+        explanation_parts.append(f"The bright {moon_illum:.0f}% moon will wash out faint deep-sky targets.")
+        
+    if score >= 7:
+        explanation_parts.append("Excellent conditions for stargazing and deep-sky astrophotography!")
+    elif score >= 5:
+        explanation_parts.append("Decent night for bright stars, the Moon, and planetary observation.")
+    else:
+        explanation_parts.append("Poor conditions tonight. Great opportunity to review your gear or read astronomy logs.")
+        
+    explanation = " ".join(explanation_parts)
+
+    fallback_message = ""
+    if score < 4:
+        fallback_message = "Alternative Idea: Grab a warm drink, watch a space documentary, or catch up on astronomy news!"
+
+    # Fun rule-based astronomical event of the night
+    event_of_the_night = None
+    import datetime
+    today = datetime.date.today()
+    # Let's add a couple of fun seasonal events based on date
+    if today.month == 7:
+        event_of_the_night = {
+            "name": "Summer Milky Way Season",
+            "description": "Peak season to observe the core of our galaxy stretching through Sagittarius and Scorpius. Best visible around midnight away from city lights."
+        }
+    elif today.month == 8:
+        event_of_the_night = {
+            "name": "Perseids Meteor Shower Preparation",
+            "description": "Perseids are beginning to show activity. Scan the northeastern sky after midnight for bright, fast-moving shooting stars."
+        }
+
     return {
         "score": score,
         "label": labels[score],
-        "explanation": "",   # rule-based doesn't generate prose
+        "explanation": explanation,
         "moon_fact": moon_fact,
         "best_window": best_window,
         "warnings": warnings,
         "recommended_targets": [],
+        "fallback_message": fallback_message,
+        "event_of_the_night": event_of_the_night,
         "ai_powered": False,
     }
 

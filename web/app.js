@@ -611,11 +611,14 @@ function renderSeeing(seeing, data) {
     hcContainer.style.display = '';
   }
 
-  // Also surface the AI explanation as the Observer's Briefing in the Must-See card
-  if (seeing.seeing_explanation && seeing.ai_powered) {
+  // Also surface the explanation as the Observer's Briefing in the Must-See card
+  if (seeing.seeing_explanation) {
     window.lastBriefing = {
       text: seeing.seeing_explanation,
       bestWindow: seeing.best_window || null,
+      fallback_message: seeing.fallback_message || null,
+      event_of_the_night: seeing.event_of_the_night || null,
+      ai_powered: !!seeing.ai_powered
     };
     updateUnifiedCard();
   }
@@ -1348,10 +1351,10 @@ function updateUnifiedCard() {
     </div>
   ` : '';
 
-  // Observer's Briefing — AI-generated prose at the top
+  // Observer's Briefing — generated prose at the top
   const briefingHtml = briefing ? `
     <div class="observer-briefing">
-      <div class="observer-briefing-label">🤖 Observer's Briefing</div>
+      <div class="observer-briefing-label">${briefing.ai_powered ? '🤖 AI Observer\'s Briefing' : '📋 Observer\'s Briefing'}</div>
       <div class="observer-briefing-text">${briefing.text}</div>
       ${(!alertsHtml && !aiHtml && !eventHtml && briefing.fallback_message) ? `<div class="observer-briefing-text" style="margin-top: 12px; font-style: italic; color: #fbcfe8;">${briefing.fallback_message}</div>` : ''}
       ${briefing.bestWindow ? `<div class="observer-briefing-window">🔭 Best window: <strong>${briefing.bestWindow}</strong></div>` : ''}
