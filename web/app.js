@@ -1594,7 +1594,7 @@ function updateUnifiedCard() {
   if (!alertsHtml && !aiHtml && !eventHtml && !briefingHtml) {
     const fallbackMsg = `
       <div style="text-align: center; padding: 30px 20px; color: var(--text-secondary); font-style: italic; background: rgba(255,255,255,0.02); border-radius: 8px; border: 1px dashed rgba(255,255,255,0.1); margin: 10px 0;">
-        ${_cDict.no_targets_visible_now || 'No targets visible right now. Conditions might be poor, or it\\'s daytime!'}
+        ${_cDict.no_targets_visible_now || "No targets visible right now. Conditions might be poor, or it's daytime!"}
       </div>
     `;
     list.innerHTML = fallbackMsg + factHtml;
