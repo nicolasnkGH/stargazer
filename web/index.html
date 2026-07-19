@@ -599,6 +599,30 @@
           <iframe id="solar-scope-iframe" src="https://www.solarsystemscope.com/iframe" style="width: 100%; height: 100%; border: none; pointer-events: none;" allow="fullscreen"></iframe>
         </div>
       </section>
+      
+      <!-- ── Light Pollution Map Card ── -->
+      <section class="card" id="card-light-pollution" style="margin-bottom: 20px;">
+        <div class="card-header">
+          <span class="card-icon"><i data-lucide="map"></i></span>
+          <h2 class="card-title">Light Pollution Map</h2>
+        </div>
+        <div class="card-body" style="padding: 0; overflow: hidden; border-radius: 0 0 12px 12px; height: 320px; position: relative; background: radial-gradient(circle at center, rgba(16, 24, 48, 0.95), rgba(8, 12, 24, 1)); display: flex; flex-direction: column; align-items: center; justify-content: center; text-align: center; border: 1px solid rgba(255, 255, 255, 0.03);">
+          <!-- Map Grid/Glow Styling -->
+          <div style="position: absolute; inset: 0; opacity: 0.15; background-image: radial-gradient(rgba(59, 130, 246, 0.3) 1px, transparent 0), radial-gradient(rgba(59, 130, 246, 0.3) 1.5px, transparent 0); background-size: 20px 20px; background-position: 0 0, 10px 10px; pointer-events: none;"></div>
+          <div style="position: absolute; width: 150px; height: 150px; border-radius: 50%; background: radial-gradient(circle, rgba(239, 68, 68, 0.15) 0%, transparent 70%); filter: blur(10px); pointer-events: none;"></div>
+          
+          <div style="z-index: 2; padding: 20px; max-width: 360px;">
+            <i data-lucide="map" style="width: 48px; height: 48px; color: #3b82f6; margin-bottom: 15px; opacity: 0.85; margin-left: auto; margin-right: auto; display: block;"></i>
+            <h3 style="margin: 0 0 10px 0; font-size: 1.1rem; color: #fff;">Explore Light Pollution Near You</h3>
+            <p style="font-size: 0.85rem; color: var(--text-dim); margin: 0 0 20px 0; line-height: 1.4;">
+              Open the interactive light pollution map centered on your selected coordinates to analyze local Bortle scale class and sky glow.
+            </p>
+            <a id="lp-map-link" href="" target="_blank" class="btn btn-primary" style="padding: 10px 20px; font-size: 0.9rem; text-decoration: none; display: inline-flex; align-items: center; gap: 8px; background: #3b82f6; color: #fff; border-radius: 6px; font-weight: 600;">
+              Open Interactive Map <i data-lucide="external-link" style="width:14px;height:14px;"></i>
+            </a>
+          </div>
+        </div>
+      </section>
 
     <!-- ── Clear Outside Weather Embed ── -->
     <section id="card-weather" class="card card-weather">

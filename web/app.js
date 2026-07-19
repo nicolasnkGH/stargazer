@@ -79,7 +79,7 @@ let API_BASE;
 if (window.location.hostname.includes('nick-t.net')) {
   API_BASE = 'https://stargazer-api-700732233634.us-central1.run.app';
 } else if (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1') {
-  API_BASE = 'http://localhost:8181';
+  API_BASE = 'https://stargazer-api-700732233634.us-central1.run.app'; // Use production backend for local testing
 } else {
   API_BASE = '/api'; // Fallback for Docker LAN self-hosting where Nginx is the proxy
 }
@@ -2602,6 +2602,42 @@ async function init() {
 
   // Init Lucide icons after all data has loaded
   if (window.lucide) lucide.createIcons();
+
+  // Scroll protection for Solar System Scope card
+  const ssCard = document.getElementById('card-solar-system-scope');
+  if (ssCard) {
+    ssCard.addEventListener('mouseleave', () => {
+      const overlay = document.getElementById('solar-scope-overlay');
+      const iframe = document.getElementById('solar-scope-iframe');
+      if (overlay && iframe) {
+        overlay.style.pointerEvents = 'auto';
+        overlay.style.opacity = '1';
+        iframe.style.pointerEvents = 'none';
+      }
+    });
+
+    const btnFullscreen = document.getElementById('btn-solar-fullscreen');
+    if (btnFullscreen) {
+      btnFullscreen.addEventListener('click', () => {
+        const iframe = document.getElementById('solar-scope-iframe');
+        if (iframe) {
+          if (iframe.requestFullscreen) {
+            iframe.requestFullscreen();
+          } else if (iframe.webkitRequestFullscreen) { /* Safari / iOS */
+            iframe.webkitRequestFullscreen();
+          } else if (iframe.msRequestFullscreen) {
+            iframe.msRequestFullscreen();
+          }
+        }
+      });
+    }
+  }
+
+  // Light Pollution Map link initialization with active coordinates
+  const lpLink = document.getElementById('lp-map-link');
+  if (lpLink) {
+    lpLink.href = `https://lightpollutionmap.app/?lat=${currentLat}&lng=${currentLon}&zoom=9`;
+  }
 }
 
 document.addEventListener('DOMContentLoaded', () => {
