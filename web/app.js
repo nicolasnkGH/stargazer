@@ -7,6 +7,17 @@ function escapeForSingleQuotedString(s) {
   return String(s).replace(/\\/g, "\\\\").replace(/'/g, "\\'");
 }
 
+window.escapeHtml = function(str) {
+  if (str === null || str === undefined) return '';
+  return String(str)
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;")
+    .replace(/"/g, "&quot;")
+    .replace(/'/g, "&#039;");
+};
+
+
 function translateDate(dateStr) {
   if (!dateStr || currentLang === 'en') return dateStr;
   const dict = window.i18n[currentLang];
@@ -1279,14 +1290,14 @@ function renderConstellationMap(targets, constInfo) {
         let dist = data.distance === 'Unknown' ? (dict.simbad_unknown || 'Unknown') : data.distance;
         
         const html = `
-          <div style="font-size: 1.05rem; color: #fff; margin-bottom: 6px; font-weight: bold;">${data.name.replace('* ', '')}</div>
+          <div style="font-size: 1.05rem; color: #fff; margin-bottom: 6px; font-weight: bold;">${window.escapeHtml(data.name.replace('* ', ''))}</div>
           <div style="display:flex; justify-content:space-between; margin-bottom:4px; gap: 15px;">
             <span style="color:#94a3b8;">${dict.simbad_spectral || 'Spectral Type'}</span>
-            <span style="color:#4ade80; font-family:var(--font-mono);">${spType}</span>
+            <span style="color:#4ade80; font-family:var(--font-mono);">${window.escapeHtml(spType)}</span>
           </div>
           <div style="display:flex; justify-content:space-between;">
             <span style="color:#94a3b8;">${dict.simbad_dist || 'Distance'}</span>
-            <span style="color:#60a5fa; font-family:var(--font-mono);">${dist}</span>
+            <span style="color:#60a5fa; font-family:var(--font-mono);">${window.escapeHtml(dist)}</span>
           </div>
         `;
         showInfo(html, clickEvent, true);
@@ -3654,7 +3665,7 @@ document.querySelectorAll('.copy-metric-btn').forEach(btn => {
       navigator.clipboard.writeText(copyString)
         .then(() => {
           if (typeof showInfo === 'function') {
-            showInfo(`Copied to clipboard: ${valueText}`, event);
+            showInfo(`Copied to clipboard: ${window.escapeHtml(valueText)}`, event);
           }
         })
         .catch(err => {
@@ -3681,7 +3692,7 @@ window.addToPlan = function(id, name, ra, dec) {
   const existing = nightPlan.find(item => String(item.id || '').toLowerCase() === normId);
   id = normId;
   if (existing) {
-    showInfo(`⚠️ ${name} is already in your night plan!`, null, false);
+    showInfo(`⚠️ ${window.escapeHtml(name)} is already in your night plan!`, null, false);
     return;
   }
   
@@ -3714,7 +3725,7 @@ window.addToPlan = function(id, name, ra, dec) {
   nightPlan.push(newEntry);
   saveAndRenderPlan();
   
-  showInfo(`✅ Added ${name} to your Night Plan!`, null, false);
+  showInfo(`✅ Added ${window.escapeHtml(name)} to your Night Plan!`, null, false);
 
   // Request notification permission if not already granted
   if (typeof Notification !== 'undefined' && Notification.permission === 'default') {
@@ -3814,7 +3825,7 @@ function rescheduleAllPlanNotifications() {
     const timerId = setTimeout(async () => {
       // Always show in-app fallback toast for foreground users (or users who blocked native notifications)
       if (window.showInfo) {
-        window.showInfo(`<b>🔭 Plan My Night</b><br>It's time to observe: ${item.name}! (${item.startTime})`, null, true);
+        window.showInfo(`<b>🔭 Plan My Night</b><br>It's time to observe: ${window.escapeHtml(item.name)}! (${window.escapeHtml(item.startTime)})`, null, true);
       }
 
       if (typeof Notification !== 'undefined' && Notification.permission === 'granted') {
@@ -4184,7 +4195,7 @@ document.addEventListener('DOMContentLoaded', () => {
         await loadGalleryImages(targetId);
       } else {
         const errorData = await res.json();
-        const msg = errorData.detail || 'Upload failed.';
+        const msg = window.escapeHtml(errorData.detail || 'Upload failed.');
         showInfo(`❌ ${msg}`, null, true);
       }
     } catch (e) {
