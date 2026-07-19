@@ -79,44 +79,102 @@ if (!AbortSignal.timeout) {
   };
 }
 
-// Delegated handler for Add-to-Plan buttons.
+// Delegated handler for interactive elements (avoids inline onclick attribute vulnerabilities).
 document.addEventListener('click', function (e) {
-  const btn = e.target.closest('button.filter-btn, button.btn-fov, button.btn');
-    if (!btn || !btn.dataset) return;
+  const target = e.target;
+  if (!target) return;
 
-  // Prefer data-* attributes when present (more robust than onclick strings)
-  if (btn.dataset && (btn.dataset.planId || btn.dataset.planName)) {
-    const pid = btn.dataset.planId || btn.dataset.planName || btn.textContent || '';
-    const pname = btn.dataset.planName || btn.dataset.planId || btn.getAttribute('aria-label') || btn.textContent || 'Target';
-    const pra = Number(btn.dataset.ra || 0);
-    const pdec = Number(btn.dataset.dec || 0);
+  // 1. Add-to-Plan buttons
+  const planBtn = target.closest('[data-plan-id], [data-plan-name]');
+  if (planBtn && planBtn.dataset) {
+    const pid = planBtn.dataset.planId || planBtn.dataset.planName || planBtn.textContent || '';
+    const pname = planBtn.dataset.planName || planBtn.dataset.planId || planBtn.getAttribute('aria-label') || planBtn.textContent || 'Target';
+    const pra = Number(planBtn.dataset.ra || 0);
+    const pdec = Number(planBtn.dataset.dec || 0);
     try { window.addToPlan(pid, pname, pra, pdec); } catch (err) { console.warn('addToPlan failed', err); }
     return;
   }
 
+  // 2. Simulate View (FOV) buttons
+  const fovBtn = target.closest('[data-fov-ra]');
+  if (fovBtn && fovBtn.dataset) {
+    const ra = Number(fovBtn.dataset.fovRa || 0);
+    const dec = Number(fovBtn.dataset.fovDec || 0);
+    const name = fovBtn.dataset.fovName || '';
+    try { window.openFovModal(ra, dec, name); } catch (err) { console.warn('openFovModal failed', err); }
+    return;
+  }
+
+  // 3. Gallery & Share buttons
+  const galleryBtn = target.closest('[data-gallery-id]');
+  if (galleryBtn && galleryBtn.dataset) {
+    const id = galleryBtn.dataset.galleryId;
+    const name = galleryBtn.dataset.galleryName;
+    try { window.openGalleryModal(id, name); } catch (err) { console.warn('openGalleryModal failed', err); }
+    return;
+  }
+
+  // 4. Activate/Delete Location buttons
+  const locInfo = target.closest('[data-activate-location-id]');
+  if (locInfo && locInfo.dataset) {
+    window.activateLocation(locInfo.dataset.activateLocationId);
+    return;
+  }
+
+  const locDel = target.closest('[data-delete-location-id]');
+  if (locDel && locDel.dataset) {
+    window.deleteLocation(locDel.dataset.deleteLocationId);
+    return;
+  }
+
+  // 5. Motion fact dot rotation
+  const dot = target.closest('[data-fact-type]');
+  if (dot && dot.dataset) {
+    const type = dot.dataset.factType;
+    const idx = Number(dot.dataset.factIdx || 0);
+    try { window.goMotionFact(type, idx); } catch (err) { console.warn('goMotionFact failed', err); }
+    return;
+  }
+
+  // 6. Plan list move/remove buttons
+  const moveBtn = target.closest('[data-move-plan-idx]');
+  if (moveBtn && moveBtn.dataset) {
+    const idx = Number(moveBtn.dataset.movePlanIdx);
+    const dir = moveBtn.dataset.movePlanDir;
+    try { window.movePlanItem(idx, dir); } catch (err) { console.warn('movePlanItem failed', err); }
+    return;
+  }
+
+  const removeBtn = target.closest('[data-remove-plan-idx]');
+  if (removeBtn && removeBtn.dataset) {
+    const idx = Number(removeBtn.dataset.removePlanIdx);
+    try { window.removeFromPlan(idx); } catch (err) { console.warn('removeFromPlan failed', err); }
+    return;
+  }
+
   // Fallback: parse inline onclick="addToPlan('id','Name', 0, 0)"
-  try {
-    const onclick = btn.getAttribute && btn.getAttribute('onclick');
-    if (onclick && onclick.includes('addToPlan')) {
-      const m = onclick.match(/addToPlan\(([^)]*)\)/);
-      if (m && m[1]) {
-        // Evaluate arguments safely by constructing an array expression
-        // Replace single quotes with double quotes to help JSON parse numbers/strings
-        const argsSrc = m[1];
-        let parsedArgs = [];
-        try {
-          parsedArgs = Function('return [' + argsSrc + ']')();
-        } catch (e) {
-          // Last resort: manual split (naive)
-          parsedArgs = argsSrc.split(',').map(s => s.trim().replace(/^['"]|['"]$/g, ''));
+  const btn = target.closest('button.filter-btn, button.btn-fov, button.btn');
+  if (btn) {
+    try {
+      const onclick = btn.getAttribute && btn.getAttribute('onclick');
+      if (onclick && onclick.includes('addToPlan')) {
+        const m = onclick.match(/addToPlan\(([^)]*)\)/);
+        if (m && m[1]) {
+          const argsSrc = m[1];
+          let parsedArgs = [];
+          try {
+            parsedArgs = Function('return [' + argsSrc + ']')();
+          } catch (e) {
+            parsedArgs = argsSrc.split(',').map(s => s.trim().replace(/^['"]|['"]$/g, ''));
+          }
+          const [pid, pname, pra = 0, pdec = 0] = parsedArgs;
+          try { window.addToPlan(pid, pname, Number(pra), Number(pdec)); } catch (err) { console.warn('addToPlan fallback failed', err); }
+          return;
         }
-        const [pid, pname, pra = 0, pdec = 0] = parsedArgs;
-        try { window.addToPlan(pid, pname, Number(pra), Number(pdec)); } catch (err) { console.warn('addToPlan fallback failed', err); }
-        return;
       }
+    } catch (err) {
+      console.warn('Error handling delegated addToPlan click fallback', err);
     }
-  } catch (err) {
-    console.warn('Error handling delegated addToPlan click', err);
   }
 });
 
@@ -1759,7 +1817,7 @@ function initMotionFacts() {
     const dotsEl = document.getElementById(`${type}-fact-dots`);
     if (dotsEl) {
       dotsEl.innerHTML = facts.map((_, i) =>
-        `<span class="motion-fact-dot${i === 0 ? ' active' : ''}" onclick="goMotionFact('${type}',${i})"></span>`
+        `<span class="motion-fact-dot${i === 0 ? ' active' : ''}" data-fact-type="${type}" data-fact-idx="${i}"></span>`
       ).join('');
     }
     // Show first fact
@@ -2042,9 +2100,9 @@ function renderTargetGrid(targets, liveMap, typeFilter = 'all', equipFilter = 'a
         ${t.horizon_note ? `<div class="tc-horizon-note">${t.horizon_note}</div>` : ''}
         <div class="tc-footer" style="flex-wrap: wrap; gap: 8px;">
           <div style="display: flex; gap: 6px; width: 100%;">
-            <button class="btn-fov" onclick="openFovModal(${t.ra_hours * 15}, ${t.dec_degrees}, '${escapeForSingleQuotedString(t.name)}')">Simulate View 🔭</button>
+            <button class="btn-fov" data-fov-ra="${t.ra_hours * 15}" data-fov-dec="${t.dec_degrees}" data-fov-name="${escapeForSingleQuotedString(t.name)}">Simulate View 🔭</button>
             <button class="btn-fov" data-plan-id="${t.id}" data-plan-name="${escapeForSingleQuotedString(t.name)}" data-ra="${t.ra_hours * 15}" data-dec="${t.dec_degrees}" style="background: rgba(59, 130, 246, 0.15); border-color: rgba(59, 130, 246, 0.3); color: #93c5fd;">Add to Plan +</button>
-            <button class="btn-fov" onclick="openGalleryModal('${t.id}', '${escapeForSingleQuotedString(t.name)}')" style="background: rgba(34, 197, 94, 0.15); border-color: rgba(34, 197, 94, 0.3); color: #86efac;">Gallery & Share 📷</button>
+            <button class="btn-fov" data-gallery-id="${t.id}" data-gallery-name="${escapeForSingleQuotedString(t.name)}" style="background: rgba(34, 197, 94, 0.15); border-color: rgba(34, 197, 94, 0.3); color: #86efac;">Gallery & Share 📷</button>
           </div>
           <span class="tc-equipment">${t.equipment || '🔭 Telescope'}</span>
           ${(t.difficulty && t.difficulty.toUpperCase().replace('_', ' ') !== 'NAKED EYE') ? `<span class="tc-difficulty ${t.difficulty.replace(' ', '_')}">${t.difficulty.replace('_', ' ')}</span>` : ''}
@@ -2144,11 +2202,11 @@ function initLocationUI() {
   function renderList() {
     listEl.innerHTML = savedLocations.map(l => `
       <div class="loc-item ${l.id === activeLocId ? 'active' : ''}">
-        <div class="loc-info" onclick="activateLocation('${l.id}')">
+        <div class="loc-info" data-activate-location-id="${l.id}">
           <div class="loc-name">${l.name}</div>
           <div class="loc-coords">${l.lat.toFixed(4)}, ${l.lon.toFixed(4)}</div>
         </div>
-        ${l.id !== 'default' ? `<button class="loc-del" onclick="deleteLocation('${l.id}')">✕</button>` : ''}
+        ${l.id !== 'default' ? `<button class="loc-del" data-delete-location-id="${l.id}">✕</button>` : ''}
       </div>
     `).join('');
   }
@@ -3831,9 +3889,9 @@ function renderNightPlan() {
             </div>
           </div>
           <div style="display: flex; gap: 6px;">
-            <button class="filter-btn" onclick="movePlanItem(${idx}, 'up')" style="padding: 4px 8px;" ${idx === 0 ? 'disabled' : ''}>↑</button>
-            <button class="filter-btn" onclick="movePlanItem(${idx}, 'down')" style="padding: 4px 8px;" ${idx === nightPlan.length - 1 ? 'disabled' : ''}>↓</button>
-            <button class="filter-btn" onclick="removeFromPlan(${idx})" style="padding: 4px 8px; background: rgba(239, 68, 68, 0.1); border-color: rgba(239, 68, 68, 0.2); color: #f87171;">Remove</button>
+            <button class="filter-btn" data-move-plan-idx="${idx}" data-move-plan-dir="up" style="padding: 4px 8px;" ${idx === 0 ? 'disabled' : ''}>↑</button>
+            <button class="filter-btn" data-move-plan-idx="${idx}" data-move-plan-dir="down" style="padding: 4px 8px;" ${idx === nightPlan.length - 1 ? 'disabled' : ''}>↓</button>
+            <button class="filter-btn" data-remove-plan-idx="${idx}" style="padding: 4px 8px; background: rgba(239, 68, 68, 0.1); border-color: rgba(239, 68, 68, 0.2); color: #f87171;">Remove</button>
           </div>
         </div>
       `;
