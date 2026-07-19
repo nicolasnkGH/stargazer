@@ -3094,9 +3094,22 @@ function adjustSolarSystemIframe() {
   const iframe = document.getElementById('solar-scope-iframe');
   if (!container || !iframe) return;
 
-  iframe.style.width = '100%';
-  iframe.style.height = '100%';
-  iframe.style.transform = 'none';
+  if (window.innerWidth < 768) {
+    // NASA Eyes UI squishes and overlaps on narrow screens.
+    // We give it a virtual width of 800px so it lays out cleanly, then scale it down to fit.
+    const virtualWidth = 800;
+    const scale = container.clientWidth / virtualWidth;
+    const virtualHeight = container.clientHeight / scale;
+
+    iframe.style.width = `${virtualWidth}px`;
+    iframe.style.height = `${virtualHeight}px`;
+    iframe.style.transform = `scale(${scale})`;
+    iframe.style.transformOrigin = 'top left';
+  } else {
+    iframe.style.width = '100%';
+    iframe.style.height = '100%';
+    iframe.style.transform = 'none';
+  }
 }
 
 function isSolarSystemFullscreen() {
