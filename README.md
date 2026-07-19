@@ -47,7 +47,7 @@ Getting started with amateur astronomy can be overwhelming. Commercial star char
 * **🧠 AI Seeing Analysis:** Aggregates live cloud, humidity, temperature, and upper-atmosphere wind data to output a definitive "GO / NO GO" verdict via **Google Gemini 2.5 Flash**.
 * **🪐 Planet Tracker:** Computes real-time altitude, azimuth, magnitude, constellation location, and light travel time for the naked-eye planets.
 * **⚡ Aurora & Space Weather Monitor:** Displays planetary Kp-index readings, solar storm warnings, and active alert feeds in real-time from NOAA SWPC, predicting local aurora visibility probability based on latitude.
-* **☄️ 3D Interactive Solar System:** Embeds NASA's official 3D planetary orrery simulator.
+* **☄️ 3D Interactive Solar System:** Embeds a live 3D planetary model with mobile scaling features.
 * **🛰️ Space Trackers:** Includes an **ISS Flyover Tracker** (predicts visible passes for the next 10 days), **Meteor Shower Monitor**, and a **NASA Near-Earth Object (NEO) Radar**.
 
 ### 📱 Premium UX & Design
