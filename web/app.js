@@ -4034,11 +4034,11 @@ document.addEventListener('DOMContentLoaded', () => {
     // Reset form
     uploadForm.reset();
     previewDiv.style.display = 'none';
+    compressedImageBase64 = '';
+    const previewImg = document.getElementById('gallery-preview-img');
+    if (previewImg) previewImg.src = '';
     
-    // Switch to view tab
     switchGalleryTab('view');
-    
-    // Load images
     await loadGalleryImages(targetId);
     
     galleryModal.classList.remove('hidden');
@@ -4069,11 +4069,30 @@ document.addEventListener('DOMContentLoaded', () => {
     }
   });
 
+  window.openLightbox = function(src) {
+    const modal = document.getElementById('lightbox-modal');
+    const img = document.getElementById('lightbox-img');
+    if (modal && img) {
+      img.src = src;
+      modal.classList.remove('hidden');
+    }
+  };
+
+  window.closeLightbox = function() {
+    const modal = document.getElementById('lightbox-modal');
+    if (modal) modal.classList.add('hidden');
+  };
+
   // Handle file preview and compression
   let compressedImageBase64 = '';
   fileInput?.addEventListener('change', (e) => {
     const file = e.target.files[0];
-    if (!file) return;
+    if (!file) {
+      compressedImageBase64 = '';
+      previewDiv.style.display = 'none';
+      if (previewImg) previewImg.src = '';
+      return;
+    }
 
     const reader = new FileReader();
     reader.onload = function(event) {
@@ -4122,7 +4141,7 @@ document.addEventListener('DOMContentLoaded', () => {
         container.innerHTML = list.map(item => `
           <div style="background: rgba(255,255,255,0.02); border: 1px solid rgba(255,255,255,0.05); border-radius: 8px; padding: 12px; display: flex; flex-direction: column; gap: 8px;">
             <div style="width: 100%; border-radius: 6px; overflow: hidden; background: #000; display: flex; align-items: center; justify-content: center; max-height: 250px;">
-              <img src="${API_BASE}/api/gallery/image/${encodeURIComponent(item.id)}" alt="${escapeHtml(item.target_name)}" style="max-width: 100%; max-height: 250px; object-fit: contain;">
+              <img src="${API_BASE}/api/gallery/image/${encodeURIComponent(item.id)}" alt="${escapeHtml(item.target_name)}" style="max-width: 100%; max-height: 250px; object-fit: contain; cursor: zoom-in;" onclick="window.openLightbox(this.src)">
             </div>
             <div style="font-size: 0.85rem; color: #fff; font-weight: 600;">
               👤 Shared by: ${escapeHtml(item.author)}
