@@ -4185,10 +4185,10 @@ document.addEventListener('DOMContentLoaded', () => {
         container.innerHTML = list.map(item => `
           <div id="gallery-img-card-${item.id}" style="position: relative; background: rgba(255,255,255,0.02); border: 1px solid rgba(255,255,255,0.05); border-radius: 8px; padding: 12px; display: flex; flex-direction: column; gap: 8px;">
             <div style="width: 100%; border-radius: 6px; overflow: hidden; background: #000; display: flex; align-items: center; justify-content: center; max-height: 250px;">
-              <img src="${API_BASE}/api/gallery/image/${encodeURIComponent(item.id)}" alt="${escapeHtml(item.target_name)}" style="max-width: 100%; max-height: 250px; object-fit: contain; cursor: zoom-in;" onclick="window.openLightbox(this.src)">
+              <img src="${API_BASE}/api/gallery/image/${encodeURIComponent(item.id)}" alt="${escapeHtml(item.target_name)}" style="max-width: 100%; max-height: 250px; object-fit: contain; cursor: zoom-in;" data-lightbox-src="${API_BASE}/api/gallery/image/${encodeURIComponent(item.id)}">
             </div>
             <div style="font-size: 0.85rem; color: #fff; font-weight: 600;">
-              👤 Shared by: ${escapeHtml(item.author)} <button onclick="window.reportGalleryImage(${item.id})" style="position: absolute; top: 10px; right: 10px; background: rgba(239,68,68,0.2); border: 1px solid rgba(239,68,68,0.4); color: #fca5a5; border-radius: 4px; padding: 2px 6px; font-size: 0.7rem; cursor: pointer;" title="Report this image">🚩 Report</button>
+              👤 Shared by: ${escapeHtml(item.author)} <button data-report-image-id="${item.id}" style="position: absolute; top: 10px; right: 10px; background: rgba(239,68,68,0.2); border: 1px solid rgba(239,68,68,0.4); color: #fca5a5; border-radius: 4px; padding: 2px 6px; font-size: 0.7rem; cursor: pointer;" title="Report this image">🚩 Report</button>
             </div>
             <div style="font-size: 0.75rem; color: var(--text-dim); display: flex; flex-direction: column; gap: 2px;">
               <span>📍 Location: ${escapeHtml(item.location)}</span>
