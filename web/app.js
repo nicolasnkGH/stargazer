@@ -3,6 +3,21 @@ window.currentLang = currentLang;
 
 let isMetric = localStorage.getItem('stargazer_units') !== 'imperial';
 
+function escapeForSingleQuotedString(s) {
+  return String(s).replace(/\\/g, "\\\\").replace(/'/g, "\\'");
+}
+
+window.escapeHtml = function(str) {
+  if (str === null || str === undefined) return '';
+  return String(str)
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;")
+    .replace(/"/g, "&quot;")
+    .replace(/'/g, "&#039;");
+};
+
+
 function translateDate(dateStr) {
   if (!dateStr || currentLang === 'en') return dateStr;
   const dict = window.i18n[currentLang];
@@ -74,6 +89,105 @@ if (!AbortSignal.timeout) {
     return controller.signal;
   };
 }
+
+// Delegated handler for interactive elements (avoids inline onclick attribute vulnerabilities).
+document.addEventListener('click', function (e) {
+  const target = e.target;
+  if (!target) return;
+
+  // 1. Add-to-Plan buttons
+  const planBtn = target.closest('[data-plan-id], [data-plan-name]');
+  if (planBtn && planBtn.dataset) {
+    const pid = planBtn.dataset.planId || planBtn.dataset.planName || planBtn.textContent || '';
+    const pname = planBtn.dataset.planName || planBtn.dataset.planId || planBtn.getAttribute('aria-label') || planBtn.textContent || 'Target';
+    const pra = Number(planBtn.dataset.ra || 0);
+    const pdec = Number(planBtn.dataset.dec || 0);
+    try { window.addToPlan(pid, pname, pra, pdec); } catch (err) { console.warn('addToPlan failed', err); }
+    return;
+  }
+
+  // 2. Simulate View (FOV) buttons
+  const fovBtn = target.closest('[data-fov-ra]');
+  if (fovBtn && fovBtn.dataset) {
+    const ra = Number(fovBtn.dataset.fovRa || 0);
+    const dec = Number(fovBtn.dataset.fovDec || 0);
+    const name = fovBtn.dataset.fovName || '';
+    try { window.openFovModal(ra, dec, name); } catch (err) { console.warn('openFovModal failed', err); }
+    return;
+  }
+
+  // 3. Gallery & Share buttons
+  const galleryBtn = target.closest('[data-gallery-id]');
+  if (galleryBtn && galleryBtn.dataset) {
+    const id = galleryBtn.dataset.galleryId;
+    const name = galleryBtn.dataset.galleryName;
+    try { window.openGalleryModal(id, name); } catch (err) { console.warn('openGalleryModal failed', err); }
+    return;
+  }
+
+  // 4. Activate/Delete Location buttons
+  const locInfo = target.closest('[data-activate-location-id]');
+  if (locInfo && locInfo.dataset) {
+    window.activateLocation(locInfo.dataset.activateLocationId);
+    return;
+  }
+
+  const locDel = target.closest('[data-delete-location-id]');
+  if (locDel && locDel.dataset) {
+    window.deleteLocation(locDel.dataset.deleteLocationId);
+    return;
+  }
+
+  // 5. Motion fact dot rotation
+  const dot = target.closest('[data-fact-type]');
+  if (dot && dot.dataset) {
+    const type = dot.dataset.factType;
+    const idx = Number(dot.dataset.factIdx || 0);
+    try { window.goMotionFact(type, idx); } catch (err) { console.warn('goMotionFact failed', err); }
+    return;
+  }
+
+  // 6. Plan list move/remove buttons
+  const moveBtn = target.closest('[data-move-plan-idx]');
+  if (moveBtn && moveBtn.dataset) {
+    const idx = Number(moveBtn.dataset.movePlanIdx);
+    const dir = moveBtn.dataset.movePlanDir;
+    try { window.movePlanItem(idx, dir); } catch (err) { console.warn('movePlanItem failed', err); }
+    return;
+  }
+
+  const removeBtn = target.closest('[data-remove-plan-idx]');
+  if (removeBtn && removeBtn.dataset) {
+    const idx = Number(removeBtn.dataset.removePlanIdx);
+    try { window.removeFromPlan(idx); } catch (err) { console.warn('removeFromPlan failed', err); }
+    return;
+  }
+
+  // Fallback: parse inline onclick="addToPlan('id','Name', 0, 0)"
+  const btn = target.closest('button.filter-btn, button.btn-fov, button.btn');
+  if (btn) {
+    try {
+      const onclick = btn.getAttribute && btn.getAttribute('onclick');
+      if (onclick && onclick.includes('addToPlan')) {
+        const m = onclick.match(/addToPlan\(([^)]*)\)/);
+        if (m && m[1]) {
+          const argsSrc = m[1];
+          let parsedArgs = [];
+          try {
+            parsedArgs = Function('return [' + argsSrc + ']')();
+          } catch (e) {
+            parsedArgs = argsSrc.split(',').map(s => s.trim().replace(/^['"]|['"]$/g, ''));
+          }
+          const [pid, pname, pra = 0, pdec = 0] = parsedArgs;
+          try { window.addToPlan(pid, pname, Number(pra), Number(pdec)); } catch (err) { console.warn('addToPlan fallback failed', err); }
+          return;
+        }
+      }
+    } catch (err) {
+      console.warn('Error handling delegated addToPlan click fallback', err);
+    }
+  }
+});
 
 let API_BASE;
 if (window.location.hostname.includes('nick-t.net')) {
@@ -215,7 +329,7 @@ async function fetchAPI(path, fallback = null) {
   const cacheKey = `stargazer_cache_${finalPath}`;
   
   // Stale-while-revalidate: return cached data immediately if we have it
-  const cached = localStorage.getItem(cacheKey);
+  const cached = localStorage.getItem(cacheKey) || null;
   let parsedCache = null;
   if (cached) {
     try { 
@@ -241,7 +355,7 @@ async function fetchAndRender(path, renderFn, fallback = null) {
   if (currentLat === null || currentLon === null) return;
   const separator = path.includes('?') ? '&' : '?';
   let bortleStr = window.currentBortle ? `&bortle=${window.currentBortle}` : '';
-  const finalPath = `${path}${separator}lat=${currentLat}&lon=${currentLon}&lang=${currentLang}${bortleStr}`;
+  const finalPath = `${path}${separator}lat=${currentLat}&lon=${currentLon}&lang=${currentLang}${bortleStr}`.replace(/&+/g, '&').replace(/^\?&/, '?');
   const cacheKey = `stargazer_cache_${finalPath}`;
   
   const cached = localStorage.getItem(cacheKey);
@@ -734,6 +848,24 @@ function renderSeeing(seeing, data) {
         titleRow.appendChild(title);
         titleRow.appendChild(badgeContainer);
         
+        // Add-to-Plan button for AI recommendations (keeps Add action available
+        // even after innerHTML is inserted into the unified card).
+        try {
+          const addBtn = document.createElement('button');
+          addBtn.className = 'filter-btn';
+          addBtn.style.cssText = 'margin-left: 12px; padding: 4px 10px; font-size: 0.75rem; background: rgba(59, 130, 246, 0.15); border-color: rgba(59, 130, 246, 0.3); color: #93c5fd; cursor: pointer; border-radius: 4px; font-weight: 600;';
+          const aiId = 'ai_' + escapeForSingleQuotedString((t.name || 'target').replace(/\s+/g, '_').toLowerCase());
+          const safeName = escapeForSingleQuotedString(t.name || 'Target');
+          addBtn.dataset.planId = aiId;
+          addBtn.dataset.planName = safeName;
+          addBtn.dataset.ra = '0';
+          addBtn.dataset.dec = '0';
+          addBtn.textContent = 'Add to Plan +';
+          badgeContainer.appendChild(addBtn);
+        } catch (err) {
+          // Non-fatal — if DOM creation fails, continue without crash
+          console.warn('Failed to add AI Add-to-Plan button', err);
+        }
         const reason = document.createElement('div');
         reason.style.fontSize = '0.85rem';
         reason.style.color = '#94a3b8';
@@ -1158,14 +1290,14 @@ function renderConstellationMap(targets, constInfo) {
         let dist = data.distance === 'Unknown' ? (dict.simbad_unknown || 'Unknown') : data.distance;
         
         const html = `
-          <div style="font-size: 1.05rem; color: #fff; margin-bottom: 6px; font-weight: bold;">${data.name.replace('* ', '')}</div>
+          <div style="font-size: 1.05rem; color: #fff; margin-bottom: 6px; font-weight: bold;">${window.escapeHtml(data.name.replace('* ', ''))}</div>
           <div style="display:flex; justify-content:space-between; margin-bottom:4px; gap: 15px;">
             <span style="color:#94a3b8;">${dict.simbad_spectral || 'Spectral Type'}</span>
-            <span style="color:#4ade80; font-family:var(--font-mono);">${spType}</span>
+            <span style="color:#4ade80; font-family:var(--font-mono);">${window.escapeHtml(spType)}</span>
           </div>
           <div style="display:flex; justify-content:space-between;">
             <span style="color:#94a3b8;">${dict.simbad_dist || 'Distance'}</span>
-            <span style="color:#60a5fa; font-family:var(--font-mono);">${dist}</span>
+            <span style="color:#60a5fa; font-family:var(--font-mono);">${window.escapeHtml(dist)}</span>
           </div>
         `;
         showInfo(html, clickEvent, true);
@@ -1310,7 +1442,7 @@ function renderPlanets(planets, factStr) {
             <span class="planet-name">${p.emoji} ${pName}</span>
             <span class="planet-const-pill" title="Currently in this constellation">${p.constellation || ''}</span>
             ${isBlocked ? '<span class="blocked-badge" title="Hidden behind your custom horizon limits">Blocked by Horizon</span>' : ''}
-            ${p.visible_tonight ? `<button class="filter-btn" onclick="addToPlan('${p.name.toLowerCase()}', '${p.name}', 0, 0)" style="margin-left: auto; padding: 2px 8px; font-size: 0.75rem; background: rgba(59, 130, 246, 0.15); border-color: rgba(59, 130, 246, 0.3); color: #93c5fd; cursor: pointer; border-radius: 4px; font-weight: 600;">Add to Plan +</button>` : ''}
+            ${p.visible_tonight ? `<button class="filter-btn" data-plan-id="${p.name.toLowerCase()}" data-plan-name="${p.name}" data-ra="0" data-dec="0" style="margin-left: auto; padding: 2px 8px; font-size: 0.75rem; background: rgba(59, 130, 246, 0.15); border-color: rgba(59, 130, 246, 0.3); color: #93c5fd; cursor: pointer; border-radius: 4px; font-weight: 600;">Add to Plan +</button>` : ''}
           </div>
           <div class="planet-meta-row">
             <span class="planet-alt" style="color:${altColor}" title="How high above the horizon">📐 Altitude: ${p.altitude_deg}° — ${altLabel}</span>
@@ -1351,8 +1483,8 @@ function renderBestTargets(targets) {
   const dict = window.i18n[currentLang] || window.i18n['en'];
   window.lastBestTargetsHTML = targets.map((t, i) => {
     const name = t.name || 'Target';
-    const safeName = name.replace(/\\/g, "\\\\").replace(/'/g, "\\'");
-    const safeId = (t.id || name.toLowerCase().replace(/\s+/g, '_')).replace(/\\/g, "\\\\").replace(/'/g, "\\'");
+    const safeName = escapeForSingleQuotedString(name);
+    const safeId = escapeForSingleQuotedString(t.id || name.toLowerCase().replace(/\s+/g, '_'));
     const raDeg = Number(t.ra_hours || 0) * 15;
     const decDeg = Number(t.dec_degrees || 0);
     const metaBits = [];
@@ -1375,7 +1507,7 @@ function renderBestTargets(targets) {
             <div class="must-see-subtitle">${t.description || t.reason || t.type || dict.info_ai || 'Best target for tonight'}</div>
           </div>
         </div>
-        <button class="filter-btn" onclick="addToPlan('${safeId}', '${safeName}', ${raDeg}, ${decDeg})" style="margin-left: auto; padding: 2px 8px; font-size: 0.75rem; background: rgba(59, 130, 246, 0.15); border-color: rgba(59, 130, 246, 0.3); color: #93c5fd; cursor: pointer; border-radius: 4px; font-weight: 600; white-space: nowrap;">Add to Plan +</button>
+        <button class="filter-btn" data-plan-id="${safeId}" data-plan-name="${safeName}" data-ra="${raDeg}" data-dec="${decDeg}" style="margin-left: auto; padding: 2px 8px; font-size: 0.75rem; background: rgba(59, 130, 246, 0.15); border-color: rgba(59, 130, 246, 0.3); color: #93c5fd; cursor: pointer; border-radius: 4px; font-weight: 600; white-space: nowrap;">Add to Plan +</button>
       </div>
     `;
   }).join('');
@@ -1422,7 +1554,7 @@ function updateUnifiedCard() {
           <div style="font-size: 0.85rem; color: #fbcfe8; line-height: 1.4; margin-bottom: 8px;">
             ${eventObj.description}
           </div>
-          <button class="filter-btn" onclick="addToPlan('event_${eventObj.name.replace(/\\s+/g, '_').toLowerCase()}', '${eventObj.name.replace(/'/g, "\\'")}', 0, 0)" style="padding: 4px 10px; font-size: 0.75rem; background: rgba(236, 72, 153, 0.15); border-color: rgba(236, 72, 153, 0.3); color: #fbcfe8; cursor: pointer; border-radius: 4px; font-weight: 600;">Add to Plan +</button>
+          <button class="filter-btn" data-plan-id="event_${escapeForSingleQuotedString(eventObj.name.replace(/\s+/g, '_').toLowerCase())}" data-plan-name="${escapeForSingleQuotedString(eventObj.name)}" data-ra="0" data-dec="0" style="padding: 4px 10px; font-size: 0.75rem; background: rgba(236, 72, 153, 0.15); border-color: rgba(236, 72, 153, 0.3); color: #fbcfe8; cursor: pointer; border-radius: 4px; font-weight: 600;">Add to Plan +</button>
         </div>
       </div>
     </div>
@@ -1498,9 +1630,9 @@ function renderAlerts(alerts) {
     });
 
     const addButton = a.type === 'planet' ? `
-      <button class="filter-btn" onclick="addToPlan('${a.planet_name.toLowerCase()}', '${a.planet_name}', 0, 0)" style="margin-left: auto; padding: 2px 8px; font-size: 0.75rem; background: rgba(59, 130, 246, 0.15); border-color: rgba(59, 130, 246, 0.3); color: #93c5fd; cursor: pointer; border-radius: 4px; font-weight: 600; white-space: nowrap;">Add to Plan +</button>
+      <button class="filter-btn" data-plan-id="${a.planet_name.toLowerCase()}" data-plan-name="${a.planet_name}" data-ra="0" data-dec="0" style="margin-left: auto; padding: 2px 8px; font-size: 0.75rem; background: rgba(59, 130, 246, 0.15); border-color: rgba(59, 130, 246, 0.3); color: #93c5fd; cursor: pointer; border-radius: 4px; font-weight: 600; white-space: nowrap;">Add to Plan +</button>
     ` : (a.type === 'constellation' ? `
-      <button class="filter-btn" onclick="addToPlan('${a.constellation_abbr.toLowerCase()}', '${a.constellation_name}', 0, 0)" style="margin-left: auto; padding: 2px 8px; font-size: 0.75rem; background: rgba(59, 130, 246, 0.15); border-color: rgba(59, 130, 246, 0.3); color: #93c5fd; cursor: pointer; border-radius: 4px; font-weight: 600; white-space: nowrap;">Add to Plan +</button>
+      <button class="filter-btn" data-plan-id="${a.constellation_abbr.toLowerCase()}" data-plan-name="${a.constellation_name}" data-ra="0" data-dec="0" style="margin-left: auto; padding: 2px 8px; font-size: 0.75rem; background: rgba(59, 130, 246, 0.15); border-color: rgba(59, 130, 246, 0.3); color: #93c5fd; cursor: pointer; border-radius: 4px; font-weight: 600; white-space: nowrap;">Add to Plan +</button>
     ` : '');
 
     return `
@@ -1696,7 +1828,7 @@ function initMotionFacts() {
     const dotsEl = document.getElementById(`${type}-fact-dots`);
     if (dotsEl) {
       dotsEl.innerHTML = facts.map((_, i) =>
-        `<span class="motion-fact-dot${i === 0 ? ' active' : ''}" onclick="goMotionFact('${type}',${i})"></span>`
+        `<span class="motion-fact-dot${i === 0 ? ' active' : ''}" data-fact-type="${type}" data-fact-idx="${i}"></span>`
       ).join('');
     }
     // Show first fact
@@ -1979,9 +2111,9 @@ function renderTargetGrid(targets, liveMap, typeFilter = 'all', equipFilter = 'a
         ${t.horizon_note ? `<div class="tc-horizon-note">${t.horizon_note}</div>` : ''}
         <div class="tc-footer" style="flex-wrap: wrap; gap: 8px;">
           <div style="display: flex; gap: 6px; width: 100%;">
-            <button class="btn-fov" onclick="openFovModal(${t.ra_hours * 15}, ${t.dec_degrees}, '${t.name.replace(/'/g, "\\'")}')">Simulate View 🔭</button>
-            <button class="btn-fov" onclick="addToPlan('${t.id}', '${t.name.replace(/'/g, "\\'")}', ${t.ra_hours * 15}, ${t.dec_degrees})" style="background: rgba(59, 130, 246, 0.15); border-color: rgba(59, 130, 246, 0.3); color: #93c5fd;">Add to Plan +</button>
-            <button class="btn-fov" onclick="openGalleryModal('${t.id}', '${t.name.replace(/'/g, "\\'")}')" style="background: rgba(34, 197, 94, 0.15); border-color: rgba(34, 197, 94, 0.3); color: #86efac;">Gallery & Share 📷</button>
+            <button class="btn-fov" data-fov-ra="${t.ra_hours * 15}" data-fov-dec="${t.dec_degrees}" data-fov-name="${escapeForSingleQuotedString(t.name)}">Simulate View 🔭</button>
+            <button class="btn-fov" data-plan-id="${t.id}" data-plan-name="${escapeForSingleQuotedString(t.name)}" data-ra="${t.ra_hours * 15}" data-dec="${t.dec_degrees}" style="background: rgba(59, 130, 246, 0.15); border-color: rgba(59, 130, 246, 0.3); color: #93c5fd;">Add to Plan +</button>
+            <button class="btn-fov" data-gallery-id="${t.id}" data-gallery-name="${escapeForSingleQuotedString(t.name)}" style="background: rgba(34, 197, 94, 0.15); border-color: rgba(34, 197, 94, 0.3); color: #86efac;">Gallery & Share 📷</button>
           </div>
           <span class="tc-equipment">${t.equipment || '🔭 Telescope'}</span>
           ${(t.difficulty && t.difficulty.toUpperCase().replace('_', ' ') !== 'NAKED EYE') ? `<span class="tc-difficulty ${t.difficulty.replace(' ', '_')}">${t.difficulty.replace('_', ' ')}</span>` : ''}
@@ -2081,11 +2213,11 @@ function initLocationUI() {
   function renderList() {
     listEl.innerHTML = savedLocations.map(l => `
       <div class="loc-item ${l.id === activeLocId ? 'active' : ''}">
-        <div class="loc-info" onclick="activateLocation('${l.id}')">
+        <div class="loc-info" data-activate-location-id="${l.id}">
           <div class="loc-name">${l.name}</div>
           <div class="loc-coords">${l.lat.toFixed(4)}, ${l.lon.toFixed(4)}</div>
         </div>
-        ${l.id !== 'default' ? `<button class="loc-del" onclick="deleteLocation('${l.id}')">✕</button>` : ''}
+        ${l.id !== 'default' ? `<button class="loc-del" data-delete-location-id="${l.id}">✕</button>` : ''}
       </div>
     `).join('');
   }
@@ -3533,7 +3665,7 @@ document.querySelectorAll('.copy-metric-btn').forEach(btn => {
       navigator.clipboard.writeText(copyString)
         .then(() => {
           if (typeof showInfo === 'function') {
-            showInfo(`Copied to clipboard: ${valueText}`, event);
+            showInfo(`Copied to clipboard: ${window.escapeHtml(valueText)}`, event);
           }
         })
         .catch(err => {
@@ -3553,9 +3685,14 @@ try {
 }
 
 window.addToPlan = function(id, name, ra, dec) {
-  const existing = nightPlan.find(item => item.id.toLowerCase() === id.toLowerCase());
+  if (!id) id = (name || 'target');
+  // Normalize id to stable lowercase underscore form
+  let normId = String(id).trim().toLowerCase();
+  normId = normId.replace(/\s+/g, '_');
+  const existing = nightPlan.find(item => String(item.id || '').toLowerCase() === normId);
+  id = normId;
   if (existing) {
-    showInfo(`⚠️ ${name} is already in your night plan!`, null, false);
+    showInfo(`⚠️ ${window.escapeHtml(name)} is already in your night plan!`, null, false);
     return;
   }
   
@@ -3588,7 +3725,7 @@ window.addToPlan = function(id, name, ra, dec) {
   nightPlan.push(newEntry);
   saveAndRenderPlan();
   
-  showInfo(`✅ Added ${name} to your Night Plan!`, null, false);
+  showInfo(`✅ Added ${window.escapeHtml(name)} to your Night Plan!`, null, false);
 
   // Request notification permission if not already granted
   if (typeof Notification !== 'undefined' && Notification.permission === 'default') {
@@ -3688,7 +3825,7 @@ function rescheduleAllPlanNotifications() {
     const timerId = setTimeout(async () => {
       // Always show in-app fallback toast for foreground users (or users who blocked native notifications)
       if (window.showInfo) {
-        window.showInfo(`<b>🔭 Plan My Night</b><br>It's time to observe: ${item.name}! (${item.startTime})`, null, true);
+        window.showInfo(`<b>🔭 Plan My Night</b><br>It's time to observe: ${window.escapeHtml(item.name)}! (${window.escapeHtml(item.startTime)})`, null, true);
       }
 
       if (typeof Notification !== 'undefined' && Notification.permission === 'granted') {
@@ -3763,9 +3900,9 @@ function renderNightPlan() {
             </div>
           </div>
           <div style="display: flex; gap: 6px;">
-            <button class="filter-btn" onclick="movePlanItem(${idx}, 'up')" style="padding: 4px 8px;" ${idx === 0 ? 'disabled' : ''}>↑</button>
-            <button class="filter-btn" onclick="movePlanItem(${idx}, 'down')" style="padding: 4px 8px;" ${idx === nightPlan.length - 1 ? 'disabled' : ''}>↓</button>
-            <button class="filter-btn" onclick="removeFromPlan(${idx})" style="padding: 4px 8px; background: rgba(239, 68, 68, 0.1); border-color: rgba(239, 68, 68, 0.2); color: #f87171;">Remove</button>
+            <button class="filter-btn" data-move-plan-idx="${idx}" data-move-plan-dir="up" style="padding: 4px 8px;" ${idx === 0 ? 'disabled' : ''}>↑</button>
+            <button class="filter-btn" data-move-plan-idx="${idx}" data-move-plan-dir="down" style="padding: 4px 8px;" ${idx === nightPlan.length - 1 ? 'disabled' : ''}>↓</button>
+            <button class="filter-btn" data-remove-plan-idx="${idx}" style="padding: 4px 8px; background: rgba(239, 68, 68, 0.1); border-color: rgba(239, 68, 68, 0.2); color: #f87171;">Remove</button>
           </div>
         </div>
       `;
@@ -3985,7 +4122,7 @@ document.addEventListener('DOMContentLoaded', () => {
         container.innerHTML = list.map(item => `
           <div style="background: rgba(255,255,255,0.02); border: 1px solid rgba(255,255,255,0.05); border-radius: 8px; padding: 12px; display: flex; flex-direction: column; gap: 8px;">
             <div style="width: 100%; border-radius: 6px; overflow: hidden; background: #000; display: flex; align-items: center; justify-content: center; max-height: 250px;">
-              <img src="${API_BASE}/api/gallery/image/${item.id}" alt="${item.target_name}" style="max-width: 100%; max-height: 250px; object-fit: contain;">
+              <img src="${API_BASE}/api/gallery/image/${encodeURIComponent(item.id)}" alt="${escapeHtml(item.target_name)}" style="max-width: 100%; max-height: 250px; object-fit: contain;">
             </div>
             <div style="font-size: 0.85rem; color: #fff; font-weight: 600;">
               👤 Shared by: ${escapeHtml(item.author)}
@@ -4058,7 +4195,7 @@ document.addEventListener('DOMContentLoaded', () => {
         await loadGalleryImages(targetId);
       } else {
         const errorData = await res.json();
-        const msg = errorData.detail || 'Upload failed.';
+        const msg = window.escapeHtml(errorData.detail || 'Upload failed.');
         showInfo(`❌ ${msg}`, null, true);
       }
     } catch (e) {

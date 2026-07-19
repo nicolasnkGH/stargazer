@@ -292,7 +292,7 @@
             <div><span class="ti-label" data-i18n="lbl_alt">Alt</span> <span id="moon-alt">—</span> <span class="ux-tooltip" data-tooltip="Altitude: How high above the horizon an object is. 90° is straight up.">ℹ️</span></div>
           </div>
           <div class="dso-impact" id="dso-impact">Loading…</div>
-          <button class="btn btn-primary" onclick="addToPlan('moon', 'Moon', 0, 0)" style="width: 100%; margin-top: 12px; font-size: 0.85rem; padding: 6px 12px; background: rgba(59, 130, 246, 0.15); border: 1px solid rgba(59, 130, 246, 0.3); color: #93c5fd; border-radius: 6px; cursor: pointer; font-weight: 600;">Add Moon to Plan +</button>
+          <button class="btn btn-primary" data-plan-id="moon" data-plan-name="Moon" data-ra="0" data-dec="0" style="width: 100%; margin-top: 12px; font-size: 0.85rem; padding: 6px 12px; background: rgba(59, 130, 246, 0.15); border: 1px solid rgba(59, 130, 246, 0.3); color: #93c5fd; border-radius: 6px; cursor: pointer; font-weight: 600;">Add Moon to Plan +</button>
           <!-- Moon Fact — standardized fact card -->
           <div class="motion-facts-wrap" id="moon-fact-wrap" style="display:none; margin-top:12px;">
             <div class="motion-facts-header">
@@ -933,6 +933,8 @@
           <li><strong>Aurora & Space Weather:</strong> View real-time Kp index and solar storm alerts from NOAA.</li>
           <li><strong>Equipment FOV Simulator:</strong> Simulate telescope eyepieces & camera sensors in Aladin Lite.</li>
           <li><strong>3D Solar System:</strong> Interact with a live 3D planetary model.</li>
+          <li><strong>📸 Community Gallery & Safe Uploads:</strong> Share your astrophotos directly from the UI — client-side compression plus AI safety verification and image hosting.</li>
+          <li><strong>🛠️ UI Fixes:</strong> Improved AI "Must-See & AI Picks" fallback and made the "Add to Plan +" buttons reliable across dynamically inserted content.</li>
         </ul>
       </div>
 
