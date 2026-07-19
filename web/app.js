@@ -2788,19 +2788,9 @@ function adjustSolarSystemIframe() {
   const iframe = document.getElementById('solar-scope-iframe');
   if (!container || !iframe) return;
 
-  const containerWidth = container.clientWidth;
-  const minWidth = 550; // Safely trigger full desktop view in Solar System Scope
-  
-  if (containerWidth < minWidth && containerWidth > 0) {
-    const scale = containerWidth / minWidth;
-    iframe.style.width = `${minWidth}px`;
-    iframe.style.height = `${450 / scale}px`;
-    iframe.style.transform = `scale(${scale})`;
-  } else {
-    iframe.style.width = '100%';
-    iframe.style.height = '100%';
-    iframe.style.transform = 'none';
-  }
+  iframe.style.width = '100%';
+  iframe.style.height = '100%';
+  iframe.style.transform = 'none';
 }
 
 function isSolarSystemFullscreen() {
