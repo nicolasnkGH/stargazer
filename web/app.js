@@ -1231,13 +1231,14 @@ function renderActiveConstellation(constInfo) {
 function renderPlanets(planets, factStr) {
   const list = document.getElementById('planet-list');
   if (!list) return; // Feature removed from UI
-  
+  const _dict = window.i18n[currentLang] || window.i18n['en'];
+
   if (!planets) {
-    list.innerHTML = '<div class="no-data">Could not load planet data — API may be offline</div>';
+    list.innerHTML = `<div class="no-data">${_dict.no_planet_data || 'Could not load planet data — API may be offline'}</div>`;
     return;
   }
   if (planets.length === 0) {
-    list.innerHTML = '<div class="no-data">No major planets visible above the horizon right now</div>';
+    list.innerHTML = `<div class="no-data">${_dict.no_planets_visible || 'No major planets visible above the horizon right now'}</div>`;
     return;
   }
 
@@ -1256,8 +1257,8 @@ function renderPlanets(planets, factStr) {
     const dict = window.i18n[currentLang] || window.i18n['en'];
     const pName = dict[`planet_${p.name.toLowerCase()}`] || p.name;
     const altColor = p.altitude_deg > 30 ? '#22c55e' : p.altitude_deg > 10 ? '#f59e0b' : '#f87171';
-    const altLabel = p.altitude_deg > 30 ? 'High in sky' : p.altitude_deg > 10 ? 'Low in sky' : 'Near horizon';
-    const magNote  = p.magnitude_approx < 0 ? ' (extremely bright)' : p.magnitude_approx < 3 ? ' (naked eye)' : p.magnitude_approx < 6 ? ' (binoculars)' : ' (telescope)';
+    const altLabel = p.altitude_deg > 30 ? (dict.qual_high || 'High in sky') : p.altitude_deg > 10 ? (dict.qual_low || 'Low in sky') : (dict.qual_near_horizon || 'Near horizon');
+    const magNote  = p.magnitude_approx < 0 ? ` (${dict.mag_extremely_bright || 'extremely bright'})` : p.magnitude_approx < 3 ? ` (${dict.mag_naked_eye || 'naked eye'})` : p.magnitude_approx < 6 ? ` (${dict.mag_binoculars || 'binoculars'})` : ` (${dict.mag_telescope || 'telescope'})`;
     const azimuthStr = (p.azimuth_deg != null && !isNaN(p.azimuth_deg)) ? ` · Azimuth ${Math.round(p.azimuth_deg)}°` : '';
     return `
       <div class="planet-3d-card ${p.visible_tonight ? '' : 'not-visible'} ${isBlocked ? 'blocked-horizon' : ''}">
@@ -1267,7 +1268,7 @@ function renderPlanets(planets, factStr) {
             <span class="planet-name">${p.emoji} ${pName}</span>
             <span class="planet-const-pill" title="Currently in this constellation">${p.constellation || ''}</span>
             ${isBlocked ? '<span class="blocked-badge" title="Hidden behind your custom horizon limits">Blocked by Horizon</span>' : ''}
-            <button class="filter-btn" onclick="addToPlan('${p.name.toLowerCase()}', '${p.name}', 0, 0)" style="margin-left: auto; padding: 2px 8px; font-size: 0.75rem; background: rgba(59, 130, 246, 0.15); border-color: rgba(59, 130, 246, 0.3); color: #93c5fd; cursor: pointer; border-radius: 4px; font-weight: 600;">Add to Plan +</button>
+            <button class="filter-btn" onclick="addToPlan('${p.name.toLowerCase()}', '${p.name}', 0, 0)" style="margin-left: auto; padding: 2px 8px; font-size: 0.75rem; background: rgba(59, 130, 246, 0.15); border-color: rgba(59, 130, 246, 0.3); color: #93c5fd; cursor: pointer; border-radius: 4px; font-weight: 600;">${dict.btn_add_to_plan || 'Add to Plan +'}</button>
           </div>
           <div class="planet-meta-row">
             <span class="planet-alt" style="color:${altColor}" title="How high above the horizon">📐 Altitude: ${p.altitude_deg}° — ${altLabel}</span>
@@ -1626,18 +1627,19 @@ function goMotionFact(type, idx) {
 async function loadConstellations() {
   await fetchAndRender('/constellations?filter_famous=true', (data) => {
     const list = document.getElementById('constellations-grid');
+    const cDict = window.i18n[currentLang] || window.i18n['en'];
     if (!data || !data.constellations) {
-      list.innerHTML = '<div class="no-data">Could not load constellation data</div>';
+      list.innerHTML = `<div class="no-data">${cDict.no_constellation_data || 'Could not load constellation data'}</div>`;
       return;
     }
     if (data.constellations.length === 0) {
-      list.innerHTML = '<div class="no-data">No famous constellations visible tonight</div>';
+      list.innerHTML = `<div class="no-data">${cDict.no_famous_constellations || 'No famous constellations visible tonight'}</div>`;
       return;
     }
 
     const visibleConst = data.constellations.filter(c => c.visible).slice(0, 16);
     if (visibleConst.length === 0) {
-      list.innerHTML = '<div class="no-data">No famous constellations visible tonight</div>';
+      list.innerHTML = `<div class="no-data">${cDict.no_famous_constellations || 'No famous constellations visible tonight'}</div>`;
       return;
     }
 
@@ -1650,13 +1652,13 @@ async function loadConstellations() {
       const barPct = Math.min(100, Math.max(0, Math.round((alt / 90) * 100)));
       const barColor = alt > 30 ? '#22c55e' : alt > 10 ? '#f59e0b' : '#ef4444';
 
-      const qualityLabel = alt > 30 ? 'High in sky' : alt > 10 ? 'Low in sky' : 'Near horizon';
+      const qualityLabel = alt > 30 ? (cDict.qual_high || 'High in sky') : alt > 10 ? (cDict.qual_low || 'Low in sky') : (cDict.qual_near_horizon || 'Near horizon');
       const qualityIcon  = alt > 30 ? '🟢' : alt > 10 ? '🟡' : '🔴';
 
       const div = document.createElement('div');
       div.className = 'const-card';
       div.dataset.const = c.abbr;
-      div.setAttribute('aria-label', `${c.name} — ${qualityLabel}. Click to explore targets.`);
+      div.setAttribute('aria-label', `${c.name} — ${qualityLabel}. ${cDict.click_to_explore || 'Click to explore targets.'}`);
       div.innerHTML = `
         <div class="c-name">${c.emoji || '✨'} ${c.name} <span class="c-abbr-inline">${c.abbr}</span></div>
         <div class="c-alt-header">
@@ -1831,14 +1833,14 @@ function renderTargetGrid(targets, liveMap, typeFilter = 'all', equipFilter = 'a
         ${t.horizon_note ? `<div class="tc-horizon-note">${t.horizon_note}</div>` : ''}
         <div class="tc-footer" style="flex-wrap: wrap; gap: 8px;">
           <div style="display: flex; gap: 6px; width: 100%;">
-            <button class="btn-fov" onclick="openFovModal(${t.ra_hours * 15}, ${t.dec_degrees}, '${t.name.replace(/'/g, "\\'")}')">Simulate View 🔭</button>
-            <button class="btn-fov" onclick="addToPlan('${t.id}', '${t.name.replace(/'/g, "\\'")}', ${t.ra_hours * 15}, ${t.dec_degrees})" style="background: rgba(59, 130, 246, 0.15); border-color: rgba(59, 130, 246, 0.3); color: #93c5fd;">Add to Plan +</button>
+            <button class="btn-fov" onclick="openFovModal(${t.ra_hours * 15}, ${t.dec_degrees}, '${t.name.replace(/'/g, "\\'")}')">${dict.btn_simulate_view || 'Simulate View 🔭'}</button>
+            <button class="btn-fov" onclick="addToPlan('${t.id}', '${t.name.replace(/'/g, "\\'")}', ${t.ra_hours * 15}, ${t.dec_degrees})" style="background: rgba(59, 130, 246, 0.15); border-color: rgba(59, 130, 246, 0.3); color: #93c5fd;">${dict.btn_add_to_plan || 'Add to Plan +'}</button>
           </div>
           <span class="tc-equipment">${t.equipment || '🔭 Telescope'}</span>
           ${(t.difficulty && t.difficulty.replace('_', ' ') !== 'NAKED EYE') ? `<span class="tc-difficulty ${t.difficulty.replace(' ', '_')}">${t.difficulty.replace('_', ' ')}</span>` : ''}
           <span class="tc-eyepiece">🔭 ${t.eyepiece_rec || ''}</span>
           ${altText ? `<span class="tc-altitude">${altText}</span>` : ''}
-          ${visibleNow ? '<span class="tc-visible-now"><span style="width:6px;height:6px;border-radius:50%;background:#22c55e;display:inline-block"></span> In view now</span>' : ''}
+          ${visibleNow ? `<span class="tc-visible-now"><span style="width:6px;height:6px;border-radius:50%;background:#22c55e;display:inline-block"></span> ${dict.lbl_in_view_now || 'In view now'}</span>` : ''}
         </div>
       </div>
     `;
@@ -1846,11 +1848,12 @@ function renderTargetGrid(targets, liveMap, typeFilter = 'all', equipFilter = 'a
 
   // 5. Append or clean up the DOM "Load More" pagination element
   let loadMoreBtn = document.getElementById('load-more-targets-btn');
-  
+  const _lmDict = window.i18n[currentLang] || window.i18n['en'];
+
   if (!loadMoreBtn && filtered.length > (window.targetDisplayedCount || 12)) {
     loadMoreBtn = document.createElement('button');
     loadMoreBtn.id = 'load-more-targets-btn';
-    loadMoreBtn.textContent = 'Load More Targets 🔭';
+    loadMoreBtn.textContent = _lmDict.btn_load_more_targets || 'Load More Targets 🔭';
     loadMoreBtn.style.cssText = 'display:block; margin:20px auto; padding:10px 24px; background:#a855f7; color:white; border:none; border-radius:6px; cursor:pointer; font-weight:bold; transition: background 0.2s;';
     loadMoreBtn.onmouseover = () => loadMoreBtn.style.background = '#9333ea';
     loadMoreBtn.onmouseout = () => loadMoreBtn.style.background = '#a855f7';
@@ -2849,6 +2852,17 @@ function setLanguage(lang) {
       }
     });
   }
+
+  // Translate constellation-tabs buttons (Target Database section) — reuses
+  // the same const_<abbr> keys as the ac-select dropdown above, so it stays
+  // in sync with the same source of truth.
+  document.querySelectorAll('.const-tab').forEach(tab => {
+    const abbr = tab.dataset.const;
+    const key = `const_${(abbr || '').toLowerCase()}`;
+    if (dict[key]) {
+      tab.textContent = dict[key];
+    }
+  });
   
   // Update dynamic titles
   const targetTitle = document.getElementById('target-db-title');

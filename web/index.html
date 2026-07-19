@@ -292,7 +292,7 @@
             <div><span class="ti-label" data-i18n="lbl_alt">Alt</span> <span id="moon-alt">—</span> <span class="ux-tooltip" data-tooltip="Altitude: How high above the horizon an object is. 90° is straight up.">ℹ️</span></div>
           </div>
           <div class="dso-impact" id="dso-impact">Loading…</div>
-          <button class="btn btn-primary" onclick="addToPlan('moon', 'Moon', 0, 0)" style="width: 100%; margin-top: 12px; font-size: 0.85rem; padding: 6px 12px; background: rgba(59, 130, 246, 0.15); border: 1px solid rgba(59, 130, 246, 0.3); color: #93c5fd; border-radius: 6px; cursor: pointer; font-weight: 600;">Add Moon to Plan +</button>
+          <button class="btn btn-primary" onclick="addToPlan('moon', 'Moon', 0, 0)" data-i18n="btn_add_moon_to_plan" style="width: 100%; margin-top: 12px; font-size: 0.85rem; padding: 6px 12px; background: rgba(59, 130, 246, 0.15); border: 1px solid rgba(59, 130, 246, 0.3); color: #93c5fd; border-radius: 6px; cursor: pointer; font-weight: 600;">Add Moon to Plan +</button>
           <!-- Moon Fact — standardized fact card -->
           <div class="motion-facts-wrap" id="moon-fact-wrap" style="display:none; margin-top:12px;">
             <div class="motion-facts-header">
@@ -312,16 +312,16 @@
       <section class="card" id="card-motion">
         <div class="card-header">
           <span class="card-icon"><i data-lucide="satellite"></i></span>
-          <h2 class="card-title">Sky Objects in Motion</h2>
-          <span class="card-badge" style="background:rgba(56,189,248,0.1);color:#38bdf8;border-color:rgba(56,189,248,0.3);">Live Tracking</span>
+          <h2 class="card-title" data-i18n="card_motion">Sky Objects in Motion</h2>
+          <span class="card-badge" data-i18n="badge_live_tracking" style="background:rgba(56,189,248,0.1);color:#38bdf8;border-color:rgba(56,189,248,0.3);">Live Tracking</span>
         </div>
 
         <!-- Sub-tab strip -->
         <div class="motion-tabs">
-          <button class="motion-tab active" data-panel="motion-iss-panel">🚀 ISS Passes</button>
-          <button class="motion-tab" data-panel="motion-neo-panel">☄️ Near-Earth Objects</button>
-          <button class="motion-tab" data-panel="motion-comets-panel">🌠 Comets</button>
-          <button class="motion-tab" data-panel="motion-meteors-panel">💫 Meteor Showers</button>
+          <button class="motion-tab active" data-panel="motion-iss-panel">🚀 <span data-i18n="tab_iss_passes">ISS Passes</span></button>
+          <button class="motion-tab" data-panel="motion-neo-panel">☄️ <span data-i18n="tab_neo">Near-Earth Objects</span></button>
+          <button class="motion-tab" data-panel="motion-comets-panel">🌠 <span data-i18n="tab_comets">Comets</span></button>
+          <button class="motion-tab" data-panel="motion-meteors-panel">💫 <span data-i18n="tab_meteors">Meteor Showers</span></button>
         </div>
 
         <div class="card-body" style="padding-top:0;">
@@ -329,19 +329,19 @@
           <!-- ── ISS Panel ───────────────────────────────────────────────── -->
           <div id="motion-iss-panel" class="motion-panel">
             <div class="iss-tip">
-              <span>The ISS appears as a very bright, fast-moving star &mdash; no telescope needed! It moves from horizon to horizon in ~6 minutes.</span>
+              <span data-i18n="iss_tip">The ISS appears as a very bright, fast-moving star &mdash; no telescope needed! It moves from horizon to horizon in ~6 minutes.</span>
             </div>
             <div class="iss-passes" id="iss-passes">
               <div class="loading-shimmer"></div>
             </div>
             <div style="margin-top:10px; text-align:right;">
-              <a href="https://heavens-above.com/PassSummary.aspx?satid=25544&lat=40.126&lng=-83.037" target="_blank" class="ext-link">Heavens-Above ↗</a>
+              <a href="https://heavens-above.com/PassSummary.aspx?satid=25544&lat=40.126&lng=-83.037" target="_blank" class="ext-link" data-i18n="link_heavens_above">Heavens-Above ↗</a>
             </div>
 
             <!-- ISS Fun Facts -->
             <div class="motion-facts-wrap" style="margin-top: 16px;">
               <div class="motion-facts-header">
-                <span>🛰️ ISS Quick Facts</span>
+                <span data-i18n="iss_facts_header">🛰️ ISS Quick Facts</span>
                 <button class="motion-fact-next" onclick="nextMotionFact('iss')" title="Next fact">→</button>
               </div>
               <div id="iss-fact-card" class="motion-fact-card">
@@ -355,7 +355,7 @@
           <!-- ── NEO Panel ───────────────────────────────────────────────── -->
           <div id="motion-neo-panel" class="motion-panel" style="display:none;">
             <div class="iss-tip">
-              <span>Near-Earth Objects passing within 7.5M km tonight. Data from NASA NeoWs API. <span style="cursor:pointer;opacity:0.7;" onclick="showInfo(window.i18n[currentLang]?.asteroid_info || 'Near-Earth Objects (NEOs) passing by Earth tonight. Data from NASA NeoWs API.', event)">ℹ️</span></span>
+              <span data-i18n="neo_tip">Near-Earth Objects passing within 7.5M km tonight. Data from NASA NeoWs API.</span> <span style="cursor:pointer;opacity:0.7;" onclick="showInfo(window.i18n[currentLang]?.asteroid_info || 'Near-Earth Objects (NEOs) passing by Earth tonight. Data from NASA NeoWs API.', event)">ℹ️</span>
             </div>
             <div id="asteroids-list" style="display:flex; flex-direction:column; gap:10px;">
               <div style="color: #94a3b8; font-size: 0.85rem; text-align: center; padding: 10px;" data-i18n="asteroid_scanning">Scanning NASA Database...</div>
@@ -365,7 +365,7 @@
           <!-- ── Comets Panel ────────────────────────────────────────────── -->
           <div id="motion-comets-panel" class="motion-panel" style="display:none;">
             <div class="iss-tip">
-              <span>Notable comets currently in the inner solar system. Some are visible with binoculars or a small telescope.</span>
+              <span data-i18n="comet_tip">Notable comets currently in the inner solar system. Some are visible with binoculars or a small telescope.</span>
             </div>
 
             <!-- Curated comet list -->
@@ -440,7 +440,7 @@
             <!-- Comet Fun Facts -->
             <div class="motion-facts-wrap" style="margin-top: 16px;">
               <div class="motion-facts-header">
-                <span>💡 Comet Fun Facts</span>
+                <span data-i18n="comet_facts_header">💡 Comet Fun Facts</span>
                 <button class="motion-fact-next" onclick="nextMotionFact('comet')" title="Next fact">→</button>
               </div>
               <div id="comet-fact-card" class="motion-fact-card">
@@ -451,20 +451,20 @@
             </div>
 
             <div style="margin-top:12px; text-align:right;">
-              <a href="https://ssd.jpl.nasa.gov/tools/sbdb_lookup.html" target="_blank" class="ext-link">NASA Small Body DB ↗</a>
+              <a href="https://ssd.jpl.nasa.gov/tools/sbdb_lookup.html" target="_blank" class="ext-link" data-i18n="link_nasa_sbdb">NASA Small Body DB ↗</a>
             </div>
           </div>
 
           <!-- ── Meteor Showers Panel ────────────────────────────────────── -->
           <div id="motion-meteors-panel" class="motion-panel" style="display:none;">
             <div class="iss-tip">
-              <span>Upcoming major meteor showers, ranked by peak date. ZHR = Zenithal Hourly Rate under ideal dark skies.</span>
+              <span data-i18n="meteor_tip">Upcoming major meteor showers, ranked by peak date. ZHR = Zenithal Hourly Rate under ideal dark skies.</span>
             </div>
             <div id="meteors-list" style="display:flex; flex-direction:column; gap:10px;">
               <div class="loading-shimmer"></div>
             </div>
             <div style="margin-top:12px; text-align:right;">
-              <a href="https://www.imo.net/members/imo_showers/working_shower_list" target="_blank" class="ext-link">IMO Shower List ↗</a>
+              <a href="https://www.imo.net/members/imo_showers/working_shower_list" target="_blank" class="ext-link" data-i18n="link_imo_showers">IMO Shower List ↗</a>
             </div>
           </div>
 
@@ -743,20 +743,20 @@
           <h2 class="card-title" id="target-db-title">Scorpius Must-See Targets</h2>
         </div>
         <div class="card-actions" id="equipment-filters" style="margin-right: auto;">
-          <span style="font-size: 0.8rem; color: var(--text-secondary); margin-right: 5px;">Equipment:</span>
-          <button class="filter-btn equip-btn active" data-equip="all">All</button>
-          <button class="filter-btn equip-btn" data-equip="seestar">Seestar</button>
-          <button class="filter-btn equip-btn" data-equip="dslr">DSLR</button>
-          <button class="filter-btn equip-btn" data-equip="binos">Binoculars</button>
+          <span style="font-size: 0.8rem; color: var(--text-secondary); margin-right: 5px;" data-i18n="lbl_equipment">Equipment:</span>
+          <button class="filter-btn equip-btn active" data-equip="all" data-i18n="filter_all">All</button>
+          <button class="filter-btn equip-btn" data-equip="seestar" data-i18n="equip_seestar">Seestar</button>
+          <button class="filter-btn equip-btn" data-equip="dslr" data-i18n="equip_dslr">DSLR</button>
+          <button class="filter-btn equip-btn" data-equip="binos" data-i18n="equip_binos">Binoculars</button>
         </div>
         <div class="card-actions" id="type-filters">
-          <span style="font-size: 0.8rem; color: var(--text-secondary); margin-right: 5px;">Object:</span>
+          <span style="font-size: 0.8rem; color: var(--text-secondary); margin-right: 5px;" data-i18n="lbl_object">Object:</span>
           <button class="filter-btn type-btn active" data-filter="all" data-i18n="filter_all">All</button>
           <button class="filter-btn type-btn" data-filter="globular" data-i18n="filter_globular">Globulars</button>
           <button class="filter-btn type-btn" data-filter="open" data-i18n="filter_open">Open Clusters</button>
           <button class="filter-btn type-btn" data-filter="double" data-i18n="filter_double">Double Stars</button>
           <button class="filter-btn type-btn" data-filter="star" data-i18n="filter_stars">Stars</button>
-          <button class="filter-btn type-btn" data-filter="galaxy">Galaxies</button>
+          <button class="filter-btn type-btn" data-filter="galaxy" data-i18n="filter_galaxy">Galaxies</button>
         </div>
       </div>
       
@@ -833,7 +833,7 @@
         <div id="scheduler-empty-state" style="text-align: center; padding: 30px 10px; border: 1px dashed rgba(255,255,255,0.1); border-radius: 8px; background: rgba(255,255,255,0.01);">
           <i data-lucide="calendar" style="width:36px;height:36px;color:var(--text-dim);margin-bottom:10px;opacity:0.5;margin-left:auto;margin-right:auto;display:block;"></i>
           <h3 style="margin: 0 0 5px 0; font-size: 0.95rem; color: #fff;">Your night schedule is empty</h3>
-          <p style="margin: 0; font-size: 0.8rem; color: var(--text-dim);">Click "Add to Plan" on any target card in the database above to plan your night session.</p>
+          <p style="margin: 0; font-size: 0.8rem; color: var(--text-dim);" data-i18n="scheduler_empty_hint">Click "Add to Plan" on any target card in the database above to plan your night session.</p>
         </div>
 
         <div id="scheduler-list-container" class="hidden" style="display: flex; flex-direction: column; gap: 8px;">
