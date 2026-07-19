@@ -1592,7 +1592,7 @@ function updateUnifiedCard() {
           <div style="font-size: 0.85rem; color: #fbcfe8; line-height: 1.4; margin-bottom: 8px;">
             ${eventObj.description}
           </div>
-          <button class="filter-btn" data-plan-id="event_${escapeForSingleQuotedString(eventObj.name.replace(/\s+/g, '_').toLowerCase())}" data-plan-name="${escapeForSingleQuotedString(eventObj.name)}" data-ra="0" data-dec="0" style="padding: 4px 10px; font-size: 0.75rem; background: rgba(236, 72, 153, 0.15); border-color: rgba(236, 72, 153, 0.3); color: #fbcfe8; cursor: pointer; border-radius: 4px; font-weight: 600;">${_cDict.btn_add_to_plan || 'Add to Plan +'}</button>
+          <button class="filter-btn" data-plan-id="event_${escapeForSingleQuotedString(eventObj.name.replace(/\s+/g, '_').toLowerCase())}" data-plan-name="${escapeForSingleQuotedString(eventObj.name)}" data-ra="0" data-dec="0" style="padding: 4px 10px; font-size: 0.75rem; background: rgba(236, 72, 153, 0.15); border-color: rgba(236, 72, 153, 0.3); color: #fbcfe8; cursor: pointer; border-radius: 4px; font-weight: 600;">${dict.btn_add_to_plan || 'Add to Plan +'}</button>
         </div>
       </div>
     </div>
@@ -1618,7 +1618,7 @@ function updateUnifiedCard() {
   if (!alertsHtml && !aiHtml && !eventHtml && !briefingHtml) {
     const fallbackMsg = `
       <div style="text-align: center; padding: 30px 20px; color: var(--text-secondary); font-style: italic; background: rgba(255,255,255,0.02); border-radius: 8px; border: 1px dashed rgba(255,255,255,0.1); margin: 10px 0;">
-        ${_cDict.no_targets_visible_now || "No targets visible right now. Conditions might be poor, or it's daytime!"}
+        ${dict.no_targets_visible_now || "No targets visible right now. Conditions might be poor, or it's daytime!"}
       </div>
     `;
     list.innerHTML = fallbackMsg + factHtml;
@@ -1668,9 +1668,9 @@ function renderAlerts(alerts) {
     });
 
     const addButton = a.type === 'planet' ? `
-      <button class="filter-btn" data-plan-id="${a.planet_name.toLowerCase()}" data-plan-name="${a.planet_name}" data-ra="0" data-dec="0" style="margin-left: auto; padding: 2px 8px; font-size: 0.75rem; background: rgba(59, 130, 246, 0.15); border-color: rgba(59, 130, 246, 0.3); color: #93c5fd; cursor: pointer; border-radius: 4px; font-weight: 600; white-space: nowrap;">${_cDict.btn_add_to_plan || 'Add to Plan +'}</button>
+      <button class="filter-btn" data-plan-id="${a.planet_name.toLowerCase()}" data-plan-name="${a.planet_name}" data-ra="0" data-dec="0" style="margin-left: auto; padding: 2px 8px; font-size: 0.75rem; background: rgba(59, 130, 246, 0.15); border-color: rgba(59, 130, 246, 0.3); color: #93c5fd; cursor: pointer; border-radius: 4px; font-weight: 600; white-space: nowrap;">${dict.btn_add_to_plan || 'Add to Plan +'}</button>
     ` : (a.type === 'constellation' ? `
-      <button class="filter-btn" data-plan-id="${a.constellation_abbr.toLowerCase()}" data-plan-name="${a.constellation_name}" data-ra="0" data-dec="0" style="margin-left: auto; padding: 2px 8px; font-size: 0.75rem; background: rgba(59, 130, 246, 0.15); border-color: rgba(59, 130, 246, 0.3); color: #93c5fd; cursor: pointer; border-radius: 4px; font-weight: 600; white-space: nowrap;">${_cDict.btn_add_to_plan || 'Add to Plan +'}</button>
+      <button class="filter-btn" data-plan-id="${a.constellation_abbr.toLowerCase()}" data-plan-name="${a.constellation_name}" data-ra="0" data-dec="0" style="margin-left: auto; padding: 2px 8px; font-size: 0.75rem; background: rgba(59, 130, 246, 0.15); border-color: rgba(59, 130, 246, 0.3); color: #93c5fd; cursor: pointer; border-radius: 4px; font-weight: 600; white-space: nowrap;">${dict.btn_add_to_plan || 'Add to Plan +'}</button>
     ` : '');
 
     return `
@@ -2068,6 +2068,7 @@ async function loadTargets() {
 function renderTargetGrid(targets, liveMap, typeFilter = 'all', equipFilter = 'all') {
   const grid = document.getElementById('target-grid');
   if (!grid) return;
+  if (!targets) targets = [];
 
   // 1. Reset display chunk counter if the user switches active filter tabs
   const cacheKey = typeFilter + '-' + equipFilter;
