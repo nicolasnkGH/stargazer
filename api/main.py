@@ -585,6 +585,8 @@ def get_image(entry_id: int):
             raise HTTPException(status_code=404, detail="Image not found")
         if "," in data:
             data = data.split(",")[1]
+        data = data.strip()
+        data += "=" * ((4 - len(data) % 4) % 4)
         image_bytes = base64.b64decode(data)
         return Response(content=image_bytes, media_type="image/jpeg")
     except Exception as e:
