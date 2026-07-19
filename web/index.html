@@ -117,8 +117,12 @@
               <a href="#card-tonight" data-i18n="nav_tonight" class="nav-link">Tonight's Outlook</a>
               <a href="#card-active-const" data-i18n="nav_active_const" class="nav-link">Active Constellation</a>
               <a href="#card-targets" data-i18n="nav_target_db" class="nav-link">Target Database</a>
+              <a href="#card-plan-my-night" class="nav-link">Plan My Night Scheduler</a>
               <a href="#card-motion" class="nav-link">Sky Objects in Motion</a>
+              <a href="#card-space-weather" class="nav-link">Aurora & Space Weather</a>
               <a href="#card-weather" class="nav-link">Astronomical Weather Forecast</a>
+              <a href="#card-light-pollution" class="nav-link">Light Pollution Map</a>
+              <a href="#card-solar-system-scope" class="nav-link">Interactive 3D Solar System</a>
               <a href="#card-weekly" data-i18n="nav_weekly" class="nav-link">7-Day Forecast</a>
               <button id="btn-data-settings" class="nav-link" style="text-align: left; width: 100%; border: none; background: transparent; cursor: pointer; color: var(--text-primary);">💾 Data & Settings</button>
               
@@ -135,6 +139,7 @@
                   <a href="https://www.heavens-above.com/" target="_blank" class="nav-submenu-link">Heavens-Above</a>
                   <a href="https://www.astrob.in" target="_blank" class="nav-submenu-link">AstroBin</a>
                   <a href="https://www.solarsystemscope.com" target="_blank" class="nav-submenu-link">Solar System Scope</a>
+                  <a href="https://lightpollutionmap.app/" id="lp-map-nav-link" target="_blank" class="nav-submenu-link">Light Pollution Map</a>
                 </div>
               </div>
             </div>
@@ -193,7 +198,7 @@
         <div class="card-header">
           <span class="card-icon"><i data-lucide="cloud-sun"></i></span>
           <h2 class="card-title" data-i18n="card_conditions">Conditions</h2>
-          <span class="info-icon" style="cursor:pointer;display:flex;align-items:center;margin-left:6px;" onclick="showInfo(window.i18n[window.currentLang]?.info_weather || 'Data powered by Open-Meteo API', event)"><i data-lucide="info" style="width:14px;height:14px;stroke:rgba(148,163,184,0.6);stroke-width:1.5;"></i></span>
+          <span class="info-icon" style="cursor:pointer; opacity:0.6; font-size: 0.85rem; margin-left:8px;" onclick="showInfo(window.i18n[window.currentLang]?.info_weather || 'Data powered by Open-Meteo API', event)">ℹ️</span>
           <span class="card-badge" id="seeing-score-badge">—</span>
         </div>
         <div class="card-body">
@@ -287,6 +292,7 @@
             <div><span class="ti-label" data-i18n="lbl_alt">Alt</span> <span id="moon-alt">—</span> <span class="ux-tooltip" data-tooltip="Altitude: How high above the horizon an object is. 90° is straight up.">ℹ️</span></div>
           </div>
           <div class="dso-impact" id="dso-impact">Loading…</div>
+          <button class="btn btn-primary" onclick="addToPlan('moon', 'Moon', 0, 0)" style="width: 100%; margin-top: 12px; font-size: 0.85rem; padding: 6px 12px; background: rgba(59, 130, 246, 0.15); border: 1px solid rgba(59, 130, 246, 0.3); color: #93c5fd; border-radius: 6px; cursor: pointer; font-weight: 600;">Add Moon to Plan +</button>
           <!-- Moon Fact — standardized fact card -->
           <div class="motion-facts-wrap" id="moon-fact-wrap" style="display:none; margin-top:12px;">
             <div class="motion-facts-header">
@@ -583,28 +589,32 @@
           <div style="display: flex; align-items: center; gap: 8px;">
             <span class="card-icon"><i data-lucide="orbit"></i></span>
             <div>
-              <h2 class="card-title" style="margin: 0; line-height: 1.2;">Interactive 3D Solar System</h2>
+              <h2 class="card-title" style="margin: 0; line-height: 1.2; display: flex; align-items: center; gap: 6px;">Interactive 3D Solar System <span class="info-icon" style="cursor:pointer; opacity:0.6; font-size: 0.85rem;" onclick="showInfo('3D interactive simulation powered by Solar System Scope. Use your mouse to spin the planets, zoom, or select solar system bodies.', event)">ℹ️</span></h2>
               <div style="font-size: 0.7rem; color: var(--text-dim); margin-top: 2px;">Model by <a href="https://www.solarsystemscope.com" target="_blank" style="color: #3b82f6; text-decoration: none;" onmouseover="this.style.textDecoration='underline'" onmouseout="this.style.textDecoration='none'">Solar System Scope</a></div>
             </div>
           </div>
           <button id="btn-solar-fullscreen" style="background: none; border: none; color: var(--text-dim); cursor: pointer; padding: 4px; display: flex; align-items: center; transition: color 0.2s;" onmouseover="this.style.color='var(--text-light)'" onmouseout="this.style.color='var(--text-dim)'" title="Full Screen"><i data-lucide="maximize" style="width:16px;height:16px;"></i></button>
         </div>
-        <div class="card-body" style="padding: 0; overflow: hidden; border-radius: 0 0 12px 12px; height: 450px; position: relative;">
+        <div class="card-body" id="solar-scope-container" style="padding: 0; overflow: hidden; border-radius: 0 0 12px 12px; height: 450px; position: relative;">
           <!-- Interactivity overlay (Click to enable mouse controls, so scroll doesn't get captured by mistake) -->
           <div id="solar-scope-overlay" style="position: absolute; top:0; left:0; width:100%; height:100%; background: rgba(15,23,42,0.45); display: flex; align-items: center; justify-content: center; z-index: 5; cursor: pointer; transition: opacity 0.3s; backdrop-filter: blur(2px);" onclick="this.style.pointerEvents='none'; this.style.opacity='0'; document.getElementById('solar-scope-iframe').style.pointerEvents='auto';">
             <div style="background: rgba(15,23,42,0.9); padding: 10px 20px; border-radius: 20px; font-size: 0.85rem; border: 1px solid rgba(255,255,255,0.2); backdrop-filter: blur(4px); display:flex; align-items:center; gap:8px; color: #fff;">
               <i data-lucide="mouse-pointer-click" style="width:16px;height:16px;"></i> Click to Interact with 3D Model
             </div>
           </div>
-          <iframe id="solar-scope-iframe" src="https://www.solarsystemscope.com/iframe" style="width: 100%; height: 100%; border: none; pointer-events: none;" allow="fullscreen"></iframe>
+          <iframe id="solar-scope-iframe" src="https://www.solarsystemscope.com/iframe" style="width: 100%; height: 100%; border: none; pointer-events: none; transform-origin: top left;" allow="fullscreen"></iframe>
         </div>
       </section>
       
-      <!-- ── Light Pollution Map Card ── -->
       <section class="card" id="card-light-pollution" style="margin-bottom: 20px;">
-        <div class="card-header">
-          <span class="card-icon"><i data-lucide="map"></i></span>
-          <h2 class="card-title">Light Pollution Map</h2>
+        <div class="card-header" style="display: flex; justify-content: space-between; align-items: center; width: 100%; box-sizing: border-box;">
+          <div style="display: flex; align-items: center; gap: 8px;">
+            <span class="card-icon"><i data-lucide="map"></i></span>
+            <div>
+              <h2 class="card-title" style="margin: 0; line-height: 1.2; display: flex; align-items: center; gap: 6px;">Light Pollution Map <span class="info-icon" style="cursor:pointer; opacity:0.6; font-size: 0.85rem;" onclick="showInfo('Light pollution overlay data provided by LightPollutionMap.app. Shows global artificial night sky brightness levels.', event)">ℹ️</span></h2>
+              <div style="font-size: 0.7rem; color: var(--text-dim); margin-top: 2px;">Map by <a href="https://lightpollutionmap.app/" target="_blank" style="color: #3b82f6; text-decoration: none;" onmouseover="this.style.textDecoration='underline'" onmouseout="this.style.textDecoration='none'">Light Pollution Map</a></div>
+            </div>
+          </div>
         </div>
         <div class="card-body" style="padding: 0; overflow: hidden; border-radius: 0 0 12px 12px; height: 320px; position: relative; background: radial-gradient(circle at center, rgba(16, 24, 48, 0.95), rgba(8, 12, 24, 1)); display: flex; flex-direction: column; align-items: center; justify-content: center; text-align: center; border: 1px solid rgba(255, 255, 255, 0.03);">
           <!-- Map Grid/Glow Styling -->
@@ -623,6 +633,7 @@
           </div>
         </div>
       </section>
+    </div>
 
     <!-- ── Clear Outside Weather Embed ── -->
     <section id="card-weather" class="card card-weather">
@@ -661,12 +672,60 @@
       </div>
     </section>
 
+    <!-- ── Aurora & Space Weather Card ── -->
+    <section class="card" id="card-space-weather" style="margin-bottom: 20px;">
+      <div class="card-header">
+        <span class="card-icon"><i data-lucide="zap"></i></span>
+        <h2 class="card-title" style="display: flex; align-items: center; gap: 6px;">Aurora & Space Weather <span class="info-icon" style="cursor:pointer; opacity:0.6; font-size: 0.85rem; margin-left:8px;" onclick="showInfo('Real-time space weather alerts and planetary Kp-index estimates fetched directly from NOAA\'s Space Weather Prediction Center (SWPC).', event)">ℹ️</span></h2>
+      </div>
+      <div class="card-body" style="padding: 20px; display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 20px;">
+        
+        <!-- Left: Kp-Index Meter -->
+        <div style="display: flex; flex-direction: column; align-items: center; justify-content: center; background: rgba(255, 255, 255, 0.02); padding: 15px; border-radius: 10px; border: 1px solid rgba(255,255,255,0.05); text-align: center;">
+          <h3 style="margin: 0 0 10px 0; font-size: 0.95rem; color: var(--text-secondary);">Planetary Kp-Index</h3>
+          <div style="position: relative; width: 120px; height: 120px; display: flex; align-items: center; justify-content: center;">
+            <svg viewBox="0 0 36 36" style="width: 100%; height: 100%; transform: rotate(-90deg);">
+              <path d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831" fill="none" stroke="rgba(255,255,255,0.05)" stroke-width="3"></path>
+              <path id="kp-arc" d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831" fill="none" stroke="#22c55e" stroke-width="3" stroke-dasharray="0, 100" style="transition: stroke-dasharray 0.5s ease, stroke 0.5s ease;"></path>
+            </svg>
+            <div style="position: absolute; display: flex; flex-direction: column; align-items: center;">
+              <span id="kp-value" style="font-size: 1.8rem; font-weight: 700; color: #fff; line-height: 1;">0</span>
+              <span id="kp-status" style="font-size: 0.7rem; color: var(--text-dim); margin-top: 4px; font-weight: 600;">Quiet</span>
+            </div>
+          </div>
+          <p id="kp-desc" style="font-size: 0.75rem; color: var(--text-dim); margin: 10px 0 0 0; line-height: 1.3;">Active space weather conditions are quiet.</p>
+        </div>
+
+        <!-- Middle: Aurora Visibility Probability -->
+        <div style="display: flex; flex-direction: column; justify-content: center; background: rgba(255, 255, 255, 0.02); padding: 15px; border-radius: 10px; border: 1px solid rgba(255,255,255,0.05);">
+          <h3 style="margin: 0 0 10px 0; font-size: 0.95rem; color: var(--text-secondary); display: flex; align-items: center; gap: 6px;"><i data-lucide="sparkles" style="width:16px;height:16px;color:#a855f7;"></i> Aurora Visibility</h3>
+          <div style="display: flex; align-items: baseline; gap: 8px;">
+            <span id="aurora-probability" style="font-size: 2.2rem; font-weight: 700; color: #a855f7;">0%</span>
+            <span style="font-size: 0.85rem; color: var(--text-dim);">Probability</span>
+          </div>
+          <div style="margin-top: 10px; height: 6px; background: rgba(255,255,255,0.05); border-radius: 3px; overflow: hidden;">
+            <div id="aurora-bar" style="width: 0%; height: 100%; background: linear-gradient(90deg, #a855f7, #ec4899); transition: width 0.5s ease;"></div>
+          </div>
+          <p id="aurora-guidance" style="font-size: 0.75rem; color: var(--text-dim); margin: 12px 0 0 0; line-height: 1.3;">Aurora is unlikely to be visible at your current latitude.</p>
+        </div>
+
+        <!-- Right: Space Weather Alerts & Active Storms -->
+        <div style="display: flex; flex-direction: column; justify-content: center; background: rgba(255, 255, 255, 0.02); padding: 15px; border-radius: 10px; border: 1px solid rgba(255,255,255,0.05);">
+          <h3 style="margin: 0 0 10px 0; font-size: 0.95rem; color: var(--text-secondary); display: flex; align-items: center; gap: 6px;"><i data-lucide="alert-triangle" style="width:16px;height:16px;color:#eab308;"></i> Space Weather Alerts</h3>
+          <div id="space-weather-alerts-container" style="flex: 1; display: flex; flex-direction: column; gap: 8px; max-height: 120px; overflow-y: auto; padding-right: 5px;">
+            <div style="font-size: 0.85rem; color: var(--text-dim); text-align: center; margin-top: 20px;">No active space weather alerts.</div>
+          </div>
+        </div>
+
+      </div>
+    </section>
+
     <!-- Constellations Tonight -->
     <section class="card" style="margin-bottom: 20px;">
       <div class="card-header">
         <div class="card-icon"><i data-lucide="star"></i></div>
         <div class="card-title" data-i18n="card_const_tonight">Constellations Tonight</div>
-        <span class="info-icon" style="cursor:pointer;display:flex;align-items:center;margin-left:6px;" onclick="showInfo(window.i18n[window.currentLang]?.info_planets || 'Calculated locally via Skyfield Ephemeris', event)"><i data-lucide="info" style="width:14px;height:14px;stroke:rgba(148,163,184,0.6);stroke-width:1.5;"></i></span>
+        <span class="info-icon" style="cursor:pointer; opacity:0.6; font-size: 0.85rem; margin-left:8px;" onclick="showInfo(window.i18n[window.currentLang]?.info_planets || 'Calculated locally via Skyfield Ephemeris', event)">ℹ️</span>
         <div class="card-badge" style="background: rgba(168, 85, 247, 0.15); color: #a855f7; border-color: rgba(168, 85, 247, 0.3);">
           <span data-i18n="badge_sorted">Sorted by best view</span>
         </div>
@@ -740,6 +799,47 @@
       </div>
       <div class="target-grid" id="target-grid">
         <!-- Populated by JS -->
+      </div>
+    </section>
+
+    <!-- ── Session Scheduler (Plan My Night) ── -->
+    <section class="card" id="card-plan-my-night" style="margin-bottom: 20px;">
+      <div class="card-header" style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 10px;">
+        <div style="display: flex; align-items: center; gap: 8px;">
+          <span class="card-icon"><i data-lucide="clock"></i></span>
+          <h2 class="card-title" style="display: flex; align-items: center; gap: 6px;">Plan My Night <span class="info-icon" style="cursor:pointer; opacity:0.6; font-size: 0.85rem; margin-left:8px;" onclick="showInfo('Queue targets from the database to build a custom session timeline. Drag to reorder, check visual observation windows, and export to CSV or text files.', event)">ℹ️</span></h2>
+        </div>
+        <div class="card-actions">
+          <button id="btn-export-txt" class="filter-btn" style="display: inline-flex; align-items: center; gap: 4px; font-size: 0.8rem; padding: 4px 10px;"><i data-lucide="file-text" style="width:14px;height:14px;"></i> Export Text</button>
+          <button id="btn-export-csv" class="filter-btn" style="display: inline-flex; align-items: center; gap: 4px; font-size: 0.8rem; padding: 4px 10px;"><i data-lucide="download" style="width:14px;height:14px;"></i> Export CSV</button>
+          <button id="btn-clear-plan" class="filter-btn" style="display: inline-flex; align-items: center; gap: 4px; font-size: 0.8rem; padding: 4px 10px; background: rgba(239, 68, 68, 0.1); border-color: rgba(239, 68, 68, 0.2); color: #f87171;" onmouseover="this.style.background='rgba(239, 68, 68, 0.2)'" onmouseout="this.style.background='rgba(239, 68, 68, 0.1)'"><i data-lucide="trash-2" style="width:14px;height:14px;"></i> Clear</button>
+        </div>
+      </div>
+      <div class="card-body" style="padding: 20px;">
+        <!-- Visual Timeline Bar -->
+        <div style="margin-bottom: 25px;">
+          <div style="display: flex; justify-content: space-between; font-size: 0.75rem; color: var(--text-dim); margin-bottom: 6px;">
+            <span>Sunset (6:00 PM)</span>
+            <span>Midnight</span>
+            <span>Sunrise (6:00 AM)</span>
+          </div>
+          <div style="height: 24px; background: rgba(255, 255, 255, 0.03); border-radius: 12px; position: relative; border: 1px solid rgba(255,255,255,0.05); overflow: hidden; display: flex;" id="scheduler-timeline-bar">
+            <!-- Dynamic scheduler timeline segments injected here -->
+            <div style="width: 100%; display: flex; align-items: center; justify-content: center; font-size: 0.75rem; color: var(--text-dim);">No targets scheduled</div>
+          </div>
+        </div>
+
+        <!-- Scheduled Targets List -->
+        <div id="scheduler-empty-state" style="text-align: center; padding: 30px 10px; border: 1px dashed rgba(255,255,255,0.1); border-radius: 8px; background: rgba(255,255,255,0.01);">
+          <i data-lucide="calendar" style="width:36px;height:36px;color:var(--text-dim);margin-bottom:10px;opacity:0.5;margin-left:auto;margin-right:auto;display:block;"></i>
+          <h3 style="margin: 0 0 5px 0; font-size: 0.95rem; color: #fff;">Your night schedule is empty</h3>
+          <p style="margin: 0; font-size: 0.8rem; color: var(--text-dim);">Click "Add to Plan" on any target card in the database above to plan your night session.</p>
+        </div>
+
+        <div id="scheduler-list-container" class="hidden" style="display: flex; flex-direction: column; gap: 8px;">
+          <!-- Items will be injected by JS -->
+        </div>
+
       </div>
     </section>
 
@@ -837,11 +937,23 @@
 
   <!-- First-time Welcome Modal -->
   <div id="welcome-modal" class="modal hidden">
-    <div class="modal-content" style="max-width: 420px; text-align: center; padding: 35px 25px;">
+    <div class="modal-content" style="max-width: 440px; text-align: center; padding: 30px 25px;">
       <h2 style="margin-top: 0; font-size: 1.4rem;">Welcome to StarGazer! ✨</h2>
-      <p style="color: var(--text-dim); margin-bottom: 25px; font-size: 0.95rem; line-height: 1.5;">
-        To calculate accurate ISS passes, constellations, moon phases, and weather forecasts for your exact sky, please set your location.
+      <p style="color: var(--text-dim); margin-bottom: 15px; font-size: 0.95rem; line-height: 1.5;">
+        To calculate accurate ISS passes, constellations, moon phases, aurora visibility, and weather forecasts for your exact sky, please set your location.
       </p>
+      
+      <!-- New Features Highlight -->
+      <div style="background: rgba(168, 85, 247, 0.05); border: 1px solid rgba(168, 85, 247, 0.2); border-radius: 8px; padding: 12px; margin-bottom: 20px; text-align: left;">
+        <h4 style="margin: 0 0 8px 0; color: #a855f7; font-size: 0.85rem; display: flex; align-items: center; gap: 6px;"><i data-lucide="sparkles" style="width:14px;height:14px;"></i> What's New:</h4>
+        <ul style="margin: 0; padding-left: 18px; font-size: 0.8rem; color: var(--text-secondary); line-height: 1.4; display: flex; flex-direction: column; gap: 4px;">
+          <li><strong>Plan My Night Scheduler:</strong> Build a timeline session plan of targets and export to CSV/TXT.</li>
+          <li><strong>Aurora & Space Weather:</strong> View real-time Kp index and solar storm alerts from NOAA.</li>
+          <li><strong>Equipment FOV Simulator:</strong> Simulate telescope eyepieces & camera sensors in Aladin Lite.</li>
+          <li><strong>3D Solar System:</strong> Interact with a live 3D planetary model.</li>
+        </ul>
+      </div>
+
       <div style="display: flex; flex-direction: column; gap: 12px;">
         <button id="btn-welcome-gps" class="btn btn-primary" style="padding: 12px; font-size: 0.95rem; display: flex; align-items: center; justify-content: center; gap: 8px; cursor: pointer; border-radius: 8px; background: #3b82f6; color: white;">
           <i data-lucide="crosshair" style="width:16px;height:16px;"></i> Auto-Detect Location (GPS)
@@ -982,6 +1094,7 @@
           <li><a href="https://www.heavens-above.com/" target="_blank">Heavens-Above</a></li>
           <li><a href="https://www.astrob.in" target="_blank">AstroBin</a></li>
           <li><a href="https://www.solarsystemscope.com" target="_blank">Solar System Scope</a></li>
+          <li><a href="https://lightpollutionmap.app/" id="lp-map-footer-link" target="_blank">Light Pollution Map</a></li>
         </ul>
       </div>
       <div class="footer-col">
@@ -1032,9 +1145,59 @@
   <script async defer src="https://buttons.github.io/buttons.js" integrity="sha384-wHRfMiU2L32XEQncJoQkt7jFlXN1M2PcxtvwbV1ThlosV9/utFp7hPk0m4iZ3Trt" crossorigin="anonymous"></script>
   <!-- FOV Simulator Modal -->
   <div id="fov-modal" class="modal hidden">
-    <div class="modal-content" style="max-width: 600px;">
-      <h2 style="font-size: 1.1rem; margin-bottom: 5px; color: white;" id="fov-target-name">FOV Simulator</h2>
-      <p style="font-size: 0.85rem; color: var(--text-secondary); margin-bottom: 15px;">Simulated 1.2° view (130mm telescope with 25mm eyepiece)</p>
+    <div class="modal-content" style="max-width: 650px; background: #0f172a; border: 1px solid rgba(255,255,255,0.1); border-radius: 12px; padding: 20px;">
+      <h2 style="font-size: 1.25rem; margin-bottom: 5px; color: white; display: flex; align-items: center; gap: 8px;" id="fov-target-name">
+        <i data-lucide="scan" style="width:20px;height:20px;color:#a855f7;"></i> FOV Simulator
+      </h2>
+      
+      <!-- Preset and Custom Input Controls -->
+      <div style="display: flex; flex-direction: column; gap: 12px; margin-bottom: 15px; padding: 12px; background: rgba(255,255,255,0.02); border-radius: 8px; border: 1px solid rgba(255,255,255,0.05);">
+        <div style="display: flex; flex-wrap: wrap; gap: 10px; align-items: center;">
+          <label style="font-size: 0.8rem; color: var(--text-secondary); min-width: 80px;">Equipment:</label>
+          <select id="fov-preset-select" style="flex: 1; min-width: 200px; background: #1e293b; border: 1px solid rgba(255,255,255,0.15); border-radius: 6px; padding: 6px 10px; color: #fff; font-size: 0.85rem; outline: none;">
+            <option value="seestar">Seestar S50 (Smart Telescope)</option>
+            <option value="wide_50">DSLR + 50mm Lens (Wide Field)</option>
+            <option value="tele_250">DSLR + 250mm Telephoto</option>
+            <option value="visual_25" selected>Visual: 130mm Scope + 25mm Eyepiece (1.2°)</option>
+            <option value="visual_10">Visual: 130mm Scope + 10mm Eyepiece (0.48°)</option>
+            <option value="custom_visual">Custom Eyepiece Setup...</option>
+            <option value="custom_sensor">Custom Camera Sensor Setup...</option>
+          </select>
+        </div>
+
+        <!-- Custom Visual Inputs Panel -->
+        <div id="fov-custom-visual-inputs" class="hidden" style="display: flex; flex-wrap: wrap; gap: 15px; border-top: 1px solid rgba(255,255,255,0.05); padding-top: 10px;">
+          <div style="display:flex; flex-direction:column; gap:4px; flex: 1; min-width: 100px;">
+            <label style="font-size: 0.75rem; color: var(--text-dim);">Scope Focal Length (mm)</label>
+            <input type="number" id="fov-scope-fl" value="650" style="background:#1e293b; border:1px solid rgba(255,255,255,0.15); border-radius:4px; padding:4px 8px; color:#fff; font-size:0.8rem;">
+          </div>
+          <div style="display:flex; flex-direction:column; gap:4px; flex: 1; min-width: 100px;">
+            <label style="font-size: 0.75rem; color: var(--text-dim);">Eyepiece Focal Length (mm)</label>
+            <input type="number" id="fov-ep-fl" value="25" style="background:#1e293b; border:1px solid rgba(255,255,255,0.15); border-radius:4px; padding:4px 8px; color:#fff; font-size:0.8rem;">
+          </div>
+          <div style="display:flex; flex-direction:column; gap:4px; flex: 1; min-width: 100px;">
+            <label style="font-size: 0.75rem; color: var(--text-dim);">Eyepiece AFOV (degrees)</label>
+            <input type="number" id="fov-ep-afov" value="52" style="background:#1e293b; border:1px solid rgba(255,255,255,0.15); border-radius:4px; padding:4px 8px; color:#fff; font-size:0.8rem;">
+          </div>
+        </div>
+
+        <!-- Custom Camera Sensor Inputs Panel -->
+        <div id="fov-custom-sensor-inputs" class="hidden" style="display: flex; flex-wrap: wrap; gap: 15px; border-top: 1px solid rgba(255,255,255,0.05); padding-top: 10px;">
+          <div style="display:flex; flex-direction:column; gap:4px; flex: 1; min-width: 100px;">
+            <label style="font-size: 0.75rem; color: var(--text-dim);">Scope Focal Length (mm)</label>
+            <input type="number" id="fov-camera-scope-fl" value="650" style="background:#1e293b; border:1px solid rgba(255,255,255,0.15); border-radius:4px; padding:4px 8px; color:#fff; font-size:0.8rem;">
+          </div>
+          <div style="display:flex; flex-direction:column; gap:4px; flex: 1; min-width: 100px;">
+            <label style="font-size: 0.75rem; color: var(--text-dim);">Sensor Width (mm)</label>
+            <input type="number" id="fov-sensor-w" value="23.5" style="background:#1e293b; border:1px solid rgba(255,255,255,0.15); border-radius:4px; padding:4px 8px; color:#fff; font-size:0.8rem;">
+          </div>
+          <div style="display:flex; flex-direction:column; gap:4px; flex: 1; min-width: 100px;">
+            <label style="font-size: 0.75rem; color: var(--text-dim);">Sensor Height (mm)</label>
+            <input type="number" id="fov-sensor-h" value="15.6" style="background:#1e293b; border:1px solid rgba(255,255,255,0.15); border-radius:4px; padding:4px 8px; color:#fff; font-size:0.8rem;">
+          </div>
+        </div>
+      </div>
+
       <div id="aladin-lite-div" style="width:100%; height:400px; background: black; border: 1px solid rgba(255,255,255,0.1); border-radius: 8px;"></div>
       <button id="close-fov-btn" class="modal-close" style="margin-top: 15px; width: 100%;">Close Simulator</button>
     </div>

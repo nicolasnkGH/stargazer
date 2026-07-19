@@ -1263,10 +1263,11 @@ function renderPlanets(planets, factStr) {
       <div class="planet-3d-card ${p.visible_tonight ? '' : 'not-visible'} ${isBlocked ? 'blocked-horizon' : ''}">
         <div class="planet-3d-canvas-container" data-planet="${p.name}"></div>
         <div class="planet-info-col">
-          <div class="planet-name-row">
+          <div class="planet-name-row" style="display: flex; align-items: center; width: 100%;">
             <span class="planet-name">${p.emoji} ${pName}</span>
             <span class="planet-const-pill" title="Currently in this constellation">${p.constellation || ''}</span>
             ${isBlocked ? '<span class="blocked-badge" title="Hidden behind your custom horizon limits">Blocked by Horizon</span>' : ''}
+            <button class="filter-btn" onclick="addToPlan('${p.name.toLowerCase()}', '${p.name}', 0, 0)" style="margin-left: auto; padding: 2px 8px; font-size: 0.75rem; background: rgba(59, 130, 246, 0.15); border-color: rgba(59, 130, 246, 0.3); color: #93c5fd; cursor: pointer; border-radius: 4px; font-weight: 600;">Add to Plan +</button>
           </div>
           <div class="planet-meta-row">
             <span class="planet-alt" style="color:${altColor}" title="How high above the horizon">📐 Altitude: ${p.altitude_deg}° — ${altLabel}</span>
@@ -1828,8 +1829,11 @@ function renderTargetGrid(targets, liveMap, typeFilter = 'all', equipFilter = 'a
         ${['m1', 'm31', 'm4', 'm42', 'm7', 'm8', 'omega_cen', 'pleiades'].includes(t.id) ? `<img class="target-thumb" src="/assets/targets/${t.id}.jpg" alt="${tName}">` : ''}
         <div class="tc-desc">${tDesc}</div>
         ${t.horizon_note ? `<div class="tc-horizon-note">${t.horizon_note}</div>` : ''}
-        <div class="tc-footer">
-          <button class="btn-fov" onclick="openFovModal(${t.ra_hours * 15}, ${t.dec_degrees}, '${t.name.replace(/'/g, "\\'")}')">Simulate View 🔭</button>
+        <div class="tc-footer" style="flex-wrap: wrap; gap: 8px;">
+          <div style="display: flex; gap: 6px; width: 100%;">
+            <button class="btn-fov" onclick="openFovModal(${t.ra_hours * 15}, ${t.dec_degrees}, '${t.name.replace(/'/g, "\\'")}')">Simulate View 🔭</button>
+            <button class="btn-fov" onclick="addToPlan('${t.id}', '${t.name.replace(/'/g, "\\'")}', ${t.ra_hours * 15}, ${t.dec_degrees})" style="background: rgba(59, 130, 246, 0.15); border-color: rgba(59, 130, 246, 0.3); color: #93c5fd;">Add to Plan +</button>
+          </div>
           <span class="tc-equipment">${t.equipment || '🔭 Telescope'}</span>
           ${(t.difficulty && t.difficulty.replace('_', ' ') !== 'NAKED EYE') ? `<span class="tc-difficulty ${t.difficulty.replace(' ', '_')}">${t.difficulty.replace('_', ' ')}</span>` : ''}
           <span class="tc-eyepiece">🔭 ${t.eyepiece_rec || ''}</span>
@@ -2380,6 +2384,120 @@ function initLocationUI() {
   });
 }
 
+// ── Space Weather & Aurora Data ──
+async function loadSpaceWeather() {
+  const kpValEl = document.getElementById('kp-value');
+  const kpStatusEl = document.getElementById('kp-status');
+  const kpDescEl = document.getElementById('kp-desc');
+  const kpArcEl = document.getElementById('kp-arc');
+  const auroraProbEl = document.getElementById('aurora-probability');
+  const auroraBarEl = document.getElementById('aurora-bar');
+  const auroraGuidanceEl = document.getElementById('aurora-guidance');
+  const alertsContainer = document.getElementById('space-weather-alerts-container');
+
+  try {
+    const kpRes = await fetch('https://services.swpc.noaa.gov/json/planetary_k_index_1m.json');
+    const kpData = await kpRes.json();
+    let latestKp = 0;
+    if (Array.isArray(kpData) && kpData.length > 0) {
+      const lastEntry = kpData[kpData.length - 1];
+      latestKp = lastEntry.estimated_kp != null ? Math.round(lastEntry.estimated_kp * 10) / 10 : lastEntry.kp_index;
+    }
+
+    if (kpValEl) kpValEl.textContent = latestKp;
+    
+    let status = 'Quiet';
+    let color = '#22c55e'; // Green
+    let desc = 'Geomagnetic conditions are quiet. Excellent for deep-sky photography.';
+    
+    if (latestKp >= 1 && latestKp < 3) {
+      status = 'Quiet';
+      color = '#22c55e';
+      desc = 'Geomagnetic conditions are quiet. Excellent for stargazing.';
+    } else if (latestKp >= 3 && latestKp < 5) {
+      status = 'Unsettled';
+      color = '#eab308'; // Yellow
+      desc = 'Atmosphere is slightly active. Minor visual noise possible for long exposures.';
+    } else if (latestKp >= 5 && latestKp < 7) {
+      status = 'Active (Storm)';
+      color = '#f97316'; // Orange
+      desc = 'Minor to Moderate geomagnetic storm. Aurora visibility possible at high latitudes!';
+    } else if (latestKp >= 7) {
+      status = 'Severe Storm';
+      color = '#ef4444'; // Red
+      desc = 'Major geomagnetic storm active! Aurora visibility highly likely even at mid-latitudes!';
+    }
+
+    if (kpStatusEl) {
+      kpStatusEl.textContent = status;
+      kpStatusEl.style.color = color;
+    }
+    if (kpDescEl) kpDescEl.textContent = desc;
+    if (kpArcEl) {
+      const percentage = (latestKp / 9) * 100;
+      kpArcEl.style.strokeDasharray = `${percentage}, 100`;
+      kpArcEl.style.stroke = color;
+    }
+
+    const lat = Math.abs(currentLat || 40);
+    const reqKp = 11.5 - (lat * 0.2);
+    let prob = 0;
+    if (latestKp >= reqKp) {
+      prob = Math.round(Math.min(100, (latestKp - reqKp) * 40 + 10));
+    } else if (latestKp + 1 >= reqKp) {
+      prob = 5;
+    }
+    
+    if (auroraProbEl) auroraProbEl.textContent = `${prob}%`;
+    if (auroraBarEl) auroraBarEl.style.width = `${prob}%`;
+    
+    let guidance = `Aurora is unlikely to be visible at your current latitude (${lat.toFixed(1)}°).`;
+    if (prob > 0 && prob <= 10) {
+      guidance = `Faint camera-only aurora possible low on the horizon under dark skies.`;
+    } else if (prob > 10 && prob <= 40) {
+      guidance = `Possible visual aurora low on the horizon. Look north.`;
+    } else if (prob > 40 && prob <= 80) {
+      guidance = `Strong likelihood of visual aurora! Multi-colored pillars visible to the naked eye.`;
+    } else if (prob > 80) {
+      guidance = `Spectacular aurora storm active overhead! Visible even under mild light pollution.`;
+    }
+    if (auroraGuidanceEl) auroraGuidanceEl.textContent = guidance;
+
+    const alertRes = await fetch('https://services.swpc.noaa.gov/products/alerts.json');
+    const alerts = await alertRes.json();
+    
+    if (alertsContainer) {
+      alertsContainer.innerHTML = '';
+      if (Array.isArray(alerts) && alerts.length > 0) {
+        const activeAlerts = alerts.slice(0, 3);
+        activeAlerts.forEach(a => {
+          const item = document.createElement('div');
+          item.style.padding = '8px';
+          item.style.background = 'rgba(255, 255, 255, 0.03)';
+          item.style.borderRadius = '5px';
+          item.style.borderLeft = '3px solid #eab308';
+          item.style.fontSize = '0.75rem';
+          item.style.lineHeight = '1.3';
+          
+          let title = 'Space Weather Notice';
+          const match = a.message.match(/(WARNING|ALERT|SUMMARY):[^\n]+/);
+          if (match) {
+            title = match[0].replace(/\r/g, '').trim();
+          }
+          
+          item.innerHTML = `<strong style="color: #fff; display:block; margin-bottom: 2px;">${title}</strong>
+                            <span style="color: var(--text-dim); font-size: 0.7rem;">${a.issue_datetime} UTC</span>`;
+          alertsContainer.appendChild(item);
+        });
+      } else {
+        alertsContainer.innerHTML = '<div style="font-size: 0.85rem; color: var(--text-dim); text-align: center; margin-top: 20px;">No active space weather alerts.</div>';
+      }
+    }
+  } catch(e) {
+    console.error("Failed to load space weather", e);
+  }
+}
+
 // ── Init ────────────────────────────────────────────────────────────────────
 async function init() {
   initLocationUI();
@@ -2560,7 +2678,8 @@ async function init() {
     loadISS(),
     loadConstellations(),
     loadTargets(),
-    loadActiveConstellation(currentConstellation)
+    loadActiveConstellation(currentConstellation),
+    loadSpaceWeather()
   ]);
 
   // Wire up the Sky Objects in Motion sub-tabs and fact cards
@@ -2589,6 +2708,7 @@ async function init() {
     await loadTonightReport();
     await loadISS();
     await loadActiveConstellation(currentConstellation);
+    await loadSpaceWeather();
     // Re-render any new Lucide icons injected by data loads
     if (window.lucide) lucide.createIcons();
   }, 10 * 60 * 1000);
@@ -2633,10 +2753,42 @@ async function init() {
     }
   }
 
-  // Light Pollution Map link initialization with active coordinates
+  // Light Pollution Map links initialization with active coordinates
   const lpLink = document.getElementById('lp-map-link');
   if (lpLink) {
     lpLink.href = `https://lightpollutionmap.app/?lat=${currentLat}&lng=${currentLon}&zoom=9`;
+  }
+  const lpNavLinked = document.getElementById('lp-map-nav-link');
+  if (lpNavLinked) {
+    lpNavLinked.href = `https://lightpollutionmap.app/?lat=${currentLat}&lng=${currentLon}&zoom=9`;
+  }
+  const lpFooterLinked = document.getElementById('lp-map-footer-link');
+  if (lpFooterLinked) {
+    lpFooterLinked.href = `https://lightpollutionmap.app/?lat=${currentLat}&lng=${currentLon}&zoom=9`;
+  }
+
+  // Adjust Solar System iframe scale for mobile layout
+  adjustSolarSystemIframe();
+  window.addEventListener('resize', adjustSolarSystemIframe);
+}
+
+function adjustSolarSystemIframe() {
+  const container = document.getElementById('solar-scope-container');
+  const iframe = document.getElementById('solar-scope-iframe');
+  if (!container || !iframe) return;
+
+  const containerWidth = container.clientWidth;
+  const minWidth = 550; // Safely trigger full desktop view in Solar System Scope
+  
+  if (containerWidth < minWidth && containerWidth > 0) {
+    const scale = containerWidth / minWidth;
+    iframe.style.width = `${minWidth}px`;
+    iframe.style.height = `${450 / scale}px`;
+    iframe.style.transform = `scale(${scale})`;
+  } else {
+    iframe.style.width = '100%';
+    iframe.style.height = '100%';
+    iframe.style.transform = 'none';
   }
 }
 
@@ -2722,11 +2874,15 @@ if (closeNightTooltip) {
 
 // ── FOV Simulator (Aladin Lite) ──
 let aladinInstance = null;
+let currentFovTarget = { ra: 0, dec: 0 };
 
 window.openFovModal = function(ra_deg, dec_deg, targetName) {
   const modal = document.getElementById('fov-modal');
   document.getElementById('fov-target-name').textContent = "FOV Simulator: " + targetName;
   modal.classList.remove('hidden');
+  
+  currentFovTarget.ra = ra_deg;
+  currentFovTarget.dec = dec_deg;
 
   if (!aladinInstance) {
     aladinInstance = A.aladin('#aladin-lite-div', {
@@ -2742,15 +2898,92 @@ window.openFovModal = function(ra_deg, dec_deg, targetName) {
     aladinInstance.gotoRaDec(ra_deg, dec_deg);
   }
 
-  // Draw 1.2 deg FOV ring
+  updateFovDrawing();
+};
+
+function updateFovDrawing() {
+  if (!aladinInstance) return;
+
+  const ra_deg = currentFovTarget.ra;
+  const dec_deg = currentFovTarget.dec;
+  const preset = document.getElementById('fov-preset-select').value;
+  
+  document.getElementById('fov-custom-visual-inputs')?.classList.add('hidden');
+  document.getElementById('fov-custom-sensor-inputs')?.classList.add('hidden');
+
+  let fovDegrees = 1.2;
+  let isRectangular = false;
+  let rectWidth = 0.5;
+  let rectHeight = 0.3;
+
+  if (preset === 'seestar') {
+    isRectangular = true;
+    rectWidth = 1.29;
+    rectHeight = 0.73;
+    fovDegrees = 1.5;
+  } else if (preset === 'wide_50') {
+    isRectangular = true;
+    rectWidth = 27.0;
+    rectHeight = 18.0;
+    fovDegrees = 30.0;
+  } else if (preset === 'tele_250') {
+    isRectangular = true;
+    rectWidth = 5.4;
+    rectHeight = 3.6;
+    fovDegrees = 6.0;
+  } else if (preset === 'visual_25') {
+    fovDegrees = 1.2;
+  } else if (preset === 'visual_10') {
+    fovDegrees = 0.48;
+  } else if (preset === 'custom_visual') {
+    document.getElementById('fov-custom-visual-inputs')?.classList.remove('hidden');
+    const fl = parseFloat(document.getElementById('fov-scope-fl').value) || 650;
+    const ep = parseFloat(document.getElementById('fov-ep-fl').value) || 25;
+    const afov = parseFloat(document.getElementById('fov-ep-afov').value) || 52;
+    const mag = fl / ep;
+    fovDegrees = afov / mag;
+  } else if (preset === 'custom_sensor') {
+    document.getElementById('fov-custom-sensor-inputs')?.classList.remove('hidden');
+    const fl = parseFloat(document.getElementById('fov-camera-scope-fl').value) || 650;
+    const sw = parseFloat(document.getElementById('fov-sensor-w').value) || 23.5;
+    const sh = parseFloat(document.getElementById('fov-sensor-h').value) || 15.6;
+    
+    isRectangular = true;
+    rectWidth = (sw * 57.3) / fl;
+    rectHeight = (sh * 57.3) / fl;
+    fovDegrees = Math.max(rectWidth, rectHeight) * 1.2;
+  }
+
+  aladinInstance.setFoV(fovDegrees * 1.6);
+
   if (window.aladinOverlay) {
     aladinInstance.removeCatalog(window.aladinOverlay);
   }
   window.aladinOverlay = A.graphicOverlay({color: '#ef4444', lineWidth: 2});
   aladinInstance.addCatalog(window.aladinOverlay);
-  
-  window.aladinOverlay.add(A.circle(ra_deg, dec_deg, 0.6)); // 0.6 deg radius = 1.2 deg FOV
-};
+
+  if (isRectangular) {
+    const cosDec = Math.cos(dec_deg * Math.PI / 180);
+    const dW = (rectWidth / 2) / (cosDec || 1);
+    const dH = rectHeight / 2;
+
+    window.aladinOverlay.add(A.polygon([
+      [ra_deg - dW, dec_deg - dH],
+      [ra_deg + dW, dec_deg - dH],
+      [ra_deg + dW, dec_deg + dH],
+      [ra_deg - dW, dec_deg + dH]
+    ]));
+  } else {
+    window.aladinOverlay.add(A.circle(ra_deg, dec_deg, fovDegrees / 2));
+  }
+}
+
+document.addEventListener('DOMContentLoaded', () => {
+  document.getElementById('fov-preset-select')?.addEventListener('change', updateFovDrawing);
+  ['fov-scope-fl', 'fov-ep-fl', 'fov-ep-afov', 'fov-camera-scope-fl', 'fov-sensor-w', 'fov-sensor-h'].forEach(id => {
+    document.getElementById(id)?.addEventListener('input', updateFovDrawing);
+  });
+});
 
 document.getElementById('close-fov-btn')?.addEventListener('click', () => {
   document.getElementById('fov-modal').classList.add('hidden');
@@ -3145,6 +3378,267 @@ document.querySelectorAll('.copy-metric-btn').forEach(btn => {
           console.error('Failed to copy text layout: ', err);
         });
     }
+  });
+});
+
+// ── Session Scheduler ("Plan My Night" Timeline) ──
+let nightPlan = [];
+try {
+  const saved = localStorage.getItem('sg_night_plan');
+  if (saved) nightPlan = JSON.parse(saved);
+} catch (e) {
+  nightPlan = [];
+}
+
+window.addToPlan = function(id, name, ra, dec) {
+  const existing = nightPlan.find(item => item.id === id);
+  if (existing) {
+    alert(`${name} is already in your night plan!`);
+    return;
+  }
+  
+  const slotCount = nightPlan.length;
+  const startHour = (20 + slotCount) % 24;
+  const endHour = (startHour + 1) % 24;
+  
+  const formatTime = (h) => {
+    const period = h >= 12 ? 'PM' : 'AM';
+    const displayHour = h % 12 === 0 ? 12 : h % 12;
+    return `${displayHour}:00 ${period}`;
+  };
+
+  const newEntry = {
+    id: id,
+    name: name,
+    ra: ra,
+    dec: dec,
+    startTime: formatTime(startHour),
+    endTime: formatTime(endHour),
+    startHour: startHour,
+    endHour: endHour
+  };
+  
+  nightPlan.push(newEntry);
+  saveAndRenderPlan();
+  
+  alert(`Added ${name} to your Night Plan!`);
+
+  // Request notification permission if not already granted
+  if (typeof Notification !== 'undefined' && Notification.permission === 'default') {
+    Notification.requestPermission().then(() => {
+      rescheduleAllPlanNotifications();
+    });
+  }
+};
+
+window.removeFromPlan = function(index) {
+  nightPlan.splice(index, 1);
+  nightPlan.forEach((item, idx) => {
+    const startHour = (20 + idx) % 24;
+    const endHour = (startHour + 1) % 24;
+    const formatTime = (h) => {
+      const period = h >= 12 ? 'PM' : 'AM';
+      const displayHour = h % 12 === 0 ? 12 : h % 12;
+      return `${displayHour}:00 ${period}`;
+    };
+    item.startHour = startHour;
+    item.endHour = endHour;
+    item.startTime = formatTime(startHour);
+    item.endTime = formatTime(endHour);
+  });
+  saveAndRenderPlan();
+};
+
+window.movePlanItem = function(index, direction) {
+  if (direction === 'up' && index > 0) {
+    const temp = nightPlan[index];
+    nightPlan[index] = nightPlan[index - 1];
+    nightPlan[index - 1] = temp;
+  } else if (direction === 'down' && index < nightPlan.length - 1) {
+    const temp = nightPlan[index];
+    nightPlan[index] = nightPlan[index + 1];
+    nightPlan[index + 1] = temp;
+  }
+  
+  nightPlan.forEach((item, idx) => {
+    const startHour = (20 + idx) % 24;
+    const endHour = (startHour + 1) % 24;
+    const formatTime = (h) => {
+      const period = h >= 12 ? 'PM' : 'AM';
+      const displayHour = h % 12 === 0 ? 12 : h % 12;
+      return `${displayHour}:00 ${period}`;
+    };
+    item.startHour = startHour;
+    item.endHour = endHour;
+    item.startTime = formatTime(startHour);
+    item.endTime = formatTime(endHour);
+  });
+  
+  saveAndRenderPlan();
+};
+
+function saveAndRenderPlan() {
+  localStorage.setItem('sg_night_plan', JSON.stringify(nightPlan));
+  renderNightPlan();
+  rescheduleAllPlanNotifications();
+}
+
+window.scheduledPlanTimers = window.scheduledPlanTimers || {};
+
+function rescheduleAllPlanNotifications() {
+  for (const key in window.scheduledPlanTimers) {
+    clearTimeout(window.scheduledPlanTimers[key]);
+  }
+  window.scheduledPlanTimers = {};
+
+  if (typeof Notification === 'undefined' || Notification.permission !== 'granted') {
+    return;
+  }
+
+  const now = new Date();
+  
+  nightPlan.forEach((item) => {
+    let targetTime = new Date(now.getFullYear(), now.getMonth(), now.getDate(), item.startHour, 0, 0);
+    if (item.startHour < 12 && now.getHours() >= 12) {
+      targetTime.setDate(targetTime.getDate() + 1);
+    }
+    const delayMs = targetTime.getTime() - now.getTime();
+    if (delayMs <= 0) return;
+
+    const timerId = setTimeout(async () => {
+      if ('serviceWorker' in navigator) {
+        const reg = await navigator.serviceWorker.ready;
+        reg.showNotification(`🔭 Plan My Night Alert`, {
+          body: `It's time to observe: ${item.name}! Your scheduled slot starts now (${item.startTime} - ${item.endTime}).`,
+          icon: './assets/ai_stargazer_mascot.png',
+          badge: './assets/ai_stargazer_mascot.png',
+          data: window.location.origin
+        });
+      } else {
+        new Notification(`🔭 Plan My Night Alert`, {
+          body: `It's time to observe: ${item.name}! Your scheduled slot starts now (${item.startTime} - ${item.endTime}).`,
+        });
+      }
+    }, delayMs);
+
+    window.scheduledPlanTimers[item.id] = timerId;
+  });
+}
+
+function renderNightPlan() {
+  const emptyState = document.getElementById('scheduler-empty-state');
+  const listContainer = document.getElementById('scheduler-list-container');
+  const timelineBar = document.getElementById('scheduler-timeline-bar');
+  
+  if (nightPlan.length === 0) {
+    emptyState?.classList.remove('hidden');
+    listContainer?.classList.add('hidden');
+    if (timelineBar) {
+      timelineBar.innerHTML = `<div style="width: 100%; display: flex; align-items: center; justify-content: center; font-size: 0.75rem; color: var(--text-dim);">No targets scheduled</div>`;
+    }
+    return;
+  }
+  
+  emptyState?.classList.add('hidden');
+  listContainer?.classList.remove('hidden');
+  
+  if (listContainer) {
+    listContainer.innerHTML = nightPlan.map((item, idx) => {
+      return `
+        <div style="display: flex; align-items: center; justify-content: space-between; padding: 12px; background: rgba(255,255,255,0.02); border-radius: 8px; border: 1px solid rgba(255,255,255,0.05); gap: 10px;">
+          <div style="display: flex; align-items: center; gap: 10px;">
+            <span style="font-weight: 700; color: #a855f7; font-size: 0.9rem;">#${idx + 1}</span>
+            <div>
+              <div style="font-weight: 600; color: #fff; font-size: 0.9rem;">${item.name}</div>
+              <div style="font-size: 0.75rem; color: var(--text-dim); margin-top: 2px;">Observing window: ${item.startTime} - ${item.endTime}</div>
+            </div>
+          </div>
+          <div style="display: flex; gap: 6px;">
+            <button class="filter-btn" onclick="movePlanItem(${idx}, 'up')" style="padding: 4px 8px;" ${idx === 0 ? 'disabled' : ''}>↑</button>
+            <button class="filter-btn" onclick="movePlanItem(${idx}, 'down')" style="padding: 4px 8px;" ${idx === nightPlan.length - 1 ? 'disabled' : ''}>↓</button>
+            <button class="filter-btn" onclick="removeFromPlan(${idx})" style="padding: 4px 8px; background: rgba(239, 68, 68, 0.1); border-color: rgba(239, 68, 68, 0.2); color: #f87171;">Remove</button>
+          </div>
+        </div>
+      `;
+    }).join('');
+  }
+  
+  if (timelineBar) {
+    timelineBar.innerHTML = '';
+    nightPlan.forEach((item) => {
+      let relativeStart = item.startHour - 18;
+      if (relativeStart < 0) relativeStart += 24;
+      
+      const widthPercent = (1 / 12) * 100;
+      const leftPercent = (relativeStart / 12) * 100;
+      
+      const segment = document.createElement('div');
+      segment.style.position = 'absolute';
+      segment.style.left = `${leftPercent}%`;
+      segment.style.width = `${widthPercent}%`;
+      segment.style.height = '100%';
+      segment.style.background = 'linear-gradient(135deg, #a855f7, #6366f1)';
+      segment.style.display = 'flex';
+      segment.style.alignItems = 'center';
+      segment.style.justifyContent = 'center';
+      segment.style.fontSize = '0.7rem';
+      segment.style.color = '#fff';
+      segment.style.fontWeight = 'bold';
+      segment.style.cursor = 'help';
+      segment.title = `${item.name} (${item.startTime} - ${item.endTime})`;
+      segment.textContent = item.name.split(' ')[0];
+      
+      timelineBar.appendChild(segment);
+    });
+  }
+}
+
+document.addEventListener('DOMContentLoaded', () => {
+  renderNightPlan();
+  
+  document.getElementById('btn-clear-plan')?.addEventListener('click', () => {
+    if (confirm('Are you sure you want to clear your entire Night Plan?')) {
+      nightPlan = [];
+      saveAndRenderPlan();
+    }
+  });
+
+  document.getElementById('btn-export-txt')?.addEventListener('click', () => {
+    if (nightPlan.length === 0) {
+      alert('Your night plan is empty!');
+      return;
+    }
+    let txt = `STARGAZER - SESSION PLAN\nGenerated on: ${new Date().toLocaleDateString()}\n\n`;
+    nightPlan.forEach((item, idx) => {
+      txt += `${idx + 1}. ${item.name}\n   Observing window: ${item.startTime} - ${item.endTime}\n   Coordinates: RA ${item.ra}°, DEC ${item.dec}°\n\n`;
+    });
+    
+    const blob = new Blob([txt], { type: 'text/plain' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `stargazer_session_plan_${Date.now()}.txt`;
+    a.click();
+    URL.revokeObjectURL(url);
+  });
+
+  document.getElementById('btn-export-csv')?.addEventListener('click', () => {
+    if (nightPlan.length === 0) {
+      alert('Your night plan is empty!');
+      return;
+    }
+    let csv = `Order,Target Name,Start Time,End Time,RA,DEC\n`;
+    nightPlan.forEach((item, idx) => {
+      csv += `${idx + 1},"${item.name}",${item.startTime},${item.endTime},${item.ra},${item.dec}\n`;
+    });
+    
+    const blob = new Blob([csv], { type: 'text/csv' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `stargazer_session_plan_${Date.now()}.csv`;
+    a.click();
+    URL.revokeObjectURL(url);
   });
 });
 // Dummy comment to trigger new build pipeline run after Cloudflare Page build got stuck.

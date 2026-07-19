@@ -39,18 +39,21 @@ Getting started with amateur astronomy can be overwhelming. Commercial star char
 ### 🌌 Observing & Targets
 * **🌃 Dynamic Bortle Filtering:** Filters out faint, washed-out targets based on your current Bortle Class (1–9).
 * **🎯 Curated Target Cards:** Focuses only on beginner-friendly "Must-See" deep-sky targets (Orion Nebula, Pleiades, Andromeda) with visual thumbnails and difficulty badges.
-* **🔭 Optics Simulator & FOV Calculator:** Input your telescope's aperture and eyepiece focal length to compute magnification and simulate a realistic 1.2° Field of View (FOV) using Aladin Lite (DSS2 imagery).
+* **🔭 Optics Simulator & FOV Calculator:** Input custom telescope/eyepiece fields of view or select presets (Seestar S50, wide/telephoto DSLRs) to draw rectangular and circular FOV boundary overlays on targets using Aladin Lite (DSS2 imagery).
+* **📅 Plan My Night Timeline Scheduler:** Queue deep-sky targets, planets, and the Moon into a visual observing timeline. Reorder objects and export your session plan to Text or CSV files.
 * **🗺️ Constellation Explorer & Planetarium:** An interactive D3-based star map. Click on any star to query the professional astronomical **SIMBAD database** for live Spectral Type and Distance data.
 
 ### 🌤️ Weather & Astronomy Engines
 * **🧠 AI Seeing Analysis:** Aggregates live cloud, humidity, temperature, and upper-atmosphere wind data to output a definitive "GO / NO GO" verdict via **Google Gemini 2.5 Flash**.
 * **🪐 Planet Tracker:** Computes real-time altitude, azimuth, magnitude, constellation location, and light travel time for the naked-eye planets.
+* **⚡ Aurora & Space Weather Monitor:** Displays planetary Kp-index readings, solar storm warnings, and active alert feeds in real-time from NOAA SWPC, predicting local aurora visibility probability based on latitude.
+* **☄️ 3D Interactive Solar System:** Embeds a live 3D planetary model with mobile scaling features.
 * **🛰️ Space Trackers:** Includes an **ISS Flyover Tracker** (predicts visible passes for the next 10 days), **Meteor Shower Monitor**, and a **NASA Near-Earth Object (NEO) Radar**.
 
 ### 📱 Premium UX & Design
 * **🔴 Night Vision Mode:** A one-click toggle tinting the entire UI dark red to preserve your eyes' rhodopsin adaptation in the dark.
 * **📱 Progressive Web App (PWA):** Install it directly to your home screen with offline caching.
-* **🔔 Native Push Alerts:** Subscribe to native OS push notifications to get alerted when the ISS passes over or when skies clear.
+* **🔔 Native & Local Push Alerts:** Subscribe to native OS push notifications for ISS passes, auroras, and clearing skies. Also schedules local PWA browser alerts exactly when scheduled observing slots in your night plan begin!
 * **🌍 100% Internationalized:** Localized in English, Spanish, and Portuguese.
 * **🏎️ Lighthouse Optimized:** Performance optimized with lazy-loaded 3D WebGL scenes, compressed assets, and asynchronous CSS (Lighthouse scores: **84+ Performance, 96+ Accessibility**).
 
