@@ -123,6 +123,7 @@ The backend API reads the following variables (configured in your `.env` file lo
 | :--- | :--- | :--- |
 | `AI_API_KEY` | Google Gemini API Key | `AIzaSy...` |
 | `NASA_API_KEY` | NASA Developer API Key (NEO Tracker) | `DEMO_KEY` |
+| `DB_DIR` | Absolute path to the directory where the SQLite database is stored. Set this to `/mnt/db` when using a GCS persistent volume on Cloud Run. | `../` |
 | `OBSERVER_LAT` | Default latitude for fallback queries | `40.126` |
 | `OBSERVER_LON` | Default longitude for fallback queries | `-83.037` |
 | `OBSERVER_TIMEZONE` | Default timezone name | `America/New_York` |
