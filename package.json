@@ -1,5 +1,6 @@
 {
   "version": "2.9.0",
+  "description": "A personal, distraction-free stargazing dashboard and astronomy portal",
   "scripts": {
     "generate-og": "node web/generate-og.js"
   },
