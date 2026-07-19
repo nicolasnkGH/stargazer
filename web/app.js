@@ -834,7 +834,7 @@ function updateHeroStats(data) {
   const heroDarkIn = document.getElementById('hero-dark-in');
   if (heroDarkIn && data.astronomical_dusk) {
     try {
-const now = new Date();
+      const now = new Date();
       const duskStr = data.astronomical_dusk; // e.g. "09:30 PM"
       // Parse "%I:%M %p" format (12-hour with AM/PM)
       const match = duskStr.match(/(\d+):(\d+)\s*(AM|PM)/i);
@@ -844,12 +844,36 @@ const now = new Date();
       const ampm = match[3].toUpperCase();
       if (ampm === 'PM' && h !== 12) h += 12;
       if (ampm === 'AM' && h === 12) h = 0;
+      
+      // Save for timeline
+      window.nightDuskHour = h + (m / 60);
+      const startEl = document.getElementById('timeline-start-label');
+      if (startEl) startEl.textContent = `Dusk (${data.astronomical_dusk})`;
+
       const duskToday = new Date(now.getFullYear(), now.getMonth(), now.getDate(), h, m);
       if (duskToday < now) duskToday.setDate(duskToday.getDate() + 1);
       const diffHrs = ((duskToday - now) / (1000 * 60 * 60)).toFixed(1);
       heroDarkIn.textContent = `${diffHrs}h`;
     } catch {
       heroDarkIn.textContent = data.astronomical_dusk;
+    }
+  }
+
+  if (data.astronomical_dawn) {
+    try {
+      const match = data.astronomical_dawn.match(/(\d+):(\d+)\s*(AM|PM)/i);
+      if (match) {
+        let h = parseInt(match[1], 10);
+        const m = parseInt(match[2], 10);
+        const ampm = match[3].toUpperCase();
+        if (ampm === 'PM' && h !== 12) h += 12;
+        if (ampm === 'AM' && h === 12) h = 0;
+        window.nightDawnHour = h + (m / 60);
+        const endEl = document.getElementById('timeline-end-label');
+        if (endEl) endEl.textContent = `Dawn (${data.astronomical_dawn})`;
+      }
+    } catch (e) {
+      console.warn(e);
     }
   }
 
@@ -3689,11 +3713,14 @@ function renderNightPlan() {
   if (timelineBar) {
     timelineBar.innerHTML = '';
     nightPlan.forEach((item) => {
-      let relativeStart = item.startHour - 18;
-      if (relativeStart < 0) relativeStart += 24;
+      const duskHour = window.nightDuskHour !== undefined ? window.nightDuskHour : 18;
+      const dawnHour = window.nightDawnHour !== undefined ? window.nightDawnHour : 6;
+      const nightDuration = (dawnHour - duskHour + 24) % 24;
       
-      const widthPercent = (1 / 12) * 100;
-      const leftPercent = (relativeStart / 12) * 100;
+      let relativeStart = (item.startHour - duskHour + 24) % 24;
+      
+      const widthPercent = (1 / nightDuration) * 100;
+      const leftPercent = (relativeStart / nightDuration) * 100;
       
       const segment = document.createElement('div');
       segment.style.position = 'absolute';
