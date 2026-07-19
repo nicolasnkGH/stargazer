@@ -1558,6 +1558,8 @@ function updateUnifiedCard() {
   const card = document.getElementById('card-ai-targets');
   if (!list || !card) return;
   
+  const dict = window.i18n[currentLang] || window.i18n['en'];
+  
   const alertsHtml = window.lastAlertsHTML || '';
   const aiHtml = window.lastAIHTML || window.lastBestTargetsHTML || '';
   const factStr = window.lastPlanetFact || '';
