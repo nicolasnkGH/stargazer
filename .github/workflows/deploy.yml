@@ -83,6 +83,12 @@ jobs:
           service: ${{ secrets.GCP_SERVICE_NAME }}
           region: us-central1
           source: api/
+          env_vars: |-
+            DB_DIR=/mnt/db
+          volumes: |-
+            name: db-vol,type: cloud-storage,bucket: stargazer-db-planar-flux-497402-g5
+          volume_mounts: |-
+            name: db-vol,mountPath: /mnt/db
 
   deploy-tag:
     runs-on: ubuntu-latest

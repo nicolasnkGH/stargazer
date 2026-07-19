@@ -6,7 +6,8 @@ import json
 import base64
 from config import AI_API_KEY, AI_API_URL, AI_MODEL
 
-DB_PATH = os.path.join(os.path.dirname(__file__), "..", "stargazer_gallery.db")
+db_dir = os.environ.get("DB_DIR", os.path.join(os.path.dirname(__file__), ".."))
+DB_PATH = os.path.join(db_dir, "stargazer_gallery.db")
 
 def init_db():
     conn = sqlite3.connect(DB_PATH)
