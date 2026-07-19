@@ -2620,6 +2620,34 @@ body.night-mode {
     width: 100%;
   }
 
+  .nav-dropdown {
+    position: fixed;
+    top: 92px;
+    right: 12px;
+    left: 12px;
+    width: auto;
+    max-width: calc(100vw - 24px);
+    max-height: calc(100vh - 120px);
+    overflow-y: auto;
+    -webkit-overflow-scrolling: touch;
+    overscroll-behavior: contain;
+  }
+
+  .nav-submenu {
+    position: static;
+    margin: 6px 0 0 12px;
+    min-width: 0;
+  }
+
+  .nav-item-has-submenu:hover .nav-submenu {
+    display: none;
+  }
+
+  .nav-item-has-submenu:focus-within .nav-submenu {
+    display: flex;
+    flex-direction: column;
+  }
+
   /* ── Planet 3D Cards — Mobile Layout ── */
   .planet-list {
     display: flex !important;
