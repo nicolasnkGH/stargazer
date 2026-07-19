@@ -61,8 +61,8 @@ window.showInfo = function(msg, event, sticky = false) {
   }
   
   if (event) {
-    t.style.left = Math.min(event.pageX - 125, window.innerWidth - 260) + 'px';
-    t.style.top = (event.pageY + 15) + 'px';
+    t.style.left = Math.min(event.clientX - 125, window.innerWidth - 260) + 'px';
+    t.style.top = (event.clientY + 15) + 'px';
   } else {
     t.style.left = '50%';
     t.style.top = '20px';
@@ -873,7 +873,7 @@ function renderSeeing(seeing, data) {
           addBtn.dataset.planName = safeName;
           addBtn.dataset.ra = '0';
           addBtn.dataset.dec = '0';
-          addBtn.textContent = 'Add to Plan +';
+          addBtn.textContent = (window.i18n[currentLang] || window.i18n['en']).btn_add_to_plan || 'Add to Plan +';
           badgeContainer.appendChild(addBtn);
         } catch (err) {
           // Non-fatal — if DOM creation fails, continue without crash
@@ -1417,13 +1417,14 @@ function renderActiveConstellation(constInfo) {
 function renderPlanets(planets, factStr) {
   const list = document.getElementById('planet-list');
   if (!list) return; // Feature removed from UI
+  const dict = window.i18n[currentLang] || window.i18n['en'];
   
   if (!planets) {
-    list.innerHTML = '<div class="no-data">Could not load planet data — API may be offline</div>';
+    list.innerHTML = `<div class="no-data">${dict.no_planet_data || 'Could not load planet data — API may be offline'}</div>`;
     return;
   }
   if (planets.length === 0) {
-    list.innerHTML = '<div class="no-data">No major planets visible above the horizon right now</div>';
+    list.innerHTML = `<div class="no-data">${dict.no_planets_visible || 'No major planets visible above the horizon right now'}</div>`;
     return;
   }
 
@@ -1442,9 +1443,9 @@ function renderPlanets(planets, factStr) {
     const dict = window.i18n[currentLang] || window.i18n['en'];
     const pName = dict[`planet_${p.name.toLowerCase()}`] || p.name;
     const altColor = p.altitude_deg > 30 ? '#22c55e' : p.altitude_deg > 10 ? '#f59e0b' : '#f87171';
-    const altLabel = p.altitude_deg > 30 ? 'High in sky' : p.altitude_deg > 10 ? 'Low in sky' : 'Near horizon';
-    const magNote  = p.magnitude_approx < 0 ? ' (extremely bright)' : p.magnitude_approx < 3 ? ' (naked eye)' : p.magnitude_approx < 6 ? ' (binoculars)' : ' (telescope)';
-    const azimuthStr = (p.azimuth_deg != null && !isNaN(p.azimuth_deg)) ? ` · Azimuth ${Math.round(p.azimuth_deg)}°` : '';
+    const altLabel = p.altitude_deg > 30 ? (dict.qual_high || 'High in sky') : p.altitude_deg > 10 ? (dict.qual_low || 'Low in sky') : (dict.qual_near_horizon || 'Near horizon');
+    const magNote  = p.magnitude_approx < 0 ? ` (${dict.mag_extremely_bright || 'extremely bright'})` : p.magnitude_approx < 3 ? ` (${dict.mag_naked_eye || 'naked eye'})` : p.magnitude_approx < 6 ? ` (${dict.mag_binoculars || 'binoculars'})` : ` (${dict.mag_telescope || 'telescope'})`;
+    const azimuthStr = (p.azimuth_deg != null && !isNaN(p.azimuth_deg)) ? ` · ${dict.lbl_azimuth || 'Azimuth'} ${Math.round(p.azimuth_deg)}°` : '';
     const canvasClass = 'planet-3d-canvas-container';
     const canvasInner = '';
     return `
@@ -1454,11 +1455,11 @@ function renderPlanets(planets, factStr) {
           <div class="planet-name-row" style="display: flex; align-items: center; width: 100%;">
             <span class="planet-name">${p.emoji} ${pName}</span>
             <span class="planet-const-pill" title="Currently in this constellation">${p.constellation || ''}</span>
-            ${isBlocked ? '<span class="blocked-badge" title="Hidden behind your custom horizon limits">Blocked by Horizon</span>' : ''}
-            ${p.visible_tonight ? `<button class="filter-btn" data-plan-id="${p.name.toLowerCase()}" data-plan-name="${p.name}" data-ra="0" data-dec="0" style="margin-left: auto; padding: 2px 8px; font-size: 0.75rem; background: rgba(59, 130, 246, 0.15); border-color: rgba(59, 130, 246, 0.3); color: #93c5fd; cursor: pointer; border-radius: 4px; font-weight: 600;">Add to Plan +</button>` : ''}
+            ${isBlocked ? `<span class="blocked-badge" title="Hidden behind your custom horizon limits">${dict.lbl_blocked_horizon || 'Blocked by Horizon'}</span>` : ''}
+            ${p.visible_tonight ? `<button class="filter-btn" data-plan-id="${p.name.toLowerCase()}" data-plan-name="${window.escapeHtml ? window.escapeHtml(p.name) : p.name.replace(/"/g, '&quot;')}" data-ra="0" data-dec="0" style="margin-left: auto; padding: 2px 8px; font-size: 0.75rem; background: rgba(59, 130, 246, 0.15); border-color: rgba(59, 130, 246, 0.3); color: #93c5fd; cursor: pointer; border-radius: 4px; font-weight: 600;">${dict.btn_add_to_plan || 'Add to Plan +'}</button>` : ''}
           </div>
           <div class="planet-meta-row">
-            <span class="planet-alt" style="color:${altColor}" title="How high above the horizon">📐 Altitude: ${p.altitude_deg}° — ${altLabel}</span>
+            <span class="planet-alt" style="color:${altColor}" title="How high above the horizon">📐 ${dict.lbl_altitude || 'Altitude'}: ${p.altitude_deg}° — ${altLabel}</span>
             <span class="planet-alt" style="color:#94a3b8" title="Compass direction to look">🧭 ${p.direction}${azimuthStr}</span>
             <span class="planet-mag" title="Brightness scale: lower = brighter; negative = extremely bright">💡 Magnitude ${p.magnitude_approx}${magNote}</span>
             ${p.distance_mkm ? `<span class="planet-dist" title="Current distance from Earth">📏 ${p.distance_mkm}M km from Earth</span>` : ''}
@@ -1520,7 +1521,7 @@ function renderBestTargets(targets) {
             <div class="must-see-subtitle">${t.description || t.reason || t.type || dict.info_ai || 'Best target for tonight'}</div>
           </div>
         </div>
-        <button class="filter-btn" data-plan-id="${safeId}" data-plan-name="${safeName}" data-ra="${raDeg}" data-dec="${decDeg}" style="margin-left: auto; padding: 2px 8px; font-size: 0.75rem; background: rgba(59, 130, 246, 0.15); border-color: rgba(59, 130, 246, 0.3); color: #93c5fd; cursor: pointer; border-radius: 4px; font-weight: 600; white-space: nowrap;">Add to Plan +</button>
+        <button class="filter-btn" data-plan-id="${safeId}" data-plan-name="${safeName}" data-ra="${raDeg}" data-dec="${decDeg}" style="margin-left: auto; padding: 2px 8px; font-size: 0.75rem; background: rgba(59, 130, 246, 0.15); border-color: rgba(59, 130, 246, 0.3); color: #93c5fd; cursor: pointer; border-radius: 4px; font-weight: 600; white-space: nowrap;">${dict.btn_add_to_plan || 'Add to Plan +'}</button>
       </div>
     `;
   }).join('');
@@ -1567,7 +1568,7 @@ function updateUnifiedCard() {
           <div style="font-size: 0.85rem; color: #fbcfe8; line-height: 1.4; margin-bottom: 8px;">
             ${eventObj.description}
           </div>
-          <button class="filter-btn" data-plan-id="event_${escapeForSingleQuotedString(eventObj.name.replace(/\s+/g, '_').toLowerCase())}" data-plan-name="${escapeForSingleQuotedString(eventObj.name)}" data-ra="0" data-dec="0" style="padding: 4px 10px; font-size: 0.75rem; background: rgba(236, 72, 153, 0.15); border-color: rgba(236, 72, 153, 0.3); color: #fbcfe8; cursor: pointer; border-radius: 4px; font-weight: 600;">Add to Plan +</button>
+          <button class="filter-btn" data-plan-id="event_${escapeForSingleQuotedString(eventObj.name.replace(/\s+/g, '_').toLowerCase())}" data-plan-name="${escapeForSingleQuotedString(eventObj.name)}" data-ra="0" data-dec="0" style="padding: 4px 10px; font-size: 0.75rem; background: rgba(236, 72, 153, 0.15); border-color: rgba(236, 72, 153, 0.3); color: #fbcfe8; cursor: pointer; border-radius: 4px; font-weight: 600;">${_cDict.btn_add_to_plan || 'Add to Plan +'}</button>
         </div>
       </div>
     </div>
@@ -1593,7 +1594,7 @@ function updateUnifiedCard() {
   if (!alertsHtml && !aiHtml && !eventHtml && !briefingHtml) {
     const fallbackMsg = `
       <div style="text-align: center; padding: 30px 20px; color: var(--text-secondary); font-style: italic; background: rgba(255,255,255,0.02); border-radius: 8px; border: 1px dashed rgba(255,255,255,0.1); margin: 10px 0;">
-        No targets visible right now. Conditions might be poor, or it's daytime!
+        ${_cDict.no_targets_visible_now || 'No targets visible right now. Conditions might be poor, or it\\'s daytime!'}
       </div>
     `;
     list.innerHTML = fallbackMsg + factHtml;
@@ -1643,9 +1644,9 @@ function renderAlerts(alerts) {
     });
 
     const addButton = a.type === 'planet' ? `
-      <button class="filter-btn" data-plan-id="${a.planet_name.toLowerCase()}" data-plan-name="${a.planet_name}" data-ra="0" data-dec="0" style="margin-left: auto; padding: 2px 8px; font-size: 0.75rem; background: rgba(59, 130, 246, 0.15); border-color: rgba(59, 130, 246, 0.3); color: #93c5fd; cursor: pointer; border-radius: 4px; font-weight: 600; white-space: nowrap;">Add to Plan +</button>
+      <button class="filter-btn" data-plan-id="${a.planet_name.toLowerCase()}" data-plan-name="${a.planet_name}" data-ra="0" data-dec="0" style="margin-left: auto; padding: 2px 8px; font-size: 0.75rem; background: rgba(59, 130, 246, 0.15); border-color: rgba(59, 130, 246, 0.3); color: #93c5fd; cursor: pointer; border-radius: 4px; font-weight: 600; white-space: nowrap;">${_cDict.btn_add_to_plan || 'Add to Plan +'}</button>
     ` : (a.type === 'constellation' ? `
-      <button class="filter-btn" data-plan-id="${a.constellation_abbr.toLowerCase()}" data-plan-name="${a.constellation_name}" data-ra="0" data-dec="0" style="margin-left: auto; padding: 2px 8px; font-size: 0.75rem; background: rgba(59, 130, 246, 0.15); border-color: rgba(59, 130, 246, 0.3); color: #93c5fd; cursor: pointer; border-radius: 4px; font-weight: 600; white-space: nowrap;">Add to Plan +</button>
+      <button class="filter-btn" data-plan-id="${a.constellation_abbr.toLowerCase()}" data-plan-name="${a.constellation_name}" data-ra="0" data-dec="0" style="margin-left: auto; padding: 2px 8px; font-size: 0.75rem; background: rgba(59, 130, 246, 0.15); border-color: rgba(59, 130, 246, 0.3); color: #93c5fd; cursor: pointer; border-radius: 4px; font-weight: 600; white-space: nowrap;">${_cDict.btn_add_to_plan || 'Add to Plan +'}</button>
     ` : '');
 
     return `
@@ -1885,18 +1886,19 @@ function goMotionFact(type, idx) {
 async function loadConstellations() {
   await fetchAndRender('/constellations', (data) => {
     const list = document.getElementById('constellations-grid');
+    const cDict = window.i18n[currentLang] || window.i18n['en'];
     if (!data || !data.constellations) {
-      list.innerHTML = '<div class="no-data">Could not load constellation data</div>';
+      list.innerHTML = `<div class="no-data">${cDict.no_constellation_data || 'Could not load constellation data'}</div>`;
       return;
     }
     if (data.constellations.length === 0) {
-      list.innerHTML = '<div class="no-data">No constellations visible tonight</div>';
+      list.innerHTML = `<div class="no-data">${cDict.no_constellations_visible || 'No constellations visible tonight'}</div>`;
       return;
     }
 
     const visibleConst = data.constellations.filter(c => c.visible).slice(0, 16);
     if (visibleConst.length === 0) {
-      list.innerHTML = '<div class="no-data">No constellations visible tonight</div>';
+      list.innerHTML = `<div class="no-data">${cDict.no_constellations_visible || 'No constellations visible tonight'}</div>`;
       return;
     }
 
@@ -1936,13 +1938,13 @@ async function loadConstellations() {
       const barPct = Math.min(100, Math.max(0, Math.round((alt / 90) * 100)));
       const barColor = alt > 30 ? '#22c55e' : alt > 10 ? '#f59e0b' : '#ef4444';
 
-      const qualityLabel = alt > 30 ? 'High in sky' : alt > 10 ? 'Low in sky' : 'Near horizon';
+      const qualityLabel = alt > 30 ? (cDict.qual_high || 'High in sky') : alt > 10 ? (cDict.qual_low || 'Low in sky') : (cDict.qual_near_horizon || 'Near horizon');
       const qualityIcon  = alt > 30 ? '🟢' : alt > 10 ? '🟡' : '🔴';
 
       const div = document.createElement('div');
       div.className = 'const-card';
       div.dataset.const = c.abbr;
-      div.setAttribute('aria-label', `${c.name} — ${qualityLabel}. Click to explore targets.`);
+      div.setAttribute('aria-label', `${c.name} — ${qualityLabel}. ${cDict.click_to_explore || 'Click to explore targets.'}`);
       div.innerHTML = `
         <div class="c-name">${c.emoji || '✨'} ${c.name} <span class="c-abbr-inline">${c.abbr}</span></div>
         <div class="c-alt-header">
@@ -2129,9 +2131,9 @@ function renderTargetGrid(targets, liveMap, typeFilter = 'all', equipFilter = 'a
         ${t.horizon_note ? `<div class="tc-horizon-note">${t.horizon_note}</div>` : ''}
         <div class="tc-footer" style="flex-wrap: wrap; gap: 8px;">
           <div style="display: flex; gap: 6px; width: 100%;">
-            <button class="btn-fov" data-fov-ra="${t.ra_hours * 15}" data-fov-dec="${t.dec_degrees}" data-fov-name="${escapeForSingleQuotedString(t.name)}">Simulate View 🔭</button>
-            <button class="btn-fov" data-plan-id="${t.id}" data-plan-name="${escapeForSingleQuotedString(t.name)}" data-ra="${t.ra_hours * 15}" data-dec="${t.dec_degrees}" style="background: rgba(59, 130, 246, 0.15); border-color: rgba(59, 130, 246, 0.3); color: #93c5fd;">Add to Plan +</button>
-            <button class="btn-fov" data-gallery-id="${t.id}" data-gallery-name="${escapeForSingleQuotedString(t.name)}" style="background: rgba(34, 197, 94, 0.15); border-color: rgba(34, 197, 94, 0.3); color: #86efac;">Gallery & Share 📷</button>
+            <button class="btn-fov" data-fov-ra="${t.ra_hours * 15}" data-fov-dec="${t.dec_degrees}" data-fov-name="${escapeForSingleQuotedString(t.name)}">${(window.i18n[currentLang] || window.i18n['en']).btn_simulate_view || 'Simulate View 🔭'}</button>
+            <button class="btn-fov" data-plan-id="${t.id}" data-plan-name="${escapeForSingleQuotedString(t.name)}" data-ra="${t.ra_hours * 15}" data-dec="${t.dec_degrees}" style="background: rgba(59, 130, 246, 0.15); border-color: rgba(59, 130, 246, 0.3); color: #93c5fd;">${(window.i18n[currentLang] || window.i18n['en']).btn_add_to_plan || 'Add to Plan +'}</button>
+            <button class="btn-fov" data-gallery-id="${t.id}" data-gallery-name="${escapeForSingleQuotedString(t.name)}" style="background: rgba(34, 197, 94, 0.15); border-color: rgba(34, 197, 94, 0.3); color: #86efac;">${(window.i18n[currentLang] || window.i18n['en']).btn_gallery_share || 'Gallery & Share 📷'}</button>
           </div>
           <span class="tc-equipment">${t.equipment || '🔭 Telescope'}</span>
           ${(t.difficulty && t.difficulty.toUpperCase().replace('_', ' ') !== 'NAKED EYE') ? `<span class="tc-difficulty ${t.difficulty.replace(' ', '_')}">${t.difficulty.replace('_', ' ')}</span>` : ''}
@@ -3915,13 +3917,13 @@ function renderNightPlan() {
             <span style="font-weight: 700; color: #a855f7; font-size: 0.9rem;">#${idx + 1}</span>
             <div>
               <div style="font-weight: 600; color: #fff; font-size: 0.9rem;">${item.name}</div>
-              <div style="font-size: 0.75rem; color: var(--text-dim); margin-top: 2px; display: flex; align-items: center; flex-wrap: wrap;">Scheduled slot: <strong style="color: #e2e8f0; margin-left: 4px;">${item.startTime} - ${item.endTime}</strong> ${warningText}</div>
+              <div style="font-size: 0.75rem; color: var(--text-dim); margin-top: 2px; display: flex; align-items: center; flex-wrap: wrap;">${(window.i18n[currentLang] || window.i18n['en']).lbl_scheduled_slot || 'Scheduled slot'}: <strong style="color: #e2e8f0; margin-left: 4px;">${item.startTime} - ${item.endTime}</strong> ${warningText}</div>
             </div>
           </div>
           <div style="display: flex; gap: 6px;">
             <button class="filter-btn" data-move-plan-idx="${idx}" data-move-plan-dir="up" style="padding: 4px 8px;" ${idx === 0 ? 'disabled' : ''}>↑</button>
             <button class="filter-btn" data-move-plan-idx="${idx}" data-move-plan-dir="down" style="padding: 4px 8px;" ${idx === nightPlan.length - 1 ? 'disabled' : ''}>↓</button>
-            <button class="filter-btn" data-remove-plan-idx="${idx}" style="padding: 4px 8px; background: rgba(239, 68, 68, 0.1); border-color: rgba(239, 68, 68, 0.2); color: #f87171;">Remove</button>
+            <button class="filter-btn" data-remove-plan-idx="${idx}" style="padding: 4px 8px; background: rgba(239, 68, 68, 0.1); border-color: rgba(239, 68, 68, 0.2); color: #f87171;">${(window.i18n[currentLang] || window.i18n['en']).btn_remove || 'Remove'}</button>
           </div>
         </div>
       `;
