@@ -2727,6 +2727,7 @@ async function init() {
   const ssCard = document.getElementById('card-solar-system-scope');
   if (ssCard) {
     ssCard.addEventListener('mouseleave', () => {
+      if (isSolarSystemFullscreen()) return;
       const overlay = document.getElementById('solar-scope-overlay');
       const iframe = document.getElementById('solar-scope-iframe');
       if (overlay && iframe) {
@@ -2790,6 +2791,12 @@ function adjustSolarSystemIframe() {
     iframe.style.height = '100%';
     iframe.style.transform = 'none';
   }
+}
+
+function isSolarSystemFullscreen() {
+  const fullscreenElement = document.fullscreenElement || document.webkitFullscreenElement || document.msFullscreenElement;
+  const iframe = document.getElementById('solar-scope-iframe');
+  return !!fullscreenElement && fullscreenElement === iframe;
 }
 
 document.addEventListener('DOMContentLoaded', () => {
@@ -3532,7 +3539,9 @@ function renderNightPlan() {
   
   if (nightPlan.length === 0) {
     emptyState?.classList.remove('hidden');
+    if (emptyState) emptyState.style.display = '';
     listContainer?.classList.add('hidden');
+    if (listContainer) listContainer.style.display = 'none';
     if (timelineBar) {
       timelineBar.innerHTML = `<div style="width: 100%; display: flex; align-items: center; justify-content: center; font-size: 0.75rem; color: var(--text-dim);">No targets scheduled</div>`;
     }
@@ -3540,7 +3549,9 @@ function renderNightPlan() {
   }
   
   emptyState?.classList.add('hidden');
+  if (emptyState) emptyState.style.display = 'none';
   listContainer?.classList.remove('hidden');
+  if (listContainer) listContainer.style.display = 'flex';
   
   if (listContainer) {
     listContainer.innerHTML = nightPlan.map((item, idx) => {
@@ -3618,8 +3629,12 @@ document.addEventListener('DOMContentLoaded', () => {
     const a = document.createElement('a');
     a.href = url;
     a.download = `stargazer_session_plan_${Date.now()}.txt`;
+    document.body.appendChild(a);
     a.click();
-    URL.revokeObjectURL(url);
+    setTimeout(() => {
+      URL.revokeObjectURL(url);
+      a.remove();
+    }, 0);
   });
 
   document.getElementById('btn-export-csv')?.addEventListener('click', () => {
@@ -3637,8 +3652,12 @@ document.addEventListener('DOMContentLoaded', () => {
     const a = document.createElement('a');
     a.href = url;
     a.download = `stargazer_session_plan_${Date.now()}.csv`;
+    document.body.appendChild(a);
     a.click();
-    URL.revokeObjectURL(url);
+    setTimeout(() => {
+      URL.revokeObjectURL(url);
+      a.remove();
+    }, 0);
   });
 });
 // Dummy comment to trigger new build pipeline run after Cloudflare Page build got stuck.
