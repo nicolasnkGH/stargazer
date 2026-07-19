@@ -4111,7 +4111,7 @@ document.addEventListener('DOMContentLoaded', () => {
         container.innerHTML = list.map(item => `
           <div style="background: rgba(255,255,255,0.02); border: 1px solid rgba(255,255,255,0.05); border-radius: 8px; padding: 12px; display: flex; flex-direction: column; gap: 8px;">
             <div style="width: 100%; border-radius: 6px; overflow: hidden; background: #000; display: flex; align-items: center; justify-content: center; max-height: 250px;">
-              <img src="${API_BASE}/api/gallery/image/${item.id}" alt="${item.target_name}" style="max-width: 100%; max-height: 250px; object-fit: contain;">
+              <img src="${API_BASE}/api/gallery/image/${encodeURIComponent(item.id)}" alt="${escapeHtml(item.target_name)}" style="max-width: 100%; max-height: 250px; object-fit: contain;">
             </div>
             <div style="font-size: 0.85rem; color: #fff; font-weight: 600;">
               👤 Shared by: ${escapeHtml(item.author)}
