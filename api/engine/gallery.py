@@ -10,7 +10,7 @@ db_dir = os.environ.get("DB_DIR", os.path.join(os.path.dirname(__file__), ".."))
 DB_PATH = os.path.join(db_dir, "stargazer_gallery.db")
 
 def init_db():
-    conn = sqlite3.connect(DB_PATH)
+    conn = sqlite3.connect(f"file:{os.path.abspath(DB_PATH)}?nolock=1", uri=True, check_same_thread=False)
     cursor = conn.cursor()
     cursor.execute("""
         CREATE TABLE IF NOT EXISTS gallery (
@@ -101,7 +101,7 @@ def add_gallery_entry(target_id: str, target_name: str, author: str, location: s
 
     created_at = datetime_now_str()
 
-    conn = sqlite3.connect(DB_PATH)
+    conn = sqlite3.connect(f"file:{os.path.abspath(DB_PATH)}?nolock=1", uri=True, check_same_thread=False)
     cursor = conn.cursor()
     cursor.execute("""
         INSERT INTO gallery (target_id, target_name, author, location, gear, comment, note, image_data, created_at)
@@ -124,7 +124,7 @@ def add_gallery_entry(target_id: str, target_name: str, author: str, location: s
     }
 
 def get_gallery_entries(target_id: str = None) -> list[dict]:
-    conn = sqlite3.connect(DB_PATH)
+    conn = sqlite3.connect(f"file:{os.path.abspath(DB_PATH)}?nolock=1", uri=True, check_same_thread=False)
     cursor = conn.cursor()
     if target_id:
         cursor.execute("""
@@ -155,7 +155,7 @@ def get_gallery_entries(target_id: str = None) -> list[dict]:
     return entries
 
 def get_gallery_image(entry_id: int) -> str:
-    conn = sqlite3.connect(DB_PATH)
+    conn = sqlite3.connect(f"file:{os.path.abspath(DB_PATH)}?nolock=1", uri=True, check_same_thread=False)
     cursor = conn.cursor()
     cursor.execute("SELECT image_data FROM gallery WHERE id = ?", (entry_id,))
     row = cursor.fetchone()
@@ -169,14 +169,14 @@ def datetime_now_str():
     return datetime.utcnow().strftime("%Y-%m-%d %H:%M:%S UTC")
 
 def report_image(image_id: int):
-    conn = sqlite3.connect(DB_PATH)
+    conn = sqlite3.connect(f"file:{os.path.abspath(DB_PATH)}?nolock=1", uri=True, check_same_thread=False)
     cursor = conn.cursor()
     cursor.execute("UPDATE gallery SET reported = reported + 1 WHERE id = ?", (image_id,))
     conn.commit()
     conn.close()
 
 def get_gallery_counts() -> dict:
-    conn = sqlite3.connect(DB_PATH)
+    conn = sqlite3.connect(f"file:{os.path.abspath(DB_PATH)}?nolock=1", uri=True, check_same_thread=False)
     cursor = conn.cursor()
     cursor.execute("SELECT target_id, COUNT(*) FROM gallery WHERE reported = 0 GROUP BY target_id")
     rows = cursor.fetchall()
