@@ -61,8 +61,11 @@ window.showInfo = function(msg, event, sticky = false) {
   }
   
   if (event) {
-    t.style.left = Math.min(event.pageX - 125, window.innerWidth - 260) + 'px';
-    t.style.top = (event.pageY + 15) + 'px';
+    let leftPos = Math.max(10, Math.min(event.clientX - 125, window.innerWidth - 260));
+    let topPos = event.clientY + 15;
+    if (topPos > window.innerHeight - 80) topPos = event.clientY - 60; // prevent clipping at bottom
+    t.style.left = leftPos + 'px';
+    t.style.top = topPos + 'px';
   } else {
     t.style.left = '50%';
     t.style.top = '20px';
