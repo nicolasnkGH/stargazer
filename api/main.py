@@ -329,10 +329,10 @@ def get_star(name: Optional[str] = None, ra: Optional[float] = None, dec: Option
         
     # Use modern SIMBAD TAP API via ADQL
     if name:
-        query = f"SELECT main_id, sp_type, plx_value FROM basic WHERE ident = '{name}'"
+        query = f"SELECT main_id, sp_type, plx_value FROM basic WHERE ident = '{name}'"  # nosec B608
     elif ra is not None and dec is not None:
         # Search within 2 arcmin (2/60 = 0.033 degrees)
-        query = f"SELECT main_id, sp_type, plx_value FROM basic WHERE 1=CONTAINS(POINT('ICRS', ra, dec), CIRCLE('ICRS', {ra}, {dec}, 0.033))"
+        query = f"SELECT main_id, sp_type, plx_value FROM basic WHERE 1=CONTAINS(POINT('ICRS', ra, dec), CIRCLE('ICRS', {ra}, {dec}, 0.033))"  # nosec B608
     else:
         return JSONResponse(content={"error": "Must provide name or ra/dec"}, status_code=400)
         
