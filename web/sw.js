@@ -1,4 +1,4 @@
-const CACHE_NAME = 'stargazer-cache-v17';
+const CACHE_NAME = 'stargazer-cache-v18';
 const STATIC_ASSETS = [
   './',
   './index.html',
@@ -35,6 +35,9 @@ self.addEventListener('activate', (event) => {
 });
 
 self.addEventListener('fetch', (event) => {
+  if (event.request.method !== 'GET') {
+    return;
+  }
   const url = new URL(event.request.url);
   
   // For API calls, always go to the network first

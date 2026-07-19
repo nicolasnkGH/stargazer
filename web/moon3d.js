@@ -103,17 +103,26 @@ function setupMoon3D(container) {
   scene.add(moon);
 
   // Lighting — soft, natural illumination
-  const ambientLight = new THREE.AmbientLight(0x303050, 0.35);
+  const ambientLight = new THREE.AmbientLight(0x1a1a2e, 0.4); // lower ambient for stronger phase contrast
   scene.add(ambientLight);
-  const dirLight = new THREE.DirectionalLight(0xfff5e6, 1.2);
+  
+  // Main directional light representing the Sun
+  const dirLight = new THREE.DirectionalLight(0xfff5e6, 1.5);
   dirLight.position.set(-2, 1, 2);
   scene.add(dirLight);
-  const fillLight = new THREE.DirectionalLight(0x8090b0, 0.25);
+  window._moonDirLight = dirLight;
+  
+  const fillLight = new THREE.DirectionalLight(0x8090b0, 0.15);
   fillLight.position.set(2, -0.5, 1);
   scene.add(fillLight);
-  const rimLight = new THREE.DirectionalLight(0x4040a0, 0.15);
+  const rimLight = new THREE.DirectionalLight(0x4040a0, 0.1);
   rimLight.position.set(5, 0, -5);
   scene.add(rimLight);
+
+  // Apply stored phase if available
+  if (window._lastMoonIllum !== undefined) {
+    window.applyMoon3DPhase(window._lastMoonIllum, window._lastMoonPhase);
+  }
 
   // ── IntersectionObserver: pause rendering when moon card is off-screen ──
   let _visible = true;
@@ -148,5 +157,34 @@ function setupMoon3D(container) {
   });
   resizeObserver.observe(container);
 }
+
+window.applyMoon3DPhase = function(illumination, phaseName) {
+  if (!window._moonDirLight) return;
+  const pName = (phaseName || '').toLowerCase();
+  
+  // Detect if waxing or waning
+  let isWaxing = true;
+  if (pName.includes("waning") || pName.includes("last") || pName.includes("third") || pName.includes("3q")) {
+    isWaxing = false;
+  }
+  
+  // Calculate angle (radians)
+  // New Moon (fraction = 0) -> light behind (angle = Math.PI)
+  // Full Moon (fraction = 1) -> light in front (angle = 0)
+  const fraction = illumination / 100;
+  let angle = Math.PI * (1 - fraction);
+  if (!isWaxing) {
+    angle = -Math.PI * (1 - fraction);
+  }
+  
+  // Position directional light accordingly
+  window._moonDirLight.position.set(Math.sin(angle) * 3, 0.5, Math.cos(angle) * 3);
+};
+
+window.updateMoon3DPhase = function(illumination, phaseName) {
+  window._lastMoonIllum = illumination;
+  window._lastMoonPhase = phaseName;
+  window.applyMoon3DPhase(illumination, phaseName);
+};
 
 window.initMoon3D = initMoon3D;

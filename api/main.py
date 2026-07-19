@@ -329,10 +329,10 @@ def get_star(name: Optional[str] = None, ra: Optional[float] = None, dec: Option
         
     # Use modern SIMBAD TAP API via ADQL
     if name:
-        query = f"SELECT main_id, sp_type, plx_value FROM basic WHERE ident = '{name}'"
+        query = f"SELECT main_id, sp_type, plx_value FROM basic WHERE ident = '{name}'"  # nosec B608
     elif ra is not None and dec is not None:
         # Search within 2 arcmin (2/60 = 0.033 degrees)
-        query = f"SELECT main_id, sp_type, plx_value FROM basic WHERE 1=CONTAINS(POINT('ICRS', ra, dec), CIRCLE('ICRS', {ra}, {dec}, 0.033))"
+        query = f"SELECT main_id, sp_type, plx_value FROM basic WHERE 1=CONTAINS(POINT('ICRS', ra, dec), CIRCLE('ICRS', {ra}, {dec}, 0.033))"  # nosec B608
     else:
         return JSONResponse(content={"error": "Must provide name or ra/dec"}, status_code=400)
         
@@ -537,5 +537,75 @@ def constellation_window(
     except Exception as e:
         return JSONResponse(status_code=500, content={"error": str(e)})
 
+from engine.gallery import add_gallery_entry, get_gallery_entries, get_gallery_image, report_image, get_gallery_counts
+import base64
+from fastapi import Response
+
+class GalleryUploadRequest(BaseModel):
+    target_id: str
+    target_name: str
+    author: str
+    location: str
+    gear: str
+    comment: str
+    note: Optional[str] = None
+    image_data: str
+
+@app.post("/api/gallery")
+def upload_to_gallery(req: GalleryUploadRequest):
+    try:
+        entry = add_gallery_entry(
+            target_id=req.target_id,
+            target_name=req.target_name,
+            author=req.author,
+            location=req.location,
+            gear=req.gear,
+            comment=req.comment,
+            note=req.note,
+            image_base64=req.image_data
+        )
+        return {"status": "ok", "entry": entry}
+    except ValueError as ve:
+        raise HTTPException(status_code=400, detail=str(ve))
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+@app.get("/api/gallery")
+def list_gallery(target_id: Optional[str] = None):
+    try:
+        return get_gallery_entries(target_id=target_id)
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+@app.get("/api/gallery/image/{entry_id}")
+def get_image(entry_id: int):
+    try:
+        data = get_gallery_image(entry_id)
+        if not data:
+            raise HTTPException(status_code=404, detail="Image not found")
+        if "," in data:
+            data = data.split(",")[1]
+        data = data.strip()
+        data += "=" * ((4 - len(data) % 4) % 4)
+        image_bytes = base64.b64decode(data)
+        return Response(content=image_bytes, media_type="image/jpeg")
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
 if __name__ == "__main__":
     uvicorn.run("main:app", host="0.0.0.0", port=8181, reload=False)
+
+@app.get("/api/gallery/counts")
+def get_counts():
+    try:
+        return get_gallery_counts()
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+@app.post("/api/gallery/image/{image_id}/report")
+def report_gallery_image(image_id: int):
+    try:
+        report_image(image_id)
+        return {"status": "reported"}
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))

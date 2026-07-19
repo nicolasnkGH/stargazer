@@ -292,7 +292,10 @@
             <div><span class="ti-label" data-i18n="lbl_alt">Alt</span> <span id="moon-alt">—</span> <span class="ux-tooltip" data-tooltip="Altitude: How high above the horizon an object is. 90° is straight up.">ℹ️</span></div>
           </div>
           <div class="dso-impact" id="dso-impact">Loading…</div>
-          <button class="btn btn-primary" onclick="addToPlan('moon', 'Moon', 0, 0)" data-i18n="btn_add_moon_to_plan" style="width: 100%; margin-top: 12px; font-size: 0.85rem; padding: 6px 12px; background: rgba(59, 130, 246, 0.15); border: 1px solid rgba(59, 130, 246, 0.3); color: #93c5fd; border-radius: 6px; cursor: pointer; font-weight: 600;">Add Moon to Plan +</button>
+          <div style="display:flex; gap: 8px; flex-wrap: wrap;">
+            <button class="btn btn-primary" data-plan-id="moon" data-plan-name="Moon" data-ra="0" data-dec="0" style="flex-grow: 1; margin-top: 12px; font-size: 0.85rem; padding: 6px 12px; background: rgba(59, 130, 246, 0.15); border: 1px solid rgba(59, 130, 246, 0.3); color: #93c5fd; border-radius: 6px; cursor: pointer; font-weight: 600;">Add Moon to Plan +</button>
+            <button class="filter-btn" id="moon-gallery-btn" onclick="openGalleryModal('moon', 'Moon')" style="margin-top: 12px; padding: 6px 12px; font-size: 0.85rem; background: rgba(168, 85, 247, 0.15); border-color: rgba(168, 85, 247, 0.3); color: #d8b4fe; border-radius: 6px; cursor: pointer;" title="Community Gallery & Uploads">📸</button>
+          </div>
           <!-- Moon Fact — standardized fact card -->
           <div class="motion-facts-wrap" id="moon-fact-wrap" style="display:none; margin-top:12px;">
             <div class="motion-facts-header">
@@ -312,16 +315,16 @@
       <section class="card" id="card-motion">
         <div class="card-header">
           <span class="card-icon"><i data-lucide="satellite"></i></span>
-          <h2 class="card-title" data-i18n="card_motion">Sky Objects in Motion</h2>
-          <span class="card-badge" data-i18n="badge_live_tracking" style="background:rgba(56,189,248,0.1);color:#38bdf8;border-color:rgba(56,189,248,0.3);">Live Tracking</span>
+          <h2 class="card-title">Sky Objects in Motion</h2>
+          <span class="card-badge" style="background:rgba(56,189,248,0.1);color:#38bdf8;border-color:rgba(56,189,248,0.3);">Live Tracking</span>
         </div>
 
         <!-- Sub-tab strip -->
         <div class="motion-tabs">
-          <button class="motion-tab active" data-panel="motion-iss-panel">🚀 <span data-i18n="tab_iss_passes">ISS Passes</span></button>
-          <button class="motion-tab" data-panel="motion-neo-panel">☄️ <span data-i18n="tab_neo">Near-Earth Objects</span></button>
-          <button class="motion-tab" data-panel="motion-comets-panel">🌠 <span data-i18n="tab_comets">Comets</span></button>
-          <button class="motion-tab" data-panel="motion-meteors-panel">💫 <span data-i18n="tab_meteors">Meteor Showers</span></button>
+          <button class="motion-tab active" data-panel="motion-iss-panel">🚀 ISS Passes</button>
+          <button class="motion-tab" data-panel="motion-neo-panel">☄️ Near-Earth Objects</button>
+          <button class="motion-tab" data-panel="motion-comets-panel">🌠 Comets</button>
+          <button class="motion-tab" data-panel="motion-meteors-panel">💫 Meteor Showers</button>
         </div>
 
         <div class="card-body" style="padding-top:0;">
@@ -329,19 +332,19 @@
           <!-- ── ISS Panel ───────────────────────────────────────────────── -->
           <div id="motion-iss-panel" class="motion-panel">
             <div class="iss-tip">
-              <span data-i18n="iss_tip">The ISS appears as a very bright, fast-moving star &mdash; no telescope needed! It moves from horizon to horizon in ~6 minutes.</span>
+              <span>The ISS appears as a very bright, fast-moving star &mdash; no telescope needed! It moves from horizon to horizon in ~6 minutes.</span>
             </div>
             <div class="iss-passes" id="iss-passes">
               <div class="loading-shimmer"></div>
             </div>
             <div style="margin-top:10px; text-align:right;">
-              <a href="https://heavens-above.com/PassSummary.aspx?satid=25544&lat=40.126&lng=-83.037" target="_blank" class="ext-link" data-i18n="link_heavens_above">Heavens-Above ↗</a>
+              <a href="https://heavens-above.com/PassSummary.aspx?satid=25544&lat=40.126&lng=-83.037" target="_blank" class="ext-link">Heavens-Above ↗</a>
             </div>
 
             <!-- ISS Fun Facts -->
             <div class="motion-facts-wrap" style="margin-top: 16px;">
               <div class="motion-facts-header">
-                <span data-i18n="iss_facts_header">🛰️ ISS Quick Facts</span>
+                <span>🛰️ ISS Quick Facts</span>
                 <button class="motion-fact-next" onclick="nextMotionFact('iss')" title="Next fact">→</button>
               </div>
               <div id="iss-fact-card" class="motion-fact-card">
@@ -355,7 +358,7 @@
           <!-- ── NEO Panel ───────────────────────────────────────────────── -->
           <div id="motion-neo-panel" class="motion-panel" style="display:none;">
             <div class="iss-tip">
-              <span data-i18n="neo_tip">Near-Earth Objects passing within 7.5M km tonight. Data from NASA NeoWs API.</span> <span style="cursor:pointer;opacity:0.7;" onclick="showInfo(window.i18n[currentLang]?.asteroid_info || 'Near-Earth Objects (NEOs) passing by Earth tonight. Data from NASA NeoWs API.', event)">ℹ️</span>
+              <span>Near-Earth Objects passing within 7.5M km tonight. Data from NASA NeoWs API. <span style="cursor:pointer;opacity:0.7;" onclick="showInfo(window.i18n[currentLang]?.asteroid_info || 'Near-Earth Objects (NEOs) passing by Earth tonight. Data from NASA NeoWs API.', event)">ℹ️</span></span>
             </div>
             <div id="asteroids-list" style="display:flex; flex-direction:column; gap:10px;">
               <div style="color: #94a3b8; font-size: 0.85rem; text-align: center; padding: 10px;" data-i18n="asteroid_scanning">Scanning NASA Database...</div>
@@ -365,7 +368,7 @@
           <!-- ── Comets Panel ────────────────────────────────────────────── -->
           <div id="motion-comets-panel" class="motion-panel" style="display:none;">
             <div class="iss-tip">
-              <span data-i18n="comet_tip">Notable comets currently in the inner solar system. Some are visible with binoculars or a small telescope.</span>
+              <span>Notable comets currently in the inner solar system. Some are visible with binoculars or a small telescope.</span>
             </div>
 
             <!-- Curated comet list -->
@@ -440,7 +443,7 @@
             <!-- Comet Fun Facts -->
             <div class="motion-facts-wrap" style="margin-top: 16px;">
               <div class="motion-facts-header">
-                <span data-i18n="comet_facts_header">💡 Comet Fun Facts</span>
+                <span>💡 Comet Fun Facts</span>
                 <button class="motion-fact-next" onclick="nextMotionFact('comet')" title="Next fact">→</button>
               </div>
               <div id="comet-fact-card" class="motion-fact-card">
@@ -451,20 +454,20 @@
             </div>
 
             <div style="margin-top:12px; text-align:right;">
-              <a href="https://ssd.jpl.nasa.gov/tools/sbdb_lookup.html" target="_blank" class="ext-link" data-i18n="link_nasa_sbdb">NASA Small Body DB ↗</a>
+              <a href="https://ssd.jpl.nasa.gov/tools/sbdb_lookup.html" target="_blank" class="ext-link">NASA Small Body DB ↗</a>
             </div>
           </div>
 
           <!-- ── Meteor Showers Panel ────────────────────────────────────── -->
           <div id="motion-meteors-panel" class="motion-panel" style="display:none;">
             <div class="iss-tip">
-              <span data-i18n="meteor_tip">Upcoming major meteor showers, ranked by peak date. ZHR = Zenithal Hourly Rate under ideal dark skies.</span>
+              <span>Upcoming major meteor showers, ranked by peak date. ZHR = Zenithal Hourly Rate under ideal dark skies.</span>
             </div>
             <div id="meteors-list" style="display:flex; flex-direction:column; gap:10px;">
               <div class="loading-shimmer"></div>
             </div>
             <div style="margin-top:12px; text-align:right;">
-              <a href="https://www.imo.net/members/imo_showers/working_shower_list" target="_blank" class="ext-link" data-i18n="link_imo_showers">IMO Shower List ↗</a>
+              <a href="https://www.imo.net/members/imo_showers/working_shower_list" target="_blank" class="ext-link">IMO Shower List ↗</a>
             </div>
           </div>
 
@@ -547,7 +550,10 @@
         </div>
         <div class="card-body" style="padding-bottom: 8px;">
           <div class="ac-status" id="ac-status" style="margin-bottom: 4px;">Loading constellation map...</div>
-          <div style="font-size: 0.75rem; color: #a855f7; margin-bottom: 12px;" data-i18n="simbad_instruction">✨ Click on any star to scan it via SIMBAD</div>
+          <div style="display: flex; align-items: center; gap: 6px; margin-bottom: 12px;">
+            <div style="font-size: 0.75rem; color: #a855f7;" data-i18n="simbad_instruction">✨ Click on any star to scan it via SIMBAD</div>
+            <span class="info-icon" style="cursor:pointer; opacity:0.8; font-size: 0.85rem; color: #fff;" onclick="showInfo('<b>Interactive Sky Map</b><br>• Drag to pan around the constellation<br>• Scroll or pinch to zoom in/out<br>• Click on any star to query its astrophysical data from the SIMBAD database.', event)">ℹ️</span>
+          </div>
           
           <!-- Interactive D3 Map Container -->
           <div id="ac-map-container" style="width: 100%; aspect-ratio: 1; max-height: 500px; height: auto; background: rgba(0,0,0,0.2); border-radius: 8px; border: 1px solid rgba(255,255,255,0.05); position: relative; overflow: hidden; margin-bottom: 12px;">
@@ -616,7 +622,7 @@
             </div>
           </div>
         </div>
-        <div class="card-body" style="padding: 0; overflow: hidden; border-radius: 0 0 12px 12px; height: 320px; position: relative; background: radial-gradient(circle at center, rgba(16, 24, 48, 0.95), rgba(8, 12, 24, 1)); display: flex; flex-direction: column; align-items: center; justify-content: center; text-align: center; border: 1px solid rgba(255, 255, 255, 0.03);">
+        <div class="card-body" style="padding: 0; overflow: hidden; border-radius: 0 0 12px 12px; height: 320px; position: relative; background-image: linear-gradient(to right, rgba(148, 163, 184, 0.25) 0%, rgba(148, 163, 184, 0.25) 20%, rgba(100, 116, 139, 0.25) 20%, rgba(100, 116, 139, 0.25) 40%, rgba(71, 85, 105, 0.25) 40%, rgba(71, 85, 105, 0.25) 60%, rgba(51, 65, 85, 0.25) 60%, rgba(51, 65, 85, 0.25) 80%, rgba(15, 23, 42, 0.25) 80%, rgba(15, 23, 42, 0.25) 100%), url('./assets/bortle_scale_bg.png'); background-size: cover; background-position: center; display: flex; flex-direction: column; align-items: center; justify-content: center; text-align: center; border: 1px solid rgba(255, 255, 255, 0.03);">
           <!-- Map Grid/Glow Styling -->
           <div style="position: absolute; inset: 0; opacity: 0.15; background-image: radial-gradient(rgba(59, 130, 246, 0.3) 1px, transparent 0), radial-gradient(rgba(59, 130, 246, 0.3) 1.5px, transparent 0); background-size: 20px 20px; background-position: 0 0, 10px 10px; pointer-events: none;"></div>
           <div style="position: absolute; width: 150px; height: 150px; border-radius: 50%; background: radial-gradient(circle, rgba(239, 68, 68, 0.15) 0%, transparent 70%); filter: blur(10px); pointer-events: none;"></div>
@@ -673,10 +679,13 @@
     </section>
 
     <!-- ── Aurora & Space Weather Card ── -->
-    <section class="card" id="card-space-weather" style="margin-bottom: 20px;">
-      <div class="card-header">
-        <span class="card-icon"><i data-lucide="zap"></i></span>
-        <h2 class="card-title" style="display: flex; align-items: center; gap: 6px;">Aurora & Space Weather <span class="info-icon" style="cursor:pointer; opacity:0.6; font-size: 0.85rem; margin-left:8px;" onclick="showInfo('Real-time space weather alerts and planetary Kp-index estimates fetched directly from NOAA\'s Space Weather Prediction Center (SWPC).', event)">ℹ️</span></h2>
+    <section class="card" id="card-space-weather" style="margin-bottom: 20px; background-image: linear-gradient(to bottom, rgba(15, 23, 42, 0.6), rgba(15, 23, 42, 0.95)), url('./assets/aurora_bg.png'); background-size: cover; background-position: center; border: 1px solid rgba(168, 85, 247, 0.2);">
+      <div class="card-header" style="align-items: center;">
+        <span class="card-icon" style="color: #a855f7;"><i data-lucide="zap"></i></span>
+        <div>
+          <h2 class="card-title" style="margin: 0; line-height: 1.2; display: flex; align-items: center; gap: 6px;">Aurora & Space Weather <span class="info-icon" style="cursor:pointer; opacity:0.6; font-size: 0.85rem;" onclick="showInfo('Real-time space weather alerts and planetary Kp-index estimates fetched directly from NOAA\'s Space Weather Prediction Center (SWPC).', event)">ℹ️</span></h2>
+          <div style="font-size: 0.7rem; color: rgba(255, 255, 255, 0.6); margin-top: 2px;">Data powered by <a href="https://www.swpc.noaa.gov/" target="_blank" style="color: #a855f7; text-decoration: none;" onmouseover="this.style.textDecoration='underline'" onmouseout="this.style.textDecoration='none'">NOAA Space Weather Prediction Center</a></div>
+        </div>
       </div>
       <div class="card-body" style="padding: 20px; display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 20px;">
         
@@ -743,61 +752,38 @@
           <h2 class="card-title" id="target-db-title">Scorpius Must-See Targets</h2>
         </div>
         <div class="card-actions" id="equipment-filters" style="margin-right: auto;">
-          <span style="font-size: 0.8rem; color: var(--text-secondary); margin-right: 5px;" data-i18n="lbl_equipment">Equipment:</span>
-          <button class="filter-btn equip-btn active" data-equip="all" data-i18n="filter_all">All</button>
-          <button class="filter-btn equip-btn" data-equip="seestar" data-i18n="equip_seestar">Seestar</button>
-          <button class="filter-btn equip-btn" data-equip="dslr" data-i18n="equip_dslr">DSLR</button>
-          <button class="filter-btn equip-btn" data-equip="binos" data-i18n="equip_binos">Binoculars</button>
+          <span style="font-size: 0.8rem; color: var(--text-secondary); margin-right: 5px;">Equipment:</span>
+          <button class="filter-btn equip-btn active" data-equip="all">All</button>
+          <button class="filter-btn equip-btn" data-equip="seestar">Seestar</button>
+          <button class="filter-btn equip-btn" data-equip="dslr">DSLR</button>
+          <button class="filter-btn equip-btn" data-equip="binos">Binoculars</button>
         </div>
         <div class="card-actions" id="type-filters">
-          <span style="font-size: 0.8rem; color: var(--text-secondary); margin-right: 5px;" data-i18n="lbl_object">Object:</span>
+          <span style="font-size: 0.8rem; color: var(--text-secondary); margin-right: 5px;">Object:</span>
           <button class="filter-btn type-btn active" data-filter="all" data-i18n="filter_all">All</button>
           <button class="filter-btn type-btn" data-filter="globular" data-i18n="filter_globular">Globulars</button>
           <button class="filter-btn type-btn" data-filter="open" data-i18n="filter_open">Open Clusters</button>
           <button class="filter-btn type-btn" data-filter="double" data-i18n="filter_double">Double Stars</button>
           <button class="filter-btn type-btn" data-filter="star" data-i18n="filter_stars">Stars</button>
           <button class="filter-btn type-btn" data-filter="galaxy" data-i18n="filter_galaxy">Galaxies</button>
+          <button class="filter-btn type-btn" data-filter="has-images" data-i18n="filter_has_images">With Photos 🖼️</button>
         </div>
       </div>
       
-      <!-- Constellation Selector Tabs -->
-      <div class="constellation-tabs" id="constellation-tabs">
-        <button class="const-tab active" data-const="Sco">Scorpius</button>
-        <button class="const-tab" data-const="UMa">Ursa Major</button>
-        <button class="const-tab" data-const="Ori">Orion</button>
-        <button class="const-tab" data-const="Cas">Cassiopeia</button>
-        <button class="const-tab" data-const="Cyg">Cygnus</button>
-        <button class="const-tab" data-const="Cru">Crux</button>
-        <button class="const-tab" data-const="CMa">Canis Major</button>
-        <button class="const-tab" data-const="CMi">Canis Minor</button>
-        <button class="const-tab" data-const="Cen">Centaurus</button>
-        <button class="const-tab" data-const="Ari">Aries</button>
-        <button class="const-tab" data-const="Tau">Taurus</button>
-        <button class="const-tab" data-const="Gem">Gemini</button>
-        <button class="const-tab" data-const="Aur">Auriga</button>
-        <button class="const-tab" data-const="Per">Perseus</button>
-        <button class="const-tab" data-const="Cnc">Cancer</button>
-        <button class="const-tab" data-const="Leo">Leo</button>
-        <button class="const-tab" data-const="LMi">Leo Minor</button>
-        <button class="const-tab" data-const="Vir">Virgo</button>
-        <button class="const-tab" data-const="Lib">Libra</button>
-        <button class="const-tab" data-const="Sgr">Sagittarius</button>
-        <button class="const-tab" data-const="Cap">Capricornus</button>
-        <button class="const-tab" data-const="Aqr">Aquarius</button>
-        <button class="const-tab" data-const="Psc">Pisces</button>
-        <button class="const-tab" data-const="Mon">Monoceros</button>
-        <button class="const-tab" data-const="Lyn">Lynx</button>
-        <button class="const-tab" data-const="Lep">Lepus</button>
-        <button class="const-tab" data-const="Cam">Camelopardalis</button>
-        <button class="const-tab" data-const="Pup">Puppis</button>
-        <button class="const-tab" data-const="Col">Columba</button>
+      <!-- Constellation Search & Selector Tabs -->
+      <div class="constellation-search-wrap" style="padding: 10px 24px 0; display: flex; align-items: center; gap: 10px;">
+        <span style="font-size: 0.85rem; color: var(--text-secondary);">🔍 Search:</span>
+        <input type="text" id="constellation-search" placeholder="Type constellation name..." style="background: rgba(0, 0, 0, 0.4); border: 1px solid rgba(255, 255, 255, 0.15); color: var(--text-primary); border-radius: 6px; padding: 6px 12px; font-size: 0.85rem; width: 100%; max-width: 280px; outline: none; transition: all 0.2s;">
+      </div>
+      <div class="constellation-tabs" id="constellation-tabs" style="display: flex; overflow-x: auto; white-space: nowrap; flex-wrap: nowrap; gap: 10px; padding: 10px 24px; background: rgba(0, 0, 0, 0.2); border-bottom: 1px solid var(--border);">
+        <!-- Dynamically populated by JS based on visibility -->
       </div>
 
       <div class="targets-scope-note">
         🔭 Visibility depends on local sky conditions, light pollution, and your equipment. 
         This database highlights the most prominent targets for amateur stargazers and beginners.
       </div>
-      <div class="target-grid" id="target-grid">
+      <div class="target-grid-db" id="target-grid" style="display: grid; grid-template-columns: repeat(auto-fill, minmax(320px, 1fr)); gap: 16px; padding: 20px 24px; width: 100%; box-sizing: border-box;">
         <!-- Populated by JS -->
       </div>
     </section>
@@ -819,9 +805,9 @@
         <!-- Visual Timeline Bar -->
         <div style="margin-bottom: 25px;">
           <div style="display: flex; justify-content: space-between; font-size: 0.75rem; color: var(--text-dim); margin-bottom: 6px;">
-            <span>Sunset (6:00 PM)</span>
+            <span id="timeline-start-label">Sunset (6:00 PM)</span>
             <span>Midnight</span>
-            <span>Sunrise (6:00 AM)</span>
+            <span id="timeline-end-label">Sunrise (6:00 AM)</span>
           </div>
           <div style="height: 24px; background: rgba(255, 255, 255, 0.03); border-radius: 12px; position: relative; border: 1px solid rgba(255,255,255,0.05); overflow: hidden; display: flex;" id="scheduler-timeline-bar">
             <!-- Dynamic scheduler timeline segments injected here -->
@@ -833,7 +819,7 @@
         <div id="scheduler-empty-state" style="text-align: center; padding: 30px 10px; border: 1px dashed rgba(255,255,255,0.1); border-radius: 8px; background: rgba(255,255,255,0.01);">
           <i data-lucide="calendar" style="width:36px;height:36px;color:var(--text-dim);margin-bottom:10px;opacity:0.5;margin-left:auto;margin-right:auto;display:block;"></i>
           <h3 style="margin: 0 0 5px 0; font-size: 0.95rem; color: #fff;">Your night schedule is empty</h3>
-          <p style="margin: 0; font-size: 0.8rem; color: var(--text-dim);" data-i18n="scheduler_empty_hint">Click "Add to Plan" on any target card in the database above to plan your night session.</p>
+          <p style="margin: 0; font-size: 0.8rem; color: var(--text-dim);">Click "Add to Plan" on any target card in the database above to plan your night session.</p>
         </div>
 
         <div id="scheduler-list-container" class="hidden" style="display: flex; flex-direction: column; gap: 8px;">
@@ -951,6 +937,8 @@
           <li><strong>Aurora & Space Weather:</strong> View real-time Kp index and solar storm alerts from NOAA.</li>
           <li><strong>Equipment FOV Simulator:</strong> Simulate telescope eyepieces & camera sensors in Aladin Lite.</li>
           <li><strong>3D Solar System:</strong> Interact with a live 3D planetary model.</li>
+          <li><strong>📸 Community Gallery & Safe Uploads:</strong> Share your astrophotos directly from the UI — client-side compression plus AI safety verification and image hosting.</li>
+          <li><strong>🛠️ UI Fixes:</strong> Improved AI "Must-See & AI Picks" fallback and made the "Add to Plan +" buttons reliable across dynamically inserted content.</li>
         </ul>
       </div>
 
@@ -1135,7 +1123,7 @@
   </div>
 
   <!-- Tooltip notification element -->
-  <div id="toast" style="display:none; position:absolute; background:rgba(20, 20, 30, 0.95); color:#e2e8f0; padding:12px 16px; border-radius:8px; z-index:9999; border: 1px solid rgba(138, 43, 226, 0.4); box-shadow: 0 8px 24px rgba(0,0,0,0.8); font-size:0.9rem; pointer-events:none; transition: opacity 0.2s ease; max-width: 250px; text-align: left; backdrop-filter: blur(8px);">
+  <div id="toast" style="display:none; position:fixed; background:rgba(20, 20, 30, 0.95); color:#e2e8f0; padding:12px 16px; border-radius:8px; z-index:9999; border: 1px solid rgba(138, 43, 226, 0.4); box-shadow: 0 8px 24px rgba(0,0,0,0.8); font-size:0.9rem; pointer-events:none; transition: opacity 0.2s ease; max-width: 250px; text-align: left; backdrop-filter: blur(8px);">
     <div style="font-weight: 600; margin-bottom: 6px; color: #a855f7; display: flex; align-items: center; gap: 6px;"><span style="font-size:1.1rem;">📖</span> Note</div>
     <div id="toast-msg" style="line-height: 1.4; color: #cbd5e1;"></div>
   </div>
@@ -1200,6 +1188,77 @@
 
       <div id="aladin-lite-div" style="width:100%; height:400px; background: black; border: 1px solid rgba(255,255,255,0.1); border-radius: 8px;"></div>
       <button id="close-fov-btn" class="modal-close" style="margin-top: 15px; width: 100%;">Close Simulator</button>
+    </div>
+  </div>
+
+  <!-- Lightbox Modal -->
+  <div id="lightbox-modal" class="modal hidden" style="z-index: 20000;">
+    <div style="position: absolute; top: 20px; right: 20px; cursor: pointer; color: white; font-size: 2.5rem; line-height: 1; background: rgba(0,0,0,0.5); border-radius: 50%; width: 44px; height: 44px; display: flex; align-items: center; justify-content: center; z-index: 20001;" onclick="closeLightbox()">&times;</div>
+    <img id="lightbox-img" style="max-width: 95vw; max-height: 95vh; object-fit: contain; cursor: zoom-out;" onclick="closeLightbox()">
+  </div>
+
+  <!-- Gallery Modal -->
+  <div id="gallery-modal" class="modal hidden">
+    <div class="modal-content" style="max-width: 600px; background: #0f172a; border: 1px solid rgba(255,255,255,0.1); border-radius: 12px; padding: 24px; color: #fff;">
+      <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
+        <h2 id="gallery-modal-title" style="margin: 0; color: #fff; font-size: 1.3rem;">Astro-Imaging Share</h2>
+        <button id="close-gallery-btn" class="modal-close" style="background: none; border: none; color: #94a3b8; font-size: 1.5rem; cursor: pointer; padding: 0 4px; line-height: 1;">&times;</button>
+      </div>
+      
+      <!-- Sub-tabs: View Gallery vs Upload Photo -->
+      <div style="display: flex; gap: 10px; margin-bottom: 20px; border-bottom: 1px solid rgba(255,255,255,0.1); padding-bottom: 10px;">
+        <button type="button" id="gallery-tab-view" class="filter-btn active" style="flex: 1;">Shared Images 🖼️</button>
+        <button type="button" id="gallery-tab-upload" class="filter-btn" style="flex: 1;">Upload Photo 📤</button>
+      </div>
+
+      <!-- Tab Content: View Shared Images -->
+      <div id="gallery-view-content">
+        <div id="gallery-list-container" style="max-height: 380px; overflow-y: auto; display: flex; flex-direction: column; gap: 16px;">
+          <div style="text-align: center; color: var(--text-dim); padding: 20px;">No photos shared for this object yet. Be the first to share!</div>
+        </div>
+      </div>
+
+      <!-- Tab Content: Upload Form -->
+      <form id="gallery-upload-form" class="hidden" style="display: flex; flex-direction: column; gap: 14px;">
+        <input type="hidden" id="gallery-target-id">
+        <input type="hidden" id="gallery-target-name">
+
+        <div>
+          <label style="display: block; font-size: 0.8rem; color: var(--text-dim); margin-bottom: 4px;">Choose Image *</label>
+          <input type="file" id="gallery-file-input" accept="image/*" required style="width: 100%; font-size: 0.85rem; background: rgba(255,255,255,0.03); border: 1px dashed rgba(255,255,255,0.15); padding: 12px; border-radius: 6px; cursor: pointer; color: #cbd5e1;">
+          <div id="gallery-image-preview" style="margin-top: 10px; max-height: 150px; border-radius: 6px; overflow: hidden; display: none; background: #000; align-items: center; justify-content: center;">
+            <img id="gallery-preview-img" style="max-height: 150px; max-width: 100%; object-fit: contain;">
+          </div>
+        </div>
+
+        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px;">
+          <div>
+            <label style="display: block; font-size: 0.8rem; color: var(--text-dim); margin-bottom: 4px;">Observer Name *</label>
+            <input type="text" id="gallery-author" required placeholder="e.g. John Doe" style="width: 100%; padding: 8px 10px; font-size: 0.85rem; border-radius: 6px; border: 1px solid rgba(255,255,255,0.1); background: rgba(255,255,255,0.02); color: #fff;">
+          </div>
+          <div>
+            <label style="display: block; font-size: 0.8rem; color: var(--text-dim); margin-bottom: 4px;">Observation Location *</label>
+            <input type="text" id="gallery-location" required placeholder="e.g. Cherry Springs Park" style="width: 100%; padding: 8px 10px; font-size: 0.85rem; border-radius: 6px; border: 1px solid rgba(255,255,255,0.1); background: rgba(255,255,255,0.02); color: #fff;">
+          </div>
+        </div>
+
+        <div>
+          <label style="display: block; font-size: 0.8rem; color: var(--text-dim); margin-bottom: 4px;">Gear Used *</label>
+          <input type="text" id="gallery-gear" required placeholder="e.g. Celestron 130SLT, 25mm Eyepiece" style="width: 100%; padding: 8px 10px; font-size: 0.85rem; border-radius: 6px; border: 1px solid rgba(255,255,255,0.1); background: rgba(255,255,255,0.02); color: #fff;">
+        </div>
+
+        <div>
+          <label style="display: block; font-size: 0.8rem; color: var(--text-dim); margin-bottom: 4px;">Comment / Description *</label>
+          <textarea id="gallery-comment" required placeholder="e.g. Beautiful crisp details!" rows="3" style="width: 100%; padding: 8px 10px; font-size: 0.85rem; border-radius: 6px; border: 1px solid rgba(255,255,255,0.1); background: rgba(255,255,255,0.02); color: #fff; resize: vertical;"></textarea>
+        </div>
+
+        <div>
+          <label style="display: block; font-size: 0.8rem; color: var(--text-dim); margin-bottom: 4px;">Additional Notes (Optional)</label>
+          <input type="text" id="gallery-note" placeholder="e.g. Sky transparency was 8/10." style="width: 100%; padding: 8px 10px; font-size: 0.85rem; border-radius: 6px; border: 1px solid rgba(255,255,255,0.1); background: rgba(255,255,255,0.02); color: #fff;">
+        </div>
+
+        <button type="submit" id="gallery-submit-btn" class="btn btn-primary" style="width: 100%; margin-top: 10px; font-weight: 600; padding: 10px;">Submit for Safety Verification & Share 🚀</button>
+      </form>
     </div>
   </div>
 
