@@ -41,10 +41,11 @@ Getting started with amateur astronomy can be overwhelming. Commercial star char
 * **🎯 Curated Target Cards:** Focuses only on beginner-friendly "Must-See" deep-sky targets (Orion Nebula, Pleiades, Andromeda) with visual thumbnails and difficulty badges.
 * **🔭 Optics Simulator & FOV Calculator:** Input custom telescope/eyepiece fields of view or select presets (Seestar S50, wide/telephoto DSLRs) to draw rectangular and circular FOV boundary overlays on targets using Aladin Lite (DSS2 imagery).
 * **📅 Plan My Night Timeline Scheduler:** Queue deep-sky targets, planets, and the Moon into a visual observing timeline. Reorder objects and export your session plan to Text or CSV files.
-* **🗺️ Constellation Explorer & Planetarium:** An interactive D3-based star map. Click on any star to query the professional astronomical **SIMBAD database** for live Spectral Type and Distance data.
+* **🗺️ Constellation Explorer & Planetarium:** An interactive D3-based star map. Filter through the 88 constellations instantly using the integrated **Constellation Search** bar. Click on any star to query the professional astronomical **SIMBAD database** for live Spectral Type and Distance data.
 
 ### 🌤️ Weather & Astronomy Engines
-* **🧠 AI Seeing Analysis:** Aggregates live cloud, humidity, temperature, and upper-atmosphere wind data to output a definitive "GO / NO GO" verdict via **Google Gemini 2.5 Flash**.
+* **🧠 AI Seeing Analysis & Fallback Planner:** Aggregates live cloud, humidity, temperature, and upper-atmosphere wind data to output a definitive "GO / NO GO" verdict via **Google Gemini**. If conditions are poor, the AI generates personalized **fallback suggestions** for indoor astronomy activities.
+* **📅 Event of the Night Integration:** Automatically alerts you to major astronomical events happening tonight (e.g., meteor shower peaks, equinoxes, alignments) with a quick **"Add to Plan +"** option to schedule them.
 * **🪐 Planet Tracker:** Computes real-time altitude, azimuth, magnitude, constellation location, and light travel time for the naked-eye planets.
 * **⚡ Aurora & Space Weather Monitor:** Displays planetary Kp-index readings, solar storm warnings, and active alert feeds in real-time from NOAA SWPC, predicting local aurora visibility probability based on latitude.
 * **☄️ 3D Interactive Solar System:** Embeds NASA's official 3D planetary orrery simulator.
@@ -52,6 +53,7 @@ Getting started with amateur astronomy can be overwhelming. Commercial star char
 
 ### 📱 Premium UX & Design
 * **🔴 Night Vision Mode:** A one-click toggle tinting the entire UI dark red to preserve your eyes' rhodopsin adaptation in the dark.
+* **📱 Responsive Target Grid:** Target database cards automatically scale and flow in a beautiful grid layout dynamically adjusted for mobile, tablet, and desktop viewports.
 * **📱 Progressive Web App (PWA):** Install it directly to your home screen with offline caching.
 * **🔔 Native & Local Push Alerts:** Subscribe to native OS push notifications for ISS passes, auroras, and clearing skies. Also schedules local PWA browser alerts exactly when scheduled observing slots in your night plan begin!
 * **🌍 100% Internationalized:** Localized in English, Spanish, and Portuguese.

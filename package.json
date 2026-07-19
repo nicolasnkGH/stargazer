@@ -1,9 +1,10 @@
 {
-  "version": "2.8.2",
+  "version": "2.9.0",
   "scripts": {
     "generate-og": "node web/generate-og.js"
   },
   "dependencies": {
+    "puppeteer": "^25.3.0",
     "sharp": "^0.35.2"
   }
 }

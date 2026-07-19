@@ -30,6 +30,7 @@ FAMOUS_CONSTELLATIONS = {
     "Microscopium": "Mic", "Pavo": "Pav", "Puppis": "Pup",
     "Pyxis": "Pyx", "Reticulum": "Ret", "Sculptor": "Scl",
     "Telescopium": "Tel", "Triangulum": "Tri", "Vela": "Vel",
+    "Sextans": "Sex"
 }
 
 

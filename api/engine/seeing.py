@@ -192,6 +192,9 @@ def _ai_seeing_analysis(weather: dict, moon_illum: float, moon_alt: float, visib
             logging.getLogger("stargazer").info("AI Seeing: Returning fresh cached response from disk")
             return entry["data"]
             
+    import datetime
+    current_date = datetime.datetime.now().strftime("%B %d, %Y")
+
     if visible_targets:
         # Just grab the top 15 highest altitude targets so we don't blow up the prompt context
         targets_str = ", ".join([f"{t['name']} (Mag {t.get('magnitude', '?')})" for t in visible_targets[:15]])
@@ -199,9 +202,10 @@ def _ai_seeing_analysis(weather: dict, moon_illum: float, moon_alt: float, visib
     else:
         target_prompt = ""
 
-    lang_instruction = f"\nCRITICAL: All string values in your JSON response (label, explanation, warnings, recommended_targets names and reasons) MUST be written in the ISO language code '{lang}'. Do not use English unless '{lang}' is 'en'." if lang != "en" else ""
+    lang_instruction = f"\nCRITICAL: All string values in your JSON response (label, explanation, warnings, fallback_message, recommended_targets names and reasons) MUST be written in the ISO language code '{lang}'. Do not use English unless '{lang}' is 'en'." if lang != "en" else ""
 
     prompt = f"""You are an expert astronomical seeing forecaster helping amateur astronomers decide whether to observe tonight.
+Today's date is {current_date}.
 
 Tonight's atmospheric data ({window_label}):
 - Cloud cover: {weather.get('cloud_total', '?')}% (low: {weather.get('cloud_low', '?')}%, mid: {weather.get('cloud_mid', '?')}%, high/cirrus: {weather.get('cloud_high', '?')}%)
@@ -216,10 +220,13 @@ Tonight's atmospheric data ({window_label}):
 - Moon: {moon_illum:.0f}% illuminated, currently {moon_alt:.1f}° above horizon{target_prompt}
 
 Rate the astronomical seeing quality on a scale of 1–10 (10 = perfect, 1 = stay inside).
-Consider: transparency (cloud/humidity/cirrus), atmospheric stability (jet stream), dew risk, moon interference, and overall observing potential.
+Consider: transparency, atmospheric stability, dew risk, moon interference.
+
+1. If the score is < 4, leave `recommended_targets` empty. Instead, generate a fun, creative `fallback_message` suggesting an indoor activity (like reading a book or watching YouTube) because they are out of luck tonight.
+2. Based on {current_date}, is there any notable astronomical happening today? (e.g. meteor shower peak, equinox, solstice, planetary conjunction). If so, provide an `event_of_the_night`. Otherwise, return null.
 
 Respond ONLY with valid JSON — no markdown, no explanation outside the JSON:
-{{"score": <int 1-10>, "label": "<short label e.g. Exceptional transparency>", "explanation": "<2 sentences for a beginner astronomer>", "best_window": "<e.g. 10 PM – Midnight or All night>", "warnings": [<list of short warning strings, empty list if none>], "recommended_targets": [{{"name": "<Target Name>", "constellation": "<Constellation>", "magnitude": "<e.g., 1.5 or N/A>", "distance_ly": "<e.g., 400 Light Years>", "equipment": "<Naked Eye / Binoculars / Telescope>", "how_to_find": "<1 sentence star-hopping guide>", "reason": "<Why it's good tonight>"}}]}}{lang_instruction}"""
+{{"score": <int 1-10>, "label": "<short label>", "explanation": "<2 sentences>", "best_window": "<e.g. 10 PM – Midnight>", "warnings": [<list of strings>], "recommended_targets": [{{"name": "<Target Name>", "constellation": "<Constellation>", "magnitude": "<e.g., 1.5>", "distance_ly": "<e.g., 400 Light Years>", "equipment": "<Naked Eye / Binoculars / Telescope>", "how_to_find": "<1 sentence guide>", "reason": "<Why it's good tonight>"}}], "fallback_message": "<fun message or empty>", "event_of_the_night": {{"name": "<Event Name>", "description": "<Description>"}} or null}}{lang_instruction}"""
 
     headers = {"Content-Type": "application/json"}
     if AI_API_KEY:
@@ -568,6 +575,8 @@ def get_seeing_forecast(lat=None, lon=None, ai_enabled: bool = False, lang: str 
         "best_window":        analysis["best_window"],
         "warnings":           analysis["warnings"],
         "recommended_targets": analysis.get("recommended_targets", []),
+        "fallback_message":   analysis.get("fallback_message", ""),
+        "event_of_the_night": analysis.get("event_of_the_night", None),
         "ai_powered":         analysis["ai_powered"],
         # Weather snapshot (kept for frontend metrics)
         "tonight_cloud_pct":     cloud_total,

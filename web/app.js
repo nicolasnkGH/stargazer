@@ -79,7 +79,7 @@ let API_BASE;
 if (window.location.hostname.includes('nick-t.net')) {
   API_BASE = 'https://stargazer-api-700732233634.us-central1.run.app';
 } else if (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1') {
-  API_BASE = 'https://stargazer-api-700732233634.us-central1.run.app'; // Use production backend for local testing
+  API_BASE = '/api'; // Point to the local backend proxy on 8181
 } else {
   API_BASE = '/api'; // Fallback for Docker LAN self-hosting where Nginx is the proxy
 }
@@ -253,7 +253,10 @@ async function fetchAndRender(path, renderFn, fallback = null) {
   }
 
   try {
-    const resp = await fetch(`${API_BASE}${finalPath}`, { signal: AbortSignal.timeout(75000) });
+    const resp = await fetch(`${API_BASE}${finalPath}`, { 
+      signal: AbortSignal.timeout(75000),
+      cache: 'no-store' 
+    });
     if (!resp.ok) throw new Error(`HTTP ${resp.status}`);
     const data = await resp.json();
     
@@ -297,7 +300,7 @@ async function loadTonightReport() {
     renderGoNogo(data);
     renderSeeing(data.seeing, data);
     renderMoon(data.moon);
-    renderPlanets(data.visible_planets || [], data.planet_fact);
+    renderPlanets(data.planets || data.visible_planets || [], data.planet_fact);
     renderAlerts(data.must_see || []);
     updateHeroStats(data);
 
@@ -1259,15 +1262,17 @@ function renderPlanets(planets, factStr) {
     const altLabel = p.altitude_deg > 30 ? 'High in sky' : p.altitude_deg > 10 ? 'Low in sky' : 'Near horizon';
     const magNote  = p.magnitude_approx < 0 ? ' (extremely bright)' : p.magnitude_approx < 3 ? ' (naked eye)' : p.magnitude_approx < 6 ? ' (binoculars)' : ' (telescope)';
     const azimuthStr = (p.azimuth_deg != null && !isNaN(p.azimuth_deg)) ? ` · Azimuth ${Math.round(p.azimuth_deg)}°` : '';
+    const canvasClass = 'planet-3d-canvas-container';
+    const canvasInner = '';
     return `
       <div class="planet-3d-card ${p.visible_tonight ? '' : 'not-visible'} ${isBlocked ? 'blocked-horizon' : ''}">
-        <div class="planet-3d-canvas-container" data-planet="${p.name}"></div>
+        <div class="${canvasClass}" data-planet="${p.name}" style="width:100%; height:200px; flex-shrink:0;">${canvasInner}</div>
         <div class="planet-info-col">
           <div class="planet-name-row" style="display: flex; align-items: center; width: 100%;">
             <span class="planet-name">${p.emoji} ${pName}</span>
             <span class="planet-const-pill" title="Currently in this constellation">${p.constellation || ''}</span>
             ${isBlocked ? '<span class="blocked-badge" title="Hidden behind your custom horizon limits">Blocked by Horizon</span>' : ''}
-            <button class="filter-btn" onclick="addToPlan('${p.name.toLowerCase()}', '${p.name}', 0, 0)" style="margin-left: auto; padding: 2px 8px; font-size: 0.75rem; background: rgba(59, 130, 246, 0.15); border-color: rgba(59, 130, 246, 0.3); color: #93c5fd; cursor: pointer; border-radius: 4px; font-weight: 600;">Add to Plan +</button>
+            ${p.visible_tonight ? `<button class="filter-btn" onclick="addToPlan('${p.name.toLowerCase()}', '${p.name}', 0, 0)" style="margin-left: auto; padding: 2px 8px; font-size: 0.75rem; background: rgba(59, 130, 246, 0.15); border-color: rgba(59, 130, 246, 0.3); color: #93c5fd; cursor: pointer; border-radius: 4px; font-weight: 600;">Add to Plan +</button>` : ''}
           </div>
           <div class="planet-meta-row">
             <span class="planet-alt" style="color:${altColor}" title="How high above the horizon">📐 Altitude: ${p.altitude_deg}° — ${altLabel}</span>
@@ -1324,11 +1329,31 @@ function updateUnifiedCard() {
     }
   }
 
+  const eventObj = briefing ? briefing.event_of_the_night : null;
+  const eventHtml = eventObj ? `
+    <div class="ai-target-wrap" style="border: 1px solid rgba(236, 72, 153, 0.3); background: rgba(236, 72, 153, 0.05); box-shadow: 0 4px 15px rgba(236,72,153,0.1);">
+      <div style="display: flex; align-items: flex-start; margin-bottom: 8px;">
+        <span style="font-size: 1.5rem; margin-right: 12px; filter: drop-shadow(0 0 5px rgba(236,72,153,0.5));">🌠</span>
+        <div style="flex-grow: 1;">
+          <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 4px;">
+            <div style="font-weight: 700; color: #fdf2f8;">${eventObj.name}</div>
+            <span class="ai-badge" style="background: rgba(236,72,153,0.2); color: #fbcfe8; border-color: rgba(236,72,153,0.3);">Event of the Night</span>
+          </div>
+          <div style="font-size: 0.85rem; color: #fbcfe8; line-height: 1.4; margin-bottom: 8px;">
+            ${eventObj.description}
+          </div>
+          <button class="filter-btn" onclick="addToPlan('event_${eventObj.name.replace(/\\s+/g, '_').toLowerCase()}', '${eventObj.name.replace(/'/g, "\\'")}', 0, 0)" style="padding: 4px 10px; font-size: 0.75rem; background: rgba(236, 72, 153, 0.15); border-color: rgba(236, 72, 153, 0.3); color: #fbcfe8; cursor: pointer; border-radius: 4px; font-weight: 600;">Add to Plan +</button>
+        </div>
+      </div>
+    </div>
+  ` : '';
+
   // Observer's Briefing — AI-generated prose at the top
   const briefingHtml = briefing ? `
     <div class="observer-briefing">
       <div class="observer-briefing-label">🤖 Observer's Briefing</div>
       <div class="observer-briefing-text">${briefing.text}</div>
+      ${(!alertsHtml && !aiHtml && !eventHtml && briefing.fallback_message) ? `<div class="observer-briefing-text" style="margin-top: 12px; font-style: italic; color: #fbcfe8;">${briefing.fallback_message}</div>` : ''}
       ${briefing.bestWindow ? `<div class="observer-briefing-window">🔭 Best window: <strong>${briefing.bestWindow}</strong></div>` : ''}
     </div>
   ` : '';
@@ -1339,16 +1364,16 @@ function updateUnifiedCard() {
       <span class="planet-fact-text">${factStr}</span>
     </div>
   ` : '';
-  
-  if (!alertsHtml && !aiHtml) {
+
+  if (!alertsHtml && !aiHtml && !eventHtml && !briefingHtml) {
     const fallbackMsg = `
-      <div style="text-align: center; padding: 20px; color: var(--text-secondary); font-style: italic;">
+      <div style="text-align: center; padding: 30px 20px; color: var(--text-secondary); font-style: italic; background: rgba(255,255,255,0.02); border-radius: 8px; border: 1px dashed rgba(255,255,255,0.1); margin: 10px 0;">
         No targets visible right now. Conditions might be poor, or it's daytime!
       </div>
     `;
-    list.innerHTML = briefingHtml + fallbackMsg + factHtml;
+    list.innerHTML = fallbackMsg + factHtml;
   } else {
-    list.innerHTML = briefingHtml + alertsHtml + aiHtml + factHtml;
+    list.innerHTML = briefingHtml + alertsHtml + eventHtml + aiHtml + factHtml;
   }
 }
 
@@ -1624,25 +1649,52 @@ function goMotionFact(type, idx) {
 
 // ── Render: Constellations Tonight ─────────────────────────────────────────
 async function loadConstellations() {
-  await fetchAndRender('/constellations?filter_famous=true', (data) => {
+  await fetchAndRender('/constellations', (data) => {
     const list = document.getElementById('constellations-grid');
     if (!data || !data.constellations) {
       list.innerHTML = '<div class="no-data">Could not load constellation data</div>';
       return;
     }
     if (data.constellations.length === 0) {
-      list.innerHTML = '<div class="no-data">No famous constellations visible tonight</div>';
+      list.innerHTML = '<div class="no-data">No constellations visible tonight</div>';
       return;
     }
 
     const visibleConst = data.constellations.filter(c => c.visible).slice(0, 16);
     if (visibleConst.length === 0) {
-      list.innerHTML = '<div class="no-data">No famous constellations visible tonight</div>';
+      list.innerHTML = '<div class="no-data">No constellations visible tonight</div>';
       return;
     }
 
+    // 1. Build dynamic tabs for all 88 constellations, sorted alphabetically by name
+    const tabsContainer = document.getElementById('constellation-tabs');
+    if (tabsContainer) {
+      tabsContainer.innerHTML = '';
+      const allConst = [...data.constellations].sort((a, b) => a.name.localeCompare(b.name));
+      allConst.forEach(c => {
+        const tab = document.createElement('button');
+        tab.className = `const-tab ${currentConstellation === c.abbr ? 'active' : ''}`;
+        tab.dataset.const = c.abbr;
+        tab.textContent = c.name;
+        tab.addEventListener('click', (e) => {
+          document.querySelectorAll('.const-tab').forEach(b => b.classList.remove('active'));
+          e.target.classList.add('active');
+          currentConstellation = c.abbr;
+          localStorage.setItem('sg_constellation', currentConstellation);
+          window.targetDisplayedCount = 12;
+          const dict = window.i18n[currentLang] || window.i18n['en'];
+          document.getElementById('target-db-title').textContent = `${c.name} ${dict.targets_title_suffix || 'Must-See Targets'}`;
+          loadTargets();
+          loadActiveConstellation(currentConstellation);
+        });
+        tabsContainer.appendChild(tab);
+      });
+    }
+
+    // 2. Populate the "Constellations Tonight" grid card list using only the visible ones
     list.innerHTML = '';
     visibleConst.forEach(c => {
+      // Build constellation grid card
       const alt = c.altitude_deg;
       const az  = c.azimuth_deg;
       const azStr = (az != null && !isNaN(az)) ? ` (${Math.round(az)}°)` : '';
@@ -1763,6 +1815,8 @@ function renderTargetGrid(targets, liveMap, typeFilter = 'all', equipFilter = 'a
     window.activeTargetFilter = cacheKey;
     window.targetDisplayedCount = 12;
   }
+  
+  console.log("renderTargetGrid called:", { targetsLength: targets.length, typeFilter, equipFilter });
 
   // 2. Filter targets array first
   const filtered = targets.filter(t => {
@@ -1784,23 +1838,28 @@ function renderTargetGrid(targets, liveMap, typeFilter = 'all', equipFilter = 'a
         equipMatch = t.difficulty === 'naked_eye' || t.difficulty === 'easy' || t.magnitude <= 7;
       }
     }
-    return typeMatch && equipMatch && t.observable !== false;
+    return typeMatch && equipMatch;
   });
 
   // 3. Smoothly slice the processed filtered data for chunked rendering
+  console.log("Filtered length:", filtered.length, "t.type was", targets.length ? targets[0].type : "N/A");
   const displayedTargets = filtered.slice(0, window.targetDisplayedCount || 12);
 
   // 4. Map the visible slice into HTML layout strings
-  grid.innerHTML = displayedTargets.map(t => {
-    const live = liveMap[t.id] || {};
-    const visibleNow = live.in_fov === true;
-    const altText = live.altitude_deg != null
-      ? `${live.altitude_deg}° ${live.direction || ''} ${live.azimuth_deg ? '(' + Math.round(live.azimuth_deg) + '°)' : ''}`
-      : null;
+  if (displayedTargets.length === 0) {
+    grid.innerHTML = `<div style="padding: 30px; text-align: center; color: var(--text-dim); width: 100%; grid-column: 1 / -1;">No prominent deep-sky targets cataloged for this constellation yet, or none match your current filters. Try selecting a different constellation above!</div>`;
+  } else {
+    grid.innerHTML = displayedTargets.map(t => {
+      try {
+        const live = liveMap[t.id] || {};
+        const visibleNow = live.in_fov === true;
+        const altText = live.altitude_deg != null
+          ? `${live.altitude_deg}° ${live.direction || ''} ${live.azimuth_deg ? '(' + Math.round(live.azimuth_deg) + '°)' : ''}`
+          : null;
 
-    const dict = window.i18n[currentLang] || window.i18n['en'];
-    const tName = dict[`target_${t.id}_name`] || t.name;
-    const tType = dict[`target_${t.id}_type`] || t.type;
+        const dict = window.i18n && window.i18n[currentLang] ? window.i18n[currentLang] : (window.i18n && window.i18n['en'] ? window.i18n['en'] : {});
+        const tName = dict[`target_${t.id}_name`] || t.name || 'Unknown';
+        const tType = dict[`target_${t.id}_type`] || t.type || 'Object';
     const tDesc = dict[`target_${t.id}_desc`] || t.description;
 
     let isBlocked = false;
@@ -1816,7 +1875,7 @@ function renderTargetGrid(targets, liveMap, typeFilter = 'all', equipFilter = 'a
     }
 
     return `
-      <div class="target-card ${visibleNow ? 'visible-now' : ''} ${isBlocked ? 'blocked-horizon' : ''}" data-type="${t.type}">
+      <div class="target-card ${visibleNow ? 'visible-now' : ''} ${isBlocked ? 'blocked-horizon' : ''}" data-type="${t.type}" style="width: 100%; box-sizing: border-box;">
         <div class="tc-header">
           <span class="tc-emoji">${t.emoji}</span>
           <div>
@@ -1835,14 +1894,20 @@ function renderTargetGrid(targets, liveMap, typeFilter = 'all', equipFilter = 'a
             <button class="btn-fov" onclick="addToPlan('${t.id}', '${t.name.replace(/'/g, "\\'")}', ${t.ra_hours * 15}, ${t.dec_degrees})" style="background: rgba(59, 130, 246, 0.15); border-color: rgba(59, 130, 246, 0.3); color: #93c5fd;">Add to Plan +</button>
           </div>
           <span class="tc-equipment">${t.equipment || '🔭 Telescope'}</span>
-          ${(t.difficulty && t.difficulty.replace('_', ' ') !== 'NAKED EYE') ? `<span class="tc-difficulty ${t.difficulty.replace(' ', '_')}">${t.difficulty.replace('_', ' ')}</span>` : ''}
+          ${(t.difficulty && t.difficulty.toUpperCase().replace('_', ' ') !== 'NAKED EYE') ? `<span class="tc-difficulty ${t.difficulty.replace(' ', '_')}">${t.difficulty.replace('_', ' ')}</span>` : ''}
           <span class="tc-eyepiece">🔭 ${t.eyepiece_rec || ''}</span>
           ${altText ? `<span class="tc-altitude">${altText}</span>` : ''}
           ${visibleNow ? '<span class="tc-visible-now"><span style="width:6px;height:6px;border-radius:50%;background:#22c55e;display:inline-block"></span> In view now</span>' : ''}
+          ${!visibleNow ? '<span class="tc-visible-now" style="background: rgba(239, 68, 68, 0.15); color: #f87171; border: 1px solid rgba(239, 68, 68, 0.3);"><span style="width:6px;height:6px;border-radius:50%;background:#ef4444;display:inline-block"></span> Below Horizon</span>' : ''}
         </div>
       </div>
-    `;
-  }).join('');
+      `;
+      } catch (e) {
+        console.error("Error mapping target", t, e);
+        return '';
+      }
+    }).join('');
+  }
 
   // 5. Append or clean up the DOM "Load More" pagination element
   let loadMoreBtn = document.getElementById('load-more-targets-btn');
@@ -3614,6 +3679,10 @@ function renderNightPlan() {
       segment.style.color = '#fff';
       segment.style.fontWeight = 'bold';
       segment.style.cursor = 'help';
+      segment.style.overflow = 'hidden';
+      segment.style.textOverflow = 'ellipsis';
+      segment.style.whiteSpace = 'nowrap';
+      segment.style.padding = '0 4px';
       segment.title = `${item.name} (${item.startTime} - ${item.endTime})`;
       segment.textContent = item.name.split(' ')[0];
       
@@ -3676,6 +3745,19 @@ document.addEventListener('DOMContentLoaded', () => {
       URL.revokeObjectURL(url);
       a.remove();
     }, 0);
+  });
+
+  document.getElementById('constellation-search')?.addEventListener('input', (e) => {
+    const query = e.target.value.toLowerCase().trim();
+    document.querySelectorAll('.const-tab').forEach(tab => {
+      const name = tab.textContent.toLowerCase();
+      const abbr = tab.dataset.const.toLowerCase();
+      if (name.includes(query) || abbr.includes(query)) {
+        tab.style.display = 'inline-block';
+      } else {
+        tab.style.display = 'none';
+      }
+    });
   });
 });
 // Dummy comment to trigger new build pipeline run after Cloudflare Page build got stuck.

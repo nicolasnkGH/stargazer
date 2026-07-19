@@ -547,7 +547,10 @@
         </div>
         <div class="card-body" style="padding-bottom: 8px;">
           <div class="ac-status" id="ac-status" style="margin-bottom: 4px;">Loading constellation map...</div>
-          <div style="font-size: 0.75rem; color: #a855f7; margin-bottom: 12px;" data-i18n="simbad_instruction">✨ Click on any star to scan it via SIMBAD</div>
+          <div style="display: flex; align-items: center; gap: 6px; margin-bottom: 12px;">
+            <div style="font-size: 0.75rem; color: #a855f7;" data-i18n="simbad_instruction">✨ Click on any star to scan it via SIMBAD</div>
+            <span class="info-icon" style="cursor:pointer; opacity:0.8; font-size: 0.85rem; color: #fff;" onclick="showInfo('<b>Interactive Sky Map</b><br>• Drag to pan around the constellation<br>• Scroll or pinch to zoom in/out<br>• Click on any star to query its astrophysical data from the SIMBAD database.', event)">ℹ️</span>
+          </div>
           
           <!-- Interactive D3 Map Container -->
           <div id="ac-map-container" style="width: 100%; aspect-ratio: 1; max-height: 500px; height: auto; background: rgba(0,0,0,0.2); border-radius: 8px; border: 1px solid rgba(255,255,255,0.05); position: relative; overflow: hidden; margin-bottom: 12px;">
@@ -616,7 +619,7 @@
             </div>
           </div>
         </div>
-        <div class="card-body" style="padding: 0; overflow: hidden; border-radius: 0 0 12px 12px; height: 320px; position: relative; background: radial-gradient(circle at center, rgba(16, 24, 48, 0.95), rgba(8, 12, 24, 1)); display: flex; flex-direction: column; align-items: center; justify-content: center; text-align: center; border: 1px solid rgba(255, 255, 255, 0.03);">
+        <div class="card-body" style="padding: 0; overflow: hidden; border-radius: 0 0 12px 12px; height: 320px; position: relative; background-image: linear-gradient(to right, rgba(148, 163, 184, 0.25) 0%, rgba(148, 163, 184, 0.25) 20%, rgba(100, 116, 139, 0.25) 20%, rgba(100, 116, 139, 0.25) 40%, rgba(71, 85, 105, 0.25) 40%, rgba(71, 85, 105, 0.25) 60%, rgba(51, 65, 85, 0.25) 60%, rgba(51, 65, 85, 0.25) 80%, rgba(15, 23, 42, 0.25) 80%, rgba(15, 23, 42, 0.25) 100%), url('./assets/bortle_scale_bg.png'); background-size: cover; background-position: center; display: flex; flex-direction: column; align-items: center; justify-content: center; text-align: center; border: 1px solid rgba(255, 255, 255, 0.03);">
           <!-- Map Grid/Glow Styling -->
           <div style="position: absolute; inset: 0; opacity: 0.15; background-image: radial-gradient(rgba(59, 130, 246, 0.3) 1px, transparent 0), radial-gradient(rgba(59, 130, 246, 0.3) 1.5px, transparent 0); background-size: 20px 20px; background-position: 0 0, 10px 10px; pointer-events: none;"></div>
           <div style="position: absolute; width: 150px; height: 150px; border-radius: 50%; background: radial-gradient(circle, rgba(239, 68, 68, 0.15) 0%, transparent 70%); filter: blur(10px); pointer-events: none;"></div>
@@ -673,10 +676,13 @@
     </section>
 
     <!-- ── Aurora & Space Weather Card ── -->
-    <section class="card" id="card-space-weather" style="margin-bottom: 20px;">
-      <div class="card-header">
-        <span class="card-icon"><i data-lucide="zap"></i></span>
-        <h2 class="card-title" style="display: flex; align-items: center; gap: 6px;">Aurora & Space Weather <span class="info-icon" style="cursor:pointer; opacity:0.6; font-size: 0.85rem; margin-left:8px;" onclick="showInfo('Real-time space weather alerts and planetary Kp-index estimates fetched directly from NOAA\'s Space Weather Prediction Center (SWPC).', event)">ℹ️</span></h2>
+    <section class="card" id="card-space-weather" style="margin-bottom: 20px; background-image: linear-gradient(to bottom, rgba(15, 23, 42, 0.6), rgba(15, 23, 42, 0.95)), url('./assets/aurora_bg.png'); background-size: cover; background-position: center; border: 1px solid rgba(168, 85, 247, 0.2);">
+      <div class="card-header" style="align-items: center;">
+        <span class="card-icon" style="color: #a855f7;"><i data-lucide="zap"></i></span>
+        <div>
+          <h2 class="card-title" style="margin: 0; line-height: 1.2; display: flex; align-items: center; gap: 6px;">Aurora & Space Weather <span class="info-icon" style="cursor:pointer; opacity:0.6; font-size: 0.85rem;" onclick="showInfo('Real-time space weather alerts and planetary Kp-index estimates fetched directly from NOAA\'s Space Weather Prediction Center (SWPC).', event)">ℹ️</span></h2>
+          <div style="font-size: 0.7rem; color: rgba(255, 255, 255, 0.6); margin-top: 2px;">Data powered by <a href="https://www.swpc.noaa.gov/" target="_blank" style="color: #a855f7; text-decoration: none;" onmouseover="this.style.textDecoration='underline'" onmouseout="this.style.textDecoration='none'">NOAA Space Weather Prediction Center</a></div>
+        </div>
       </div>
       <div class="card-body" style="padding: 20px; display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 20px;">
         
@@ -760,44 +766,20 @@
         </div>
       </div>
       
-      <!-- Constellation Selector Tabs -->
-      <div class="constellation-tabs" id="constellation-tabs">
-        <button class="const-tab active" data-const="Sco">Scorpius</button>
-        <button class="const-tab" data-const="UMa">Ursa Major</button>
-        <button class="const-tab" data-const="Ori">Orion</button>
-        <button class="const-tab" data-const="Cas">Cassiopeia</button>
-        <button class="const-tab" data-const="Cyg">Cygnus</button>
-        <button class="const-tab" data-const="Cru">Crux</button>
-        <button class="const-tab" data-const="CMa">Canis Major</button>
-        <button class="const-tab" data-const="CMi">Canis Minor</button>
-        <button class="const-tab" data-const="Cen">Centaurus</button>
-        <button class="const-tab" data-const="Ari">Aries</button>
-        <button class="const-tab" data-const="Tau">Taurus</button>
-        <button class="const-tab" data-const="Gem">Gemini</button>
-        <button class="const-tab" data-const="Aur">Auriga</button>
-        <button class="const-tab" data-const="Per">Perseus</button>
-        <button class="const-tab" data-const="Cnc">Cancer</button>
-        <button class="const-tab" data-const="Leo">Leo</button>
-        <button class="const-tab" data-const="LMi">Leo Minor</button>
-        <button class="const-tab" data-const="Vir">Virgo</button>
-        <button class="const-tab" data-const="Lib">Libra</button>
-        <button class="const-tab" data-const="Sgr">Sagittarius</button>
-        <button class="const-tab" data-const="Cap">Capricornus</button>
-        <button class="const-tab" data-const="Aqr">Aquarius</button>
-        <button class="const-tab" data-const="Psc">Pisces</button>
-        <button class="const-tab" data-const="Mon">Monoceros</button>
-        <button class="const-tab" data-const="Lyn">Lynx</button>
-        <button class="const-tab" data-const="Lep">Lepus</button>
-        <button class="const-tab" data-const="Cam">Camelopardalis</button>
-        <button class="const-tab" data-const="Pup">Puppis</button>
-        <button class="const-tab" data-const="Col">Columba</button>
+      <!-- Constellation Search & Selector Tabs -->
+      <div class="constellation-search-wrap" style="padding: 10px 24px 0; display: flex; align-items: center; gap: 10px;">
+        <span style="font-size: 0.85rem; color: var(--text-secondary);">🔍 Search:</span>
+        <input type="text" id="constellation-search" placeholder="Type constellation name..." style="background: rgba(0, 0, 0, 0.4); border: 1px solid rgba(255, 255, 255, 0.15); color: var(--text-primary); border-radius: 6px; padding: 6px 12px; font-size: 0.85rem; width: 100%; max-width: 280px; outline: none; transition: all 0.2s;">
+      </div>
+      <div class="constellation-tabs" id="constellation-tabs" style="display: flex; overflow-x: auto; white-space: nowrap; flex-wrap: nowrap; gap: 10px; padding: 10px 24px; background: rgba(0, 0, 0, 0.2); border-bottom: 1px solid var(--border);">
+        <!-- Dynamically populated by JS based on visibility -->
       </div>
 
       <div class="targets-scope-note">
         🔭 Visibility depends on local sky conditions, light pollution, and your equipment. 
         This database highlights the most prominent targets for amateur stargazers and beginners.
       </div>
-      <div class="target-grid" id="target-grid">
+      <div class="target-grid-db" id="target-grid" style="display: grid; grid-template-columns: repeat(auto-fill, minmax(320px, 1fr)); gap: 16px; padding: 20px 24px; width: 100%; box-sizing: border-box;">
         <!-- Populated by JS -->
       </div>
     </section>
