@@ -239,7 +239,7 @@ def get_apod():
             return JSONResponse(content=result)
     except Exception as e:
         print(f"APOD error: {e}")
-        return JSONResponse(status_code=503, content={"error": "APOD unavailable", "detail": str(e)})
+        return JSONResponse(status_code=503, content={"error": "APOD unavailable"})
 
 
 @app.get("/nasa/space-weather")
@@ -330,7 +330,7 @@ def get_meteors(count: int = Query(5, ge=1, le=10)):
     try:
         return {"showers": get_meteor_showers(count=count)}
     except Exception as e:
-        return JSONResponse(status_code=500, content={"error": str(e)})
+        return JSONResponse(status_code=500, content={"error": "Internal server error"})
 
 
 @app.get("/api/aurora")
@@ -340,7 +340,7 @@ def get_aurora(lat: Optional[float] = None):
         use_lat = lat if lat is not None else float(LATITUDE)
         return get_aurora_forecast(lat=use_lat)
     except Exception as e:
-        return JSONResponse(status_code=500, content={"error": str(e)})
+        return JSONResponse(status_code=500, content={"error": "Internal server error"})
 
 
 @app.get("/api/bortle")
@@ -354,7 +354,7 @@ def get_bortle(
         use_lon = lon if lon is not None else float(LONGITUDE)
         return get_bortle_info(lat=use_lat, lon=use_lon)
     except Exception as e:
-        return JSONResponse(status_code=500, content={"error": str(e)})
+        return JSONResponse(status_code=500, content={"error": "Internal server error"})
 
 
 # ── Web Push Notifications ────────────────────────────────────────────────────
@@ -459,7 +459,7 @@ def get_constellations_endpoint(
         data = get_constellations(filter_famous=filter_famous, lat=lat, lon=lon)
         return {"constellations": data}
     except Exception as e:
-        return JSONResponse(status_code=500, content={"error": str(e)})
+        return JSONResponse(status_code=500, content={"error": "Internal server error"})
 
 @app.get("/tonight")
 def tonight(
@@ -474,7 +474,7 @@ def tonight(
         use_lon = lon if lon is not None else float(LONGITUDE)
         return get_tonight_report(lat=use_lat, lon=use_lon, lang=lang, bortle=bortle)
     except Exception as e:
-        return JSONResponse(status_code=500, content={"error": str(e)})
+        return JSONResponse(status_code=500, content={"error": "Internal server error"})
 
 
 # ── Weekly ────────────────────────────────────────────────────────────────────
@@ -488,7 +488,7 @@ def weekly(
     try:
         return get_weekly_report(lat=lat, lon=lon)
     except Exception as e:
-        return JSONResponse(status_code=500, content={"error": str(e)})
+        return JSONResponse(status_code=500, content={"error": "Internal server error"})
 
 
 # ── Monthly ───────────────────────────────────────────────────────────────────
@@ -502,7 +502,7 @@ def monthly(
     try:
         return get_monthly_report(lat=lat, lon=lon)
     except Exception as e:
-        return JSONResponse(status_code=500, content={"error": str(e)})
+        return JSONResponse(status_code=500, content={"error": "Internal server error"})
 
 
 # ── Individual Endpoints ──────────────────────────────────────────────────────
@@ -518,7 +518,7 @@ def moon(
     try:
         return get_moon_info(lat=lat, lon=lon)
     except Exception as e:
-        return JSONResponse(status_code=500, content={"error": str(e)})
+        return JSONResponse(status_code=500, content={"error": "Internal server error"})
 
 @app.get("/planets")
 def planets(
@@ -529,7 +529,7 @@ def planets(
     try:
         return {"planets": get_planet_positions(lat=lat, lon=lon)}
     except Exception as e:
-        return JSONResponse(status_code=500, content={"error": str(e)})
+        return JSONResponse(status_code=500, content={"error": "Internal server error"})
 
 @app.get("/iss")
 def iss(
@@ -547,7 +547,7 @@ def iss(
             "heavens_above": f"https://heavens-above.com/PassSummary.aspx?satid=25544&lat={lat or LATITUDE}&lng={lon or LONGITUDE}"
         }
     except Exception as e:
-        return JSONResponse(status_code=500, content={"error": str(e)})
+        return JSONResponse(status_code=500, content={"error": "Internal server error"})
 
 @app.get("/seeing")
 def seeing(
@@ -558,7 +558,7 @@ def seeing(
     try:
         return get_seeing_forecast(lat=lat, lon=lon, ai_enabled=False)
     except Exception as e:
-        return JSONResponse(status_code=500, content={"error": str(e)})
+        return JSONResponse(status_code=500, content={"error": "Internal server error"})
 
 @app.get("/seeing/ai")
 def seeing_ai(
@@ -570,7 +570,7 @@ def seeing_ai(
     try:
         return get_seeing_forecast(lat=lat, lon=lon, ai_enabled=True, lang=lang)
     except Exception as e:
-        return JSONResponse(status_code=500, content={"error": str(e)})
+        return JSONResponse(status_code=500, content={"error": "Internal server error"})
 
 @app.get("/targets")
 def targets(
@@ -597,7 +597,7 @@ def targets(
             "targets": all_targets,
         }
     except Exception as e:
-        return JSONResponse(status_code=500, content={"error": str(e)})
+        return JSONResponse(status_code=500, content={"error": "Internal server error"})
 
 # ── Run ───────────────────────────────────────────────────────────────────────
 
@@ -610,7 +610,7 @@ def constellation_window(
     try:
         return get_constellation_window(abbr=abbr, lat=lat, lon=lon)
     except Exception as e:
-        return JSONResponse(status_code=500, content={"error": str(e)})
+        return JSONResponse(status_code=500, content={"error": "Internal server error"})
 
 from engine.gallery import add_gallery_entry, get_gallery_entries, get_gallery_image, report_image, get_gallery_counts, delete_gallery_entry
 import base64
@@ -643,14 +643,14 @@ def upload_to_gallery(req: GalleryUploadRequest):
     except ValueError as ve:
         raise HTTPException(status_code=400, detail=str(ve))
     except Exception as e:
-        raise HTTPException(status_code=500, detail=str(e))
+        raise HTTPException(status_code=500, detail="Internal server error")
 
 @app.get("/api/gallery")
 def list_gallery(target_id: Optional[str] = None):
     try:
         return get_gallery_entries(target_id=target_id)
     except Exception as e:
-        raise HTTPException(status_code=500, detail=str(e))
+        raise HTTPException(status_code=500, detail="Internal server error")
 
 @app.get("/api/gallery/image/{entry_id}")
 def get_image(entry_id: int):
@@ -665,7 +665,7 @@ def get_image(entry_id: int):
         image_bytes = base64.b64decode(data)
         return Response(content=image_bytes, media_type="image/jpeg")
     except Exception as e:
-        raise HTTPException(status_code=500, detail=str(e))
+        raise HTTPException(status_code=500, detail="Internal server error")
 
 if __name__ == "__main__":
     uvicorn.run("main:app", host="0.0.0.0", port=8181, reload=False)
@@ -675,7 +675,7 @@ def get_counts():
     try:
         return get_gallery_counts()
     except Exception as e:
-        raise HTTPException(status_code=500, detail=str(e))
+        raise HTTPException(status_code=500, detail="Internal server error")
 
 @app.post("/api/gallery/image/{image_id}/report")
 def report_gallery_image(image_id: int):
@@ -683,7 +683,7 @@ def report_gallery_image(image_id: int):
         report_image(image_id)
         return {"status": "reported"}
     except Exception as e:
-        raise HTTPException(status_code=500, detail=str(e))
+        raise HTTPException(status_code=500, detail="Internal server error")
 
 @app.delete("/api/gallery/{entry_id}")
 def delete_entry(entry_id: int):
@@ -691,4 +691,4 @@ def delete_entry(entry_id: int):
         delete_gallery_entry(entry_id)
         return {"status": "deleted"}
     except Exception as e:
-        raise HTTPException(status_code=500, detail=str(e))
+        raise HTTPException(status_code=500, detail="Internal server error")

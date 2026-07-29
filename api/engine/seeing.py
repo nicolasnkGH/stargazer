@@ -10,6 +10,7 @@ import threading
 import time
 from datetime import date, timedelta
 from typing import Optional
+from urllib.parse import urlparse
 
 from config import AI_API_KEY, AI_API_URL, AI_MODEL, FALLBACK_AI_API_URL, FALLBACK_AI_MODEL, FALLBACK_AI_API_KEY, LOCAL_AI_URL, LOCAL_AI_MODEL, LATITUDE, LONGITUDE, AI_TIMEOUT, CF_ACCESS_CLIENT_ID, CF_ACCESS_CLIENT_SECRET
 
@@ -28,9 +29,11 @@ def _call_ai_api(api_url, api_model, payload, auth_header, timeout_sec):
     if auth_header:
         headers["Authorization"] = f"Bearer {auth_header}"
     # Inject Cloudflare Access headers only for the protected domain
-    if CF_ACCESS_CLIENT_ID and CF_ACCESS_CLIENT_SECRET and "nick-t.net" in api_url:
-        headers["CF-Access-Client-Id"] = CF_ACCESS_CLIENT_ID
-        headers["CF-Access-Client-Secret"] = CF_ACCESS_CLIENT_SECRET
+    if CF_ACCESS_CLIENT_ID and CF_ACCESS_CLIENT_SECRET:
+        parsed = urlparse(api_url)
+        if parsed.hostname and parsed.hostname.endswith("nick-t.net"):
+            headers["CF-Access-Client-Id"] = CF_ACCESS_CLIENT_ID
+            headers["CF-Access-Client-Secret"] = CF_ACCESS_CLIENT_SECRET
     payload = payload.copy()
     payload["model"] = api_model
     # Force stream=false; OpenWebUI may ignore it but we handle both cases
@@ -513,7 +516,7 @@ def get_seeing_forecast(lat=None, lon=None, ai_enabled: bool = False, lang: str 
                 "ai_powered": False,
                 "go_nogo": "❓ UNKNOWN",
                 "clearoutside_embed": f"https://clearoutside.com/forecast_embed/{use_lat}/{use_lon}",
-                "error": str(e),
+                "error": "Seeing data unavailable",
             }
         
     # ── Fetch 7Timer! Seeing Data ──

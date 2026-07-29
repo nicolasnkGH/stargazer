@@ -43,7 +43,7 @@ def get_aurora_forecast(lat: float) -> dict:
                 "probability": "Low",
                 "color": "gray",
                 "message": "Forecast unavailable",
-                "error": str(e)
+                "error": "Forecast unavailable"
             }
             
     kp = data.get("kp", 0)

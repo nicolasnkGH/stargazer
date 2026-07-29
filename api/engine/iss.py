@@ -112,7 +112,7 @@ def get_iss_passes(count: int = 3, lat=None, lon=None) -> list[dict]:
         result = [{
             "rise": "Prediction error", "set": "N/A",
             "peak_alt": "N/A", "peak_az": "S", "visible": False,
-            "error": str(e),
+            "error": "Prediction unavailable",
             "fallback_url": f"https://heavens-above.com/PassSummary.aspx?satid=25544&lat={LATITUDE}&lng={LONGITUDE}",
         }]
 
