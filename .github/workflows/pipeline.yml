@@ -208,14 +208,76 @@ jobs:
       - name: Copy package.json to API directory
         run: cp package.json api/package.json
 
+      - name: Validate deployment configuration
+        env:
+          GCP_SERVICE_NAME: ${{ vars.GCP_SERVICE_NAME || secrets.GCP_SERVICE_NAME }}
+          GCP_REGION: ${{ vars.GCP_REGION }}
+          GCP_SOURCE_DIR: ${{ vars.GCP_SOURCE_DIR }}
+          CLOUD_RUN_EXECUTION_ENV: ${{ vars.CLOUD_RUN_EXECUTION_ENV }}
+          CLOUD_RUN_DB_VOLUME: ${{ vars.CLOUD_RUN_DB_VOLUME }}
+          CLOUD_RUN_DB_BUCKET: ${{ vars.CLOUD_RUN_DB_BUCKET }}
+          CLOUD_RUN_DB_MOUNT_PATH: ${{ vars.CLOUD_RUN_DB_MOUNT_PATH }}
+          GCP_SA_KEY: ${{ secrets.GCP_SA_KEY }}
+          AI_MODEL: ${{ secrets.AI_MODEL }}
+          AI_API_URL: ${{ secrets.AI_API_URL }}
+          AI_API_KEY: ${{ secrets.AI_API_KEY }}
+          CF_ACCESS_CLIENT_ID: ${{ secrets.CF_ACCESS_CLIENT_ID }}
+          CF_ACCESS_CLIENT_SECRET: ${{ secrets.CF_ACCESS_CLIENT_SECRET }}
+          FALLBACK_AI_API_URL: ${{ vars.FALLBACK_AI_API_URL }}
+          FALLBACK_AI_MODEL: ${{ vars.FALLBACK_AI_MODEL }}
+          FALLBACK_AI_API_KEY: ${{ secrets.FALLBACK_AI_API_KEY }}
+          AI_TIMEOUT: ${{ vars.AI_TIMEOUT }}
+        run: |
+          set -euo pipefail
+          missing=0
+          required=(
+            GCP_SERVICE_NAME
+            GCP_REGION
+            GCP_SOURCE_DIR
+            CLOUD_RUN_EXECUTION_ENV
+            CLOUD_RUN_DB_VOLUME
+            CLOUD_RUN_DB_BUCKET
+            CLOUD_RUN_DB_MOUNT_PATH
+            GCP_SA_KEY
+            AI_MODEL
+            AI_API_URL
+            AI_API_KEY
+            CF_ACCESS_CLIENT_ID
+            CF_ACCESS_CLIENT_SECRET
+            AI_TIMEOUT
+          )
+
+          optional=(
+            FALLBACK_AI_API_URL
+            FALLBACK_AI_MODEL
+            FALLBACK_AI_API_KEY
+          )
+
+          for key in "${required[@]}"; do
+            if [ -z "${!key:-}" ]; then
+              echo "::error::Missing required GitHub secret/variable: $key"
+              missing=1
+            fi
+          done
+
+          for key in "${optional[@]}"; do
+            if [ -z "${!key:-}" ]; then
+              echo "::warning::Optional value is empty: $key"
+            fi
+          done
+
+          if [ "$missing" -ne 0 ]; then
+            exit 1
+          fi
+
       - name: Dry-run deploy preview
         if: github.event_name == 'workflow_dispatch' && github.event.inputs.dry_run == 'true'
         run: |
           set -euo pipefail
           echo "Dry run mode enabled."
-          echo "Would deploy service: ${{ secrets.GCP_SERVICE_NAME }}"
-          echo "Would deploy region: us-central1"
-          echo "Would deploy source: api/"
+          echo "Would deploy service: ${{ vars.GCP_SERVICE_NAME || secrets.GCP_SERVICE_NAME }}"
+          echo "Would deploy region: ${{ vars.GCP_REGION }}"
+          echo "Would deploy source: ${{ vars.GCP_SOURCE_DIR }}"
 
       - name: Google Auth
         if: github.event_name != 'workflow_dispatch' || github.event.inputs.dry_run != 'true'
@@ -228,12 +290,24 @@ jobs:
         if: github.event_name != 'workflow_dispatch' || github.event.inputs.dry_run != 'true'
         uses: google-github-actions/deploy-cloudrun@v2
         with:
-          service: ${{ secrets.GCP_SERVICE_NAME }}
-          region: us-central1
-          source: api/
-          flags: '--execution-environment=gen2 --add-volume=name=db-vol,type=cloud-storage,bucket=stargazer-db-planar-flux-497402-g5 --add-volume-mount=volume=db-vol,mount-path=/mnt/db'
+          service: ${{ vars.GCP_SERVICE_NAME || secrets.GCP_SERVICE_NAME }}
+          region: ${{ vars.GCP_REGION }}
+          source: ${{ vars.GCP_SOURCE_DIR }}
+          flags: >-
+            --execution-environment=${{ vars.CLOUD_RUN_EXECUTION_ENV }}
+            --add-volume=name=${{ vars.CLOUD_RUN_DB_VOLUME }},type=cloud-storage,bucket=${{ vars.CLOUD_RUN_DB_BUCKET }}
+            --add-volume-mount=volume=${{ vars.CLOUD_RUN_DB_VOLUME }},mount-path=${{ vars.CLOUD_RUN_DB_MOUNT_PATH }}
           env_vars: |-
-            DB_DIR=/mnt/db
+            DB_DIR=${{ vars.CLOUD_RUN_DB_MOUNT_PATH }}
+            AI_MODEL=${{ secrets.AI_MODEL }}
+            AI_API_URL=${{ secrets.AI_API_URL }}
+            AI_API_KEY=${{ secrets.AI_API_KEY }}
+            CF_ACCESS_CLIENT_ID=${{ secrets.CF_ACCESS_CLIENT_ID }}
+            CF_ACCESS_CLIENT_SECRET=${{ secrets.CF_ACCESS_CLIENT_SECRET }}
+            FALLBACK_AI_API_URL=${{ vars.FALLBACK_AI_API_URL }}
+            FALLBACK_AI_MODEL=${{ vars.FALLBACK_AI_MODEL }}
+            FALLBACK_AI_API_KEY=${{ secrets.FALLBACK_AI_API_KEY }}
+            AI_TIMEOUT=${{ vars.AI_TIMEOUT }}
 
       - name: Post-deploy health check
         if: github.event_name != 'workflow_dispatch' || github.event.inputs.dry_run != 'true'

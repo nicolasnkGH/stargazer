@@ -148,6 +148,33 @@ The backend API reads the following variables (configured in your `.env` file lo
 | `VAPID_PRIVATE_KEY` | Private key for push notifications | *(Generate via pywebpush)* |
 | `VAPID_ADMIN_EMAIL` | Admin contact email for push server | `admin@example.com` |
 
+### CI/CD Configuration (GitHub Actions)
+
+The Cloud Run pipeline is fully configuration-driven. Store deploy/runtime values in GitHub **Variables** and **Secrets**.
+
+GitHub **Variables**:
+
+- `GCP_SERVICE_NAME`
+- `GCP_REGION`
+- `GCP_SOURCE_DIR`
+- `CLOUD_RUN_EXECUTION_ENV`
+- `CLOUD_RUN_DB_VOLUME`
+- `CLOUD_RUN_DB_BUCKET`
+- `CLOUD_RUN_DB_MOUNT_PATH`
+- `FALLBACK_AI_API_URL` *(optional)*
+- `FALLBACK_AI_MODEL` *(optional)*
+- `AI_TIMEOUT`
+
+GitHub **Secrets**:
+
+- `GCP_SA_KEY`
+- `AI_MODEL`
+- `AI_API_URL`
+- `AI_API_KEY`
+- `CF_ACCESS_CLIENT_ID`
+- `CF_ACCESS_CLIENT_SECRET`
+- `FALLBACK_AI_API_KEY` *(optional)*
+
 ---
 
 ## 📄 License
