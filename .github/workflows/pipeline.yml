@@ -227,6 +227,12 @@ jobs:
           FALLBACK_AI_MODEL: ${{ vars.FALLBACK_AI_MODEL }}
           FALLBACK_AI_API_KEY: ${{ secrets.FALLBACK_AI_API_KEY }}
           AI_TIMEOUT: ${{ vars.AI_TIMEOUT }}
+          VAPID_PRIVATE_KEY: ${{ secrets.VAPID_PRIVATE_KEY }}
+          VAPID_PUBLIC_KEY: ${{ secrets.VAPID_PUBLIC_KEY }}
+          VAPID_ADMIN_EMAIL: ${{ secrets.VAPID_ADMIN_EMAIL }}
+          NASA_APOD_KEY: ${{ secrets.NASA_APOD_KEY }}
+          TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
+          TELEGRAM_CHAT_ID: ${{ secrets.TELEGRAM_CHAT_ID }}
         run: |
           set -euo pipefail
           missing=0
@@ -251,6 +257,12 @@ jobs:
             FALLBACK_AI_API_URL
             FALLBACK_AI_MODEL
             FALLBACK_AI_API_KEY
+            VAPID_PRIVATE_KEY
+            VAPID_PUBLIC_KEY
+            VAPID_ADMIN_EMAIL
+            NASA_APOD_KEY
+            TELEGRAM_BOT_TOKEN
+            TELEGRAM_CHAT_ID
           )
 
           for key in "${required[@]}"; do
@@ -314,6 +326,12 @@ jobs:
             FALLBACK_AI_MODEL=${{ vars.FALLBACK_AI_MODEL }}
             FALLBACK_AI_API_KEY=${{ secrets.FALLBACK_AI_API_KEY }}
             AI_TIMEOUT=${{ vars.AI_TIMEOUT }}
+            VAPID_PRIVATE_KEY=${{ secrets.VAPID_PRIVATE_KEY }}
+            VAPID_PUBLIC_KEY=${{ secrets.VAPID_PUBLIC_KEY }}
+            VAPID_ADMIN_EMAIL=${{ secrets.VAPID_ADMIN_EMAIL }}
+            NASA_APOD_KEY=${{ secrets.NASA_APOD_KEY }}
+            TELEGRAM_BOT_TOKEN=${{ secrets.TELEGRAM_BOT_TOKEN }}
+            TELEGRAM_CHAT_ID=${{ secrets.TELEGRAM_CHAT_ID }}
 
       - name: Post-deploy health check
         if: github.event_name != 'workflow_dispatch' || github.event.inputs.dry_run != 'true'

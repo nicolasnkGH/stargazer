@@ -13,29 +13,20 @@ from .cache import get_cache, set_cache, HAS_REDIS, redis_client
 
 logger = logging.getLogger(__name__)
 
-# Default VAPID fallback pair constructed from hex so secret scanners do not flag static private key strings
-_DEF_V_P1_HEX = "3cc87d19c01ac04331d703d8a18b9de8e2084f6355ebbf7998c3ca37cf7e1bda"
-_DEF_V_P2_HEX = "0452b21025a22e7dc7632b6ffd64dc2b385f966829b342bc328b05f4940e98d5b09ff5162c9c15ccced7af1b8c50db92cba659791bf35c2384e2ff6092a7571f0c"
-
-def _get_default_vapid_pair():
-    try:
-        import base64
-        p1 = base64.urlsafe_b64encode(bytes.fromhex(_DEF_V_P1_HEX)).decode().rstrip('=')
-        p2 = base64.urlsafe_b64encode(bytes.fromhex(_DEF_V_P2_HEX)).decode().rstrip('=')
-        return p1, p2
-    except Exception:
-        return "", ""
-
-_def_p1, _def_p2 = _get_default_vapid_pair()
-
-VAPID_PRIVATE_KEY = os.environ.get("VAPID_PRIVATE_KEY", "") or _def_p1
-VAPID_PUBLIC_KEY = os.environ.get("VAPID_PUBLIC_KEY", "") or _def_p2
-VAPID_ADMIN_EMAIL = os.environ.get("VAPID_ADMIN_EMAIL", "admin@stargazer.local")
+# VAPID keys must be provided via environment variables.
+# If not set, push notifications are cleanly disabled (PUSH_AVAILABLE=False).
+# Set VAPID_PRIVATE_KEY, VAPID_PUBLIC_KEY, and VAPID_ADMIN_EMAIL in Cloud Run / GitHub Secrets.
+VAPID_PRIVATE_KEY = os.environ.get("VAPID_PRIVATE_KEY", "")
+VAPID_PUBLIC_KEY = os.environ.get("VAPID_PUBLIC_KEY", "")
+VAPID_ADMIN_EMAIL = os.environ.get("VAPID_ADMIN_EMAIL", "")
 
 # In-memory fallback when Redis is not available
 _memory_subs: dict = {}
 
-PUSH_AVAILABLE = bool(VAPID_PRIVATE_KEY and VAPID_PUBLIC_KEY)
+PUSH_AVAILABLE = bool(VAPID_PRIVATE_KEY and VAPID_PUBLIC_KEY and VAPID_ADMIN_EMAIL)
+if not PUSH_AVAILABLE:
+    logger.warning("Push notifications disabled: VAPID_PRIVATE_KEY / VAPID_PUBLIC_KEY / VAPID_ADMIN_EMAIL not set.")
+
 
 # ── Subscription storage ──────────────────────────────────────────────────────
 
