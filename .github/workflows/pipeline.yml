@@ -214,12 +214,6 @@ jobs:
           GCP_REGION: ${{ vars.GCP_REGION }}
           GCP_SOURCE_DIR: ${{ vars.GCP_SOURCE_DIR }}
           CLOUD_RUN_EXECUTION_ENV: ${{ vars.CLOUD_RUN_EXECUTION_ENV }}
-          CLOUD_RUN_CPU: ${{ vars.CLOUD_RUN_CPU }}
-          CLOUD_RUN_MEMORY: ${{ vars.CLOUD_RUN_MEMORY }}
-          CLOUD_RUN_MIN_INSTANCES: ${{ vars.CLOUD_RUN_MIN_INSTANCES }}
-          CLOUD_RUN_MAX_INSTANCES: ${{ vars.CLOUD_RUN_MAX_INSTANCES }}
-          CLOUD_RUN_CONCURRENCY: ${{ vars.CLOUD_RUN_CONCURRENCY }}
-          CLOUD_RUN_CPU_THROTTLING_FLAG: ${{ vars.CLOUD_RUN_CPU_THROTTLING_FLAG }}
           CLOUD_RUN_DB_VOLUME: ${{ vars.CLOUD_RUN_DB_VOLUME }}
           CLOUD_RUN_DB_BUCKET: ${{ vars.CLOUD_RUN_DB_BUCKET }}
           CLOUD_RUN_DB_MOUNT_PATH: ${{ vars.CLOUD_RUN_DB_MOUNT_PATH }}
@@ -247,12 +241,6 @@ jobs:
             GCP_REGION
             GCP_SOURCE_DIR
             CLOUD_RUN_EXECUTION_ENV
-            CLOUD_RUN_CPU
-            CLOUD_RUN_MEMORY
-            CLOUD_RUN_MIN_INSTANCES
-            CLOUD_RUN_MAX_INSTANCES
-            CLOUD_RUN_CONCURRENCY
-            CLOUD_RUN_CPU_THROTTLING_FLAG
             CLOUD_RUN_DB_VOLUME
             CLOUD_RUN_DB_BUCKET
             CLOUD_RUN_DB_MOUNT_PATH
@@ -302,12 +290,6 @@ jobs:
           echo "Would deploy service: ${{ vars.GCP_SERVICE_NAME || secrets.GCP_SERVICE_NAME }}"
           echo "Would deploy region: ${{ vars.GCP_REGION }}"
           echo "Would deploy source: ${{ vars.GCP_SOURCE_DIR }}"
-          echo "Would deploy CPU: ${{ vars.CLOUD_RUN_CPU }}"
-          echo "Would deploy memory: ${{ vars.CLOUD_RUN_MEMORY }}"
-          echo "Would deploy min instances: ${{ vars.CLOUD_RUN_MIN_INSTANCES }}"
-          echo "Would deploy max instances: ${{ vars.CLOUD_RUN_MAX_INSTANCES }}"
-          echo "Would deploy concurrency: ${{ vars.CLOUD_RUN_CONCURRENCY }}"
-          echo "Would deploy CPU throttling flag: ${{ vars.CLOUD_RUN_CPU_THROTTLING_FLAG }}"
 
       - name: Google Auth
         if: github.event_name != 'workflow_dispatch' || github.event.inputs.dry_run != 'true'
@@ -325,12 +307,6 @@ jobs:
           source: ${{ vars.GCP_SOURCE_DIR }}
           flags: >-
             --execution-environment=${{ vars.CLOUD_RUN_EXECUTION_ENV }}
-            --cpu=${{ vars.CLOUD_RUN_CPU }}
-            --memory=${{ vars.CLOUD_RUN_MEMORY }}
-            --min-instances=${{ vars.CLOUD_RUN_MIN_INSTANCES }}
-            --max-instances=${{ vars.CLOUD_RUN_MAX_INSTANCES }}
-            --concurrency=${{ vars.CLOUD_RUN_CONCURRENCY }}
-            --${{ vars.CLOUD_RUN_CPU_THROTTLING_FLAG }}
             --add-volume=name=${{ vars.CLOUD_RUN_DB_VOLUME }},type=cloud-storage,bucket=${{ vars.CLOUD_RUN_DB_BUCKET }}
             --add-volume-mount=volume=${{ vars.CLOUD_RUN_DB_VOLUME }},mount-path=${{ vars.CLOUD_RUN_DB_MOUNT_PATH }}
           env_vars: |-
