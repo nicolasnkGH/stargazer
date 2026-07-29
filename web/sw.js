@@ -1,4 +1,4 @@
-const CACHE_NAME = 'stargazer-cache-v25';
+const CACHE_NAME = 'stargazer-cache-v26';
 const STATIC_ASSETS = [
   './',
   './index.html',
