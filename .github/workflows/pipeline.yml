@@ -127,10 +127,10 @@ jobs:
           set -euo pipefail
           bandit -r api/ -x api/venv -ll -ii -s B104
 
-      - name: Install Playwright and browser
+      - name: Install JS dependencies and browser
         run: |
           set -euo pipefail
-          npm install --save-dev @playwright/test @lhci/cli serve
+          npm ci
           npx playwright install --with-deps chromium
 
       - name: Run UI smoke tests and performance gate

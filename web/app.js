@@ -1159,7 +1159,7 @@ async function fetchLatestVersion() {
   setVersionLabel('v--');
 }
 
-function loadActiveConstellation(abbr) {
+async function loadActiveConstellation(abbr) {
   const select = document.getElementById('ac-select');
   if (select && select.value !== abbr) select.value = abbr;
   
@@ -1170,8 +1170,10 @@ function loadActiveConstellation(abbr) {
     statusEl.style.borderColor = 'var(--border)';
   }
 
-  // Fetch constellation info first, then targets, to ensure we have RA/Dec for the map center
-  fetchAPI(`/constellation_window?abbr=${abbr}`).then(constRes => {
+  // Fetch constellation info first, then targets, to ensure we have RA/Dec for the map center.
+  // This function is async so callers can safely chain .catch without TypeError.
+  try {
+    const constRes = await fetchAPI(`/constellation_window?abbr=${abbr}`);
     if (constRes && !constRes.error) {
       renderActiveConstellation(constRes);
       // Cache this for the map
@@ -1180,12 +1182,16 @@ function loadActiveConstellation(abbr) {
       renderActiveConstellation({ status: "Network error" });
       window.lastConstInfo = null;
     }
-    
-    fetchAPI(`/targets?constellation=${abbr}`).then(targetRes => {
-      const targets = (targetRes && targetRes.targets) ? targetRes.targets : [];
-      renderConstellationMap(targets, window.lastConstInfo);
-    });
-  });
+
+    const targetRes = await fetchAPI(`/targets?constellation=${abbr}`);
+    const targets = (targetRes && targetRes.targets) ? targetRes.targets : [];
+    renderConstellationMap(targets, window.lastConstInfo);
+  } catch (err) {
+    console.warn('loadActiveConstellation failed', err);
+    renderActiveConstellation({ status: "Network error" });
+    window.lastConstInfo = null;
+    renderConstellationMap([], null);
+  }
 }
 
 window.celestialInitialized = false;
@@ -3413,17 +3419,21 @@ async function init() {
     });
   }
 
+  const safeTask = (label, fn) => Promise.resolve()
+    .then(fn)
+    .catch(err => console.warn(`${label} failed`, err));
+
   // Load everything in parallel, but do not let one optional failure break the whole page
   await Promise.allSettled([
-    checkAPIStatus().catch(err => console.warn('checkAPIStatus failed', err)),
-    loadTonightReport().catch(err => console.warn('loadTonightReport failed', err)),
-    loadWeekly().catch(err => console.warn('loadWeekly failed', err)),
-    loadISS().catch(err => console.warn('loadISS failed', err)),
-    loadConstellations().catch(err => console.warn('loadConstellations failed', err)),
-    loadTargets().catch(err => console.warn('loadTargets failed', err)),
-    loadActiveConstellation(currentConstellation).catch(err => console.warn('loadActiveConstellation failed', err)),
-    loadSpaceWeather().catch(err => console.warn('loadSpaceWeather failed', err)),
-    loadAPOD().catch(err => console.warn('loadAPOD failed', err))
+    safeTask('checkAPIStatus', () => checkAPIStatus()),
+    safeTask('loadTonightReport', () => loadTonightReport()),
+    safeTask('loadWeekly', () => loadWeekly()),
+    safeTask('loadISS', () => loadISS()),
+    safeTask('loadConstellations', () => loadConstellations()),
+    safeTask('loadTargets', () => loadTargets()),
+    safeTask('loadActiveConstellation', () => loadActiveConstellation(currentConstellation)),
+    safeTask('loadSpaceWeather', () => loadSpaceWeather()),
+    safeTask('loadAPOD', () => loadAPOD())
   ]);
 
   // Wire up the Sky Objects in Motion sub-tabs and fact cards
