@@ -4741,15 +4741,3 @@ document.getElementById('btn-clear-plan')?.addEventListener('click', () => {
       submitBtn.textContent = 'Submit for Safety Verification & Share 🚀';
     }
   });
-
-  function escapeHtml(str) {
-    if (!str) return '';
-    return str
-      .replace(/&/g, "&amp;")
-      .replace(/</g, "&lt;")
-      .replace(/>/g, "&gt;")
-      .replace(/"/g, "&quot;")
-      .replace(/'/g, "&#039;");
-  }
-});
-// Dummy comment to trigger new build pipeline run after Cloudflare Page build got stuck.

@@ -1,0 +1,125 @@
+name: Validate & Test
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+jobs:
+  # ── 1. JavaScript Syntax Check ─────────────────────────────────────────
+  js-syntax:
+    name: JS Syntax Check
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: Check JS files for syntax errors
+        run: |
+          echo "Checking JS files..."
+          ERRORS=0
+          for f in web/*.js; do
+            node --check "$f" && echo "✅ $f OK" || { echo "❌ SYNTAX ERROR in $f"; ERRORS=$((ERRORS+1)); }
+          done
+          if [ $ERRORS -gt 0 ]; then
+            echo "::error::Found $ERRORS JS file(s) with syntax errors. Deploy blocked."
+            exit 1
+          fi
+
+  # ── 2. HTML Structure Check ─────────────────────────────────────────────
+  html-check:
+    name: HTML Critical Elements
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: Verify required element IDs exist
+        run: |
+          node -e "
+            const fs = require('fs');
+            const html = fs.readFileSync('web/index.html', 'utf8');
+            const required = [
+              'card-motion', 'card-targets',
+              'scheduler-list-container', 'scheduler-empty-state',
+              'scheduler-timeline-bar'
+            ];
+            let errors = 0;
+            required.forEach(id => {
+              if (!html.includes('id=\"' + id + '\"')) {
+                console.error('::error::Missing required element: #' + id);
+                errors++;
+              } else {
+                console.log('✅ Found #' + id);
+              }
+            });
+            if (errors > 0) process.exit(1);
+          "
+
+  # ── 3. Python Lint & Security ─────────────────────────────────────────
+  python-lint:
+    name: Python Lint & Security
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Python 3.11
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: Install dependencies
+        run: |
+          pip install --upgrade pip
+          pip install flake8 bandit
+          if [ -f api/requirements.txt ]; then pip install -r api/requirements.txt; fi
+
+      - name: Lint with flake8 (syntax/import errors only)
+        run: flake8 api/ --count --select=E9,F63,F7,F82 --show-source --statistics
+
+      - name: Security scan with bandit
+        run: bandit -r api/ -ll -ii -s B104
+
+  # ── 4. Playwright UI Smoke Tests ─────────────────────────────────────
+  ui-smoke:
+    name: UI Smoke Tests
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: Install Playwright + dependencies
+        run: |
+          npm install --save-dev @playwright/test
+          npx playwright install --with-deps chromium
+
+      - name: Serve static site locally
+        run: |
+          npx serve web/ -p 3000 &
+          sleep 4
+
+      - name: Run smoke tests
+        run: npx playwright test tests/smoke.spec.js --reporter=line
+        env:
+          CI: true
+
+      - name: Upload report on failure
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: playwright-report
+          path: playwright-report/
+          retention-days: 7
