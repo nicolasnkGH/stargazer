@@ -295,6 +295,12 @@ jobs:
           source: ${{ vars.GCP_SOURCE_DIR }}
           flags: >-
             --execution-environment=${{ vars.CLOUD_RUN_EXECUTION_ENV }}
+            --cpu=2
+            --memory=1Gi
+            --min-instances=1
+            --max-instances=20
+            --concurrency=80
+            --no-cpu-throttling
             --add-volume=name=${{ vars.CLOUD_RUN_DB_VOLUME }},type=cloud-storage,bucket=${{ vars.CLOUD_RUN_DB_BUCKET }}
             --add-volume-mount=volume=${{ vars.CLOUD_RUN_DB_VOLUME }},mount-path=${{ vars.CLOUD_RUN_DB_MOUNT_PATH }}
           env_vars: |-
