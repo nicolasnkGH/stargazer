@@ -1,32 +1,36 @@
-name: Auto-Release
+name: Auto Release
 
+# Creates a tagged GitHub release only after Validate & Test succeeds on main.
+# Computes the next patch version from the latest semver tag (vX.Y.Z).
 on:
-  push:
-    branches:
-      - main
+  workflow_run:
+    workflows: ["Validate & Test"]
+    types: [completed]
 
 permissions:
   contents: write
 
 jobs:
   release:
+    name: Tag and create GitHub release
+    # Only release when validation passed AND it ran against the main branch
+    if: >
+      github.event.workflow_run.conclusion == 'success' &&
+      github.event.workflow_run.head_branch == 'main'
     runs-on: ubuntu-latest
-    # Skip bot commits to avoid any loops
-    if: "!contains(github.event.head_commit.message, '[skip ci]') && github.actor != 'github-actions[bot]'"
     steps:
-      - name: Checkout
+      - name: Checkout validated commit
         uses: actions/checkout@v4
         with:
           fetch-depth: 0
+          ref: ${{ github.event.workflow_run.head_sha }}
 
-      - name: Compute next version from last tag
+      - name: Compute next patch version
         id: version
         run: |
-          # Get the latest semver tag (e.g. v2.9.0 → 2.9.0)
           LAST_TAG=$(git describe --tags --match "v*" --abbrev=0 2>/dev/null || echo "v0.0.0")
           echo "Last tag: $LAST_TAG"
 
-          # Strip leading 'v'
           CURRENT=${LAST_TAG#v}
           MAJOR=$(echo "$CURRENT" | cut -d. -f1)
           MINOR=$(echo "$CURRENT" | cut -d. -f2)
@@ -35,33 +39,50 @@ jobs:
           NEW_VERSION="$MAJOR.$MINOR.$NEW_PATCH"
 
           echo "New version: $NEW_VERSION"
-          echo "NEW_VERSION=$NEW_VERSION" >> $GITHUB_ENV
-          echo "LAST_TAG=$LAST_TAG" >> $GITHUB_ENV
+          echo "last_tag=$LAST_TAG" >> "$GITHUB_OUTPUT"
+          echo "new_version=$NEW_VERSION" >> "$GITHUB_OUTPUT"
+
+      - name: Check for duplicate tag
+        id: tag_check
+        run: |
+          VERSION="${{ steps.version.outputs.new_version }}"
+          if git rev-parse "v$VERSION" >/dev/null 2>&1; then
+            echo "Tag v$VERSION already exists — skipping release."
+            echo "skip=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "skip=false" >> "$GITHUB_OUTPUT"
+          fi
 
       - name: Generate changelog
+        if: steps.tag_check.outputs.skip == 'false'
         id: changelog
         run: |
-          if [ "${{ env.LAST_TAG }}" = "v0.0.0" ]; then
+          LAST_TAG="${{ steps.version.outputs.last_tag }}"
+          if [ "$LAST_TAG" = "v0.0.0" ]; then
             LOG=$(git log --pretty=format:"%h %s (%an, %ad)" --date=short)
           else
-            LOG=$(git log --pretty=format:"%h %s (%an, %ad)" --date=short "${{ env.LAST_TAG }}"..HEAD)
+            LOG=$(git log --pretty=format:"%h %s (%an, %ad)" --date=short "$LAST_TAG"..HEAD)
           fi
-          echo "log<<EOF" >> $GITHUB_OUTPUT
-          echo "$LOG" >> $GITHUB_OUTPUT
-          echo "EOF" >> $GITHUB_OUTPUT
+          echo "log<<EOF" >> "$GITHUB_OUTPUT"
+          echo "$LOG" >> "$GITHUB_OUTPUT"
+          echo "EOF" >> "$GITHUB_OUTPUT"
 
-      - name: Create and push git tag
+      - name: Create and push tag
+        if: steps.tag_check.outputs.skip == 'false'
         run: |
+          VERSION="${{ steps.version.outputs.new_version }}"
           git config user.name "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
-          git tag -a "v${{ env.NEW_VERSION }}" -m "Release v${{ env.NEW_VERSION }}"
-          git push origin "v${{ env.NEW_VERSION }}"
+          git tag -a "v$VERSION" -m "Release v$VERSION"
+          git push origin "v$VERSION"
 
       - name: Create GitHub Release
+        if: steps.tag_check.outputs.skip == 'false'
         uses: softprops/action-gh-release@v2
         with:
-          tag_name: v${{ env.NEW_VERSION }}
-          name: Release v${{ env.NEW_VERSION }}
+          tag_name: v${{ steps.version.outputs.new_version }}
+          target_commitish: ${{ github.event.workflow_run.head_sha }}
+          name: Release v${{ steps.version.outputs.new_version }}
           body: |
             ## Changes since last release
 

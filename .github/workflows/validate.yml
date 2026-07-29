@@ -6,6 +6,9 @@ on:
   pull_request:
     branches: [main]
 
+permissions:
+  contents: read
+
 jobs:
   # ── 1. JavaScript Syntax Check ─────────────────────────────────────────
   js-syntax:
@@ -108,7 +111,7 @@ jobs:
 
       - name: Serve static site locally
         run: |
-          npx serve web/ -p 3000 &
+          npx --yes serve web/ -p 3000 &
           sleep 4
 
       - name: Run smoke tests
