@@ -1298,7 +1298,7 @@ body {
 
 .target-grid-db {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+  grid-template-columns: repeat(auto-fill, minmax(min(320px, 100%), 1fr));
   gap: 16px;
   padding: 20px 24px;
 }
@@ -2699,9 +2699,66 @@ body.night-mode {
     word-break: break-word !important;
   }
 
+  .planet-info-col {
+    width: 100% !important;
+    min-width: 0 !important;
+    box-sizing: border-box !important;
+    overflow-wrap: break-word !important;
+    word-break: break-word !important;
+  }
+
   .planet-meta-row {
     flex-wrap: wrap !important;
     gap: 6px !important;
+  }
+
+  /* ── Constellation & Target Cards — Mobile Layout ── */
+  .target-grid-db {
+    grid-template-columns: 1fr !important;
+    padding: 12px 16px !important;
+    gap: 12px !important;
+  }
+
+  .target-card {
+    padding: 14px !important;
+  }
+
+  .tc-header {
+    flex-wrap: wrap !important;
+  }
+
+  .target-thumb {
+    height: 100px !important;
+  }
+
+  .constellation-tabs {
+    padding: 8px 12px !important;
+    gap: 8px !important;
+  }
+
+  .targets-scope-note {
+    padding: 10px 12px !important;
+    font-size: 0.78rem !important;
+  }
+
+  .weekly-grid {
+    padding: 12px 16px !important;
+    gap: 8px !important;
+  }
+
+  #constellations-grid.weekly-grid {
+    grid-template-columns: repeat(auto-fill, minmax(110px, 1fr)) !important;
+  }
+
+  .constellation-search-wrap {
+    padding: 10px 12px 0 !important;
+    gap: 8px !important;
+  }
+
+  .constellation-search-wrap input {
+    max-width: 100% !important;
+    width: 100% !important;
+    box-sizing: border-box !important;
   }
 }
 
@@ -3413,6 +3470,40 @@ body.night-mode {
     flex-direction: column;
     gap: 4px;
     padding: 10px 12px;
+  }
+
+  /* ── Constellation & Target Cards — Extra Small ── */
+  .target-card {
+    padding: 12px !important;
+  }
+
+  .tc-name {
+    font-size: 0.88rem !important;
+  }
+
+  .tc-desc {
+    font-size: 0.78rem !important;
+  }
+
+  .tc-footer {
+    gap: 6px !important;
+  }
+
+  .filter-btn {
+    font-size: 0.72rem !important;
+    padding: 3px 9px !important;
+  }
+
+  .const-card {
+    padding: 8px 10px 6px !important;
+  }
+
+  .c-name {
+    font-size: 0.78rem !important;
+  }
+
+  .target-thumb {
+    height: 80px !important;
   }
 }
 
