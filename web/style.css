@@ -2699,14 +2699,6 @@ body.night-mode {
     word-break: break-word !important;
   }
 
-  .planet-info-col {
-    width: 100% !important;
-    min-width: 0 !important;
-    box-sizing: border-box !important;
-    overflow-wrap: break-word !important;
-    word-break: break-word !important;
-  }
-
   .planet-meta-row {
     flex-wrap: wrap !important;
     gap: 6px !important;
