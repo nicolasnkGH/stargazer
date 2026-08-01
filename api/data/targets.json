@@ -12,12 +12,12 @@
         "magnitude": 4.0,
         "constellation": "Ori",
         "difficulty": "naked_eye",
-        "emoji": "\ud83c\udf0c",
+        "emoji": "🌌",
         "description": "The Great Orion Nebula. The brightest and most famous star-forming region, easily visible to the naked eye. In a 5-inch scope, the Trapezium cluster is obvious."
     },
     {
         "id": "betelgeuse",
-        "name": "Betelgeuse (\u03b1 Ori)",
+        "name": "Betelgeuse (α Ori)",
         "type": "Red Supergiant",
         "ra_h": 5,
         "ra_m": 55,
@@ -28,12 +28,12 @@
         "magnitude": 0.5,
         "constellation": "Ori",
         "difficulty": "naked_eye",
-        "emoji": "\ud83d\udd34",
+        "emoji": "🔴",
         "description": "The bright red supergiant marking Orion's right shoulder. A variable star nearing the end of its life."
     },
     {
         "id": "rigel",
-        "name": "Rigel (\u03b2 Ori)",
+        "name": "Rigel (β Ori)",
         "type": "Blue Supergiant",
         "ra_h": 5,
         "ra_m": 14,
@@ -44,7 +44,7 @@
         "magnitude": 0.13,
         "constellation": "Ori",
         "difficulty": "naked_eye",
-        "emoji": "\ud83d\udd35",
+        "emoji": "🔵",
         "description": "The brilliant blue supergiant marking Orion's left foot. The brightest star in the constellation."
     },
     {
@@ -60,7 +60,7 @@
         "magnitude": 6.9,
         "constellation": "UMa",
         "difficulty": "moderate",
-        "emoji": "\ud83d\udef8",
+        "emoji": "🛸",
         "description": "A stunning, bright spiral galaxy in Ursa Major. It often fits in the same low-power eyepiece field as the nearby Cigar Galaxy (M82)."
     },
     {
@@ -76,12 +76,12 @@
         "magnitude": 8.4,
         "constellation": "UMa",
         "difficulty": "moderate",
-        "emoji": "\ud83d\ude80",
+        "emoji": "🚀",
         "description": "A starburst galaxy with a distinct edge-on, cigar-like shape. Very active region of star formation."
     },
     {
         "id": "dubhe",
-        "name": "Dubhe (\u03b1 UMa)",
+        "name": "Dubhe (α UMa)",
         "type": "Star",
         "ra_h": 11,
         "ra_m": 3,
@@ -92,7 +92,7 @@
         "magnitude": 1.79,
         "constellation": "UMa",
         "difficulty": "naked_eye",
-        "emoji": "\u2b50",
+        "emoji": "⭐",
         "description": "The upper pointer star in the Big Dipper that points directly to the North Star (Polaris)."
     },
     {
@@ -108,7 +108,7 @@
         "magnitude": 6.9,
         "constellation": "Cas",
         "difficulty": "easy",
-        "emoji": "\u2728",
+        "emoji": "✨",
         "description": "A rich, compressed open cluster resembling a scattered pile of salt on a black tablecloth."
     },
     {
@@ -124,12 +124,12 @@
         "magnitude": 6.4,
         "constellation": "Cas",
         "difficulty": "easy",
-        "emoji": "\ud83e\udd89",
+        "emoji": "🦉",
         "description": "Also known as the ET Cluster. Its two brightest stars form 'eyes' with chains of stars forming outstretched wings."
     },
     {
         "id": "albireo",
-        "name": "Albireo (\u03b2 Cyg)",
+        "name": "Albireo (β Cyg)",
         "type": "Double Star",
         "ra_h": 19,
         "ra_m": 30,
@@ -140,7 +140,7 @@
         "magnitude": 3.1,
         "constellation": "Cyg",
         "difficulty": "easy",
-        "emoji": "\ud83d\udd35\ud83d\udfe1",
+        "emoji": "🔵🟡",
         "description": "Arguably the most beautiful double star in the sky! A striking gold and sapphire-blue pair easily split at low power."
     },
     {
@@ -156,7 +156,7 @@
         "magnitude": 4.0,
         "constellation": "Cyg",
         "difficulty": "hard",
-        "emoji": "\ud83c\udf0c",
+        "emoji": "🌌",
         "description": "Huge, faint nebula shaped like the North American continent. Requires extremely dark skies and a wide-field view to appreciate."
     },
     {
@@ -172,12 +172,12 @@
         "magnitude": 4.2,
         "constellation": "Cru",
         "difficulty": "easy",
-        "emoji": "\ud83d\udc8e",
+        "emoji": "💎",
         "description": "One of the youngest and most stunning open clusters. Features a brilliant mix of blue and orange supergiants."
     },
     {
         "id": "acrux",
-        "name": "Acrux (\u03b1 Cru)",
+        "name": "Acrux (α Cru)",
         "type": "Multiple Star",
         "ra_h": 12,
         "ra_m": 26,
@@ -188,12 +188,12 @@
         "magnitude": 0.77,
         "constellation": "Cru",
         "difficulty": "easy",
-        "emoji": "\u2b50",
+        "emoji": "⭐",
         "description": "The brilliant primary star of the Southern Cross. It is actually a visually split triple star system."
     },
     {
         "id": "sirius",
-        "name": "Sirius (\u03b1 CMa)",
+        "name": "Sirius (α CMa)",
         "type": "Star",
         "ra_h": 6,
         "ra_m": 45,
@@ -204,7 +204,7 @@
         "magnitude": -1.46,
         "constellation": "CMa",
         "difficulty": "naked_eye",
-        "emoji": "\ud83d\udc8e",
+        "emoji": "💎",
         "description": "The brightest star in the night sky! Its extreme brightness often causes atmospheric twinkling in a rainbow of colors."
     },
     {
@@ -220,7 +220,7 @@
         "magnitude": 4.5,
         "constellation": "CMa",
         "difficulty": "easy",
-        "emoji": "\u2728",
+        "emoji": "✨",
         "description": "A large, bright open cluster easily visible in binoculars. Features a reddish star near its center."
     },
     {
@@ -236,7 +236,7 @@
         "magnitude": 3.9,
         "constellation": "Cen",
         "difficulty": "naked_eye",
-        "emoji": "\ud83c\udf86",
+        "emoji": "🎆",
         "description": "The largest and brightest globular cluster in the sky, containing 10 million stars! Appears as a fuzzy ball to the naked eye."
     },
     {
@@ -252,12 +252,12 @@
         "magnitude": 6.8,
         "constellation": "Cen",
         "difficulty": "moderate",
-        "emoji": "\ud83c\udf54",
+        "emoji": "🍔",
         "description": "A massive peculiar galaxy bisected by a thick, dark dust lane. One of the strongest radio sources in the sky."
     },
     {
         "id": "mesarthim",
-        "name": "Mesarthim (\u03b3 Ari)",
+        "name": "Mesarthim (γ Ari)",
         "type": "Double Star",
         "ra_h": 1,
         "ra_m": 53,
@@ -268,12 +268,12 @@
         "magnitude": 3.88,
         "constellation": "Ari",
         "difficulty": "easy",
-        "emoji": "\ud83d\udd35\ud83d\udd35",
+        "emoji": "🔵🔵",
         "description": "A perfect, easily split double star consisting of two identical white stars. One of the first double stars discovered."
     },
     {
         "id": "hamal",
-        "name": "Hamal (\u03b1 Ari)",
+        "name": "Hamal (α Ari)",
         "type": "Star",
         "ra_h": 2,
         "ra_m": 7,
@@ -284,7 +284,7 @@
         "magnitude": 2.0,
         "constellation": "Ari",
         "difficulty": "naked_eye",
-        "emoji": "\u2b50",
+        "emoji": "⭐",
         "description": "The brightest star in Aries. An orange giant located 66 light-years away."
     },
     {
@@ -300,12 +300,12 @@
         "magnitude": 1.6,
         "constellation": "Tau",
         "difficulty": "naked_eye",
-        "emoji": "\ud83d\udca0",
+        "emoji": "💠",
         "description": "The Seven Sisters! The most spectacular naked-eye star cluster. Use low magnification to fit its icy blue stars in the field of view."
     },
     {
         "id": "aldebaran",
-        "name": "Aldebaran (\u03b1 Tau)",
+        "name": "Aldebaran (α Tau)",
         "type": "Red Giant",
         "ra_h": 4,
         "ra_m": 35,
@@ -316,7 +316,7 @@
         "magnitude": 0.85,
         "constellation": "Tau",
         "difficulty": "naked_eye",
-        "emoji": "\ud83d\udd34",
+        "emoji": "🔴",
         "description": "The fiery 'eye' of the Bull. A prominent orange giant that appears to be part of the Hyades cluster, but is actually much closer to Earth."
     },
     {
@@ -332,7 +332,7 @@
         "magnitude": 8.4,
         "constellation": "Tau",
         "difficulty": "hard",
-        "emoji": "\ud83e\udd80",
+        "emoji": "🦀",
         "description": "The famous remnant of a supernova observed by Chinese astronomers in 1054 AD. Appears as a faint, fuzzy patch in a 5-inch scope."
     },
     {
@@ -348,12 +348,12 @@
         "magnitude": 5.3,
         "constellation": "Gem",
         "difficulty": "easy",
-        "emoji": "\u2728",
+        "emoji": "✨",
         "description": "A large, rich open cluster. Right next to it, you can spot NGC 2158, a much more distant and compact cluster, providing a great 3D contrast."
     },
     {
         "id": "castor",
-        "name": "Castor (\u03b1 Gem)",
+        "name": "Castor (α Gem)",
         "type": "Multiple Star",
         "ra_h": 7,
         "ra_m": 34,
@@ -364,7 +364,7 @@
         "magnitude": 1.58,
         "constellation": "Gem",
         "difficulty": "moderate",
-        "emoji": "\u2b50",
+        "emoji": "⭐",
         "description": "Appears as a single bright star to the eye, but a telescope easily splits it into a brilliant white double. Each of those is actually a spectroscopic binary, making it a 6-star system!"
     },
     {
@@ -380,12 +380,12 @@
         "magnitude": 3.7,
         "constellation": "Cnc",
         "difficulty": "naked_eye",
-        "emoji": "\ud83d\udc1d",
+        "emoji": "🐝",
         "description": "A beautiful, sprawling open cluster visible to the naked eye as a fuzzy patch. Looks phenomenal at low magnifications, resembling a swarm of bees."
     },
     {
         "id": "regulus",
-        "name": "Regulus (\u03b1 Leo)",
+        "name": "Regulus (α Leo)",
         "type": "Multiple Star",
         "ra_h": 10,
         "ra_m": 8,
@@ -396,7 +396,7 @@
         "magnitude": 1.36,
         "constellation": "Leo",
         "difficulty": "easy",
-        "emoji": "\ud83e\udd81",
+        "emoji": "🦁",
         "description": "The bright heart of the Lion. It has a magnitude 8.1 companion that is easily visible in small telescopes."
     },
     {
@@ -412,12 +412,12 @@
         "magnitude": 8.9,
         "constellation": "Leo",
         "difficulty": "hard",
-        "emoji": "\ud83c\udf0c",
+        "emoji": "🌌",
         "description": "A famous group of three spiral galaxies in the same field of view. M65 and M66 are brightest; NGC 3628 (the Hamburger Galaxy) is fainter and edge-on."
     },
     {
         "id": "spica",
-        "name": "Spica (\u03b1 Vir)",
+        "name": "Spica (α Vir)",
         "type": "Star",
         "ra_h": 13,
         "ra_m": 25,
@@ -428,7 +428,7 @@
         "magnitude": 0.98,
         "constellation": "Vir",
         "difficulty": "naked_eye",
-        "emoji": "\ud83c\udf3e",
+        "emoji": "🌾",
         "description": "A brilliant, extremely hot blue-white binary star system. It is one of the brightest stars in the night sky."
     },
     {
@@ -444,12 +444,12 @@
         "magnitude": 8.0,
         "constellation": "Vir",
         "difficulty": "moderate",
-        "emoji": "\ud83d\udef8",
+        "emoji": "🛸",
         "description": "A stunning, bright edge-on galaxy. In dark skies, a 5-inch scope can reveal the dark dust lane bisecting its glowing core."
     },
     {
         "id": "zubenelgenubi",
-        "name": "Zubenelgenubi (\u03b1 Lib)",
+        "name": "Zubenelgenubi (α Lib)",
         "type": "Double Star",
         "ra_h": 14,
         "ra_m": 50,
@@ -460,7 +460,7 @@
         "magnitude": 2.75,
         "constellation": "Lib",
         "difficulty": "easy",
-        "emoji": "\u2696\ufe0f",
+        "emoji": "⚖️",
         "description": "A wide, beautiful double star easily split in binoculars. One star is white and the other slightly yellowish."
     },
     {
@@ -476,7 +476,7 @@
         "magnitude": 6.0,
         "constellation": "Sgr",
         "difficulty": "easy",
-        "emoji": "\ud83c\udf0c",
+        "emoji": "🌌",
         "description": "A huge, magnificent star-forming cloud. Easily seen in binoculars, it features a distinct dark 'lagoon' lane slicing through the bright gas."
     },
     {
@@ -492,7 +492,7 @@
         "magnitude": 5.1,
         "constellation": "Sgr",
         "difficulty": "easy",
-        "emoji": "\ud83c\udf86",
+        "emoji": "🎆",
         "description": "One of the brightest and closest globular clusters to Earth. It actually appears larger than the famous Hercules Cluster!"
     },
     {
@@ -508,12 +508,12 @@
         "magnitude": 6.3,
         "constellation": "Sgr",
         "difficulty": "moderate",
-        "emoji": "\ud83c\udf38",
+        "emoji": "🌸",
         "description": "A unique combination of an emission, reflection, and dark nebula. The dark dust lanes form a distinct three-lobed 'trifid' shape."
     },
     {
         "id": "algedi",
-        "name": "Algedi (\u03b1 Cap)",
+        "name": "Algedi (α Cap)",
         "type": "Optical Double",
         "ra_h": 20,
         "ra_m": 18,
@@ -524,7 +524,7 @@
         "magnitude": 3.58,
         "constellation": "Cap",
         "difficulty": "easy",
-        "emoji": "\ud83d\udc10",
+        "emoji": "🐐",
         "description": "A fascinating 'fake' double star. The two stars are actually hundreds of light-years apart but happen to line up perfectly. Both are true binaries themselves!"
     },
     {
@@ -540,7 +540,7 @@
         "magnitude": 7.2,
         "constellation": "Cap",
         "difficulty": "moderate",
-        "emoji": "\ud83d\udcab",
+        "emoji": "💫",
         "description": "A dense globular cluster with a bright core. It features several distinct 'chains' of stars radiating outward from the center."
     },
     {
@@ -556,7 +556,7 @@
         "magnitude": 7.6,
         "constellation": "Aqr",
         "difficulty": "hard",
-        "emoji": "\ud83d\udc41\ufe0f",
+        "emoji": "👁️",
         "description": "Often called the 'Eye of God'. A huge, ghost-like planetary nebula. Requires very dark skies and low magnification to spot its massive ring structure."
     },
     {
@@ -572,12 +572,12 @@
         "magnitude": 6.5,
         "constellation": "Aqr",
         "difficulty": "easy",
-        "emoji": "\u2728",
+        "emoji": "✨",
         "description": "A very compact and exceptionally bright globular cluster. Looks like a solid snowball of stars in small telescopes."
     },
     {
         "id": "alrescha",
-        "name": "Alrescha (\u03b1 Psc)",
+        "name": "Alrescha (α Psc)",
         "type": "Double Star",
         "ra_h": 2,
         "ra_m": 2,
@@ -588,7 +588,7 @@
         "magnitude": 3.82,
         "constellation": "Psc",
         "difficulty": "moderate",
-        "emoji": "\ud83d\udc1f",
+        "emoji": "🐟",
         "description": "The 'knot' that ties the two celestial fishes together. It is a close double star consisting of two white A-type main-sequence stars."
     },
     {
@@ -604,12 +604,12 @@
         "magnitude": 9.4,
         "constellation": "Psc",
         "difficulty": "hard",
-        "emoji": "\ud83d\udc7b",
+        "emoji": "👻",
         "description": "A beautiful face-on spiral galaxy, but its surface brightness is extremely low. Hence its nickname: the 'Phantom Galaxy'. A tough challenge target."
     },
     {
         "id": "procyon",
-        "name": "Procyon (\u03b1 CMi)",
+        "name": "Procyon (α CMi)",
         "type": "Star",
         "ra_h": 7,
         "ra_m": 39,
@@ -620,13 +620,13 @@
         "magnitude": 0.34,
         "constellation": "CMi",
         "difficulty": "naked_eye",
-        "emoji": "\ud83c\udf1f",
+        "emoji": "🌟",
         "description": "The 8th brightest star in the sky and one of the closest to Earth at only 11.5 light-years. Creamy white with a faint white dwarf companion requiring large aperture to split.",
         "eyepiece_rec": "Naked eye / any eyepiece"
     },
     {
         "id": "gomeisa",
-        "name": "Gomeisa (\u03b2 CMi)",
+        "name": "Gomeisa (β CMi)",
         "type": "Star",
         "ra_h": 7,
         "ra_m": 27,
@@ -637,7 +637,7 @@
         "magnitude": 2.9,
         "constellation": "CMi",
         "difficulty": "naked_eye",
-        "emoji": "\u2b50",
+        "emoji": "⭐",
         "description": "A blue-white star 170 light-years away. It is actually a rapidly rotating Be star surrounded by a disk of gas, giving it slightly variable brightness.",
         "eyepiece_rec": "Naked eye"
     },
@@ -654,8 +654,8 @@
         "magnitude": 6.3,
         "constellation": "Aur",
         "difficulty": "easy",
-        "emoji": "\u2728",
-        "description": "A compact, bright open cluster of about 60 stars. Pairs beautifully with the nearby M37 and M38 \u2014 all three fit within a 2\u00b0 field and are perfect for a star-hopping tour.",
+        "emoji": "✨",
+        "description": "A compact, bright open cluster of about 60 stars. Pairs beautifully with the nearby M37 and M38 — all three fit within a 2° field and are perfect for a star-hopping tour.",
         "eyepiece_rec": "25mm wide-field"
     },
     {
@@ -671,9 +671,9 @@
         "magnitude": 6.2,
         "constellation": "Aur",
         "difficulty": "easy",
-        "emoji": "\u2728",
+        "emoji": "✨",
         "description": "The richest and most spectacular of the three Auriga clusters. Contains roughly 500 stars and has a noticeable reddish giant star near its center.",
-        "eyepiece_rec": "25mm \u2192 10mm"
+        "eyepiece_rec": "25mm → 10mm"
     },
     {
         "id": "m38",
@@ -688,13 +688,13 @@
         "magnitude": 7.4,
         "constellation": "Aur",
         "difficulty": "easy",
-        "emoji": "\u2728",
-        "description": "The largest but faintest of Auriga's three Messier clusters. Its stars form a pattern some observers see as a Greek letter Pi (\u03c0).",
+        "emoji": "✨",
+        "description": "The largest but faintest of Auriga's three Messier clusters. Its stars form a pattern some observers see as a Greek letter Pi (π).",
         "eyepiece_rec": "25mm wide-field"
     },
     {
         "id": "capella",
-        "name": "Capella (\u03b1 Aur)",
+        "name": "Capella (α Aur)",
         "type": "Multiple Star",
         "ra_h": 5,
         "ra_m": 16,
@@ -705,7 +705,7 @@
         "magnitude": 0.08,
         "constellation": "Aur",
         "difficulty": "naked_eye",
-        "emoji": "\ud83c\udf1f",
+        "emoji": "🌟",
         "description": "The sixth-brightest star in the sky. It is actually a spectroscopic binary of two giant yellow stars, too close to split visually but identical in colour to our own Sun.",
         "eyepiece_rec": "Naked eye"
     },
@@ -722,8 +722,8 @@
         "magnitude": 4.8,
         "constellation": "Mon",
         "difficulty": "moderate",
-        "emoji": "\ud83c\udf39",
-        "description": "The open cluster NGC 2244 at the heart of the famous Rosette Nebula is easily visible; the nebula itself requires an O-III or H-\u03b2 filter to see well. A truly stunning astrophoto target.",
+        "emoji": "🌹",
+        "description": "The open cluster NGC 2244 at the heart of the famous Rosette Nebula is easily visible; the nebula itself requires an O-III or H-β filter to see well. A truly stunning astrophoto target.",
         "eyepiece_rec": "25mm + nebula filter for nebula"
     },
     {
@@ -739,8 +739,8 @@
         "magnitude": 3.9,
         "constellation": "Mon",
         "difficulty": "easy",
-        "emoji": "\u2728",
-        "description": "A large, bright open cluster centred on the naked-eye star 10 Mon. Covers nearly a full degree of sky \u2014 perfect for low-power views.",
+        "emoji": "✨",
+        "description": "A large, bright open cluster centred on the naked-eye star 10 Mon. Covers nearly a full degree of sky — perfect for low-power views.",
         "eyepiece_rec": "25mm wide-field"
     },
     {
@@ -756,7 +756,7 @@
         "magnitude": 3.74,
         "constellation": "Mon",
         "difficulty": "easy",
-        "emoji": "\ud83d\udd35",
+        "emoji": "🔵",
         "description": "Often called the finest triple star in the night sky. Three distinct white-blue stars in a beautiful curved arc, all easily split in any telescope at modest power.",
         "eyepiece_rec": "10mm gives great separation"
     },
@@ -773,8 +773,8 @@
         "magnitude": 10.4,
         "constellation": "Lyn",
         "difficulty": "hard",
-        "emoji": "\ud83c\udf00",
-        "description": "The most remote globular cluster in the Milky Way visible in amateur telescopes \u2014 300,000 light-years away! It appeared to lie outside the Galaxy itself, earning its evocative nickname.",
+        "emoji": "🌀",
+        "description": "The most remote globular cluster in the Milky Way visible in amateur telescopes — 300,000 light-years away! It appeared to lie outside the Galaxy itself, earning its evocative nickname.",
         "eyepiece_rec": "10mm; appears as a faint fuzzy star"
     },
     {
@@ -790,7 +790,7 @@
         "magnitude": 3.82,
         "constellation": "Lyn",
         "difficulty": "easy",
-        "emoji": "\u2b50",
+        "emoji": "⭐",
         "description": "A clean, easily-split double star: a white primary and a slightly fainter companion. A good showcase double for the relatively sparse constellation of Lynx.",
         "eyepiece_rec": "10mm"
     },
@@ -807,7 +807,7 @@
         "magnitude": 8.0,
         "constellation": "Lep",
         "difficulty": "moderate",
-        "emoji": "\ud83d\udcab",
+        "emoji": "💫",
         "description": "One of the few bright globular clusters visible in winter. It is unusual in being on the 'far side' of the galaxy from us. In a 5-inch it shows a bright, compact core."
     },
     {
@@ -823,13 +823,13 @@
         "magnitude": 7.7,
         "constellation": "Lep",
         "difficulty": "moderate",
-        "emoji": "\ud83d\udd34",
-        "description": "One of the reddest stars in the sky \u2014 a deep carbon star that glows like a drop of blood against the star field. It is a long-period variable ranging from mag 5.5 to 11.7 over ~14 months.",
-        "eyepiece_rec": "25mm \u2192 10mm for colour contrast"
+        "emoji": "🔴",
+        "description": "One of the reddest stars in the sky — a deep carbon star that glows like a drop of blood against the star field. It is a long-period variable ranging from mag 5.5 to 11.7 over ~14 months.",
+        "eyepiece_rec": "25mm → 10mm for colour contrast"
     },
     {
         "id": "arneb",
-        "name": "Arneb (\u03b1 Lep)",
+        "name": "Arneb (α Lep)",
         "type": "Star",
         "ra_h": 5,
         "ra_m": 32,
@@ -840,8 +840,8 @@
         "magnitude": 2.58,
         "constellation": "Lep",
         "difficulty": "naked_eye",
-        "emoji": "\u2b50",
-        "description": "The brightest star in Lepus \u2014 a luminous white-yellow supergiant roughly 2,200 light-years away and 32,000 times more luminous than our Sun.",
+        "emoji": "⭐",
+        "description": "The brightest star in Lepus — a luminous white-yellow supergiant roughly 2,200 light-years away and 32,000 times more luminous than our Sun.",
         "eyepiece_rec": "Naked eye"
     },
     {
@@ -857,7 +857,7 @@
         "magnitude": 4.3,
         "constellation": "Per",
         "difficulty": "naked_eye",
-        "emoji": "\ud83d\udc8e",
+        "emoji": "💎",
         "description": "One of the showpiece objects of the northern sky! Two rich open clusters side by side, both fitting comfortably in a low-power eyepiece. Stunning in any telescope.",
         "eyepiece_rec": "25mm or widest field available"
     },
@@ -874,13 +874,13 @@
         "magnitude": 5.5,
         "constellation": "Per",
         "difficulty": "easy",
-        "emoji": "\u2728",
+        "emoji": "✨",
         "description": "A loose but bright open cluster with about 100 stars resolvable in small scopes. Several wide double stars are visible within the cluster.",
         "eyepiece_rec": "25mm wide-field"
     },
     {
         "id": "algol",
-        "name": "Algol (\u03b2 Per)",
+        "name": "Algol (β Per)",
         "type": "Eclipsing Binary",
         "ra_h": 3,
         "ra_m": 8,
@@ -891,8 +891,8 @@
         "magnitude": 2.12,
         "constellation": "Per",
         "difficulty": "naked_eye",
-        "emoji": "\ud83d\udc41\ufe0f",
-        "description": "The famous 'Demon Star' \u2014 an eclipsing binary that dims by a full magnitude every 2.87 days as one star passes in front of the other. Track its brightness changes over a week!",
+        "emoji": "👁️",
+        "description": "The famous 'Demon Star' — an eclipsing binary that dims by a full magnitude every 2.87 days as one star passes in front of the other. Track its brightness changes over a week!",
         "eyepiece_rec": "Naked eye / binoculars for variability monitoring"
     },
     {
@@ -908,8 +908,8 @@
         "magnitude": 5.7,
         "constellation": "Cam",
         "difficulty": "easy",
-        "emoji": "\ud83d\udca0",
-        "description": "A beautiful chain of about 20 colourful stars (Kemble's Cascade) leading to the little open cluster NGC 1502 \u2014 a stunning binocular or low-power sweep. One of the hidden gems of the northern sky."
+        "emoji": "💠",
+        "description": "A beautiful chain of about 20 colourful stars (Kemble's Cascade) leading to the little open cluster NGC 1502 — a stunning binocular or low-power sweep. One of the hidden gems of the northern sky."
     },
     {
         "id": "ngc2403",
@@ -924,8 +924,8 @@
         "magnitude": 8.5,
         "constellation": "Cam",
         "difficulty": "moderate",
-        "emoji": "\ud83c\udf0c",
-        "description": "A bright, large spiral galaxy \u2014 a member of the M81 group about 10 million light-years away. At magnitude 8.5 it is visible in binoculars and shows spiral structure hints in 5-inch scopes under dark skies.",
+        "emoji": "🌌",
+        "description": "A bright, large spiral galaxy — a member of the M81 group about 10 million light-years away. At magnitude 8.5 it is visible in binoculars and shows spiral structure hints in 5-inch scopes under dark skies.",
         "eyepiece_rec": "25mm; dark skies improve contrast greatly"
     },
     {
@@ -941,8 +941,8 @@
         "magnitude": 6.1,
         "constellation": "Pup",
         "difficulty": "easy",
-        "emoji": "\u2728",
-        "description": "A spectacular rich cluster of ~500 stars. The real showstopper: a tiny planetary nebula (NGC 2438) appears superimposed on the cluster \u2014 actually a foreground object. Look for the little smoke-ring!",
+        "emoji": "✨",
+        "description": "A spectacular rich cluster of ~500 stars. The real showstopper: a tiny planetary nebula (NGC 2438) appears superimposed on the cluster — actually a foreground object. Look for the little smoke-ring!",
         "eyepiece_rec": "10mm to see the planetary nebula within"
     },
     {
@@ -958,9 +958,9 @@
         "magnitude": 4.4,
         "constellation": "Pup",
         "difficulty": "easy",
-        "emoji": "\u2728",
-        "description": "Looser and brighter than its neighbour M46, just 1.5\u00b0 away. The two clusters form an unbeatable low-power pair. M47's brightest stars form a distinctive pattern and several double stars are visible within.",
-        "eyepiece_rec": "25mm wide-field \u2014 try fitting both M46 and M47!"
+        "emoji": "✨",
+        "description": "Looser and brighter than its neighbour M46, just 1.5° away. The two clusters form an unbeatable low-power pair. M47's brightest stars form a distinctive pattern and several double stars are visible within.",
+        "eyepiece_rec": "25mm wide-field — try fitting both M46 and M47!"
     },
     {
         "id": "m93",
@@ -975,9 +975,9 @@
         "magnitude": 6.2,
         "constellation": "Pup",
         "difficulty": "easy",
-        "emoji": "\u2728",
+        "emoji": "✨",
         "description": "A rich, wedge-shaped open cluster resembling a butterfly or arrowhead. About 80 stars are visible in a small scope. Compact and well-defined.",
-        "eyepiece_rec": "25mm \u2192 10mm"
+        "eyepiece_rec": "25mm → 10mm"
     },
     {
         "id": "ngc3344",
@@ -992,8 +992,8 @@
         "magnitude": 9.9,
         "constellation": "LMi",
         "difficulty": "hard",
-        "emoji": "\ud83c\udf00",
-        "description": "A barred spiral galaxy seen nearly face-on \u2014 similar to a smaller version of M74. Challenging due to low surface brightness, but the central bar can be glimpsed in 5-inch scopes under good skies.",
+        "emoji": "🌀",
+        "description": "A barred spiral galaxy seen nearly face-on — similar to a smaller version of M74. Challenging due to low surface brightness, but the central bar can be glimpsed in 5-inch scopes under good skies.",
         "eyepiece_rec": "10mm under dark skies"
     },
     {
@@ -1009,13 +1009,13 @@
         "magnitude": 3.83,
         "constellation": "LMi",
         "difficulty": "easy",
-        "emoji": "\u2b50",
-        "description": "The brightest star in Leo Minor (the constellation has no star labelled \u03b1!). It is a pale yellow giant with a faint optical companion visible in small scopes.",
+        "emoji": "⭐",
+        "description": "The brightest star in Leo Minor (the constellation has no star labelled α!). It is a pale yellow giant with a faint optical companion visible in small scopes.",
         "eyepiece_rec": "10mm"
     },
     {
         "id": "phact",
-        "name": "Phact (\u03b1 Col)",
+        "name": "Phact (α Col)",
         "type": "Star",
         "ra_h": 5,
         "ra_m": 39,
@@ -1026,7 +1026,7 @@
         "magnitude": 2.65,
         "constellation": "Col",
         "difficulty": "naked_eye",
-        "emoji": "\ud83d\udd4a\ufe0f",
+        "emoji": "🕊️",
         "description": "The brightest star in Columba the Dove. A blue-white main-sequence star about 270 light-years away. Its Arabic name means 'the ring dove'.",
         "eyepiece_rec": "Naked eye"
     },
@@ -1043,8 +1043,8 @@
         "magnitude": 7.2,
         "constellation": "Col",
         "difficulty": "moderate",
-        "emoji": "\ud83d\udcab",
-        "description": "A bright, compact globular cluster \u2014 the showpiece of Columba. It has a very concentrated core and resolves into individual stars at the edges in a 5-inch scope. Underrated gem of the southern winter sky.",
+        "emoji": "💫",
+        "description": "A bright, compact globular cluster — the showpiece of Columba. It has a very concentrated core and resolves into individual stars at the edges in a 5-inch scope. Underrated gem of the southern winter sky.",
         "eyepiece_rec": "10mm for best resolution"
     },
     {
@@ -1060,7 +1060,7 @@
         "magnitude": 3.44,
         "constellation": "And",
         "difficulty": "naked_eye",
-        "emoji": "\ud83c\udf0c",
+        "emoji": "🌌",
         "description": "The closest large galaxy to the Milky Way. Visible as a elongated smudge to the naked eye; a low-power eyepiece reveals its brilliant nucleus and expansive disk."
     },
     {
@@ -1076,7 +1076,7 @@
         "magnitude": 5.8,
         "constellation": "Her",
         "difficulty": "easy",
-        "emoji": "\ud83c\udf86",
+        "emoji": "🎆",
         "description": "The finest globular cluster in the northern sky, holding several hundred thousand stars. Easily resolves into a spectacular field of stellar points in a modest telescope."
     },
     {
@@ -1092,12 +1092,12 @@
         "magnitude": 8.8,
         "constellation": "Lyr",
         "difficulty": "moderate",
-        "emoji": "\ud83e\ude90",
+        "emoji": "🪐",
         "description": "The iconic prototypical planetary nebula. Looks precisely like a tiny, glowing smoke ring floating in space against a dark starry backdrop."
     },
     {
         "id": "vega",
-        "name": "Vega (\u03b1 Lyr)",
+        "name": "Vega (α Lyr)",
         "type": "Star",
         "ra_h": 18,
         "ra_m": 36,
@@ -1108,7 +1108,7 @@
         "magnitude": 0.03,
         "constellation": "Lyr",
         "difficulty": "naked_eye",
-        "emoji": "\ud83d\udc8e",
+        "emoji": "💎",
         "description": "A brilliant, icy-blue vertex of the Summer Triangle. It was the first star ever to be photographed outside our solar system."
     },
     {
@@ -1124,12 +1124,12 @@
         "magnitude": 7.5,
         "constellation": "Vul",
         "difficulty": "moderate",
-        "emoji": "\u23f3",
+        "emoji": "⏳",
         "description": "The first planetary nebula ever discovered. Displays a bright, distinct dual-lobed shape resembling an hourglass or a dumbbell weight."
     },
     {
         "id": "antares",
-        "name": "Antares (\u03b1 Sco)",
+        "name": "Antares (α Sco)",
         "type": "Red Supergiant",
         "ra_h": 16,
         "ra_m": 29,
@@ -1140,7 +1140,7 @@
         "magnitude": 1.05,
         "constellation": "Sco",
         "difficulty": "naked_eye",
-        "emoji": "\ud83d\udd34",
+        "emoji": "🔴",
         "description": "The deeply red heart of the Scorpion. A massive, cool supergiant star whose ancient name translates to 'The Rival of Mars'."
     },
     {
@@ -1156,7 +1156,7 @@
         "magnitude": 3.3,
         "constellation": "Sco",
         "difficulty": "naked_eye",
-        "emoji": "\u2728",
+        "emoji": "✨",
         "description": "A sprawling, spectacular open cluster located near the Scorpion's stinger. Easily spotted without optical aid since antiquity."
     },
     {
@@ -1172,7 +1172,7 @@
         "magnitude": 4.2,
         "constellation": "Sco",
         "difficulty": "easy",
-        "emoji": "\ud83e\udd8b",
+        "emoji": "🦋",
         "description": "A beautiful arrangement of bright stars whose structure strikingly traces out the shape of a butterfly with outstretched wings."
     },
     {
@@ -1188,7 +1188,7 @@
         "magnitude": 5.8,
         "constellation": "Sct",
         "difficulty": "easy",
-        "emoji": "\ud83e\udd86",
+        "emoji": "🦆",
         "description": "One of the most compact, star-rich open clusters known. Its brightest stars form a V-shaped pattern resembling a flock of ducks in flight."
     },
     {
@@ -1204,7 +1204,7 @@
         "magnitude": 6.0,
         "constellation": "Ser",
         "difficulty": "moderate",
-        "emoji": "\ud83e\udd85",
+        "emoji": "🦅",
         "description": "A prominent star cluster embedded in a stellar nursery. Famous for containing the 'Pillars of Creation' star-forming structures."
     },
     {
@@ -1220,7 +1220,7 @@
         "magnitude": 6.0,
         "constellation": "Sgr",
         "difficulty": "easy",
-        "emoji": "\ud83e\udda2",
+        "emoji": "🦢",
         "description": "Also known as the Swan Nebula. Appears as a glowing ribbon of gas that mimics the silhouette of a swan gliding across the star fields."
     },
     {
@@ -1236,7 +1236,7 @@
         "magnitude": 8.4,
         "constellation": "CVn",
         "difficulty": "moderate",
-        "emoji": "\ud83c\udf00",
+        "emoji": "🌀",
         "description": "A classic, stunning face-on spiral galaxy actively interacting with a smaller companion galaxy right at the end of its spiral arm."
     },
     {
@@ -1252,7 +1252,7 @@
         "magnitude": 7.9,
         "constellation": "UMa",
         "difficulty": "hard",
-        "emoji": "\ud83c\udfa1",
+        "emoji": "🎡",
         "description": "A giant, face-on spiral galaxy. It is large but has low surface brightness, requiring dark skies to resolve its sprawling spiral patterns."
     },
     {
@@ -1268,7 +1268,7 @@
         "magnitude": 6.2,
         "constellation": "CVn",
         "difficulty": "easy",
-        "emoji": "\u2728",
+        "emoji": "✨",
         "description": "One of the largest and brightest globular clusters in the sky, containing an astonishing half a million stars."
     },
     {
@@ -1284,12 +1284,12 @@
         "magnitude": 5.6,
         "constellation": "Ser",
         "difficulty": "easy",
-        "emoji": "\ud83d\udcab",
+        "emoji": "💫",
         "description": "An exceptionally bright, beautiful globular cluster showing a highly compressed core and long, sweeping exterior stellar chains."
     },
     {
         "id": "arcturus",
-        "name": "Arcturus (\u03b1 Boo)",
+        "name": "Arcturus (α Boo)",
         "type": "Red Giant",
         "ra_h": 14,
         "ra_m": 15,
@@ -1300,7 +1300,7 @@
         "magnitude": -0.05,
         "constellation": "Boo",
         "difficulty": "naked_eye",
-        "emoji": "\ud83d\udfe0",
+        "emoji": "🟠",
         "description": "The single brightest star in the northern celestial hemisphere. A blazing orange giant easily tracked by 'following the arc' of the Big Dipper's handle."
     },
     {
@@ -1316,12 +1316,12 @@
         "magnitude": 5.7,
         "constellation": "Tri",
         "difficulty": "hard",
-        "emoji": "\ud83c\udf0c",
+        "emoji": "🌌",
         "description": "The third-largest member of our Local Group. Highly diffuse surface brightness means dark, crisp skies are vital to glimpse its structure."
     },
     {
         "id": "polaris",
-        "name": "Polaris (\u03b1 UMi)",
+        "name": "Polaris (α UMi)",
         "type": "Multiple Star",
         "ra_h": 2,
         "ra_m": 31,
@@ -1332,7 +1332,7 @@
         "magnitude": 1.97,
         "constellation": "UMi",
         "difficulty": "naked_eye",
-        "emoji": "\ud83e\udded",
+        "emoji": "🧭",
         "description": "The North Star. It remains virtually stationary in the sky, serving as the essential hub for telescope alignment and polar navigation."
     },
     {
@@ -1348,7 +1348,7 @@
         "magnitude": 6.3,
         "constellation": "Her",
         "difficulty": "easy",
-        "emoji": "\u2728",
+        "emoji": "✨",
         "description": "A magnificent, compact globular cluster. Frequently overshadowed by its nearby neighbor M13, but exceptionally bright in its own right."
     },
     {
@@ -1364,12 +1364,12 @@
         "magnitude": 5.9,
         "constellation": "Sco",
         "difficulty": "easy",
-        "emoji": "\ud83d\udd2e",
+        "emoji": "🔮",
         "description": "A prominent globular cluster positioned right next to Antares. Notable for being one of the closest globular clusters to our planet."
     },
     {
         "id": "cor_caroli",
-        "name": "Cor Caroli (\u03b1 CVn)",
+        "name": "Cor Caroli (α CVn)",
         "type": "Double Star",
         "ra_h": 12,
         "ra_m": 56,
@@ -1380,7 +1380,7 @@
         "magnitude": 2.89,
         "constellation": "CVn",
         "difficulty": "easy",
-        "emoji": "\ud83d\udd35\ud83d\udfe1",
+        "emoji": "🔵🟡",
         "description": "A beautiful, wide binary star system displaying a distinct color contrast between a bright pale-blue star and a copper-flushed companion."
     },
     {
@@ -1396,7 +1396,7 @@
         "magnitude": 4.25,
         "constellation": "Ant",
         "difficulty": "naked_eye",
-        "emoji": "\u2b50",
+        "emoji": "⭐",
         "description": "One of the brightest stars in Ant."
     },
     {
@@ -1412,7 +1412,7 @@
         "magnitude": 3.8,
         "constellation": "Aps",
         "difficulty": "naked_eye",
-        "emoji": "\u2b50",
+        "emoji": "⭐",
         "description": "One of the brightest stars in Aps."
     },
     {
@@ -1428,7 +1428,7 @@
         "magnitude": 4.24,
         "constellation": "Aps",
         "difficulty": "naked_eye",
-        "emoji": "\u2b50",
+        "emoji": "⭐",
         "description": "One of the brightest stars in Aps."
     },
     {
@@ -1444,7 +1444,7 @@
         "magnitude": 0.76,
         "constellation": "Aql",
         "difficulty": "naked_eye",
-        "emoji": "\u2b50",
+        "emoji": "⭐",
         "description": "One of the brightest stars in Aql."
     },
     {
@@ -1460,7 +1460,7 @@
         "magnitude": 3.71,
         "constellation": "Aql",
         "difficulty": "naked_eye",
-        "emoji": "\u2b50",
+        "emoji": "⭐",
         "description": "One of the brightest stars in Aql."
     },
     {
@@ -1476,7 +1476,7 @@
         "magnitude": 2.95,
         "constellation": "Ara",
         "difficulty": "naked_eye",
-        "emoji": "\u2b50",
+        "emoji": "⭐",
         "description": "One of the brightest stars in Ara."
     },
     {
@@ -1492,7 +1492,7 @@
         "magnitude": 2.85,
         "constellation": "Ara",
         "difficulty": "naked_eye",
-        "emoji": "\u2b50",
+        "emoji": "⭐",
         "description": "One of the brightest stars in Ara."
     },
     {
@@ -1508,7 +1508,7 @@
         "magnitude": 4.45,
         "constellation": "Cae",
         "difficulty": "naked_eye",
-        "emoji": "\u2b50",
+        "emoji": "⭐",
         "description": "One of the brightest stars in Cae."
     },
     {
@@ -1524,7 +1524,7 @@
         "magnitude": 5.05,
         "constellation": "Cae",
         "difficulty": "naked_eye",
-        "emoji": "\u2b50",
+        "emoji": "⭐",
         "description": "One of the brightest stars in Cae."
     },
     {
@@ -1540,7 +1540,7 @@
         "magnitude": -0.74,
         "constellation": "Car",
         "difficulty": "naked_eye",
-        "emoji": "\u2b50",
+        "emoji": "⭐",
         "description": "One of the brightest stars in Car."
     },
     {
@@ -1556,7 +1556,7 @@
         "magnitude": 1.69,
         "constellation": "Car",
         "difficulty": "naked_eye",
-        "emoji": "\u2b50",
+        "emoji": "⭐",
         "description": "One of the brightest stars in Car."
     },
     {
@@ -1572,7 +1572,7 @@
         "magnitude": 2.46,
         "constellation": "Cep",
         "difficulty": "naked_eye",
-        "emoji": "\u2b50",
+        "emoji": "⭐",
         "description": "One of the brightest stars in Cep."
     },
     {
@@ -1588,7 +1588,7 @@
         "magnitude": 3.23,
         "constellation": "Cep",
         "difficulty": "naked_eye",
-        "emoji": "\u2b50",
+        "emoji": "⭐",
         "description": "One of the brightest stars in Cep."
     },
     {
@@ -1604,7 +1604,7 @@
         "magnitude": 2.53,
         "constellation": "Cet",
         "difficulty": "naked_eye",
-        "emoji": "\u2b50",
+        "emoji": "⭐",
         "description": "One of the brightest stars in Cet."
     },
     {
@@ -1620,7 +1620,7 @@
         "magnitude": 2.01,
         "constellation": "Cet",
         "difficulty": "naked_eye",
-        "emoji": "\u2b50",
+        "emoji": "⭐",
         "description": "One of the brightest stars in Cet."
     },
     {
@@ -1636,7 +1636,7 @@
         "magnitude": 4.05,
         "constellation": "Cha",
         "difficulty": "naked_eye",
-        "emoji": "\u2b50",
+        "emoji": "⭐",
         "description": "One of the brightest stars in Cha."
     },
     {
@@ -1652,7 +1652,7 @@
         "magnitude": 4.23,
         "constellation": "Cha",
         "difficulty": "naked_eye",
-        "emoji": "\u2b50",
+        "emoji": "⭐",
         "description": "One of the brightest stars in Cha."
     },
     {
@@ -1668,7 +1668,7 @@
         "magnitude": 3.19,
         "constellation": "Cir",
         "difficulty": "naked_eye",
-        "emoji": "\u2b50",
+        "emoji": "⭐",
         "description": "One of the brightest stars in Cir."
     },
     {
@@ -1684,7 +1684,7 @@
         "magnitude": 4.06,
         "constellation": "Cir",
         "difficulty": "naked_eye",
-        "emoji": "\u2b50",
+        "emoji": "⭐",
         "description": "One of the brightest stars in Cir."
     },
     {
@@ -1700,7 +1700,7 @@
         "magnitude": 4.32,
         "constellation": "Com",
         "difficulty": "naked_eye",
-        "emoji": "\u2b50",
+        "emoji": "⭐",
         "description": "One of the brightest stars in Com."
     },
     {
@@ -1716,7 +1716,7 @@
         "magnitude": 4.25,
         "constellation": "Com",
         "difficulty": "naked_eye",
-        "emoji": "\u2b50",
+        "emoji": "⭐",
         "description": "One of the brightest stars in Com."
     },
     {
@@ -1732,7 +1732,7 @@
         "magnitude": 4.09,
         "constellation": "CrA",
         "difficulty": "naked_eye",
-        "emoji": "\u2b50",
+        "emoji": "⭐",
         "description": "One of the brightest stars in CrA."
     },
     {
@@ -1748,7 +1748,7 @@
         "magnitude": 4.09,
         "constellation": "CrA",
         "difficulty": "naked_eye",
-        "emoji": "\u2b50",
+        "emoji": "⭐",
         "description": "One of the brightest stars in CrA."
     },
     {
@@ -1764,7 +1764,7 @@
         "magnitude": 2.24,
         "constellation": "CrB",
         "difficulty": "naked_eye",
-        "emoji": "\u2b50",
+        "emoji": "⭐",
         "description": "One of the brightest stars in CrB."
     },
     {
@@ -1780,7 +1780,7 @@
         "magnitude": 3.68,
         "constellation": "CrB",
         "difficulty": "naked_eye",
-        "emoji": "\u2b50",
+        "emoji": "⭐",
         "description": "One of the brightest stars in CrB."
     },
     {
@@ -1796,7 +1796,7 @@
         "magnitude": 4.01,
         "constellation": "Crv",
         "difficulty": "naked_eye",
-        "emoji": "\u2b50",
+        "emoji": "⭐",
         "description": "One of the brightest stars in Crv."
     },
     {
@@ -1812,7 +1812,7 @@
         "magnitude": 2.64,
         "constellation": "Crv",
         "difficulty": "naked_eye",
-        "emoji": "\u2b50",
+        "emoji": "⭐",
         "description": "One of the brightest stars in Crv."
     },
     {
@@ -1828,7 +1828,7 @@
         "magnitude": 4.07,
         "constellation": "Crt",
         "difficulty": "naked_eye",
-        "emoji": "\u2b50",
+        "emoji": "⭐",
         "description": "One of the brightest stars in Crt."
     },
     {
@@ -1844,7 +1844,7 @@
         "magnitude": 4.45,
         "constellation": "Crt",
         "difficulty": "naked_eye",
-        "emoji": "\u2b50",
+        "emoji": "⭐",
         "description": "One of the brightest stars in Crt."
     },
     {
@@ -1860,7 +1860,7 @@
         "magnitude": 3.8,
         "constellation": "Del",
         "difficulty": "naked_eye",
-        "emoji": "\u2b50",
+        "emoji": "⭐",
         "description": "One of the brightest stars in Del."
     },
     {
@@ -1876,7 +1876,7 @@
         "magnitude": 3.63,
         "constellation": "Del",
         "difficulty": "naked_eye",
-        "emoji": "\u2b50",
+        "emoji": "⭐",
         "description": "One of the brightest stars in Del."
     },
     {
@@ -1892,7 +1892,7 @@
         "magnitude": 3.28,
         "constellation": "Dor",
         "difficulty": "naked_eye",
-        "emoji": "\u2b50",
+        "emoji": "⭐",
         "description": "One of the brightest stars in Dor."
     },
     {
@@ -1908,7 +1908,7 @@
         "magnitude": 3.76,
         "constellation": "Dor",
         "difficulty": "naked_eye",
-        "emoji": "\u2b50",
+        "emoji": "⭐",
         "description": "One of the brightest stars in Dor."
     },
     {
@@ -1924,7 +1924,7 @@
         "magnitude": 3.68,
         "constellation": "Dra",
         "difficulty": "naked_eye",
-        "emoji": "\u2b50",
+        "emoji": "⭐",
         "description": "One of the brightest stars in Dra."
     },
     {
@@ -1940,7 +1940,7 @@
         "magnitude": 2.81,
         "constellation": "Dra",
         "difficulty": "naked_eye",
-        "emoji": "\u2b50",
+        "emoji": "⭐",
         "description": "One of the brightest stars in Dra."
     },
     {
@@ -1956,7 +1956,7 @@
         "magnitude": 3.93,
         "constellation": "Equ",
         "difficulty": "naked_eye",
-        "emoji": "\u2b50",
+        "emoji": "⭐",
         "description": "One of the brightest stars in Equ."
     },
     {
@@ -1972,7 +1972,7 @@
         "magnitude": 5.15,
         "constellation": "Equ",
         "difficulty": "naked_eye",
-        "emoji": "\u2b50",
+        "emoji": "⭐",
         "description": "One of the brightest stars in Equ."
     },
     {
@@ -1988,7 +1988,7 @@
         "magnitude": 0.46,
         "constellation": "Eri",
         "difficulty": "naked_eye",
-        "emoji": "\u2b50",
+        "emoji": "⭐",
         "description": "One of the brightest stars in Eri."
     },
     {
@@ -2004,7 +2004,7 @@
         "magnitude": 2.79,
         "constellation": "Eri",
         "difficulty": "naked_eye",
-        "emoji": "\u2b50",
+        "emoji": "⭐",
         "description": "One of the brightest stars in Eri."
     },
     {
@@ -2020,7 +2020,7 @@
         "magnitude": 3.98,
         "constellation": "For",
         "difficulty": "naked_eye",
-        "emoji": "\u2b50",
+        "emoji": "⭐",
         "description": "One of the brightest stars in For."
     },
     {
@@ -2036,7 +2036,7 @@
         "magnitude": 4.46,
         "constellation": "For",
         "difficulty": "naked_eye",
-        "emoji": "\u2b50",
+        "emoji": "⭐",
         "description": "One of the brightest stars in For."
     },
     {
@@ -2052,7 +2052,7 @@
         "magnitude": 1.71,
         "constellation": "Gru",
         "difficulty": "naked_eye",
-        "emoji": "\u2b50",
+        "emoji": "⭐",
         "description": "One of the brightest stars in Gru."
     },
     {
@@ -2068,7 +2068,7 @@
         "magnitude": 2.11,
         "constellation": "Gru",
         "difficulty": "naked_eye",
-        "emoji": "\u2b50",
+        "emoji": "⭐",
         "description": "One of the brightest stars in Gru."
     },
     {
@@ -2084,7 +2084,7 @@
         "magnitude": 3.86,
         "constellation": "Hor",
         "difficulty": "naked_eye",
-        "emoji": "\u2b50",
+        "emoji": "⭐",
         "description": "One of the brightest stars in Hor."
     },
     {
@@ -2100,7 +2100,7 @@
         "magnitude": 4.97,
         "constellation": "Hor",
         "difficulty": "naked_eye",
-        "emoji": "\u2b50",
+        "emoji": "⭐",
         "description": "One of the brightest stars in Hor."
     },
     {
@@ -2116,7 +2116,7 @@
         "magnitude": 1.97,
         "constellation": "Hya",
         "difficulty": "naked_eye",
-        "emoji": "\u2b50",
+        "emoji": "⭐",
         "description": "One of the brightest stars in Hya."
     },
     {
@@ -2132,7 +2132,7 @@
         "magnitude": 4.28,
         "constellation": "Hya",
         "difficulty": "naked_eye",
-        "emoji": "\u2b50",
+        "emoji": "⭐",
         "description": "One of the brightest stars in Hya."
     },
     {
@@ -2148,7 +2148,7 @@
         "magnitude": 2.84,
         "constellation": "Hyi",
         "difficulty": "naked_eye",
-        "emoji": "\u2b50",
+        "emoji": "⭐",
         "description": "One of the brightest stars in Hyi."
     },
     {
@@ -2164,7 +2164,7 @@
         "magnitude": 2.79,
         "constellation": "Hyi",
         "difficulty": "naked_eye",
-        "emoji": "\u2b50",
+        "emoji": "⭐",
         "description": "One of the brightest stars in Hyi."
     },
     {
@@ -2180,7 +2180,7 @@
         "magnitude": 3.11,
         "constellation": "Ind",
         "difficulty": "naked_eye",
-        "emoji": "\u2b50",
+        "emoji": "⭐",
         "description": "One of the brightest stars in Ind."
     },
     {
@@ -2196,7 +2196,7 @@
         "magnitude": 3.65,
         "constellation": "Ind",
         "difficulty": "naked_eye",
-        "emoji": "\u2b50",
+        "emoji": "⭐",
         "description": "One of the brightest stars in Ind."
     },
     {
@@ -2212,7 +2212,7 @@
         "magnitude": 3.77,
         "constellation": "Lac",
         "difficulty": "naked_eye",
-        "emoji": "\u2b50",
+        "emoji": "⭐",
         "description": "One of the brightest stars in Lac."
     },
     {
@@ -2228,7 +2228,7 @@
         "magnitude": 4.44,
         "constellation": "Lac",
         "difficulty": "naked_eye",
-        "emoji": "\u2b50",
+        "emoji": "⭐",
         "description": "One of the brightest stars in Lac."
     },
     {
@@ -2244,7 +2244,7 @@
         "magnitude": 2.29,
         "constellation": "Lup",
         "difficulty": "naked_eye",
-        "emoji": "\u2b50",
+        "emoji": "⭐",
         "description": "One of the brightest stars in Lup."
     },
     {
@@ -2260,7 +2260,7 @@
         "magnitude": 2.68,
         "constellation": "Lup",
         "difficulty": "naked_eye",
-        "emoji": "\u2b50",
+        "emoji": "⭐",
         "description": "One of the brightest stars in Lup."
     },
     {
@@ -2276,7 +2276,7 @@
         "magnitude": 5.07,
         "constellation": "Men",
         "difficulty": "naked_eye",
-        "emoji": "\u2b50",
+        "emoji": "⭐",
         "description": "One of the brightest stars in Men."
     },
     {
@@ -2292,7 +2292,7 @@
         "magnitude": 5.29,
         "constellation": "Men",
         "difficulty": "naked_eye",
-        "emoji": "\u2b50",
+        "emoji": "⭐",
         "description": "One of the brightest stars in Men."
     },
     {
@@ -2308,7 +2308,7 @@
         "magnitude": 4.89,
         "constellation": "Mic",
         "difficulty": "naked_eye",
-        "emoji": "\u2b50",
+        "emoji": "⭐",
         "description": "One of the brightest stars in Mic."
     },
     {
@@ -2324,7 +2324,7 @@
         "magnitude": 6.05,
         "constellation": "Mic",
         "difficulty": "binoculars",
-        "emoji": "\u2b50",
+        "emoji": "⭐",
         "description": "One of the brightest stars in Mic."
     },
     {
@@ -2340,7 +2340,7 @@
         "magnitude": 2.65,
         "constellation": "Mus",
         "difficulty": "naked_eye",
-        "emoji": "\u2b50",
+        "emoji": "⭐",
         "description": "One of the brightest stars in Mus."
     },
     {
@@ -2356,7 +2356,7 @@
         "magnitude": null,
         "constellation": "Mus",
         "difficulty": "binoculars",
-        "emoji": "\u2b50",
+        "emoji": "⭐",
         "description": "One of the brightest stars in Mus."
     },
     {
@@ -2372,7 +2372,7 @@
         "magnitude": 5.15,
         "constellation": "Oct",
         "difficulty": "naked_eye",
-        "emoji": "\u2b50",
+        "emoji": "⭐",
         "description": "One of the brightest stars in Oct."
     },
     {
@@ -2388,7 +2388,7 @@
         "magnitude": 4.13,
         "constellation": "Oct",
         "difficulty": "naked_eye",
-        "emoji": "\u2b50",
+        "emoji": "⭐",
         "description": "One of the brightest stars in Oct."
     },
     {
@@ -2404,7 +2404,7 @@
         "magnitude": 2.07,
         "constellation": "Oph",
         "difficulty": "naked_eye",
-        "emoji": "\u2b50",
+        "emoji": "⭐",
         "description": "One of the brightest stars in Oph."
     },
     {
@@ -2420,7 +2420,7 @@
         "magnitude": 2.75,
         "constellation": "Oph",
         "difficulty": "naked_eye",
-        "emoji": "\u2b50",
+        "emoji": "⭐",
         "description": "One of the brightest stars in Oph."
     },
     {
@@ -2436,7 +2436,7 @@
         "magnitude": 1.92,
         "constellation": "Pav",
         "difficulty": "naked_eye",
-        "emoji": "\u2b50",
+        "emoji": "⭐",
         "description": "One of the brightest stars in Pav."
     },
     {
@@ -2452,7 +2452,7 @@
         "magnitude": 3.41,
         "constellation": "Pav",
         "difficulty": "naked_eye",
-        "emoji": "\u2b50",
+        "emoji": "⭐",
         "description": "One of the brightest stars in Pav."
     },
     {
@@ -2468,7 +2468,7 @@
         "magnitude": 2.48,
         "constellation": "Peg",
         "difficulty": "naked_eye",
-        "emoji": "\u2b50",
+        "emoji": "⭐",
         "description": "One of the brightest stars in Peg."
     },
     {
@@ -2484,7 +2484,7 @@
         "magnitude": 2.42,
         "constellation": "Peg",
         "difficulty": "naked_eye",
-        "emoji": "\u2b50",
+        "emoji": "⭐",
         "description": "One of the brightest stars in Peg."
     },
     {
@@ -2500,7 +2500,7 @@
         "magnitude": 2.38,
         "constellation": "Phe",
         "difficulty": "naked_eye",
-        "emoji": "\u2b50",
+        "emoji": "⭐",
         "description": "One of the brightest stars in Phe."
     },
     {
@@ -2516,7 +2516,7 @@
         "magnitude": 3.3,
         "constellation": "Phe",
         "difficulty": "naked_eye",
-        "emoji": "\u2b50",
+        "emoji": "⭐",
         "description": "One of the brightest stars in Phe."
     },
     {
@@ -2532,7 +2532,7 @@
         "magnitude": 3.23,
         "constellation": "Pic",
         "difficulty": "naked_eye",
-        "emoji": "\u2b50",
+        "emoji": "⭐",
         "description": "One of the brightest stars in Pic."
     },
     {
@@ -2548,7 +2548,7 @@
         "magnitude": 3.86,
         "constellation": "Pic",
         "difficulty": "naked_eye",
-        "emoji": "\u2b50",
+        "emoji": "⭐",
         "description": "One of the brightest stars in Pic."
     },
     {
@@ -2564,7 +2564,7 @@
         "magnitude": 1.16,
         "constellation": "PsA",
         "difficulty": "naked_eye",
-        "emoji": "\u2b50",
+        "emoji": "⭐",
         "description": "One of the brightest stars in PsA."
     },
     {
@@ -2580,7 +2580,7 @@
         "magnitude": 4.29,
         "constellation": "PsA",
         "difficulty": "naked_eye",
-        "emoji": "\u2b50",
+        "emoji": "⭐",
         "description": "One of the brightest stars in PsA."
     },
     {
@@ -2596,7 +2596,7 @@
         "magnitude": 3.68,
         "constellation": "Pyx",
         "difficulty": "naked_eye",
-        "emoji": "\u2b50",
+        "emoji": "⭐",
         "description": "One of the brightest stars in Pyx."
     },
     {
@@ -2612,7 +2612,7 @@
         "magnitude": 3.95,
         "constellation": "Pyx",
         "difficulty": "naked_eye",
-        "emoji": "\u2b50",
+        "emoji": "⭐",
         "description": "One of the brightest stars in Pyx."
     },
     {
@@ -2628,7 +2628,7 @@
         "magnitude": 3.36,
         "constellation": "Ret",
         "difficulty": "naked_eye",
-        "emoji": "\u2b50",
+        "emoji": "⭐",
         "description": "One of the brightest stars in Ret."
     },
     {
@@ -2644,7 +2644,7 @@
         "magnitude": 3.83,
         "constellation": "Ret",
         "difficulty": "naked_eye",
-        "emoji": "\u2b50",
+        "emoji": "⭐",
         "description": "One of the brightest stars in Ret."
     },
     {
@@ -2660,7 +2660,7 @@
         "magnitude": 4.38,
         "constellation": "Sge",
         "difficulty": "naked_eye",
-        "emoji": "\u2b50",
+        "emoji": "⭐",
         "description": "One of the brightest stars in Sge."
     },
     {
@@ -2676,7 +2676,7 @@
         "magnitude": 4.38,
         "constellation": "Sge",
         "difficulty": "naked_eye",
-        "emoji": "\u2b50",
+        "emoji": "⭐",
         "description": "One of the brightest stars in Sge."
     },
     {
@@ -2692,7 +2692,7 @@
         "magnitude": 4.27,
         "constellation": "Scl",
         "difficulty": "naked_eye",
-        "emoji": "\u2b50",
+        "emoji": "⭐",
         "description": "One of the brightest stars in Scl."
     },
     {
@@ -2708,7 +2708,7 @@
         "magnitude": 4.37,
         "constellation": "Scl",
         "difficulty": "naked_eye",
-        "emoji": "\u2b50",
+        "emoji": "⭐",
         "description": "One of the brightest stars in Scl."
     },
     {
@@ -2724,7 +2724,7 @@
         "magnitude": 4.49,
         "constellation": "Sex",
         "difficulty": "naked_eye",
-        "emoji": "\u2b50",
+        "emoji": "⭐",
         "description": "One of the brightest stars in Sex."
     },
     {
@@ -2740,7 +2740,7 @@
         "magnitude": 5.1,
         "constellation": "Sex",
         "difficulty": "naked_eye",
-        "emoji": "\u2b50",
+        "emoji": "⭐",
         "description": "One of the brightest stars in Sex."
     },
     {
@@ -2756,7 +2756,7 @@
         "magnitude": 3.46,
         "constellation": "Tel",
         "difficulty": "naked_eye",
-        "emoji": "\u2b50",
+        "emoji": "⭐",
         "description": "One of the brightest stars in Tel."
     },
     {
@@ -2772,7 +2772,7 @@
         "magnitude": 1.88,
         "constellation": "TrA",
         "difficulty": "naked_eye",
-        "emoji": "\u2b50",
+        "emoji": "⭐",
         "description": "One of the brightest stars in TrA."
     },
     {
@@ -2788,7 +2788,7 @@
         "magnitude": 2.85,
         "constellation": "TrA",
         "difficulty": "naked_eye",
-        "emoji": "\u2b50",
+        "emoji": "⭐",
         "description": "One of the brightest stars in TrA."
     },
     {
@@ -2804,7 +2804,7 @@
         "magnitude": 2.82,
         "constellation": "Tuc",
         "difficulty": "naked_eye",
-        "emoji": "\u2b50",
+        "emoji": "⭐",
         "description": "One of the brightest stars in Tuc."
     },
     {
@@ -2820,7 +2820,7 @@
         "magnitude": 3.99,
         "constellation": "Vol",
         "difficulty": "naked_eye",
-        "emoji": "\u2b50",
+        "emoji": "⭐",
         "description": "One of the brightest stars in Vol."
     },
     {
@@ -2836,7 +2836,7 @@
         "magnitude": 3.76,
         "constellation": "Vol",
         "difficulty": "naked_eye",
-        "emoji": "\u2b50",
+        "emoji": "⭐",
         "description": "One of the brightest stars in Vol."
     },
     {
@@ -2852,7 +2852,7 @@
         "magnitude": 10.0,
         "constellation": "CrB",
         "difficulty": "moderate",
-        "emoji": "\ud83d\udd25",
+        "emoji": "🔥",
         "description": "A famous recurring nova that periodically erupts and becomes visible to the naked eye."
     },
     {
@@ -2868,7 +2868,7 @@
         "magnitude": 6.0,
         "constellation": "CrB",
         "difficulty": "moderate",
-        "emoji": "\u2b50",
+        "emoji": "⭐",
         "description": "The prototype of a rare class of unpredictable variable stars that dramatically fade due to carbon dust."
     },
     {
@@ -2884,7 +2884,7 @@
         "magnitude": 8.2,
         "constellation": "Sge",
         "difficulty": "moderate",
-        "emoji": "\u2728",
+        "emoji": "✨",
         "description": "A loose, sparsely populated globular cluster that looks somewhat like a dense open cluster."
     },
     {
@@ -2900,7 +2900,7 @@
         "magnitude": 3.6,
         "constellation": "Vul",
         "difficulty": "naked_eye",
-        "emoji": "\ud83e\udde5",
+        "emoji": "🧥",
         "description": "A fun asterism that looks exactly like an upside-down coat hanger in binoculars."
     },
     {
@@ -2916,12 +2916,12 @@
         "magnitude": 9.8,
         "constellation": "Dra",
         "difficulty": "hard",
-        "emoji": "\ud83d\udc41\ufe0f",
+        "emoji": "👁️",
         "description": "A bright, structurally complex planetary nebula that appears blue-green in telescopes."
     },
     {
         "id": "izar",
-        "name": "Izar (\u03b5 Boo)",
+        "name": "Izar (ε Boo)",
         "type": "Double Star",
         "ra_h": 14,
         "ra_m": 44,
@@ -2932,7 +2932,7 @@
         "magnitude": 2.35,
         "constellation": "Boo",
         "difficulty": "moderate",
-        "emoji": "\ud83d\udd35",
+        "emoji": "🔵",
         "description": "Also known as Pulcherrima ('The Most Beautiful'). A tight, challenging double star requiring good seeing to split the orange and blue pair."
     },
     {
@@ -2948,7 +2948,7 @@
         "magnitude": 6.4,
         "constellation": "Oph",
         "difficulty": "easy",
-        "emoji": "\u2728",
+        "emoji": "✨",
         "description": "A bright, easily resolved globular cluster near the center of Ophiuchus."
     },
     {
@@ -2964,7 +2964,7 @@
         "magnitude": 6.7,
         "constellation": "Oph",
         "difficulty": "moderate",
-        "emoji": "\u2728",
+        "emoji": "✨",
         "description": "A looser, less concentrated globular cluster near M10."
     },
     {
@@ -2980,7 +2980,7 @@
         "magnitude": 6.7,
         "constellation": "Aql",
         "difficulty": "moderate",
-        "emoji": "\u2b50",
+        "emoji": "⭐",
         "description": "A rich, loose open cluster that stands out nicely against the rich Milky Way background."
     },
     {
@@ -2996,7 +2996,327 @@
         "magnitude": 4.27,
         "constellation": "Del",
         "difficulty": "easy",
-        "emoji": "\ud83d\udd35",
+        "emoji": "🔵",
         "description": "A stunning golden-yellow and yellow-green double star easily split at moderate magnification."
+    },
+    {
+        "id": "m43",
+        "name": "De Mairan's Nebula (M43)",
+        "type": "Emission Nebula",
+        "ra_h": 5,
+        "ra_m": 35,
+        "ra_s": 31,
+        "dec_d": -5,
+        "dec_m": 16,
+        "dec_s": 12,
+        "magnitude": 9.0,
+        "constellation": "Ori",
+        "difficulty": "moderate",
+        "emoji": "🌌",
+        "description": "De Mairan's Nebula. A comma-shaped emission nebula physically attached to the Great Orion Nebula, separated by a dark dust lane."
+    },
+    {
+        "id": "m78",
+        "name": "M78 (NGC 2068)",
+        "type": "Reflection Nebula",
+        "ra_h": 5,
+        "ra_m": 46,
+        "ra_s": 47,
+        "dec_d": 0,
+        "dec_m": 3,
+        "dec_s": 53,
+        "magnitude": 8.3,
+        "constellation": "Ori",
+        "difficulty": "moderate",
+        "emoji": "☁️",
+        "description": "The brightest diffuse reflection nebula in the northern sky. Appears as a faint cometary glow with two embedded 10th-magnitude stars."
+    },
+    {
+        "id": "horsehead",
+        "name": "Horsehead Nebula (IC 434 / B33)",
+        "type": "Dark Nebula",
+        "ra_h": 5,
+        "ra_m": 40,
+        "ra_s": 59,
+        "dec_d": -2,
+        "dec_m": 27,
+        "dec_s": 30,
+        "magnitude": 6.8,
+        "constellation": "Ori",
+        "difficulty": "hard",
+        "emoji": "🐴",
+        "description": "Famous dark silhouette against the faint emission nebula IC 434 just south of Alnitak. A classic visual challenge requiring dark skies and an H-beta filter."
+    },
+    {
+        "id": "flame_nebula",
+        "name": "Flame Nebula (NGC 2024)",
+        "type": "Emission Nebula",
+        "ra_h": 5,
+        "ra_m": 41,
+        "ra_s": 54,
+        "dec_d": -1,
+        "dec_m": 51,
+        "dec_s": 0,
+        "magnitude": 7.2,
+        "constellation": "Ori",
+        "difficulty": "moderate",
+        "emoji": "🔥",
+        "description": "Spectacular emission nebula right next to Alnitak. Dark dust lanes bisect the bright gas clouds like flickering flames."
+    },
+    {
+        "id": "running_man",
+        "name": "Running Man Nebula (NGC 1977)",
+        "type": "Reflection Nebula",
+        "ra_h": 5,
+        "ra_m": 35,
+        "ra_s": 15,
+        "dec_d": -4,
+        "dec_m": 52,
+        "dec_s": 2,
+        "magnitude": 7.0,
+        "constellation": "Ori",
+        "difficulty": "moderate",
+        "emoji": "🏃",
+        "description": "Bright reflection nebula complex just half a degree north of M42. Dark dust lanes trace the outline of a running human figure."
+    },
+    {
+        "id": "alnitak",
+        "name": "Alnitak (ζ Ori)",
+        "type": "Triple Star",
+        "ra_h": 5,
+        "ra_m": 40,
+        "ra_s": 46,
+        "dec_d": -1,
+        "dec_m": 56,
+        "dec_s": 34,
+        "magnitude": 1.77,
+        "constellation": "Ori",
+        "difficulty": "naked_eye",
+        "emoji": "✨",
+        "description": "The easternmost star in Orion's Belt. A multiple star system powering the neighboring Flame and Horsehead Nebulae."
+    },
+    {
+        "id": "alnilam",
+        "name": "Alnilam (ε Ori)",
+        "type": "Blue Supergiant",
+        "ra_h": 5,
+        "ra_m": 36,
+        "ra_s": 13,
+        "dec_d": -1,
+        "dec_m": 12,
+        "dec_s": 7,
+        "magnitude": 1.69,
+        "constellation": "Ori",
+        "difficulty": "naked_eye",
+        "emoji": "💎",
+        "description": "The central star of Orion's Belt. A massive blue supergiant star over 500,000 times as luminous as our Sun."
+    },
+    {
+        "id": "mintaka",
+        "name": "Mintaka (δ Ori)",
+        "type": "Multiple Star",
+        "ra_h": 5,
+        "ra_m": 32,
+        "ra_s": 0,
+        "dec_d": 0,
+        "dec_m": 17,
+        "dec_s": 57,
+        "magnitude": 2.23,
+        "constellation": "Ori",
+        "difficulty": "naked_eye",
+        "emoji": "⭐",
+        "description": "The westernmost star in Orion's Belt. Lies almost directly on the celestial equator and features a wide, faint companion easily split in small scopes."
+    },
+    {
+        "id": "bellatrix",
+        "name": "Bellatrix (γ Ori)",
+        "type": "Blue Giant",
+        "ra_h": 5,
+        "ra_m": 25,
+        "ra_s": 8,
+        "dec_d": 6,
+        "dec_m": 20,
+        "dec_s": 59,
+        "magnitude": 1.64,
+        "constellation": "Ori",
+        "difficulty": "naked_eye",
+        "emoji": "🌟",
+        "description": "Orion's left shoulder, known as the 'Amazon Star'. The third-brightest star in the constellation."
+    },
+    {
+        "id": "saiph",
+        "name": "Saiph (κ Ori)",
+        "type": "Blue Supergiant",
+        "ra_h": 5,
+        "ra_m": 47,
+        "ra_s": 45,
+        "dec_d": -9,
+        "dec_m": 40,
+        "dec_s": 11,
+        "magnitude": 2.07,
+        "constellation": "Ori",
+        "difficulty": "naked_eye",
+        "emoji": "🔹",
+        "description": "Orion's right foot. A hot blue supergiant star similar in distance to Rigel."
+    },
+    {
+        "id": "meissa",
+        "name": "Meissa (λ Ori)",
+        "type": "Open Cluster / Star",
+        "ra_h": 5,
+        "ra_m": 35,
+        "ra_s": 8,
+        "dec_d": 9,
+        "dec_m": 56,
+        "dec_s": 3,
+        "magnitude": 3.39,
+        "constellation": "Ori",
+        "difficulty": "easy",
+        "emoji": "👑",
+        "description": "Marks the head of Orion. A bright double star surrounded by a loose, expansive open cluster (Collinder 69) ideal for wide-field binoculars."
+    },
+    {
+        "id": "trapezium",
+        "name": "Trapezium Cluster (θ1 Ori)",
+        "type": "Open Cluster",
+        "ra_h": 5,
+        "ra_m": 35,
+        "ra_s": 16,
+        "dec_d": -5,
+        "dec_m": 23,
+        "dec_s": 23,
+        "magnitude": 4.98,
+        "constellation": "Ori",
+        "difficulty": "easy",
+        "emoji": "💎",
+        "description": "The tight, brilliant stellar nursery embedded at the heart of the Orion Nebula. Four primary stars (A, B, C, D) are easily split with a 3-inch telescope."
+    },
+    {
+        "id": "m32",
+        "name": "M32 (NGC 221)",
+        "type": "Compact Elliptical Galaxy",
+        "ra_h": 0,
+        "ra_m": 42,
+        "ra_s": 41,
+        "dec_d": 40,
+        "dec_m": 51,
+        "dec_s": 55,
+        "magnitude": 8.1,
+        "constellation": "And",
+        "difficulty": "moderate",
+        "emoji": "🌌",
+        "description": "Compact dwarf elliptical satellite galaxy of Andromeda (M31). Appears as a bright, star-like fuzzy core just south of M31's nucleus."
+    },
+    {
+        "id": "m110",
+        "name": "M110 (NGC 205)",
+        "type": "Dwarf Elliptical Galaxy",
+        "ra_h": 0,
+        "ra_m": 40,
+        "ra_s": 22,
+        "dec_d": 41,
+        "dec_m": 41,
+        "dec_s": 7,
+        "magnitude": 8.9,
+        "constellation": "And",
+        "difficulty": "moderate",
+        "emoji": "🌌",
+        "description": "The second bright satellite galaxy of Andromeda (M31). Larger and fainter than M32, elongated oval shape NW of Andromeda's core."
+    },
+    {
+        "id": "rosette",
+        "name": "Rosette Nebula (NGC 2237)",
+        "type": "Emission Nebula / Cluster",
+        "ra_h": 6,
+        "ra_m": 31,
+        "ra_s": 55,
+        "dec_d": 4,
+        "dec_m": 56,
+        "dec_s": 30,
+        "magnitude": 9.0,
+        "constellation": "Mon",
+        "difficulty": "moderate",
+        "emoji": "🌹",
+        "description": "A vast rose-shaped interstellar dust and gas cloud surrounding open cluster NGC 2244 in Monoceros. Best seen with an OIII or UHC filter under dark skies."
+    },
+    {
+        "id": "m64",
+        "name": "Black Eye Galaxy (M64)",
+        "type": "Spiral Galaxy",
+        "ra_h": 12,
+        "ra_m": 56,
+        "ra_s": 43,
+        "dec_d": 21,
+        "dec_m": 40,
+        "dec_s": 58,
+        "magnitude": 8.5,
+        "constellation": "Com",
+        "difficulty": "moderate",
+        "emoji": "👁️",
+        "description": "Famous spiral galaxy with a prominent dark dust band obscuring one side of its bright nucleus, resembling a bruised 'black eye'."
+    },
+    {
+        "id": "m97",
+        "name": "Owl Nebula (M97)",
+        "type": "Planetary Nebula",
+        "ra_h": 11,
+        "ra_m": 14,
+        "ra_s": 47,
+        "dec_d": 55,
+        "dec_m": 1,
+        "dec_s": 8,
+        "magnitude": 9.9,
+        "constellation": "UMa",
+        "difficulty": "moderate",
+        "emoji": "🦉",
+        "description": "Large planetary nebula in Ursa Major. Two dark circular dust voids in its spherical disk resemble the eyes of an owl."
+    },
+    {
+        "id": "m15",
+        "name": "M15 (NGC 7078)",
+        "type": "Globular Cluster",
+        "ra_h": 21,
+        "ra_m": 29,
+        "ra_s": 58,
+        "dec_d": 12,
+        "dec_m": 10,
+        "dec_s": 3,
+        "magnitude": 6.2,
+        "constellation": "Peg",
+        "difficulty": "easy",
+        "emoji": "✨",
+        "description": "One of the densest globular clusters in the Milky Way, located in Pegasus. Features a hyper-dense collapsed core easily resolved with small scopes."
+    },
+    {
+        "id": "m67",
+        "name": "King Cobra Cluster (M67)",
+        "type": "Open Cluster",
+        "ra_h": 8,
+        "ra_m": 51,
+        "ra_s": 18,
+        "dec_d": 11,
+        "dec_m": 48,
+        "dec_s": 0,
+        "magnitude": 6.1,
+        "constellation": "Cnc",
+        "difficulty": "easy",
+        "emoji": "🐍",
+        "description": "One of the oldest known open clusters in our galaxy (~4 billion years). Rich, scattered field of around 500 stars in Cancer."
+    },
+    {
+        "id": "veil_nebula",
+        "name": "Veil Nebula (NGC 6960 / NGC 6992)",
+        "type": "Supernova Remnant",
+        "ra_h": 20,
+        "ra_m": 45,
+        "ra_s": 38,
+        "dec_d": 30,
+        "dec_m": 42,
+        "dec_s": 30,
+        "magnitude": 7.0,
+        "constellation": "Cyg",
+        "difficulty": "moderate",
+        "emoji": "🕸️",
+        "description": "Vast, delicate filamentous supernova remnant loop in Cygnus. Incredible view through an OIII filter."
     }
 ]

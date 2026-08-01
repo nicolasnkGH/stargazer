@@ -10,6 +10,18 @@ import json
 # --- StarGazer Configuration ---
 LATITUDE = float(os.getenv("LATITUDE", "40.0638"))
 LONGITUDE = float(os.getenv("LONGITUDE", "-83.0457"))
+TELESCOPE_APERTURE_MM = int(os.getenv("TELESCOPE_APERTURE_MM", "130"))
+ELEVATION_M = int(os.getenv("ELEVATION_M", "250"))
+TIMEZONE = os.getenv("OBSERVER_TIMEZONE", "America/New_York")
+
+# Telescope defaults (can be overridden by environment variables)
+TELESCOPE_FOCAL_MM = int(os.getenv("TELESCOPE_FOCAL_MM", "650"))
+LIMITING_MAG = float(os.getenv("LIMITING_MAG", "12.5"))  # visual limiting magnitude
+
+# Horizon constraints
+# Objects below this altitude are generally blocked by local obstacles or atmosphere
+MIN_ALTITUDE_DEG = int(os.getenv("MIN_ALTITUDE_DEG", "15"))
+
 _BORTLE_OVERRIDE = os.getenv("BORTLE_CLASS")
 if _BORTLE_OVERRIDE is not None:
     BORTLE_CLASS = int(_BORTLE_OVERRIDE)
@@ -17,9 +29,6 @@ else:
     # Lazy import to avoid circular dependency with engine/__init__.py
     from engine.bortle import get_bortle_class
     BORTLE_CLASS = get_bortle_class(float(LATITUDE), float(LONGITUDE))
-TELESCOPE_APERTURE_MM = int(os.getenv("TELESCOPE_APERTURE_MM", "130"))
-ELEVATION_M = int(os.getenv("ELEVATION_M", "250"))
-TIMEZONE = os.getenv("OBSERVER_TIMEZONE", "America/New_York")
 
 # Network
 FRONTEND_URL = os.getenv("FRONTEND_URL", "http://localhost:8181")
@@ -37,14 +46,6 @@ LOCAL_AI_URL        = os.getenv("LOCAL_AI_URL", "")   # e.g. http://10.27.27.145
 LOCAL_AI_MODEL      = os.getenv("LOCAL_AI_MODEL", "") # e.g. /models/Qwen3.5-9B-Q5_K_M.gguf
 AI_TIMEOUT          = int(os.getenv("AI_TIMEOUT", "60"))     # seconds — per-API timeout, fall back to rule-based on timeout
 
-
-# Telescope defaults (can be overridden by environment variables)
-TELESCOPE_FOCAL_MM = int(os.getenv("TELESCOPE_FOCAL_MM", "650"))
-LIMITING_MAG = float(os.getenv("LIMITING_MAG", "12.5"))  # visual limiting magnitude
-
-# Horizon constraints
-# Objects below this altitude are generally blocked by local obstacles or atmosphere
-MIN_ALTITUDE_DEG = int(os.getenv("MIN_ALTITUDE_DEG", "15"))
 
 # Target Database
 # Example curated targets for amateur telescopes
