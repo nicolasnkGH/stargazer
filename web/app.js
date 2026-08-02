@@ -2912,6 +2912,19 @@ function initLocationUI() {
       maxAz = parseFloat(inputPorchMax.value) || 360;
     }
     
+    // Validate porch mode azimuths
+    if (porchMode) {
+      if (isNaN(minAz) || isNaN(maxAz)) {
+        return alert('Invalid azimuth range. Please enter valid numbers for Min and Max Azimuth.');
+      }
+      if (minAz < 0 || minAz > 360 || maxAz < 0 || maxAz > 360) {
+        return alert('Azimuth values must be between 0 and 360 degrees.');
+      }
+      if (minAz > maxAz) {
+        return alert('Min Azimuth cannot be greater than Max Azimuth.');
+      }
+    }
+    
     const newLoc = { id: 'loc_' + Date.now(), name, lat, lon, porchMode, minAz, maxAz };
     savedLocations.push(newLoc);
     localStorage.setItem('stargazer_locations', JSON.stringify(savedLocations));
