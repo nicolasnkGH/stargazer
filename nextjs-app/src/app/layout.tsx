@@ -21,6 +21,7 @@ const spaceMono = Space_Mono({
 });
 
 export const metadata: Metadata = {
+  metadataBase: new URL("https://stargazer.nick-t.net"),
   title: "StarGazer — Observatory Dashboard",
   description: "Personal stargazing dashboard. Celestron StarSense Explorer 5\" DX. Scorpius targets, planet tracker, ISS alerts, and nightly conditions.",
   openGraph: {
@@ -28,14 +29,12 @@ export const metadata: Metadata = {
     url: "https://stargazer.nick-t.net/",
     title: "StarGazer — Observatory Dashboard",
     description: "Personal stargazing dashboard — nightly sky conditions, planet tracker, ISS alerts, and target database for amateur astronomers.",
-    images: ["https://stargazer.nick-t.net/og-preview.png"],
     siteName: "StarGazer",
   },
   twitter: {
     card: "summary_large_image",
     title: "StarGazer — Observatory Dashboard",
     description: "Nightly sky conditions, planet monitor, ISS alerts, and target database for amateur astronomers.",
-    images: ["https://stargazer.nick-t.net/og-preview.png"],
   },
   appleWebApp: {
     capable: true,
