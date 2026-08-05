@@ -7,3 +7,4 @@ export * from "./sky-motion";
 export * from "./observation-log";
 export * from "./solar-system";
 export * from "./card-row";
+export * from "./i18n";

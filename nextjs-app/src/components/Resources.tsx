@@ -1,12 +1,15 @@
 import { ExternalLink } from "lucide-react";
+import { getTranslations } from "next-intl/server";
 import { RESOURCES } from "@/lib/constants";
 
-export default function Resources() {
+export default async function Resources() {
+  const t = await getTranslations();
+
   return (
     <section className="card w-full">
       <div className="card-header">
         <ExternalLink className="h-5 w-5 text-sky-400" strokeWidth={1.6} />
-        <h2>Resources</h2>
+        <h2>{t("card_resources")}</h2>
       </div>
       <div className="card-body">
 

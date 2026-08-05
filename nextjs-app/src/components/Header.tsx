@@ -2,15 +2,24 @@
 
 import { useState, useEffect, useRef } from "react";
 import useSWR from "swr";
+import { useLocale, useTranslations } from "next-intl";
 import { Telescope, MapPin, Info, Menu } from "lucide-react";
-import { HEALTH_POLL_INTERVAL_MS, NAV_LINKS, LANG_OPTIONS } from "@/lib/constants";
+import { HEALTH_POLL_INTERVAL_MS, NAV_LINKS, LANG_OPTIONS, LOCALE_COOKIE } from "@/lib/constants";
+import type { Locale } from "@/types";
 
 const healthFetcher = (url: string) => fetch(url).then((r) => {
   if (!r.ok) throw new Error(`HTTP ${r.status}`);
   return r.json();
 });
 
+function setLocale(locale: Locale) {
+  document.cookie = `${LOCALE_COOKIE}=${locale}; path=/; max-age=31536000`;
+  window.location.reload();
+}
+
 export default function Header() {
+  const t = useTranslations();
+  const locale = useLocale();
   const [menuOpen, setMenuOpen] = useState(false);
   const { data: health, error: healthError } = useSWR<{ status: string }>("/api/health", healthFetcher, {
     refreshInterval: HEALTH_POLL_INTERVAL_MS,
@@ -70,10 +79,10 @@ export default function Header() {
               StarGazer
             </span>
             <span className="text-[0.75rem] text-sky-400/80 transition-opacity hover:opacity-100 hover:underline cursor-pointer">
-              Astronomy made simple.
+              {t("app_slogan")}
             </span>
             <div className="mt-2 flex flex-col items-start gap-0.5">
-              <span className="text-[0.7rem] font-semibold text-zinc-400">Loading location...</span>
+              <span className="text-[0.7rem] font-semibold text-zinc-400">{t("loading_loc")}</span>
               <span className="font-mono text-[0.75rem] text-zinc-500/60 tracking-widest">Lat: --, Lon: --</span>
             </div>
           </div>
@@ -123,8 +132,11 @@ export default function Header() {
               °C / km
             </button>
 
-            <select className="hidden rounded-lg border border-white/10 bg-slate-900/50 py-1 pl-3 pr-8 text-sm text-zinc-200 outline-none hover:border-white/30 md:block"
+            <select
+              className="hidden rounded-lg border border-white/10 bg-slate-900/50 py-1 pl-3 pr-8 text-sm text-zinc-200 outline-none hover:border-white/30 md:block"
               style={{ fontFamily: "'Space Grotesk', system-ui, sans-serif" }}
+              value={locale}
+              onChange={(e) => setLocale(e.target.value as Locale)}
             >
               {LANG_OPTIONS.map((opt) => (
                 <option key={opt.value} value={opt.value}>{opt.label}</option>
@@ -133,7 +145,7 @@ export default function Header() {
 
             <button
               className="flex h-9 w-9 items-center justify-center rounded-lg border border-white/10 bg-white/5 text-zinc-200 transition hover:bg-purple-600/20 hover:border-purple-500/50"
-              title="About StarGazer"
+              title={t("about_title")}
             >
               <Info className="h-4 w-4" strokeWidth={1.5} />
             </button>
@@ -155,8 +167,11 @@ export default function Header() {
                   <div className="mb-2 block border-b border-white/10 pb-2 font-mono text-[0.8rem] text-slate-400 md:hidden">
                     <div className="text-zinc-200">{currentTime}</div>
                     <div className="mt-1">{currentDate}</div>
-                    <select className="mt-2 w-full rounded border border-white/10 bg-slate-900/50 py-1 pl-3 pr-8 text-sm text-zinc-200"
+                    <select
+                      className="mt-2 w-full rounded border border-white/10 bg-slate-900/50 py-1 pl-3 pr-8 text-sm text-zinc-200"
                       style={{ fontFamily: "'Space Grotesk', system-ui, sans-serif" }}
+                      value={locale}
+                      onChange={(e) => setLocale(e.target.value as Locale)}
                     >
                       {LANG_OPTIONS.map((opt) => (
                         <option key={opt.value} value={opt.value}>{opt.label}</option>
@@ -171,7 +186,7 @@ export default function Header() {
                       className="block rounded px-4 py-2.5 text-[0.9rem] text-zinc-200 transition hover:bg-purple-600/20 hover:text-white"
                       onClick={() => setMenuOpen(false)}
                     >
-                      {link.label}
+                      {t(link.key)}
                     </a>
                   ))}
                 </div>

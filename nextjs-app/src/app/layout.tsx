@@ -1,5 +1,7 @@
 import type { Metadata } from "next";
 import { Space_Grotesk, Space_Mono } from "next/font/google";
+import { NextIntlClientProvider } from "next-intl";
+import { getLocale } from "next-intl/server";
 import "./globals.css";
 import Header from "@/components/Header";
 
@@ -35,19 +37,23 @@ export const metadata: Metadata = {
   },
 };
 
-export default function RootLayout({
+export default async function RootLayout({
   children,
 }: Readonly<{
   children: React.ReactNode;
 }>) {
+  const locale = await getLocale();
+
   return (
     <html
-      lang="en"
+      lang={locale}
       className={`${spaceGrotesk.variable} ${spaceMono.variable} h-full antialiased`}
     >
       <body className="min-h-screen flex flex-col">
-        <Header />
-        <main className="flex flex-1 w-full flex-col items-center">{children}</main>
+        <NextIntlClientProvider>
+          <Header />
+          <main className="flex flex-1 w-full flex-col items-center">{children}</main>
+        </NextIntlClientProvider>
       </body>
     </html>
   );
