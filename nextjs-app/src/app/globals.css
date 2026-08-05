@@ -1,0 +1,410 @@
+@import "tailwindcss";
+
+@theme inline {
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --font-sans: var(--font-space-grotesk);
+  --font-mono: var(--font-space-mono);
+}
+
+/* ── StarGazer Design Tokens — ported from original style.css ─────────── */
+
+:root {
+  /* Backgrounds — deep midnight navy / astronomy console */
+  --bg-void:        #050510;
+  --bg-deep:        #08091a;
+  --bg-card:        rgba(2, 6, 23, 0.40);
+  --bg-card-hover:  rgba(2, 6, 23, 0.65);
+  --bg-glass:       rgba(15, 23, 42, 0.35);
+
+  /* Borders — subtle midnight blue */
+  --border:         rgba(100, 120, 220, 0.14);
+  --border-glow:    rgba(120, 160, 255, 0.30);
+  --border-hover:   rgba(148, 163, 220, 0.28);
+
+  /* Accent palette */
+  --accent-blue:    #4a9eff;
+  --accent-purple:  #a855f7;
+  --accent-gold:    #f59e0b;
+  --accent-teal:    #14b8a6;
+  --accent-red:     #ef4444;
+  --accent-green:   #22c55e;
+
+  /* Text */
+  --text-primary:   #e8ecff;
+  --text-secondary: #8892b0;
+  --text-muted:     #4a5568;
+  --text-accent:    #a0c4ff;
+
+  /* Shape */
+  --radius:    16px;
+  --radius-sm: 10px;
+
+  /* Shadows & glows */
+  --shadow-card:   0 4px 40px rgba(0, 0, 50, 0.55), 0 1px 0 rgba(100, 140, 255, 0.08) inset;
+  --glow-blue:     0 0 30px rgba(74, 158, 255, 0.14);
+  --glow-hover:    0 0 32px rgba(74, 158, 255, 0.22), 0 4px 40px rgba(0,0,50,0.55);
+
+  /* Color scheme */
+  --background: #050510;
+  --foreground: #e8ecff;
+}
+
+/* ── Cards — translucent dark-slate glass (original design) ───────────── */
+
+.card {
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  box-shadow: var(--shadow-card);
+  overflow: hidden;
+  transition: box-shadow 0.28s ease, border-color 0.28s ease;
+  will-change: box-shadow;
+  width: 100%;
+}
+
+.card:hover {
+  border-color: var(--border-hover);
+  box-shadow: var(--glow-hover);
+}
+
+.card-header {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-wrap: wrap;
+  padding: 14px 20px;
+  border-bottom: 1px solid rgba(100, 120, 220, 0.10);
+  background: rgba(15, 23, 42, 0.25);
+}
+
+.card-header h2 {
+  font-size: 0.92rem;
+  font-weight: 600;
+  color: var(--text-primary);
+  letter-spacing: 0.03em;
+}
+
+.card-body {
+  padding: 20px;
+}
+
+/* ── Float animation ──────────────────────────────────────────────────── */
+
+@keyframes float {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-4px); }
+}
+
+.animate-float {
+  animation: float 4s ease-in-out infinite;
+}
+
+/* ── Hero section ─────────────────────────────────────────────────────── */
+
+#hero-section {
+  position: relative;
+  min-height: 60vh;
+  min-width: 100%;
+  overflow: hidden;
+  background: radial-gradient(ellipse at 50% 50%, #0a0a2e 0%, var(--bg-void) 70%);
+}
+
+#hero-section::after {
+  content: "";
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  height: 120px;
+  background: linear-gradient(to bottom, transparent, var(--background));
+  pointer-events: none;
+  z-index: 5;
+}
+
+/* ── Glass card overlay ───────────────────────────────────────────────── */
+
+.hero-glass-card {
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  background: rgba(10, 10, 40, 0.55);
+  border: 1px solid rgba(100, 140, 255, 0.18);
+  border-radius: 1rem;
+  box-shadow:
+    0 8px 32px rgba(0, 0, 0, 0.5),
+    inset 0 1px 0 rgba(255, 255, 255, 0.05);
+  padding: 2rem 2.5rem;
+  text-align: center;
+  animation: heroCardEntrance 0.8s ease-out both;
+  max-width: 28rem;
+}
+
+@keyframes heroCardEntrance {
+  from {
+    opacity: 0;
+    transform: translateY(20px) scale(0.97);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+/* ── Eyebrow ──────────────────────────────────────────────────────────── */
+
+.hero-eyebrow {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  font-size: 0.8rem;
+  color: rgba(180, 200, 255, 0.7);
+  letter-spacing: 0.05em;
+  margin-bottom: 0.75rem;
+  animation: heroFadeIn 0.6s ease-out 0.2s both;
+}
+
+.hero-pulse-dot {
+  display: inline-block;
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: #4ade80;
+  box-shadow: 0 0 8px rgba(74, 222, 128, 0.6);
+  animation: pulse 2s ease-in-out infinite;
+}
+
+@keyframes pulse {
+  0%, 100% { opacity: 1; transform: scale(1); }
+  50% { opacity: 0.6; transform: scale(0.85); }
+}
+
+/* ── Title ────────────────────────────────────────────────────────────── */
+
+.hero-title {
+  font-size: 2.5rem;
+  font-weight: 700;
+  line-height: 1.1;
+  margin: 0 0 0.5rem;
+  background: linear-gradient(135deg, #ffffff 0%, #818cf8 50%, #38bdf8 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+  filter: drop-shadow(0 2px 8px rgba(99, 102, 241, 0.3));
+  animation: heroFadeIn 0.6s ease-out 0.35s both;
+}
+
+/* ── Subtitle ─────────────────────────────────────────────────────────── */
+
+.hero-subtitle {
+  font-size: 1.1rem;
+  color: rgba(200, 210, 240, 0.7);
+  margin: 0 0 1.5rem;
+  animation: heroFadeIn 0.6s ease-out 0.5s both;
+}
+
+/* ── Stats ────────────────────────────────────────────────────────────── */
+
+.hero-stats {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 1.5rem;
+  padding: 0.75rem 0;
+  margin-bottom: 1.25rem;
+  border-top: 1px solid rgba(100, 140, 255, 0.1);
+  border-bottom: 1px solid rgba(100, 140, 255, 0.1);
+  animation: heroFadeIn 0.6s ease-out 0.65s both;
+}
+
+.hero-stat {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.2rem;
+}
+
+.hero-stat-label {
+  font-size: 0.7rem;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: rgba(160, 180, 220, 0.6);
+}
+
+.hero-stat-value {
+  font-size: 1.1rem;
+  font-weight: 600;
+  color: rgba(220, 230, 255, 0.9);
+  font-family: var(--font-mono, monospace);
+}
+
+.hero-stat-divider {
+  width: 1px;
+  height: 32px;
+  background: rgba(100, 140, 255, 0.15);
+}
+
+/* ── Badges ───────────────────────────────────────────────────────────── */
+
+.hero-badges {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  flex-wrap: wrap;
+  animation: heroFadeIn 0.6s ease-out 0.8s both;
+}
+
+.hero-badge {
+  display: inline-flex;
+  align-items: center;
+  padding: 0.3rem 0.7rem;
+  border-radius: 9999px;
+  font-size: 0.75rem;
+  letter-spacing: 0.02em;
+  text-decoration: none;
+  transition: background 0.2s;
+}
+
+.hero-badge-version {
+  background: rgba(99, 102, 241, 0.2);
+  color: rgba(165, 180, 252, 0.9);
+  border: 1px solid rgba(99, 102, 241, 0.25);
+}
+
+.hero-badge-link {
+  background: rgba(255, 255, 255, 0.05);
+  color: rgba(200, 210, 240, 0.7);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+.hero-badge-link:hover {
+  background: rgba(255, 255, 255, 0.1);
+  color: rgba(220, 230, 255, 0.9);
+}
+
+/* ── Planet labels ────────────────────────────────────────────────────── */
+
+.hero-planet-label {
+  position: absolute;
+  transform: translate(-50%, -50%);
+  font-size: 0.7rem;
+  font-weight: 500;
+  color: rgba(200, 215, 255, 0.85);
+  text-shadow: 0 0 6px rgba(0, 0, 0, 0.8), 0 0 12px rgba(50, 80, 180, 0.4);
+  pointer-events: none;
+  white-space: nowrap;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+
+/* ── Bottom fade ──────────────────────────────────────────────────────── */
+
+.hero-fade {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  height: 120px;
+  background: linear-gradient(to bottom, transparent, var(--background));
+  pointer-events: none;
+  z-index: 5;
+}
+
+/* ── Shared animation ─────────────────────────────────────────────────── */
+
+@keyframes heroFadeIn {
+  from { opacity: 0; transform: translateY(8px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+/* ── Go/No-Go Banner ──────────────────────────────────────────────────── */
+
+.banner-go {
+  border-color: rgba(34, 197, 94, 0.30);
+  background: rgba(34, 197, 94, 0.08);
+}
+
+.banner-nogo {
+  border-color: rgba(239, 68, 68, 0.30);
+  background: rgba(239, 68, 68, 0.08);
+}
+
+.banner-marginal {
+  border-color: rgba(245, 158, 11, 0.30);
+  background: rgba(245, 158, 11, 0.08);
+}
+
+/* ── Scrollbar ────────────────────────────────────────────────────────── */
+
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+::-webkit-scrollbar-track {
+  background: rgba(0, 0, 0, 0.2);
+}
+::-webkit-scrollbar-thumb {
+  background: rgba(100, 120, 220, 0.25);
+  border-radius: 3px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: rgba(100, 120, 220, 0.4);
+}
+
+/* ── Responsive ───────────────────────────────────────────────────────── */
+
+@media (max-width: 640px) {
+  #hero-section {
+    min-height: 50vh;
+  }
+
+  .hero-glass-card {
+    padding: 1.5rem;
+    margin: 0 1rem;
+  }
+
+  .hero-title {
+    font-size: 1.8rem;
+  }
+
+  .hero-subtitle {
+    font-size: 0.95rem;
+  }
+
+  .hero-stats {
+    gap: 1rem;
+  }
+
+  .hero-stat-value {
+    font-size: 0.95rem;
+  }
+
+  .hero-badges {
+    flex-direction: column;
+    gap: 0.4rem;
+  }
+}
+
+/* ── Reduced motion ───────────────────────────────────────────────────── */
+
+@media (prefers-reduced-motion: reduce) {
+  .hero-glass-card,
+  .hero-eyebrow,
+  .hero-title,
+  .hero-subtitle,
+  .hero-stats,
+  .hero-badges,
+  .hero-pulse-dot {
+    animation: none !important;
+    opacity: 1 !important;
+  }
+}
+
+body {
+  background: var(--background);
+  color: var(--foreground);
+  font-family: 'Space Grotesk', system-ui, sans-serif;
+}
