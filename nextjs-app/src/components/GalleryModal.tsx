@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { User } from "lucide-react";
+import { User, Flag } from "lucide-react";
 import Modal from "./Modal";
 import { API_BASE } from "@/lib/constants";
 import { compressImage } from "@/lib/compress-image";
@@ -29,6 +29,8 @@ export default function GalleryModal({ targetId, targetName, open, onClose }: Ga
   const [entries, setEntries] = useState<GalleryEntry[]>([]);
   const [loading, setLoading] = useState(true);
   const [loadError, setLoadError] = useState(false);
+  const [reportedIds, setReportedIds] = useState<Set<number>>(new Set());
+  const [reportNotice, setReportNotice] = useState<string | null>(null);
 
   const [form, setForm] = useState(EMPTY_FORM);
   const [preview, setPreview] = useState<string | null>(null);
@@ -46,6 +48,8 @@ export default function GalleryModal({ targetId, targetName, open, onClose }: Ga
     setPreview(null);
     setUploadError(null);
     setUploadNotice(null);
+    setReportedIds(new Set());
+    setReportNotice(null);
     setLoading(true);
     setLoadError(false);
 
@@ -54,6 +58,19 @@ export default function GalleryModal({ targetId, targetName, open, onClose }: Ga
       .catch(() => setLoadError(true))
       .finally(() => setLoading(false));
   }, [open, targetId]);
+
+  async function handleReport(id: number) {
+    if (!window.confirm("Report this image? It will be hidden pending admin review.")) return;
+    setReportNotice(null);
+    try {
+      const res = await fetch(`${API_BASE}/gallery/image/${id}/report`, { method: "POST" });
+      if (!res.ok) throw new Error();
+      setReportedIds((prev) => new Set(prev).add(id));
+      setReportNotice("Image reported and hidden successfully.");
+    } catch {
+      setReportNotice("Failed to report image.");
+    }
+  }
 
   async function handleFileChange(e: React.ChangeEvent<HTMLInputElement>) {
     const file = e.target.files?.[0];
@@ -151,38 +168,52 @@ export default function GalleryModal({ targetId, targetName, open, onClose }: Ga
 
       {tab === "view" && (
         <div className="flex flex-col gap-4 max-h-[380px] overflow-y-auto">
+          {reportNotice && <p className="text-xs text-zinc-400">{reportNotice}</p>}
           {loading && <p className="py-6 text-center text-sm text-zinc-400">Loading shared images...</p>}
           {loadError && <p className="py-6 text-center text-sm text-red-400">Failed to load shared images.</p>}
-          {!loading && !loadError && entries.length === 0 && (
+          {!loading && !loadError && entries.filter((e) => !reportedIds.has(e.id)).length === 0 && (
             <p className="py-6 text-center text-sm text-zinc-400">
               No photos shared for this object yet. Be the first to share!
             </p>
           )}
-          {entries.map((entry) => (
-            <div key={entry.id} className="rounded-lg border border-white/5 bg-white/[0.02] p-3 flex flex-col gap-2">
-              <div className="flex max-h-[250px] items-center justify-center overflow-hidden rounded-md bg-black">
-                {/* eslint-disable-next-line @next/next/no-img-element */}
-                <img
-                  src={`${API_BASE}/gallery/image/${entry.id}`}
-                  alt={entry.target_name}
-                  className="max-h-[250px] max-w-full object-contain"
-                />
+          {entries
+            .filter((entry) => !reportedIds.has(entry.id))
+            .map((entry) => (
+              <div
+                key={entry.id}
+                className="relative rounded-lg border border-white/5 bg-white/[0.02] p-3 flex flex-col gap-2"
+              >
+                <button
+                  onClick={() => handleReport(entry.id)}
+                  title="Report this image"
+                  className="absolute top-2.5 right-2.5 z-10 rounded border border-red-500/40 bg-red-500/20 px-1.5 py-0.5 text-[0.65rem] text-red-300 hover:bg-red-500/30 transition-colors flex items-center gap-1"
+                >
+                  <Flag className="h-2.5 w-2.5" strokeWidth={1.5} />
+                  Report
+                </button>
+                <div className="flex max-h-[250px] items-center justify-center overflow-hidden rounded-md bg-black">
+                  {/* eslint-disable-next-line @next/next/no-img-element */}
+                  <img
+                    src={`${API_BASE}/gallery/image/${entry.id}`}
+                    alt={entry.target_name}
+                    className="max-h-[250px] max-w-full object-contain"
+                  />
+                </div>
+                <div className="flex items-center gap-1.5 text-sm font-semibold text-zinc-100">
+                  <User className="h-3.5 w-3.5 text-zinc-400" strokeWidth={1.5} />
+                  Shared by: {entry.author}
+                </div>
+                <div className="flex flex-col gap-0.5 text-xs text-zinc-400">
+                  <span>📍 Location: {entry.location}</span>
+                  <span>🔭 Gear Used: {entry.gear}</span>
+                  {entry.note && <span>📝 Note: {entry.note}</span>}
+                  <span>📅 Date: {entry.created_at}</span>
+                </div>
+                <div className="rounded-md border border-white/5 bg-black/20 p-2 text-xs text-zinc-300">
+                  <strong>💬 Comment:</strong> {entry.comment}
+                </div>
               </div>
-              <div className="flex items-center gap-1.5 text-sm font-semibold text-zinc-100">
-                <User className="h-3.5 w-3.5 text-zinc-400" strokeWidth={1.5} />
-                Shared by: {entry.author}
-              </div>
-              <div className="flex flex-col gap-0.5 text-xs text-zinc-400">
-                <span>📍 Location: {entry.location}</span>
-                <span>🔭 Gear Used: {entry.gear}</span>
-                {entry.note && <span>📝 Note: {entry.note}</span>}
-                <span>📅 Date: {entry.created_at}</span>
-              </div>
-              <div className="rounded-md border border-white/5 bg-black/20 p-2 text-xs text-zinc-300">
-                <strong>💬 Comment:</strong> {entry.comment}
-              </div>
-            </div>
-          ))}
+            ))}
         </div>
       )}
 
