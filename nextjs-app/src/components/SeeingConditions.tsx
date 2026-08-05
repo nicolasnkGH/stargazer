@@ -34,7 +34,7 @@ function SeeingBadge({ score }: { score: number }) {
   );
 }
 
-function PreflightChecklist({ seeing }: { seeing: SeeingData }) {
+function PreflightChecklist() {
   const [checked, setChecked] = useState<Record<string, boolean>>({});
 
   const checks = [
@@ -174,7 +174,7 @@ export default function SeeingConditions({ seeing: initialSeeing }: { seeing: Se
         </div>
       )}
 
-      <PreflightChecklist seeing={seeing} />
+      <PreflightChecklist />
     </div>
   );
 }

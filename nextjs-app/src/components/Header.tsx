@@ -3,9 +3,17 @@
 import { useState, useEffect, useRef } from "react";
 import useSWR from "swr";
 import { useLocale, useTranslations } from "next-intl";
-import { Telescope, MapPin, Info, Menu, Flashlight } from "lucide-react";
-import { HEALTH_POLL_INTERVAL_MS, NAV_LINKS, LANG_OPTIONS, LOCALE_COOKIE } from "@/lib/constants";
+import { Telescope, Info, Menu, Flashlight } from "lucide-react";
+import {
+  HEALTH_POLL_INTERVAL_MS,
+  NAV_LINKS,
+  LANG_OPTIONS,
+  LOCALE_COOKIE,
+  UNITS_STORAGE_KEY,
+  STARGAZER_REPO_URL,
+} from "@/lib/constants";
 import type { Locale } from "@/types";
+import Modal from "./Modal";
 
 const healthFetcher = (url: string) => fetch(url).then((r) => {
   if (!r.ok) throw new Error(`HTTP ${r.status}`);
@@ -30,7 +38,22 @@ export default function Header() {
   const [currentTime, setCurrentTime] = useState("--:-- --");
   const [currentDate, setCurrentDate] = useState("Loading...");
   const [nightMode, setNightMode] = useState(false);
+  const [isMetric, setIsMetric] = useState(true);
+  const [aboutOpen, setAboutOpen] = useState(false);
   const menuRef = useRef<HTMLDivElement>(null);
+
+  // Hydrate the unit system from localStorage — can't be a lazy useState initializer
+  // without a hydration mismatch, since localStorage doesn't exist during SSR.
+  useEffect(() => {
+    // eslint-disable-next-line react-hooks/set-state-in-effect
+    setIsMetric(localStorage.getItem(UNITS_STORAGE_KEY) !== "imperial");
+  }, []);
+
+  function toggleUnits() {
+    const next = !isMetric;
+    localStorage.setItem(UNITS_STORAGE_KEY, next ? "metric" : "imperial");
+    window.location.reload();
+  }
 
   // Close menu on outside click
   useEffect(() => {
@@ -143,10 +166,11 @@ export default function Header() {
             </button>
 
             <button
-              className="flex h-9 w-9 items-center justify-center rounded-lg border border-white/10 bg-white/5 text-zinc-200 transition hover:bg-purple-600/20 hover:border-purple-500/50"
+              onClick={toggleUnits}
+              className="flex h-9 items-center justify-center rounded-lg border border-white/10 bg-white/5 px-2.5 text-xs text-zinc-200 transition hover:bg-purple-600/20 hover:border-purple-500/50"
               title="Toggle Units"
             >
-              °C / km
+              {isMetric ? "°C / km" : "°F / mi"}
             </button>
 
             <select
@@ -161,6 +185,7 @@ export default function Header() {
             </select>
 
             <button
+              onClick={() => setAboutOpen(true)}
               className="flex h-9 w-9 items-center justify-center rounded-lg border border-white/10 bg-white/5 text-zinc-200 transition hover:bg-purple-600/20 hover:border-purple-500/50"
               title={t("about_title")}
             >
@@ -212,6 +237,30 @@ export default function Header() {
           </div>
         </div>
       </div>
+
+      <Modal open={aboutOpen} onClose={() => setAboutOpen(false)} title={t("about_title")}>
+        <div className="flex flex-col gap-3 text-sm text-zinc-300">
+          <p>{t("about_desc1")}</p>
+          <p>{t("about_desc2")}</p>
+          <div className="flex flex-wrap gap-2">
+            <span className="rounded bg-white/5 px-2.5 py-1 text-xs text-zinc-300">{t("about_highlight1")}</span>
+            <span className="rounded bg-white/5 px-2.5 py-1 text-xs text-zinc-300">{t("about_highlight2")}</span>
+            <span className="rounded bg-white/5 px-2.5 py-1 text-xs text-zinc-300">{t("about_highlight3")}</span>
+          </div>
+          <div className="mt-2 border-t border-white/10 pt-3">
+            <p className="mb-2 text-xs text-zinc-500">{t("about_collab_title")}</p>
+            <a
+              href={STARGAZER_REPO_URL}
+              target="_blank"
+              rel="noopener"
+              className="inline-flex items-center gap-1.5 rounded-lg border border-sky-500/30 bg-sky-500/10 px-3 py-1.5 text-xs font-medium text-sky-300 hover:bg-sky-500/20 transition-colors"
+            >
+              {t("about_github_btn")}
+            </a>
+          </div>
+        </div>
+      </Modal>
+
       <div id="night-overlay" />
     </header>
   );

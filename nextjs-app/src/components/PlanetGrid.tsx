@@ -1,22 +1,89 @@
+"use client";
+
+import { useEffect, useRef } from "react";
+import * as THREE from "three";
 import { Orbit, Info } from "lucide-react";
 import type { PlanetData } from "@/types";
+import { PLANET_TEXTURES } from "@/lib/constants";
+
+function Planet3DWidget({ textureUrl }: { textureUrl: string }) {
+  const containerRef = useRef<HTMLDivElement>(null);
+  const rafRef = useRef(0);
+  const meshRef = useRef<THREE.Mesh | null>(null);
+
+  useEffect(() => {
+    const container = containerRef.current;
+    if (!container || typeof window === "undefined") return;
+
+    const w = container.clientWidth;
+    const h = container.clientHeight;
+    if (!w || !h) return;
+
+    const scene = new THREE.Scene();
+    const camera = new THREE.PerspectiveCamera(45, w / h, 0.1, 1000);
+    camera.position.z = 3.2;
+
+    const renderer = new THREE.WebGLRenderer({ alpha: true, antialias: true });
+    renderer.setSize(w, h);
+    renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+
+    while (container.firstChild) {
+      container.removeChild(container.firstChild);
+    }
+    container.appendChild(renderer.domElement);
+
+    const ambient = new THREE.AmbientLight(0x303050, 0.5);
+    const keyLight = new THREE.DirectionalLight(0xfff5e6, 1.2);
+    keyLight.position.set(-2, 1, 2);
+    scene.add(ambient, keyLight);
+
+    const geo = new THREE.SphereGeometry(1, 48, 48);
+    const texLoader = new THREE.TextureLoader();
+    const mat = new THREE.MeshPhongMaterial({
+      map: texLoader.load(textureUrl),
+      specular: 0x111111,
+      shininess: 5,
+    });
+
+    const mesh = new THREE.Mesh(geo, mat);
+    meshRef.current = mesh;
+    scene.add(mesh);
+
+    const animate = () => {
+      rafRef.current = requestAnimationFrame(animate);
+      if (meshRef.current) {
+        meshRef.current.rotation.y += 0.0015;
+      }
+      renderer.render(scene, camera);
+    };
+    animate();
+
+    return () => {
+      cancelAnimationFrame(rafRef.current);
+      renderer.dispose();
+      mat.dispose();
+      geo.dispose();
+    };
+  }, [textureUrl]);
+
+  return <div ref={containerRef} className="h-full w-full" />;
+}
 
 function PlanetCard({ planet }: { planet: PlanetData }) {
   const altStr = `${planet.altitude_deg}° ${planet.direction}`;
   const magStr = `Mag ${planet.magnitude_approx}`;
   const distStr = `${planet.distance_mkm}M km (${planet.light_time_minutes} min light)`;
+  const textureUrl = PLANET_TEXTURES[planet.name.toLowerCase()];
 
   return (
     <div className={`flex flex-col card transition-colors hover:border-sky-400/18 ${planet.visible_tonight ? "" : "opacity-45"}`}>
-      {/* 3D canvas placeholder — planets3d.js mounts here */}
       <div
         className="relative h-[200px] w-full flex-shrink-0 overflow-hidden bg-transparent"
         style={{
           background: "radial-gradient(circle at center, rgba(30,40,60,0.3) 0%, transparent 70%)",
         }}
-        data-planet={planet.name.toLowerCase()}
       >
-        <canvas className="h-full w-full" />
+        {textureUrl && <Planet3DWidget textureUrl={textureUrl} />}
       </div>
 
       {/* Info column */}

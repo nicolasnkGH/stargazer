@@ -9,5 +9,6 @@ export * from "./sky-motion";
 export * from "./target-database";
 export * from "./i18n";
 export * from "./gallery";
+export * from "./planet-grid";
 export * from "./celestial";
 export * from "./motion-facts";
