@@ -1,9 +1,11 @@
-import type { Metadata } from "next";
+import type { Metadata, Viewport } from "next";
 import { Space_Grotesk, Space_Mono } from "next/font/google";
 import { NextIntlClientProvider } from "next-intl";
 import { getLocale } from "next-intl/server";
+import { SerwistProvider } from "@serwist/turbopack/react";
 import "./globals.css";
 import Header from "@/components/Header";
+import InstallPrompt from "@/components/InstallPrompt";
 
 const spaceGrotesk = Space_Grotesk({
   variable: "--font-space-grotesk",
@@ -35,6 +37,15 @@ export const metadata: Metadata = {
     description: "Nightly sky conditions, planet monitor, ISS alerts, and target database for amateur astronomers.",
     images: ["https://stargazer.nick-t.net/og-preview.png"],
   },
+  appleWebApp: {
+    capable: true,
+    statusBarStyle: "black-translucent",
+    title: "StarGazer",
+  },
+};
+
+export const viewport: Viewport = {
+  themeColor: "#05050f",
 };
 
 export default async function RootLayout({
@@ -50,10 +61,13 @@ export default async function RootLayout({
       className={`${spaceGrotesk.variable} ${spaceMono.variable} h-full antialiased`}
     >
       <body className="min-h-screen flex flex-col">
-        <NextIntlClientProvider>
-          <Header />
-          <main className="flex flex-1 w-full flex-col items-center">{children}</main>
-        </NextIntlClientProvider>
+        <SerwistProvider swUrl="/serwist/sw.js">
+          <NextIntlClientProvider>
+            <Header />
+            <main className="flex flex-1 w-full flex-col items-center">{children}</main>
+            <InstallPrompt />
+          </NextIntlClientProvider>
+        </SerwistProvider>
       </body>
     </html>
   );

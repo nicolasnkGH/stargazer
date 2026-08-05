@@ -1,0 +1,25 @@
+import type { MetadataRoute } from "next";
+
+export default function manifest(): MetadataRoute.Manifest {
+  return {
+    name: "StarGazer",
+    short_name: "StarGazer",
+    description: "Observatory Dashboard for amateur astronomers.",
+    start_url: "/",
+    display: "standalone",
+    background_color: "#05050f",
+    theme_color: "#05050f",
+    icons: [
+      {
+        src: "/assets/ai_stargazer_mascot.png",
+        sizes: "192x192",
+        type: "image/png",
+      },
+      {
+        src: "/assets/ai_stargazer_mascot.png",
+        sizes: "512x512",
+        type: "image/png",
+      },
+    ],
+  };
+}

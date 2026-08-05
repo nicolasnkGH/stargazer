@@ -9,7 +9,6 @@
     "lint": "eslint"
   },
   "dependencies": {
-    "@serwist/next": "^9.5.12",
     "@types/three": "^0.185.0",
     "lucide-react": "^1.21.0",
     "next": "^16.3.0",
@@ -21,10 +20,12 @@
     "three": "^0.185.0"
   },
   "devDependencies": {
+    "@serwist/turbopack": "^9.5.12",
     "@tailwindcss/postcss": "^4",
     "@types/node": "^20",
     "@types/react": "^19",
     "@types/react-dom": "^19",
+    "esbuild": "^0.28.1",
     "eslint": "^9",
     "eslint-config-next": "^16.3.0",
     "tailwindcss": "^4",
