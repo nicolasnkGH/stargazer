@@ -1,4 +1,5 @@
 export interface CatalogTarget {
+  id: string;
   name: string;
   type: string;
   constellation: string;

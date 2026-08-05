@@ -10,3 +10,4 @@ export * from "./card-row";
 export * from "./i18n";
 export * from "./celestial";
 export * from "./motion-facts";
+export * from "./gallery";

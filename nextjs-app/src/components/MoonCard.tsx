@@ -6,6 +6,7 @@ import { useLocale } from "next-intl";
 import { Moon } from "lucide-react";
 import type { MoonData } from "@/types";
 import { MOON_FACT_STORAGE_KEY_PREFIX } from "@/lib/constants";
+import GalleryButton from "./GalleryButton";
 
 function Moon3DWidget({ illumination_pct }: { illumination_pct: number }) {
   const containerRef = useRef<HTMLDivElement>(null);
@@ -120,6 +121,10 @@ export default function MoonCard({ moon, moonFact }: { moon: MoonData | null; mo
         <Moon className="h-5 w-5 text-amber-400" strokeWidth={1.6} />
         <h3 className="text-[0.92rem] font-semibold text-zinc-100 tracking-wide">Moon</h3>
         <span className="ml-auto text-xs text-zinc-500">{moon.illumination_pct}%</span>
+      </div>
+
+      <div className="mb-3">
+        <GalleryButton targetId="moon" targetName="Moon" />
       </div>
 
       <div className="flex items-center gap-3 mb-3">

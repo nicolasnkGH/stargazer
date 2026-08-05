@@ -4,6 +4,7 @@ import { useState, useEffect } from "react";
 import { Binoculars } from "lucide-react";
 import type { CatalogTarget } from "@/types";
 import { API_BASE, CONSTELLATION_FILTERS } from "@/lib/constants";
+import GalleryButton from "./GalleryButton";
 
 export default function TargetDatabase() {
   const [targets, setTargets] = useState<CatalogTarget[]>([]);
@@ -77,8 +78,8 @@ export default function TargetDatabase() {
         </div>
       ) : (
         <div className="flex flex-col gap-2">
-          {targets.map((t, i) => (
-            <div key={i} className="rounded-lg bg-white/[0.02] border border-white/5 p-4 flex items-start gap-3">
+          {targets.map((t) => (
+            <div key={t.id} className="rounded-lg bg-white/[0.02] border border-white/5 p-4 flex items-start gap-3">
               <span className="text-2xl flex-shrink-0">{t.emoji ?? "🔭"}</span>
               <div className="min-w-0 flex-1">
                 <div className="flex items-center gap-2 mb-0.5">
@@ -102,6 +103,9 @@ export default function TargetDatabase() {
                 {t.notes && (
                   <p className="text-xs text-zinc-500 mt-1.5 italic">{t.notes}</p>
                 )}
+                <div className="mt-2">
+                  <GalleryButton targetId={t.id} targetName={t.name} />
+                </div>
               </div>
             </div>
           ))}

@@ -11,6 +11,7 @@ export const REVALIDATE = {
   weekly: 600,
   iss: 300,
   asteroids: 300,
+  galleryCounts: 120,
 } as const;
 
 /** AI seeing-analysis client polling (SeeingConditions) — mirrors legacy fetchAIAnalysis(). */
