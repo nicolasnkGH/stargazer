@@ -11,8 +11,6 @@
   "dependencies": {
     "@serwist/next": "^9.5.12",
     "@types/three": "^0.185.0",
-    "d3": "^7.9.0",
-    "d3-celestial": "^0.7.35",
     "lucide-react": "^1.21.0",
     "next": "^16.3.0",
     "next-intl": "^4.13.5",
@@ -20,16 +18,13 @@
     "react-dom": "19.2.4",
     "serwist": "^9.5.12",
     "swr": "^2.5.0",
-    "three": "^0.185.0",
-    "topojson-client": "^3.1.0"
+    "three": "^0.185.0"
   },
   "devDependencies": {
     "@tailwindcss/postcss": "^4",
-    "@types/d3": "^7.4.3",
     "@types/node": "^20",
     "@types/react": "^19",
     "@types/react-dom": "^19",
-    "@types/topojson-client": "^3.1.5",
     "eslint": "^9",
     "eslint-config-next": "^16.3.0",
     "tailwindcss": "^4",

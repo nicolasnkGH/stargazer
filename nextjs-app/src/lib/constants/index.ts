@@ -8,3 +8,4 @@ export * from "./observation-log";
 export * from "./sky-motion";
 export * from "./target-database";
 export * from "./i18n";
+export * from "./celestial";
