@@ -1,9 +1,11 @@
 "use client";
 
-import { useEffect, useRef } from "react";
+import { useEffect, useRef, useState } from "react";
 import * as THREE from "three";
+import { useLocale } from "next-intl";
 import { Moon } from "lucide-react";
 import type { MoonData } from "@/types";
+import { MOON_FACT_STORAGE_KEY_PREFIX } from "@/lib/constants";
 
 function Moon3DWidget({ illumination_pct }: { illumination_pct: number }) {
   const containerRef = useRef<HTMLDivElement>(null);
@@ -81,7 +83,29 @@ function Moon3DWidget({ illumination_pct }: { illumination_pct: number }) {
   );
 }
 
-export default function MoonCard({ moon }: { moon: MoonData | null }) {
+function useMoonFact(fresh: string | undefined) {
+  const locale = useLocale();
+  const [cached, setCached] = useState<string | null>(null);
+
+  // Hydrating from localStorage, which doesn't exist during SSR — can't be a lazy
+  // useState initializer without a hydration mismatch, so this has to be an effect.
+  useEffect(() => {
+    const key = `${MOON_FACT_STORAGE_KEY_PREFIX}${locale}`;
+    if (fresh) {
+      localStorage.setItem(key, fresh);
+      // eslint-disable-next-line react-hooks/set-state-in-effect
+      setCached(fresh);
+    } else {
+      setCached(localStorage.getItem(key));
+    }
+  }, [fresh, locale]);
+
+  return fresh ?? cached;
+}
+
+export default function MoonCard({ moon, moonFact }: { moon: MoonData | null; moonFact?: string }) {
+  const fact = useMoonFact(moonFact);
+
   if (!moon) {
     return (
       <div className="card p-5 h-full">
@@ -118,6 +142,12 @@ export default function MoonCard({ moon }: { moon: MoonData | null }) {
         <p className="mt-3 text-xs text-zinc-400 font-mono">
           Alt: {moon.altitude_deg}° {moon.direction ?? ""}
         </p>
+      )}
+
+      {fact && (
+        <div className="mt-3 pt-3 border-t border-white/5">
+          <p className="text-xs text-zinc-400 leading-relaxed italic">{fact}</p>
+        </div>
       )}
     </div>
   );

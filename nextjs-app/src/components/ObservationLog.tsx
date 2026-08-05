@@ -1,13 +1,37 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { NotebookPen, Trash2, Plus, Camera } from "lucide-react";
 import type { LogEntry } from "@/types";
-import { DEFAULT_ENTRIES } from "@/lib/constants";
+import { DEFAULT_ENTRIES, OBSERVATION_LOG_STORAGE_KEY } from "@/lib/constants";
 
 export default function ObservationLog() {
   const [entries, setEntries] = useState<LogEntry[]>(DEFAULT_ENTRIES);
+  const [hydrated, setHydrated] = useState(false);
   const [showForm, setShowForm] = useState(false);
+
+  // Load any saved entries once on mount (after DEFAULT_ENTRIES' initial render, to match
+  // SSR output) — localStorage doesn't exist during SSR, so this can't be a lazy useState
+  // initializer without a hydration mismatch.
+  useEffect(() => {
+    const raw = localStorage.getItem(OBSERVATION_LOG_STORAGE_KEY);
+    if (raw) {
+      try {
+        // eslint-disable-next-line react-hooks/set-state-in-effect
+        setEntries(JSON.parse(raw));
+      } catch {
+        // ignore malformed saved data, keep defaults
+      }
+    }
+    setHydrated(true);
+  }, []);
+
+  // Persist on every change, but only after the initial load above has run —
+  // otherwise this would immediately overwrite saved data with DEFAULT_ENTRIES.
+  useEffect(() => {
+    if (!hydrated) return;
+    localStorage.setItem(OBSERVATION_LOG_STORAGE_KEY, JSON.stringify(entries));
+  }, [entries, hydrated]);
   const [newTarget, setNewTarget] = useState("");
   const [newNotes, setNewNotes] = useState("");
   const [newConditions, setNewConditions] = useState("Good");

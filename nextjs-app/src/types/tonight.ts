@@ -14,6 +14,7 @@ export interface SeeingData {
   tonight_visibility_km?: number;
   tonight_temp_c?: number;
   ai_powered: boolean;
+  moon_fact?: string;
 }
 
 export type AiSeeingResponse = SeeingData | { status: "processing" };

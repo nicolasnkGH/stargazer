@@ -408,3 +408,24 @@ body {
   color: var(--foreground);
   font-family: 'Space Grotesk', system-ui, sans-serif;
 }
+
+/* ── Night Vision Mode — ported from original style.css ─────────────────── */
+
+#night-overlay {
+  display: none;
+  position: fixed;
+  top: 0; left: 0; right: 0; bottom: 0;
+  pointer-events: none;
+  z-index: 9998;
+  backdrop-filter: sepia(100%) hue-rotate(320deg) saturate(500%) brightness(0.8);
+  -webkit-backdrop-filter: sepia(100%) hue-rotate(320deg) saturate(500%) brightness(0.8);
+  background: rgba(5, 0, 0, 0.2);
+}
+
+body.night-mode #night-overlay {
+  display: block;
+}
+
+body.night-mode {
+  background-color: #050000;
+}

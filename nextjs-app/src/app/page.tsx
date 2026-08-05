@@ -36,7 +36,7 @@ export default async function Home() {
           <GoNoGoBanner seeing={tonight?.seeing ?? null} />
           <CardRow id="card-tonight">
             <SeeingConditions seeing={tonight?.seeing ?? null} />
-            <MoonCard moon={tonight?.moon ?? null} />
+            <MoonCard moon={tonight?.moon ?? null} moonFact={tonight?.seeing?.moon_fact} />
             <SkyMotion />
           </CardRow>
           <AiTargets bestTargets={tonight?.best_targets_tonight} mustSee={tonight?.must_see} />

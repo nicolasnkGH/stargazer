@@ -4,6 +4,7 @@ import { useState, useEffect } from "react";
 import { Rocket } from "lucide-react";
 import type { IssPass, NeoObject, CometData } from "@/types";
 import { API_BASE, TABS } from "@/lib/constants";
+import MotionFactCard from "./MotionFactCard";
 
 function formatTime(iso: string) {
   try {
@@ -96,7 +97,9 @@ export default function SkyMotion() {
 
       {/* ISS Passes tab */}
       {tab === "iss" && (
-        visiblePasses.length === 0 ? (
+        <>
+        <MotionFactCard type="iss" />
+        {visiblePasses.length === 0 ? (
           <div className="py-8 text-center text-sm text-zinc-400">
             No ISS passes visible right now. Check back later!
           </div>
@@ -132,7 +135,8 @@ export default function SkyMotion() {
               </div>
             ))}
           </div>
-        )
+        )}
+        </>
       )}
 
       {/* NEO tab */}
@@ -174,7 +178,9 @@ export default function SkyMotion() {
 
       {/* Comets tab */}
       {tab === "comets" && (
-        comets.length === 0 ? (
+        <>
+        <MotionFactCard type="comet" />
+        {comets.length === 0 ? (
           <div className="py-8 text-center text-sm text-zinc-400">
             No Comets currently visible in the sky.
           </div>
@@ -208,7 +214,8 @@ export default function SkyMotion() {
               </div>
             ))}
           </div>
-        )
+        )}
+        </>
       )}
       </div>
     </section>

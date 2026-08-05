@@ -3,7 +3,7 @@
 import { useState, useEffect, useRef } from "react";
 import useSWR from "swr";
 import { useLocale, useTranslations } from "next-intl";
-import { Telescope, MapPin, Info, Menu } from "lucide-react";
+import { Telescope, MapPin, Info, Menu, Flashlight } from "lucide-react";
 import { HEALTH_POLL_INTERVAL_MS, NAV_LINKS, LANG_OPTIONS, LOCALE_COOKIE } from "@/lib/constants";
 import type { Locale } from "@/types";
 
@@ -29,6 +29,7 @@ export default function Header() {
   const isLive = !healthError && health?.status === "ok";
   const [currentTime, setCurrentTime] = useState("--:-- --");
   const [currentDate, setCurrentDate] = useState("Loading...");
+  const [nightMode, setNightMode] = useState(false);
   const menuRef = useRef<HTMLDivElement>(null);
 
   // Close menu on outside click
@@ -65,6 +66,10 @@ export default function Header() {
     const id = setInterval(tick, 1000);
     return () => clearInterval(id);
   }, []);
+
+  useEffect(() => {
+    document.body.classList.toggle("night-mode", nightMode);
+  }, [nightMode]);
 
   return (
     <header className="sticky top-0 z-[100] border-b border-white/10 bg-slate-950/90 py-3.5 px-8 backdrop-blur-xl">
@@ -125,6 +130,18 @@ export default function Header() {
 
           {/* Controls */}
           <div className="flex items-center gap-2">
+            <button
+              onClick={() => setNightMode((v) => !v)}
+              className={`flex h-9 w-9 items-center justify-center rounded-lg border transition ${
+                nightMode
+                  ? "border-red-500/50 bg-red-500/20 text-red-400"
+                  : "border-white/10 bg-white/5 text-zinc-200 hover:bg-purple-600/20 hover:border-purple-500/50"
+              }`}
+              title="Night Vision Mode"
+            >
+              <Flashlight className="h-4 w-4" strokeWidth={1.5} />
+            </button>
+
             <button
               className="flex h-9 w-9 items-center justify-center rounded-lg border border-white/10 bg-white/5 text-zinc-200 transition hover:bg-purple-600/20 hover:border-purple-500/50"
               title="Toggle Units"
@@ -195,6 +212,7 @@ export default function Header() {
           </div>
         </div>
       </div>
+      <div id="night-overlay" />
     </header>
   );
 }
