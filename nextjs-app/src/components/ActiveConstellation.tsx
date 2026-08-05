@@ -2,21 +2,11 @@
 
 import { useState, useEffect } from "react";
 import { Star } from "lucide-react";
-
-interface Constellation {
-  name: string;
-  abbr: string;
-  emoji: string;
-  altitude_deg: number;
-  azimuth_deg: number;
-  direction: string;
-  visible: boolean;
-}
-
-const API_BASE = process.env.NEXT_PUBLIC_API_BASE || "/api";
+import type { ConstellationData } from "@/types";
+import { API_BASE } from "@/lib/constants";
 
 export default function ActiveConstellation() {
-  const [constellations, setConstellations] = useState<Constellation[]>([]);
+  const [constellations, setConstellations] = useState<ConstellationData[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 

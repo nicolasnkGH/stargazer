@@ -15,26 +15,36 @@ import Resources from "@/components/Resources";
 import Footer from "@/components/Footer";
 import CardRow from "@/components/CardRow";
 import AiTargets from "@/components/AiTargets";
+import { fetchBackend } from "@/lib/api-proxy";
+import { REVALIDATE } from "@/lib/constants";
+import type { TonightReport, WeeklyReport, PlanetsResponse, ConstellationsResponse } from "@/types";
 
-export default function Home() {
+export default async function Home() {
+  const [tonight, weekly, planetsData, constellationsData] = await Promise.all([
+    fetchBackend<TonightReport>("/tonight", "", REVALIDATE.tonight),
+    fetchBackend<WeeklyReport>("/weekly", "", REVALIDATE.weekly),
+    fetchBackend<PlanetsResponse>("/planets", "", REVALIDATE.planets),
+    fetchBackend<ConstellationsResponse>("/constellations", "", REVALIDATE.constellations),
+  ]);
+
   return (
     <>
       <StarfieldBackground />
       <SolarSystemHero />
       <div className="flex w-full flex-col items-center gap-8">
         <div className="w-full max-w-5xl px-4 sm:px-8 py-8">
-          <GoNoGoBanner />
+          <GoNoGoBanner seeing={tonight?.seeing ?? null} />
           <CardRow id="card-tonight">
-            <SeeingConditions />
-            <MoonCard />
+            <SeeingConditions seeing={tonight?.seeing ?? null} />
+            <MoonCard moon={tonight?.moon ?? null} />
             <SkyMotion />
           </CardRow>
-          <AiTargets />
-          <PlanetGrid />
+          <AiTargets bestTargets={tonight?.best_targets_tonight} mustSee={tonight?.must_see} />
+          <PlanetGrid planets={planetsData?.planets} />
           <ActiveConstellation />
-          <ConstellationsTonight />
+          <ConstellationsTonight constellations={constellationsData?.constellations} />
           <TargetDatabase />
-          <WeeklyForecast />
+          <WeeklyForecast report={weekly} />
           <ClearOutsideEmbed />
           <ObservationLog />
           <Resources />

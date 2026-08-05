@@ -1,31 +1,31 @@
 "use client";
 
-import { useState, useEffect } from "react";
-import { CloudSun, Eye, CheckSquare, Square } from "lucide-react";
+import { useState } from "react";
+import useSWR from "swr";
+import { CloudSun, CheckSquare, Square } from "lucide-react";
+import type { SeeingData, AiSeeingResponse } from "@/types";
+import { AI_SEEING_POLL_INTERVAL_MS, AI_SEEING_MAX_POLLS } from "@/lib/constants";
 
-interface SeeingData {
-  seeing_score: number;
-  seeing_score_raw: number;
-  seeing_label: string;
-  seeing_explanation: string;
-  best_window: string;
-  warnings: string[];
-  go_nogo: string;
-  tonight_cloud_pct?: number;
-  tonight_wind_kmh?: number;
-  tonight_precip_prob?: number;
-  tonight_humidity?: number;
-  tonight_dew_spread?: number;
-  tonight_visibility_km?: number;
-  tonight_temp_c?: number;
-  ai_powered: boolean;
+const aiFetcher = (url: string) => fetch(url).then((r) => r.json());
+
+function isProcessing(data: AiSeeingResponse | undefined): data is { status: "processing" } {
+  return !!data && "status" in data && data.status === "processing";
 }
 
-interface TonightReport {
-  seeing: SeeingData;
-}
+/** Shows the rule-based seeing data immediately, upgrades to AI analysis once /api/seeing/ai resolves. */
+function useAiSeeing(initial: SeeingData | null): SeeingData | null {
+  const [pollCount, setPollCount] = useState(0);
+  const shouldPoll = !!initial && !initial.ai_powered && pollCount < AI_SEEING_MAX_POLLS;
 
-const API_BASE = process.env.NEXT_PUBLIC_API_BASE || "/api";
+  const { data } = useSWR<AiSeeingResponse>(shouldPoll ? "/api/seeing/ai" : null, aiFetcher, {
+    refreshInterval: (latest) => (isProcessing(latest as AiSeeingResponse | undefined) ? AI_SEEING_POLL_INTERVAL_MS : 0),
+    onSuccess: () => setPollCount((c) => c + 1),
+    revalidateOnFocus: false,
+  });
+
+  if (data && !isProcessing(data)) return data;
+  return initial;
+}
 
 function SeeingBadge({ score }: { score: number }) {
   const stars = "⭐".repeat(score);
@@ -88,50 +88,17 @@ function PreflightChecklist({ seeing }: { seeing: SeeingData }) {
   );
 }
 
-export default function SeeingConditions() {
-  const [report, setReport] = useState<TonightReport | null>(null);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
+export default function SeeingConditions({ seeing: initialSeeing }: { seeing: SeeingData | null }) {
+  const seeing = useAiSeeing(initialSeeing);
 
-  useEffect(() => {
-    async function fetchTonight() {
-      try {
-        const res = await fetch(`${API_BASE}/tonight`);
-        if (!res.ok) throw new Error(`HTTP ${res.status}`);
-        const data = await res.json();
-        setReport(data);
-      } catch (e) {
-        setError(e instanceof Error ? e.message : "Failed to fetch tonight's report");
-      } finally {
-        setLoading(false);
-      }
-    }
-    fetchTonight();
-  }, []);
-
-  if (loading) {
-    return (
-      <div className="card animate-pulse p-5 h-full">
-        <div className="flex items-center gap-2 mb-4">
-          <Eye className="h-5 w-5 text-sky-400" strokeWidth={1.6} />
-          <div className="h-5 w-28 bg-white/10 rounded" />
-        </div>
-        <div className="h-32 bg-white/5 rounded" />
-      </div>
-    );
-  }
-
-  if (error) {
+  if (!seeing) {
     return (
       <div className="card p-5 h-full">
-        <p className="text-sm text-red-400">{error}</p>
+        <p className="text-sm text-red-400">Conditions unavailable.</p>
       </div>
     );
   }
 
-  if (!report?.seeing) return null;
-
-  const seeing = report.seeing;
   const scoreColor =
     seeing.seeing_score >= 4
       ? "text-green-400"

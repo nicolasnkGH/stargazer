@@ -1,53 +1,19 @@
-"use client";
-
-import { useState, useEffect } from "react";
 import { CheckCircle2, XCircle, AlertTriangle } from "lucide-react";
+import type { SeeingData } from "@/types";
 
-interface GoNoGoData {
-  go_nogo: string;
-  confidence: string;
-  factors: string[];
-  recommendation: string;
-}
+export default function GoNoGoBanner({ seeing }: { seeing: SeeingData | null }) {
+  if (!seeing) return null;
 
-const API_BASE = process.env.NEXT_PUBLIC_API_BASE || "/api";
+  const data = {
+    go_nogo: seeing.go_nogo || "UNKNOWN",
+    confidence: seeing.ai_powered ? "AI-analyzed" : "Rule-based",
+    factors: seeing.warnings || [],
+    recommendation: seeing.seeing_label || "",
+  };
 
-export default function GoNoGoBanner() {
-  const [data, setData] = useState<GoNoGoData | null>(null);
-  const [loading, setLoading] = useState(true);
-
-  useEffect(() => {
-    async function fetchGoNoGo() {
-      try {
-        const res = await fetch(`${API_BASE}/tonight`);
-        if (!res.ok) throw new Error(`HTTP ${res.status}`);
-        const d = await res.json();
-        const seeing = d.seeing || {};
-        setData({
-          go_nogo: seeing.go_nogo || "UNKNOWN",
-          confidence: "Rule-based",
-          factors: seeing.warnings || [],
-          recommendation: seeing.seeing_label || ""
-        });
-      } catch {
-        // Use TonightOutlook data as fallback — handled by parent
-      } finally {
-        setLoading(false);
-      }
-    }
-    fetchGoNoGo();
-  }, []);
-
-  if (loading) {
-    return (
-      <div className="w-full rounded-lg bg-white/[0.02] border border-white/5 h-12 animate-pulse" />
-    );
-  }
-
-  if (!data) return null;
-
-  const isGo = data.go_nogo === "GO";
-  const isMaybe = data.go_nogo === "MAYBE";
+  // Backend returns emoji-prefixed values ("✅ GO", "⚠️ MARGINAL", "❌ NO GO"), not bare "GO"/"MAYBE".
+  const isGo = data.go_nogo.includes("✅");
+  const isMaybe = data.go_nogo.includes("⚠️");
 
   const iconColor = isGo ? "text-green-400" : isMaybe ? "text-yellow-400" : "text-red-400";
   const bgColor = isGo

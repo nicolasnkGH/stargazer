@@ -1,24 +1,23 @@
 "use client";
 
 import { useState, useEffect, useRef } from "react";
+import useSWR from "swr";
 import { Telescope, MapPin, Info, Menu } from "lucide-react";
+import { HEALTH_POLL_INTERVAL_MS, NAV_LINKS, LANG_OPTIONS } from "@/lib/constants";
 
-const NAV_LINKS = [
-  { href: "#card-tonight", label: "Tonight's Outlook" },
-  { href: "#card-active-const", label: "Active Constellation" },
-  { href: "#card-targets", label: "Target Database" },
-  { href: "#card-motion", label: "Sky Objects in Motion" },
-  { href: "#card-weekly", label: "7-Day Forecast" },
-];
-
-const LANG_OPTIONS = [
-  { value: "en", label: "\u{1F1FA}\u{1F1F8} EN" },
-  { value: "es", label: "\u{1F1EA}\u{1F1F8} ES" },
-  { value: "pt", label: "\u{1F1F7}\u{1F1F7} PT" },
-];
+const healthFetcher = (url: string) => fetch(url).then((r) => {
+  if (!r.ok) throw new Error(`HTTP ${r.status}`);
+  return r.json();
+});
 
 export default function Header() {
   const [menuOpen, setMenuOpen] = useState(false);
+  const { data: health, error: healthError } = useSWR<{ status: string }>("/api/health", healthFetcher, {
+    refreshInterval: HEALTH_POLL_INTERVAL_MS,
+    revalidateOnFocus: false,
+  });
+  const isChecking = !health && !healthError;
+  const isLive = !healthError && health?.status === "ok";
   const [currentTime, setCurrentTime] = useState("--:-- --");
   const [currentDate, setCurrentDate] = useState("Loading...");
   const menuRef = useRef<HTMLDivElement>(null);
@@ -84,10 +83,22 @@ export default function Header() {
         <div className="flex items-center gap-5">
           {/* Telemetry group */}
           <div className="flex items-center gap-7 border-r border-white/10 pr-4">
-            {/* Live badge */}
-            <div className="hidden items-center gap-1.5 rounded-full border border-green-500/30 bg-green-500/10 px-3 py-1 text-[0.7rem] font-bold tracking-[0.12em] text-green-500 md:flex">
-              <span className="inline-block h-1.5 w-1.5 animate-pulse rounded-full bg-green-500" />
-              LIVE
+            {/* API status badge */}
+            <div
+              className={`hidden items-center gap-1.5 rounded-full border px-3 py-1 text-[0.7rem] font-bold tracking-[0.12em] md:flex ${
+                isChecking
+                  ? "border-white/10 bg-white/5 text-zinc-400"
+                  : isLive
+                    ? "border-green-500/30 bg-green-500/10 text-green-500"
+                    : "border-red-500/30 bg-red-500/10 text-red-500"
+              }`}
+            >
+              <span
+                className={`inline-block h-1.5 w-1.5 rounded-full ${
+                  isChecking ? "bg-zinc-500" : isLive ? "animate-pulse bg-green-500" : "bg-red-500"
+                }`}
+              />
+              {isChecking ? "..." : isLive ? "LIVE" : "OFFLINE"}
             </div>
 
             {/* Moon & weather */}

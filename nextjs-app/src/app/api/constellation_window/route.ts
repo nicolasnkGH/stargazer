@@ -3,5 +3,5 @@ import { REVALIDATE } from "@/lib/constants";
 
 export async function GET(request: Request) {
   const url = new URL(request.url);
-  return proxyRequest("/planets", url.search, REVALIDATE.planets);
+  return proxyRequest("/constellation_window", url.search, REVALIDATE.constellationWindow);
 }

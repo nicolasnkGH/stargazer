@@ -1,35 +1,9 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { Rocket, Telescope, Sparkles } from "lucide-react";
-
-interface IssPass {
-  rise: string;
-  set: string;
-  peak_alt: number;
-  peak_az: string;
-  visible: boolean;
-}
-
-interface NeoObject {
-  name: string;
-  diameter_m: number;
-  closest_approach_au: number;
-  velocity_kms: number;
-  hazardous: boolean;
-  date: string;
-}
-
-interface CometData {
-  name: string;
-  magnitude: number;
-  constellation: string;
-  visible: boolean;
-  perihelion_date: string;
-  description: string;
-}
-
-const API_BASE = process.env.NEXT_PUBLIC_API_BASE || "/api";
+import { Rocket } from "lucide-react";
+import type { IssPass, NeoObject, CometData } from "@/types";
+import { API_BASE, TABS } from "@/lib/constants";
 
 function formatTime(iso: string) {
   try {
@@ -39,12 +13,6 @@ function formatTime(iso: string) {
     return iso;
   }
 }
-
-const TABS = [
-  { key: "iss", label: "ISS Passes", icon: Rocket },
-  { key: "neo", label: "Near-Earth Objects", icon: Telescope },
-  { key: "comets", label: "Comets", icon: Sparkles },
-];
 
 export default function SkyMotion() {
   const [tab, setTab] = useState("iss");

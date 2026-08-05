@@ -1,69 +1,14 @@
-"use client";
+import { Sparkles, Star } from "lucide-react";
+import type { MustSeeTarget } from "@/types";
 
-import { useState, useEffect } from "react";
-import { Telescope, Sparkles, Star } from "lucide-react";
-
-interface Target {
-  title: string;
-  subtitle: string;
-  icon: string;
-  metadata: string;
-}
-
-interface MustSeeData {
-  best_targets_tonight: Target[];
-  must_see: Target[];
-}
-
-const API_BASE = process.env.NEXT_PUBLIC_API_BASE || "/api";
-
-export default function AiTargets() {
-  const [data, setData] = useState<MustSeeData | null>(null);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
-
-  useEffect(() => {
-    async function fetchTonight() {
-      try {
-        const res = await fetch(`${API_BASE}/tonight`);
-        if (!res.ok) throw new Error(`HTTP ${res.status}`);
-        const json = await res.json();
-        setData({
-          best_targets_tonight: json.best_targets_tonight ?? [],
-          must_see: json.must_see ?? [],
-        });
-      } catch (e) {
-        setError(e instanceof Error ? e.message : "Failed to fetch targets");
-      } finally {
-        setLoading(false);
-      }
-    }
-    fetchTonight();
-  }, []);
-
-  if (loading) {
-    return (
-      <div className="card animate-pulse p-5">
-        <div className="flex items-center gap-2 mb-4">
-          <Sparkles className="h-5 w-5 text-violet-400" strokeWidth={1.6} />
-          <div className="h-5 w-32 bg-white/10 rounded" />
-        </div>
-        <div className="h-32 bg-white/5 rounded" />
-      </div>
-    );
-  }
-
-  if (error) {
-    return (
-      <div className="card p-5">
-        <p className="text-sm text-red-400">{error}</p>
-      </div>
-    );
-  }
-
-  if (!data) return null;
-
-  const allTargets = [...data.best_targets_tonight, ...data.must_see];
+export default function AiTargets({
+  bestTargets = [],
+  mustSee = [],
+}: {
+  bestTargets?: MustSeeTarget[];
+  mustSee?: MustSeeTarget[];
+}) {
+  const allTargets = [...bestTargets, ...mustSee];
   if (allTargets.length === 0) {
     return (
       <div className="card p-5">

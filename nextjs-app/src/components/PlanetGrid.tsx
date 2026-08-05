@@ -1,28 +1,5 @@
-"use client";
-
-import { useState, useEffect } from "react";
 import { Orbit, Info } from "lucide-react";
-
-interface PlanetData {
-  name: string;
-  altitude_deg: number;
-  azimuth_deg: number;
-  direction: string;
-  distance_au: number;
-  distance_mkm: number;
-  light_time_minutes: number;
-  constellation: string;
-  visible_tonight: boolean;
-  magnitude_approx: string | number;
-  naked_eye: boolean;
-  emoji: string;
-  obs_time: string;
-  rise_time: string;
-  set_time: string;
-  how_to_find: string;
-}
-
-const API_BASE = process.env.NEXT_PUBLIC_API_BASE || "/api";
+import type { PlanetData } from "@/types";
 
 function PlanetCard({ planet }: { planet: PlanetData }) {
   const altStr = `${planet.altitude_deg}° ${planet.direction}`;
@@ -93,27 +70,7 @@ function PlanetCard({ planet }: { planet: PlanetData }) {
   );
 }
 
-export default function PlanetGrid() {
-  const [planets, setPlanets] = useState<PlanetData[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
-
-  useEffect(() => {
-    async function fetchPlanets() {
-      try {
-        const res = await fetch(`${API_BASE}/planets`);
-        if (!res.ok) throw new Error(`HTTP ${res.status}`);
-        const data = await res.json();
-        setPlanets(data.planets || []);
-      } catch (e) {
-        setError(e instanceof Error ? e.message : "Failed to fetch planets");
-      } finally {
-        setLoading(false);
-      }
-    }
-    fetchPlanets();
-  }, []);
-
+export default function PlanetGrid({ planets = [] }: { planets?: PlanetData[] }) {
   return (
     <section className="card card-planets">
       {/* Card header */}
@@ -132,9 +89,11 @@ export default function PlanetGrid() {
 
       {/* Card body — responsive grid */}
       <div className="p-5">
-        {loading && <div className="animate-pulse rounded-lg bg-white/5 py-8 text-center text-sm text-zinc-500">Loading planet data...</div>}
-        {error && <div className="rounded-lg border border-red-500/30 bg-red-500/10 p-4 text-sm text-red-400">{error}</div>}
-        {!loading && !error && (
+        {planets.length === 0 ? (
+          <div className="rounded-lg border border-red-500/30 bg-red-500/10 p-4 text-sm text-red-400">
+            Planet data unavailable.
+          </div>
+        ) : (
           <div className="grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
             {planets.map((p) => (
               <PlanetCard key={p.name} planet={p} />

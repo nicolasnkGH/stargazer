@@ -1,11 +1,6 @@
 "use client";
 
-import { ReactNode } from "react";
-
-interface CardRowProps {
-  children: ReactNode;
-  id?: string;
-}
+import type { CardRowProps } from "@/types";
 
 /**
  * Groups child cards into a responsive CSS grid row.

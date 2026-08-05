@@ -1,20 +1,9 @@
 "use client";
 
-import { useState, useEffect, useRef } from "react";
+import { useEffect, useRef } from "react";
 import * as THREE from "three";
 import { Moon } from "lucide-react";
-
-interface MoonData {
-  phase_name: string;
-  illumination_pct: number;
-  emoji?: string;
-  altitude_deg?: number;
-  direction?: string;
-  rise?: string;
-  set?: string;
-}
-
-const API_BASE = process.env.NEXT_PUBLIC_API_BASE || "/api";
+import type { MoonData } from "@/types";
 
 function Moon3DWidget({ illumination_pct }: { illumination_pct: number }) {
   const containerRef = useRef<HTMLDivElement>(null);
@@ -92,48 +81,14 @@ function Moon3DWidget({ illumination_pct }: { illumination_pct: number }) {
   );
 }
 
-export default function MoonCard() {
-  const [moon, setMoon] = useState<MoonData | null>(null);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
-
-  useEffect(() => {
-    async function fetchTonight() {
-      try {
-        const res = await fetch(`${API_BASE}/tonight`);
-        if (!res.ok) throw new Error(`HTTP ${res.status}`);
-        const data = await res.json();
-        setMoon(data.moon);
-      } catch (e) {
-        setError(e instanceof Error ? e.message : "Failed to fetch moon data");
-      } finally {
-        setLoading(false);
-      }
-    }
-    fetchTonight();
-  }, []);
-
-  if (loading) {
-    return (
-      <div className="card animate-pulse p-5 h-full">
-        <div className="flex items-center gap-2 mb-4">
-          <Moon className="h-5 w-5 text-amber-400" strokeWidth={1.6} />
-          <div className="h-5 w-16 bg-white/10 rounded" />
-        </div>
-        <div className="h-32 bg-white/5 rounded" />
-      </div>
-    );
-  }
-
-  if (error) {
+export default function MoonCard({ moon }: { moon: MoonData | null }) {
+  if (!moon) {
     return (
       <div className="card p-5 h-full">
-        <p className="text-sm text-red-400">{error}</p>
+        <p className="text-sm text-red-400">Moon data unavailable.</p>
       </div>
     );
   }
-
-  if (!moon) return null;
 
   return (
     <div className="card card-body flex flex-col h-full">

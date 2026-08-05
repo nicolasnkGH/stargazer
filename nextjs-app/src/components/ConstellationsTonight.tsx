@@ -1,66 +1,11 @@
-"use client";
-
-import { useState, useEffect } from "react";
 import { Star } from "lucide-react";
+import type { ConstellationData } from "@/types";
 
-interface ConstellationData {
-  name: string;
-  abbr: string;
-  emoji: string;
-  altitude_deg: number;
-  azimuth_deg: number;
-  direction: string;
-  visible: boolean;
-  rising: boolean;
-  setting: boolean;
-}
-
-const API_BASE = process.env.NEXT_PUBLIC_API_BASE || "/api";
-
-export default function ConstellationsTonight() {
-  const [constellations, setConstellations] = useState<ConstellationData[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
-
-  useEffect(() => {
-    async function fetchAll() {
-      try {
-        const res = await fetch(`${API_BASE}/constellations`);
-        if (!res.ok) throw new Error(`HTTP ${res.status}`);
-        const data = await res.json();
-        setConstellations(data.constellations || []);
-      } catch (e) {
-        setError(e instanceof Error ? e.message : "Failed to fetch constellations");
-      } finally {
-        setLoading(false);
-      }
-    }
-    fetchAll();
-  }, []);
-
-  if (loading) {
-    return (
-      <section className="w-full">
-        <div className="animate-pulse rounded-xl border border-white/10 bg-white/[0.03] p-5">
-          <div className="h-6 w-48 bg-white/10 rounded mb-4" />
-          <div className="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-6 gap-2">
-            {Array.from({ length: 12 }).map((_, i) => (
-              <div key={i} className="h-16 bg-white/5 rounded" />
-            ))}
-          </div>
-        </div>
-      </section>
-    );
-  }
-
-  if (error) {
-    return (
-      <section className="w-full">
-        <div className="rounded-xl border border-red-500/30 bg-red-500/10 p-4 text-sm text-red-400">{error}</div>
-      </section>
-    );
-  }
-
+export default function ConstellationsTonight({
+  constellations = [],
+}: {
+  constellations?: ConstellationData[];
+}) {
   const visible = constellations.filter((c) => c.visible).sort((a, b) => b.altitude_deg - a.altitude_deg);
   const rising = visible.filter((c) => c.rising);
   const setting = visible.filter((c) => c.setting);

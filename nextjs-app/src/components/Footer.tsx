@@ -1,7 +1,5 @@
 import { ExternalLink } from "lucide-react";
-
-const TECH_BADGES = ["Python", "FastAPI", "Skyfield", "Next.js", "Tailwind"];
-const API_SOURCES = ["Heavens-Above", "Open-Meteo", "wheretheiss.at"];
+import { TECH_BADGES, API_SOURCES } from "@/lib/constants";
 
 export default function Footer() {
   return (

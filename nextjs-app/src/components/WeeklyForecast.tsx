@@ -1,26 +1,5 @@
-"use client";
-
-import { useState, useEffect } from "react";
 import { CalendarDays } from "lucide-react";
-
-interface WeekDay {
-  date: string;
-  moon_phase: string;
-  moon_illumination: number;
-  weather: string;
-  cloud_pct: number;
-  temp_c: number;
-  highlights: string[];
-  rating: string;
-}
-
-interface WeeklyReport {
-  week_start: string;
-  days: WeekDay[];
-  best_nights: Array<{ date: string; reason: string }>;
-}
-
-const API_BASE = process.env.NEXT_PUBLIC_API_BASE || "/api";
+import type { WeeklyReport } from "@/types";
 
 function RatingBadge({ rating }: { rating: string }) {
   if (!rating) return <span className="text-xs font-medium text-zinc-500">—</span>;
@@ -36,51 +15,16 @@ function StatusDot({ cloud_pct }: { cloud_pct: number }) {
   return <span className="h-2 w-2 rounded-full bg-red-400" title="Cloudy" />;
 }
 
-export default function WeeklyForecast() {
-  const [report, setReport] = useState<WeeklyReport | null>(null);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
-
-  useEffect(() => {
-    async function fetchWeekly() {
-      try {
-        const res = await fetch(`${API_BASE}/weekly`);
-        if (!res.ok) throw new Error(`HTTP ${res.status}`);
-        const data = await res.json();
-        setReport(data);
-      } catch (e) {
-        setError(e instanceof Error ? e.message : "Failed to fetch weekly forecast");
-      } finally {
-        setLoading(false);
-      }
-    }
-    fetchWeekly();
-  }, []);
-
-  if (loading) {
+export default function WeeklyForecast({ report }: { report: WeeklyReport | null }) {
+  if (!report) {
     return (
       <section id="card-weekly" className="w-full">
-        <div className="card animate-pulse p-5">
-          <div className="h-6 w-48 bg-white/10 rounded mb-4" />
-          <div className="grid grid-cols-7 gap-2">
-            {Array.from({ length: 7 }).map((_, i) => (
-              <div key={i} className="h-28 bg-white/5 rounded" />
-            ))}
-          </div>
+        <div className="rounded-xl border border-red-500/30 bg-red-500/10 p-4 text-sm text-red-400">
+          7-day forecast unavailable.
         </div>
       </section>
     );
   }
-
-  if (error) {
-    return (
-      <section id="card-weekly" className="w-full">
-        <div className="rounded-xl border border-red-500/30 bg-red-500/10 p-4 text-sm text-red-400">{error}</div>
-      </section>
-    );
-  }
-
-  if (!report) return null;
 
   return (
     <section id="card-weekly" className="card w-full">

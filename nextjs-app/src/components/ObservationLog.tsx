@@ -2,21 +2,8 @@
 
 import { useState } from "react";
 import { NotebookPen, Trash2, Plus, Camera } from "lucide-react";
-
-interface LogEntry {
-  id: string;
-  date: string;
-  target: string;
-  notes: string;
-  conditions: string;
-  equipment: string;
-}
-
-const DEFAULT_ENTRIES: LogEntry[] = [
-  { id: "1", date: "2026-06-20", target: "Antares (Alpha Sco)", notes: "Clear skies, excellent seeing. Scorpius well positioned.", conditions: "Excellent", equipment: "Celestron StarSense 5DX" },
-  { id: "2", date: "2026-06-18", target: "M8 - Lagoon Nebula", notes: "Sagittarius rising late. Some thin cirrus at dawn.", conditions: "Good", equipment: "Celestron StarSense 5DX + camera" },
-  { id: "3", date: "2026-06-15", target: "Jupiter", notes: "Great Red Spot visible. Four Galilean moons aligned.", conditions: "Excellent", equipment: "Celestron StarSense 5DX" },
-];
+import type { LogEntry } from "@/types";
+import { DEFAULT_ENTRIES } from "@/lib/constants";
 
 export default function ObservationLog() {
   const [entries, setEntries] = useState<LogEntry[]>(DEFAULT_ENTRIES);

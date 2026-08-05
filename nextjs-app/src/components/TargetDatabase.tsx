@@ -2,23 +2,11 @@
 
 import { useState, useEffect } from "react";
 import { Binoculars } from "lucide-react";
-
-interface Target {
-  name: string;
-  type: string;
-  constellation: string;
-  magnitude?: number;
-  size?: string;
-  distance?: string;
-  best_month?: string;
-  notes?: string;
-  emoji?: string;
-}
-
-const API_BASE = process.env.NEXT_PUBLIC_API_BASE || "/api";
+import type { CatalogTarget } from "@/types";
+import { API_BASE, CONSTELLATION_FILTERS } from "@/lib/constants";
 
 export default function TargetDatabase() {
-  const [targets, setTargets] = useState<Target[]>([]);
+  const [targets, setTargets] = useState<CatalogTarget[]>([]);
   const [filter, setFilter] = useState("Sco");
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -38,8 +26,6 @@ export default function TargetDatabase() {
     }
     fetchTargets();
   }, [filter]);
-
-  const constellations = ["And", "Ori", "Sco", "Cyg", "Leo", "Vir", "Sgr", "Aql"];
 
   if (loading) {
     return (
@@ -70,7 +56,7 @@ export default function TargetDatabase() {
 
       {/* Constellation filter */}
       <div className="flex flex-wrap gap-1.5 mb-4">
-        {constellations.map((c) => (
+        {CONSTELLATION_FILTERS.map((c) => (
           <button
             key={c}
             onClick={() => setFilter(c)}

@@ -1,7 +1,6 @@
 import { proxyRequest } from "@/lib/api-proxy";
-import { REVALIDATE } from "@/lib/constants";
 
 export async function GET(request: Request) {
   const url = new URL(request.url);
-  return proxyRequest("/planets", url.search, REVALIDATE.planets);
+  return proxyRequest("/seeing/ai", url.search, false);
 }
