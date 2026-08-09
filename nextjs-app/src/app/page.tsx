@@ -16,6 +16,8 @@ import Resources from "@/components/Resources";
 import Footer from "@/components/Footer";
 import CardRow from "@/components/CardRow";
 import AiTargets from "@/components/AiTargets";
+import PlanMyNight from "@/components/PlanMyNight";
+import TelescopeCalculator from "@/components/TelescopeCalculator";
 import SolarSystemExplorerCard from "@/components/SolarSystemExplorerCard";
 import LightPollutionCard from "@/components/LightPollutionCard";
 import AuroraCard from "@/components/AuroraCard";
@@ -67,7 +69,9 @@ export default async function Home() {
           <ActiveConstellation />
           <ConstellationsTonight constellations={constellationsData?.constellations} />
           <TargetDatabase />
+          <PlanMyNight />
           <WeeklyForecast report={weekly} />
+          <TelescopeCalculator />
           <SolarSystemExplorerCard />
           <LightPollutionCard bortle={bortle} />
           <ClearOutsideEmbed />

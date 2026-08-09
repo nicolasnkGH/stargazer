@@ -1,12 +1,15 @@
 "use client";
 
 import { useState, useEffect } from "react";
+import { useTranslations } from "next-intl";
 import { Binoculars } from "lucide-react";
 import type { CatalogTarget } from "@/types";
 import { API_BASE, CONSTELLATION_FILTERS } from "@/lib/constants";
+import { addToPlan } from "@/hooks/useNightPlan";
 import GalleryButton from "./GalleryButton";
 
 export default function TargetDatabase() {
+  const translate = useTranslations();
   const [targets, setTargets] = useState<CatalogTarget[]>([]);
   const [filter, setFilter] = useState("Sco");
   const [loading, setLoading] = useState(true);
@@ -103,8 +106,17 @@ export default function TargetDatabase() {
                 {t.notes && (
                   <p className="text-xs text-zinc-500 mt-1.5 italic">{t.notes}</p>
                 )}
-                <div className="mt-2">
+                <div className="mt-2 flex flex-wrap gap-2">
                   <GalleryButton targetId={t.id} targetName={t.name} />
+                  <button
+                    onClick={() => {
+                      const err = addToPlan(t.id, `${t.emoji ?? "🔭"} ${t.name}`);
+                      if (err) alert(err);
+                    }}
+                    className="flex items-center gap-1 rounded-lg bg-white/5 border border-white/10 px-3 py-1.5 text-xs text-zinc-300 hover:bg-white/10 transition-colors"
+                  >
+                    {translate("btn_add_to_plan")}
+                  </button>
                 </div>
               </div>
             </div>

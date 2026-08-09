@@ -2,10 +2,11 @@
 
 import { useEffect, useRef, useState } from "react";
 import * as THREE from "three";
-import { useLocale } from "next-intl";
+import { useLocale, useTranslations } from "next-intl";
 import { Moon } from "lucide-react";
 import type { MoonData } from "@/types";
 import { MOON_FACT_STORAGE_KEY_PREFIX } from "@/lib/constants";
+import { addToPlan } from "@/hooks/useNightPlan";
 import GalleryButton from "./GalleryButton";
 
 function Moon3DWidget({ illumination_pct }: { illumination_pct: number }) {
@@ -105,7 +106,13 @@ function useMoonFact(fresh: string | undefined) {
 }
 
 export default function MoonCard({ moon, moonFact }: { moon: MoonData | null; moonFact?: string }) {
+  const t = useTranslations();
   const fact = useMoonFact(moonFact);
+
+  function addMoonToPlan() {
+    const err = addToPlan("moon", "🌙 The Moon");
+    if (err) alert(err);
+  }
 
   if (!moon) {
     return (
@@ -123,8 +130,14 @@ export default function MoonCard({ moon, moonFact }: { moon: MoonData | null; mo
         <span className="ml-auto text-xs text-zinc-500">{moon.illumination_pct}%</span>
       </div>
 
-      <div className="mb-3">
+      <div className="mb-3 flex flex-wrap gap-2">
         <GalleryButton targetId="moon" targetName="Moon" />
+        <button
+          onClick={addMoonToPlan}
+          className="flex items-center gap-1 rounded-lg bg-white/5 border border-white/10 px-3 py-1.5 text-xs text-zinc-300 hover:bg-white/10 transition-colors"
+        >
+          {t("btn_add_moon_to_plan")}
+        </button>
       </div>
 
       <div className="flex items-center gap-3 mb-3">
