@@ -1,12 +1,15 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { Star } from "lucide-react";
+import { useTranslations } from "next-intl";
+import { Star, Maximize, X } from "lucide-react";
 import type { ConstellationData, ConstellationWindow, MapTarget } from "@/types";
-import { API_BASE } from "@/lib/constants";
+import { API_BASE, ALL_CONSTELLATIONS } from "@/lib/constants";
 import CelestialMap from "./CelestialMap";
 
 export default function ActiveConstellation() {
+  const t = useTranslations();
+  const [fullscreen, setFullscreen] = useState(false);
   const [constellations, setConstellations] = useState<ConstellationData[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -96,19 +99,20 @@ export default function ActiveConstellation() {
           <Star className="h-5 w-5 text-amber-400" strokeWidth={1.6} />
           <h2>Active Constellations</h2>
         </div>
-        {visible.length > 0 && (
-          <select
-            value={selectedAbbr ?? ""}
-            onChange={(e) => setSelectedAbbr(e.target.value)}
-            className="rounded-lg border border-white/10 bg-slate-900/50 py-1 px-2 text-xs text-zinc-200 outline-none hover:border-white/30"
-          >
-            {visible.map((c) => (
+        <select
+          value={selectedAbbr ?? ""}
+          onChange={(e) => setSelectedAbbr(e.target.value)}
+          className="rounded-lg border border-white/10 bg-slate-900/50 py-1 px-2 text-xs text-zinc-200 outline-none hover:border-white/30"
+        >
+          {ALL_CONSTELLATIONS.map((c) => {
+            const live = visible.find((v) => v.abbr === c.abbr);
+            return (
               <option key={c.abbr} value={c.abbr}>
-                {c.emoji} {c.name}
+                {c.emoji} {c.name}{live ? ` — ${live.altitude_deg}°` : ""}
               </option>
-            ))}
-          </select>
-        )}
+            );
+          })}
+        </select>
       </div>
       <div className="card-body">
         {highest ? (
@@ -147,7 +151,19 @@ export default function ActiveConstellation() {
                 <span>Set: <span className="font-mono text-zinc-300">{constInfo.set_time}</span></span>
               </div>
             )}
-            <CelestialMap targets={mapTargets} centerRaHours={centerRaHours} centerDecDeg={centerDecDeg} />
+            <div className="mb-2 flex items-center justify-between gap-2">
+              <span className="text-xs text-purple-400">{t("simbad_instruction")}</span>
+              <button
+                onClick={() => setFullscreen((v) => !v)}
+                title="Toggle Fullscreen"
+                className="text-zinc-500 hover:text-zinc-300 transition-colors flex-shrink-0"
+              >
+                {fullscreen ? <X className="h-4 w-4" strokeWidth={1.5} /> : <Maximize className="h-4 w-4" strokeWidth={1.5} />}
+              </button>
+            </div>
+            <div className={fullscreen ? "fixed inset-4 z-[9999] rounded-xl border border-purple-500/40 bg-slate-950 p-4 overflow-y-auto shadow-2xl" : ""}>
+              <CelestialMap targets={mapTargets} centerRaHours={centerRaHours} centerDecDeg={centerDecDeg} />
+            </div>
           </div>
         )}
 

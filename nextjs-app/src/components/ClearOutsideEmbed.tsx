@@ -1,22 +1,63 @@
-"use client";
-
 import { CloudSun } from "lucide-react";
+import type { LocationCoords } from "@/types";
 
-export default function ClearOutsideEmbed() {
+const DEFAULT_LAT = 40.13;
+const DEFAULT_LON = -83.04;
+
+export default function ClearOutsideEmbed({ coords }: { coords?: LocationCoords | null }) {
+  const lat = coords?.lat ?? DEFAULT_LAT;
+  const lon = coords?.lon ?? DEFAULT_LON;
+  const forecastUrl = `https://clearoutside.com/forecast/${lat}/${lon}`;
+
   return (
-    <section className="card w-full">
-      <div className="card-header">
-        <CloudSun className="h-5 w-5 text-sky-400" strokeWidth={1.6} />
-        <h2>Astronomical Weather</h2>
+    <section id="card-weather" className="card w-full">
+      <div className="card-header justify-between flex-wrap gap-2">
+        <div className="flex items-center gap-2">
+          <CloudSun className="h-5 w-5 text-sky-400" strokeWidth={1.6} />
+          <h2>Clear Outside — Astronomical Weather Forecast</h2>
+        </div>
+        <a href={forecastUrl} target="_blank" rel="noopener" className="text-xs text-sky-400 hover:underline">
+          Open Full Forecast ↗
+        </a>
       </div>
-      <div className="card-body px-0 py-0 overflow-hidden rounded-b-xl">
-        <iframe
-          src="https://clearoutside.com"
-          title="Clear Outside — Astronomical Seeing & Cloud Forecast"
-          className="w-full h-[400px] border-0"
-          loading="lazy"
-          allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope"
-        />
+      <div className="card-body grid grid-cols-1 lg:grid-cols-[1.4fr_1fr] gap-5">
+        <div className="rounded-xl overflow-hidden border border-white/5 bg-black/20">
+          {/* eslint-disable-next-line @next/next/no-img-element */}
+          <img
+            src={`https://clearoutside.com/forecast_image_large/${lat}/${lon}/forecast.png`}
+            alt="Clear Outside astronomical weather forecast"
+            loading="lazy"
+            className="w-full"
+          />
+        </div>
+        <div className="text-sm">
+          <h3 className="text-white font-semibold mb-3">How to read this chart</h3>
+
+          <div className="mb-3.5">
+            <strong className="block text-sky-400 mb-1">🚦 The Traffic Light System</strong>
+            <span className="text-xs text-zinc-400 leading-relaxed">
+              <strong>SUMMARY Row:</strong> Red means clouded over. Green means perfectly clear. Orange means mixed conditions.<br />
+              <strong>CLOUD Rows:</strong> Pure white squares mean 0% clouds. Dark blue squares mean 100% cloud cover.
+            </span>
+          </div>
+
+          <div className="mb-3.5">
+            <strong className="block text-sky-400 mb-1">🌫️ How to Spot the Haze</strong>
+            <span className="text-xs text-zinc-400 leading-relaxed">
+              Look at the <strong>REL. HUMIDITY &amp; DEW RISK</strong> rows. When humidity is high, moisture creates a thick,
+              milky haze that scatters light and washes out faint stars. If these rows turn Red/Orange, expect poor
+              transparency even if cloud cover is 0%.
+            </span>
+          </div>
+
+          <div>
+            <strong className="block text-red-400 mb-1">💧 Telescope Dew Warning</strong>
+            <span className="text-xs text-zinc-400 leading-relaxed">
+              If the Dew Risk row is glowing red, water vapor will condense quickly. Glass lenses and mirrors will fog up
+              and end your session if you don&apos;t use a dew heater or dew shield!
+            </span>
+          </div>
+        </div>
       </div>
     </section>
   );

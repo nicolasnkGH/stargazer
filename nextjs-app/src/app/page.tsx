@@ -60,7 +60,7 @@ export default async function Home() {
         <div className="w-full max-w-5xl px-4 sm:px-8 py-8">
           <GoNoGoBanner seeing={tonight?.seeing ?? null} />
           <CardRow id="card-tonight">
-            <SeeingConditions seeing={tonight?.seeing ?? null} />
+            <SeeingConditions seeing={tonight?.seeing ?? null} twilight={tonight?.twilight_timeline} />
             <MoonCard moon={tonight?.moon ?? null} moonFact={tonight?.seeing?.moon_fact} />
             <SkyMotion />
           </CardRow>
@@ -74,7 +74,7 @@ export default async function Home() {
           <TelescopeCalculator />
           <SolarSystemExplorerCard />
           <LightPollutionCard bortle={bortle} />
-          <ClearOutsideEmbed />
+          <ClearOutsideEmbed coords={coords} />
           <AuroraCard aurora={aurora} spaceWeather={spaceWeather} />
           <ApodCard apod={apod} />
           <ObservationLog />

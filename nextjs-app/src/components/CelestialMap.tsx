@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
+import { useTranslations } from "next-intl";
 import { useCelestialReady } from "@/hooks/useCelestialReady";
 import {
   CELESTIAL_MAP_CONTAINER_ID,
@@ -24,6 +25,7 @@ interface SkyClick {
 }
 
 export default function CelestialMap({ targets, centerRaHours, centerDecDeg }: CelestialMapProps) {
+  const t = useTranslations();
   const initializedRef = useRef(false);
   const targetsRef = useRef<MapTarget[]>(targets);
   const ready = useCelestialReady();
@@ -161,18 +163,18 @@ export default function CelestialMap({ targets, centerRaHours, centerDecDeg }: C
               )}
             </>
           )}
-          {skyClick?.loading && <p className="text-xs text-purple-400">Scanning SIMBAD database...</p>}
-          {skyClick?.error && <p className="text-xs text-red-400">Could not resolve star data at this location.</p>}
+          {skyClick?.loading && <p className="text-xs text-purple-400">{t("simbad_scanning")}</p>}
+          {skyClick?.error && <p className="text-xs text-red-400">{t("simbad_error")}</p>}
           {skyClick?.data && (
             <>
               <p className="font-semibold text-zinc-100">{skyClick.data.name.replace("* ", "")}</p>
               <div className="mt-1 flex justify-between text-xs">
-                <span className="text-zinc-400">Spectral Type</span>
-                <span className="font-mono text-green-400">{skyClick.data.spectral_type}</span>
+                <span className="text-zinc-400">{t("simbad_spectral")}</span>
+                <span className="font-mono text-green-400">{skyClick.data.spectral_type ?? t("simbad_unknown")}</span>
               </div>
               <div className="flex justify-between text-xs">
-                <span className="text-zinc-400">Distance</span>
-                <span className="font-mono text-sky-400">{skyClick.data.distance_ly}</span>
+                <span className="text-zinc-400">{t("simbad_dist")}</span>
+                <span className="font-mono text-sky-400">{skyClick.data.distance_ly ?? t("simbad_unknown")}</span>
               </div>
             </>
           )}

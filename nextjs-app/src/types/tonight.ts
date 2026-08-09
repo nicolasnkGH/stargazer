@@ -15,6 +15,14 @@ export interface SeeingData {
   tonight_temp_c?: number;
   ai_powered: boolean;
   moon_fact?: string;
+  hourly_clouds?: number[];
+}
+
+export interface TwilightTimeline {
+  sunset: string | null;
+  astro_start: string | null;
+  astro_end: string | null;
+  sunrise: string | null;
 }
 
 export type AiSeeingResponse = SeeingData | { status: "processing" };
@@ -24,9 +32,11 @@ export interface MoonData {
   illumination_pct: number;
   emoji?: string;
   altitude_deg?: number;
+  azimuth_deg?: number;
   direction?: string;
-  rise?: string;
-  set?: string;
+  moonrise?: string;
+  moonset?: string;
+  dso_impact?: string;
 }
 
 export interface MustSeeTarget {
@@ -41,4 +51,5 @@ export interface TonightReport {
   moon: MoonData;
   best_targets_tonight: MustSeeTarget[];
   must_see: MustSeeTarget[];
+  twilight_timeline?: TwilightTimeline;
 }

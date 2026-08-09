@@ -9,4 +9,10 @@ export interface CatalogTarget {
   best_month?: string;
   notes?: string;
   emoji?: string;
+  description?: string;
+  difficulty?: string;
+  equipment?: string;
+  visible?: boolean;
+  altitude_deg?: number;
+  bortle_min?: number;
 }

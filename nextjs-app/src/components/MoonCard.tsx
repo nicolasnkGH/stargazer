@@ -141,7 +141,7 @@ export default function MoonCard({ moon, moonFact }: { moon: MoonData | null; mo
       </div>
 
       <div className="flex items-center gap-3 mb-3">
-        <span className="text-3xl">{moon.emoji ?? "🌙"}</span>
+        <span className="text-3xl">{moon.emoji ?? moon.phase_name.split(" ")[0] ?? "🌙"}</span>
         <div>
           <p className="text-base font-semibold text-zinc-100">{moon.phase_name}</p>
         </div>
@@ -156,10 +156,22 @@ export default function MoonCard({ moon, moonFact }: { moon: MoonData | null; mo
 
       <Moon3DWidget illumination_pct={moon.illumination_pct} />
 
-      {moon.altitude_deg != null && (
-        <p className="mt-3 text-xs text-zinc-400 font-mono">
-          Alt: {moon.altitude_deg}° {moon.direction ?? ""}
-        </p>
+      {(moon.moonrise || moon.moonset || moon.altitude_deg != null) && (
+        <div className="mt-3 flex flex-wrap gap-x-4 gap-y-1 text-xs text-zinc-400 font-mono">
+          {moon.moonrise && (
+            <span>Rise: <span className="text-zinc-200">{moon.moonrise}</span></span>
+          )}
+          {moon.moonset && (
+            <span>Set: <span className="text-zinc-200">{moon.moonset}</span></span>
+          )}
+          {moon.altitude_deg != null && (
+            <span>Alt: {moon.altitude_deg}° {moon.direction ?? ""}</span>
+          )}
+        </div>
+      )}
+
+      {moon.dso_impact && (
+        <p className="mt-2 text-xs text-zinc-400">{moon.dso_impact}</p>
       )}
 
       {fact && (
