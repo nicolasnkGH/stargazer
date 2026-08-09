@@ -12,3 +12,6 @@ export * from "./celestial";
 export * from "./motion-facts";
 export * from "./gallery";
 export * from "./location";
+export * from "./apod";
+export * from "./aurora";
+export * from "./bortle";

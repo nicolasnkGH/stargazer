@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from "react";
 import { Rocket } from "lucide-react";
-import type { IssPass, NeoObject, CometData } from "@/types";
+import type { IssPass, NeoObject, CometData, MeteorShower } from "@/types";
 import { API_BASE, TABS } from "@/lib/constants";
 import MotionFactCard from "./MotionFactCard";
 
@@ -20,21 +20,27 @@ export default function SkyMotion() {
   const [passes, setPasses] = useState<IssPass[]>([]);
   const [neos, setNeos] = useState<NeoObject[]>([]);
   const [comets, setComets] = useState<CometData[]>([]);
+  const [meteors, setMeteors] = useState<MeteorShower[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
     async function fetchData() {
       try {
-        const [issRes, neoRes] = await Promise.all([
+        const [issRes, neoRes, meteorsRes] = await Promise.all([
           fetch(`${API_BASE}/iss?count=3`),
           fetch(`${API_BASE}/asteroids?limit=5`),
+          fetch(`${API_BASE}/meteors?count=5`),
         ]);
         if (issRes.ok) {
           const issData = await issRes.json();
           setPasses(issData.passes || []);
         }
         if (neoRes.ok) setNeos(await neoRes.json());
+        if (meteorsRes.ok) {
+          const meteorsData = await meteorsRes.json();
+          setMeteors(meteorsData.showers || []);
+        }
         setComets([]); // No backend endpoint for comets currently
       } catch (e) {
         setError(e instanceof Error ? e.message : "Failed to fetch sky motion data");
@@ -216,6 +222,50 @@ export default function SkyMotion() {
           </div>
         )}
         </>
+      )}
+
+      {/* Meteor Showers tab */}
+      {tab === "meteors" && (
+        meteors.length === 0 ? (
+          <div className="py-8 text-center text-sm text-zinc-400">
+            Failed to load meteor shower schedule.
+          </div>
+        ) : (
+          <div id="meteors-list" className="flex flex-col gap-2">
+            {meteors.map((s, i) => {
+              const peak = new Date(`${s.peak_date}T00:00:00Z`);
+              const peakLabel = peak.toLocaleDateString(undefined, { weekday: "short", month: "short", day: "numeric", year: "numeric" });
+              const countdown = s.days_until_peak === 0 ? "Peaks tonight" : s.days_until_peak === 1 ? "Peaks tomorrow" : `Peaks in ${s.days_until_peak} days`;
+              return (
+                <div
+                  key={s.code}
+                  className={`rounded-xl border p-4 ${
+                    i === 0 ? "border-sky-500/40 shadow-[0_0_12px_rgba(56,189,248,0.15)]" : "border-white/10"
+                  } bg-white/[0.03]`}
+                >
+                  <div className="flex items-center justify-between gap-2 flex-wrap">
+                    <p className="text-sm font-semibold text-zinc-100">
+                      💫 {s.name}
+                      {i === 0 && (
+                        <span className="ml-1.5 rounded bg-sky-500/[0.15] px-1.5 py-0.5 text-[0.65rem] uppercase tracking-wide text-sky-400">
+                          Next
+                        </span>
+                      )}
+                    </p>
+                    <span className="font-mono text-sm text-purple-400">ZHR ~{s.zhr}/hr</span>
+                  </div>
+                  <div className="text-xs text-zinc-300 mt-1">
+                    <span className="text-sky-400">{peakLabel}</span> · <span className="text-zinc-400">{countdown}</span>
+                  </div>
+                  <div className="text-xs text-zinc-400 mt-1">
+                    Active: {s.activity_period} · Best: {s.hemisphere} Hem. · Parent: {s.parent_body}
+                  </div>
+                  <p className="text-xs text-zinc-300 mt-1.5 italic">{s.notes}</p>
+                </div>
+              );
+            })}
+          </div>
+        )
       )}
       </div>
     </section>

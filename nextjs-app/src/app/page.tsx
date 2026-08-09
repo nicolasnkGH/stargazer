@@ -16,21 +16,38 @@ import Resources from "@/components/Resources";
 import Footer from "@/components/Footer";
 import CardRow from "@/components/CardRow";
 import AiTargets from "@/components/AiTargets";
+import SolarSystemExplorerCard from "@/components/SolarSystemExplorerCard";
+import LightPollutionCard from "@/components/LightPollutionCard";
+import AuroraCard from "@/components/AuroraCard";
+import ApodCard from "@/components/ApodCard";
 import { fetchBackend } from "@/lib/api-proxy";
 import { REVALIDATE, LOCATION_COOKIE } from "@/lib/constants";
 import { parseLocationCookie } from "@/lib/location-cookie";
-import type { TonightReport, WeeklyReport, PlanetsResponse, ConstellationsResponse } from "@/types";
+import type {
+  TonightReport,
+  WeeklyReport,
+  PlanetsResponse,
+  ConstellationsResponse,
+  BortleInfo,
+  AuroraForecast,
+  SpaceWeatherReport,
+  ApodData,
+} from "@/types";
 
 export default async function Home() {
   const cookieStore = await cookies();
   const coords = parseLocationCookie(cookieStore.get(LOCATION_COOKIE)?.value);
   const locSearch = coords ? `?lat=${coords.lat}&lon=${coords.lon}` : "";
 
-  const [tonight, weekly, planetsData, constellationsData] = await Promise.all([
+  const [tonight, weekly, planetsData, constellationsData, bortle, aurora, spaceWeather, apod] = await Promise.all([
     fetchBackend<TonightReport>("/tonight", locSearch, REVALIDATE.tonight),
     fetchBackend<WeeklyReport>("/weekly", locSearch, REVALIDATE.weekly),
     fetchBackend<PlanetsResponse>("/planets", locSearch, REVALIDATE.planets),
     fetchBackend<ConstellationsResponse>("/constellations", locSearch, REVALIDATE.constellations),
+    fetchBackend<BortleInfo>("/api/bortle", locSearch, REVALIDATE.bortle),
+    fetchBackend<AuroraForecast>("/api/aurora", coords ? `?lat=${coords.lat}` : "", REVALIDATE.aurora),
+    fetchBackend<SpaceWeatherReport>("/nasa/space-weather", "", REVALIDATE.spaceWeather),
+    fetchBackend<ApodData>("/nasa/apod", "", REVALIDATE.apod),
   ]);
 
   return (
@@ -51,7 +68,11 @@ export default async function Home() {
           <ConstellationsTonight constellations={constellationsData?.constellations} />
           <TargetDatabase />
           <WeeklyForecast report={weekly} />
+          <SolarSystemExplorerCard />
+          <LightPollutionCard bortle={bortle} />
           <ClearOutsideEmbed />
+          <AuroraCard aurora={aurora} spaceWeather={spaceWeather} />
+          <ApodCard apod={apod} />
           <ObservationLog />
           <Resources />
           <Footer />

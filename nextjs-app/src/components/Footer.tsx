@@ -50,7 +50,7 @@ export default async function Footer() {
               {NAV_LINKS.map((link) => (
                 <li key={link.href}>
                   <a href={link.href} className="text-xs text-zinc-400 hover:text-zinc-200 transition-colors">
-                    {t(link.key)}
+                    {"label" in link ? link.label : t(link.key)}
                   </a>
                 </li>
               ))}

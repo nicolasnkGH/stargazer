@@ -269,7 +269,7 @@ export default function Header() {
                       className="block rounded px-4 py-2.5 text-[0.9rem] text-zinc-200 transition hover:bg-purple-600/20 hover:text-white"
                       onClick={() => setMenuOpen(false)}
                     >
-                      {t(link.key)}
+                      {"label" in link ? link.label : t(link.key)}
                     </a>
                   ))}
 

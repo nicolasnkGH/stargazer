@@ -23,3 +23,15 @@ export interface CometData {
   perihelion_date: string;
   description: string;
 }
+
+export interface MeteorShower {
+  name: string;
+  code: string;
+  peak_date: string;
+  days_until_peak: number;
+  zhr: number;
+  parent_body: string;
+  activity_period: string;
+  hemisphere: string;
+  notes: string;
+}
