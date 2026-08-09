@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { Download, X } from "lucide-react";
+import { FiDownload, FiX } from "react-icons/fi";
 
 interface BeforeInstallPromptEvent extends Event {
   prompt: () => Promise<void>;
@@ -37,7 +37,7 @@ export default function InstallPrompt() {
         onClick={install}
         className="flex items-center gap-1.5 rounded-lg bg-sky-500/20 border border-sky-500/40 px-3 py-1.5 text-xs font-medium text-sky-300 hover:bg-sky-500/30 transition-colors"
       >
-        <Download className="h-3.5 w-3.5" strokeWidth={1.5} />
+        <FiDownload className="h-3.5 w-3.5" />
         Install
       </button>
       <button
@@ -45,7 +45,7 @@ export default function InstallPrompt() {
         className="text-zinc-500 hover:text-zinc-300 transition-colors"
         title="Dismiss"
       >
-        <X className="h-4 w-4" strokeWidth={1.5} />
+        <FiX className="h-4 w-4" />
       </button>
     </div>
   );

@@ -3,7 +3,7 @@
 import { useEffect, useRef, useState } from "react";
 import * as THREE from "three";
 import { useLocale, useTranslations } from "next-intl";
-import { Moon } from "lucide-react";
+import { FiMoon } from "react-icons/fi";
 import type { MoonData } from "@/types";
 import { MOON_FACT_STORAGE_KEY_PREFIX } from "@/lib/constants";
 import { addToPlan } from "@/hooks/useNightPlan";
@@ -125,7 +125,7 @@ export default function MoonCard({ moon, moonFact }: { moon: MoonData | null; mo
   return (
     <div className="card card-body flex flex-col h-full">
       <div className="flex items-center gap-2 mb-3">
-        <Moon className="h-5 w-5 text-amber-400" strokeWidth={1.6} />
+        <FiMoon className="h-5 w-5 text-amber-400" />
         <h3 className="text-[0.92rem] font-semibold text-zinc-100 tracking-wide">Moon</h3>
         <span className="ml-auto text-xs text-zinc-500">{moon.illumination_pct}%</span>
       </div>

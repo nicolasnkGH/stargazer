@@ -2,7 +2,8 @@
 
 import { useState } from "react";
 import useSWR from "swr";
-import { CloudSun, CheckSquare, Square, Clock, Sunset, Moon, Sun, Sunrise, BarChart2 } from "lucide-react";
+import { FiCheckSquare, FiSquare, FiClock, FiSunset, FiMoon, FiSun, FiSunrise, FiBarChart2 } from "react-icons/fi";
+import { LuCloudSun } from "react-icons/lu";
 import type { SeeingData, AiSeeingResponse, TwilightTimeline } from "@/types";
 import { AI_SEEING_POLL_INTERVAL_MS, AI_SEEING_MAX_POLLS } from "@/lib/constants";
 
@@ -56,7 +57,7 @@ function PreflightChecklist() {
   return (
     <div className="mt-4 pt-4 border-t border-white/10">
       <h3 className="flex items-center gap-2 text-sm font-semibold text-zinc-100 mb-3">
-        <CheckSquare className="h-4 w-4 text-green-400" strokeWidth={1.5} />
+        <FiCheckSquare className="h-4 w-4 text-green-400" />
         Pre-Flight Checklist
       </h3>
       <div className="flex flex-col gap-1.5">
@@ -69,9 +70,9 @@ function PreflightChecklist() {
             }`}
           >
             {checked[c.id] ? (
-              <CheckSquare className="h-4 w-4 text-green-400 flex-shrink-0" strokeWidth={1.5} />
+              <FiCheckSquare className="h-4 w-4 text-green-400 flex-shrink-0" />
             ) : (
-              <Square className="h-4 w-4 text-zinc-600 flex-shrink-0" strokeWidth={1.5} />
+              <FiSquare className="h-4 w-4 text-zinc-600 flex-shrink-0" />
             )}
             <span className={`text-xs ${checked[c.id] ? "text-zinc-300 line-through" : "text-zinc-400"}`}>
               {c.label}
@@ -90,22 +91,22 @@ function PreflightChecklist() {
 
 function TwilightTimelineStrip({ twilight }: { twilight: TwilightTimeline }) {
   const items = [
-    { icon: Sunset, color: "text-orange-400", value: twilight.sunset, label: "Sunset" },
-    { icon: Moon, color: "text-sky-400", value: twilight.astro_start, label: "Astro Start" },
-    { icon: Sun, color: "text-sky-400", value: twilight.astro_end, label: "Astro End" },
-    { icon: Sunrise, color: "text-orange-400", value: twilight.sunrise, label: "Sunrise" },
+    { icon: FiSunset, color: "text-orange-400", value: twilight.sunset, label: "Sunset" },
+    { icon: FiMoon, color: "text-sky-400", value: twilight.astro_start, label: "Astro Start" },
+    { icon: FiSun, color: "text-sky-400", value: twilight.astro_end, label: "Astro End" },
+    { icon: FiSunrise, color: "text-orange-400", value: twilight.sunrise, label: "Sunrise" },
   ];
   return (
     <div className="mt-4 pt-2.5 border-t border-white/10">
       <div className="flex items-center gap-1.5 text-xs text-white mb-2">
-        <Clock className="h-3.5 w-3.5" strokeWidth={1.5} /> Twilight Timeline
+        <FiClock className="h-3.5 w-3.5" /> Twilight Timeline
       </div>
       <div className="flex justify-between text-center text-xs text-zinc-400">
         {items.map((it, i) => {
           const Icon = it.icon;
           return (
             <div key={i}>
-              <Icon className={`h-4 w-4 mx-auto mb-1 ${it.color}`} strokeWidth={1.5} />
+              <Icon className={`h-4 w-4 mx-auto mb-1 ${it.color}`} />
               <div className="font-semibold text-white">{it.value ?? "--:--"}</div>
               <div>{it.label}</div>
             </div>
@@ -121,7 +122,7 @@ function HourlyCloudChart({ hourlyClouds }: { hourlyClouds: number[] }) {
     <div className="mt-4 pt-2.5 border-t border-white/10">
       <div className="flex items-center justify-between text-xs text-white mb-2">
         <span className="flex items-center gap-1.5">
-          <BarChart2 className="h-3.5 w-3.5" strokeWidth={1.5} /> Cloud Forecast (24h)
+          <FiBarChart2 className="h-3.5 w-3.5" /> Cloud Forecast (24h)
         </span>
         <span className="text-[0.7rem] text-zinc-400">
           <span className="text-green-500">●</span> Clear <span className="text-red-500 ml-1">●</span> Overcast
@@ -176,7 +177,7 @@ export default function SeeingConditions({
   return (
     <div className="card card-body flex flex-col h-full">
       <div className="flex items-center gap-2 mb-3">
-        <CloudSun className="h-5 w-5 text-sky-400" strokeWidth={1.6} />
+        <LuCloudSun className="h-5 w-5 text-sky-400" />
         <h3 className="text-[0.92rem] font-semibold text-zinc-100 tracking-wide">Conditions</h3>
         {seeing.ai_powered && (
           <span className="ml-auto rounded border border-purple-500/30 bg-purple-500/15 px-2 py-0.5 text-[0.65rem] font-medium text-purple-400">

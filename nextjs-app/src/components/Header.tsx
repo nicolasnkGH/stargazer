@@ -3,7 +3,8 @@
 import { useState, useEffect, useRef } from "react";
 import useSWR from "swr";
 import { useLocale, useTranslations } from "next-intl";
-import { Telescope, Info, Menu, Flashlight, ChevronRight, ArrowUpRight } from "lucide-react";
+import { FiInfo, FiMenu, FiChevronRight, FiArrowUpRight } from "react-icons/fi";
+import { LuTelescope, LuFlashlight } from "react-icons/lu";
 import {
   HEALTH_POLL_INTERVAL_MS,
   HUD_POLL_INTERVAL_MS,
@@ -126,61 +127,49 @@ export default function Header() {
   }, [nightMode]);
 
   return (
-    <header className="sticky top-0 z-[100] border-b border-white/10 bg-slate-950/90 py-3.5 px-8 backdrop-blur-xl">
-      <div className="mx-auto flex max-w-full items-center justify-between gap-4 px-4">
+    <header className="sticky top-0 z-[100] border-b border-white/10 bg-slate-950/90 py-3 px-6 backdrop-blur-xl">
+      <div className="mx-auto flex max-w-full flex-nowrap items-center justify-between gap-4 overflow-x-auto">
         {/* Logo */}
-        <div className="flex items-center gap-3.5">
-          <Telescope className="h-6 w-6 animate-float text-sky-400 drop-shadow-[0_0_12px_rgba(74,158,255,0.5)]" strokeWidth={1.5} />
-          <div className="flex flex-col items-start">
-            <span className="bg-gradient-to-br from-white to-zinc-400 bg-clip-text text-[1.4rem] font-bold leading-tight tracking-tight text-transparent"
-              style={{ fontFamily: "'Space Grotesk', system-ui, sans-serif" }}
-            >
-              StarGazer
+        <a href="#hero-section" className="flex flex-shrink-0 items-center gap-2.5 no-underline">
+          <LuTelescope className="h-6 w-6 animate-float text-sky-400 drop-shadow-[0_0_12px_rgba(74,158,255,0.5)]" />
+          <span
+            className="whitespace-nowrap bg-gradient-to-br from-white to-zinc-400 bg-clip-text text-[1.4rem] font-bold leading-tight tracking-tight text-transparent"
+            style={{ fontFamily: "'Space Grotesk', system-ui, sans-serif" }}
+          >
+            StarGazer
+          </span>
+        </a>
+
+        {/* Telemetry pill */}
+        <div className="hidden flex-shrink-0 items-center gap-3 whitespace-nowrap rounded-full border border-white/10 bg-white/5 px-4 py-1.5 lg:flex">
+          <div className="flex items-center gap-1.5 text-[0.7rem] font-bold tracking-[0.12em]">
+            <span
+              className={`inline-block h-1.5 w-1.5 rounded-full ${
+                isChecking ? "bg-zinc-500" : isLive ? "animate-pulse bg-green-500" : "bg-red-500"
+              }`}
+            />
+            <span className={isChecking ? "text-zinc-400" : isLive ? "text-green-500" : "text-red-500"}>
+              {isChecking ? "..." : isLive ? "LIVE" : "OFFLINE"}
             </span>
-            <span className="text-[0.75rem] text-sky-400/80 transition-opacity hover:opacity-100 hover:underline cursor-pointer">
-              {t("app_slogan")}
-            </span>
-            <LocationControl />
           </div>
+          <span className="h-4 w-px bg-white/10" />
+          <span id="hud-moon" className="font-mono text-[0.75rem] text-slate-400">{hudMoon}</span>
+          <span className="h-4 w-px bg-white/10" />
+          <span id="hud-weather" className="font-mono text-[0.75rem] text-slate-400">{hudWeather}</span>
+          <span className="h-4 w-px bg-white/10" />
+          <LocationControl />
         </div>
 
         {/* Right side */}
-        <div className="flex items-center gap-5">
-          {/* Telemetry group */}
-          <div className="flex items-center gap-7 border-r border-white/10 pr-4">
-            {/* API status badge */}
-            <div
-              className={`hidden items-center gap-1.5 rounded-full border px-3 py-1 text-[0.7rem] font-bold tracking-[0.12em] md:flex ${
-                isChecking
-                  ? "border-white/10 bg-white/5 text-zinc-400"
-                  : isLive
-                    ? "border-green-500/30 bg-green-500/10 text-green-500"
-                    : "border-red-500/30 bg-red-500/10 text-red-500"
-              }`}
-            >
-              <span
-                className={`inline-block h-1.5 w-1.5 rounded-full ${
-                  isChecking ? "bg-zinc-500" : isLive ? "animate-pulse bg-green-500" : "bg-red-500"
-                }`}
-              />
-              {isChecking ? "..." : isLive ? "LIVE" : "OFFLINE"}
-            </div>
-
-            {/* Moon & weather */}
-            <div className="flex items-center gap-3 font-mono text-[0.75rem] text-slate-400">
-              <span id="hud-moon">{hudMoon}</span>
-              <span id="hud-weather">{hudWeather}</span>
-            </div>
-
-            {/* Clock */}
-            <div className="hidden items-center gap-2 font-mono md:flex">
-              <span id="clock" className="text-[0.85rem]">{currentTime}</span>
-              <span id="date-display" className="text-[0.75rem] text-zinc-400">{currentDate}</span>
-            </div>
+        <div className="flex flex-shrink-0 items-center gap-4">
+          {/* Clock */}
+          <div className="hidden items-center gap-2 whitespace-nowrap font-mono md:flex">
+            <span id="clock" className="text-[0.85rem]">{currentTime}</span>
+            <span id="date-display" className="text-[0.75rem] text-zinc-400">{currentDate}</span>
           </div>
 
           {/* Controls */}
-          <div className="flex items-center gap-2">
+          <div className="flex flex-shrink-0 items-center gap-2">
             <a
               href={`${STARGAZER_REPO_URL}/issues`}
               target="_blank"
@@ -188,7 +177,7 @@ export default function Header() {
               className="hidden md:inline-flex items-center gap-1 rounded-lg border border-sky-500/30 bg-sky-500/10 px-3 py-1.5 text-xs font-medium text-sky-300 hover:bg-sky-500/20 transition-colors mr-1"
             >
               Collaborate
-              <ArrowUpRight className="h-3 w-3" strokeWidth={1.5} />
+              <FiArrowUpRight className="h-3 w-3" />
             </a>
 
             <button
@@ -201,7 +190,7 @@ export default function Header() {
               }`}
               title="Night Vision Mode"
             >
-              <Flashlight className="h-4 w-4" strokeWidth={1.5} />
+              <LuFlashlight className="h-4 w-4" />
             </button>
 
             <button
@@ -229,7 +218,7 @@ export default function Header() {
               className="flex h-9 w-9 items-center justify-center rounded-lg border border-white/10 bg-white/5 text-zinc-200 transition hover:bg-purple-600/20 hover:border-purple-500/50"
               title="Dashboard Tour"
             >
-              <Info className="h-4 w-4" strokeWidth={1.5} />
+              <FiInfo className="h-4 w-4" />
             </button>
 
             {/* Menu button + dropdown */}
@@ -240,7 +229,7 @@ export default function Header() {
                 onClick={() => setMenuOpen(!menuOpen)}
                 title="Navigation"
               >
-                <Menu className="h-[18px] w-[18px]" strokeWidth={1.5} />
+                <FiMenu className="h-[18px] w-[18px]" />
                 <span className="hidden text-[0.8rem] font-semibold uppercase tracking-wider md:inline">Menu</span>
               </button>
 
@@ -293,23 +282,23 @@ export default function Header() {
                     ℹ️ About StarGazer
                   </button>
 
-                  <div>
+                  <div className="relative">
                     <button
                       onClick={() => setResourcesExpanded((v) => !v)}
                       className="flex w-full items-center justify-between rounded px-4 py-2.5 text-left text-[0.9rem] text-zinc-200 transition hover:bg-purple-600/20 hover:text-white"
                     >
                       Resources
-                      <ChevronRight className={`h-3.5 w-3.5 transition-transform ${resourcesExpanded ? "rotate-90" : ""}`} strokeWidth={1.5} />
+                      <FiChevronRight className="h-3.5 w-3.5 rotate-180" />
                     </button>
                     {resourcesExpanded && (
-                      <div className="ml-2 border-l border-white/10 pl-2">
+                      <div className="absolute right-full top-0 z-10 mr-1 min-w-[200px] rounded-lg border border-indigo-500/30 bg-[rgba(15,23,42,0.95)] p-2 shadow-[0_8px_32px_rgba(0,0,0,0.4)] backdrop-blur-md">
                         {RESOURCES.map((r) => (
                           <a
                             key={r.url}
                             href={r.url}
                             target="_blank"
                             rel="noopener"
-                            className="block rounded px-4 py-2 text-[0.8rem] text-zinc-400 transition hover:bg-purple-600/20 hover:text-white"
+                            className="block rounded px-3 py-2 text-[0.8rem] text-zinc-400 transition hover:bg-white/5 hover:text-white"
                             onClick={() => setMenuOpen(false)}
                           >
                             {r.icon} {r.name}

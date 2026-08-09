@@ -2,7 +2,6 @@
 
 import { useState, useRef } from "react";
 import { useTranslations } from "next-intl";
-import { Trash2, MapPin } from "lucide-react";
 import {
   SAVED_LOCATIONS_STORAGE_KEY,
   ACTIVE_LOCATION_STORAGE_KEY,
@@ -184,7 +183,6 @@ export default function LocationModal({ open, onClose, locations, activeId }: Lo
               onClick={() => activateLocation(l)}
               className="flex items-center gap-2 text-left flex-1 min-w-0"
             >
-              <MapPin className="h-4 w-4 flex-shrink-0 text-sky-400" strokeWidth={1.5} />
               <div className="min-w-0">
                 <p className="text-sm font-medium text-zinc-100 truncate">{l.name}</p>
                 <p className="text-xs font-mono text-zinc-500">{l.lat.toFixed(4)}, {l.lon.toFixed(4)}</p>
@@ -196,7 +194,7 @@ export default function LocationModal({ open, onClose, locations, activeId }: Lo
                 className="text-zinc-600 hover:text-red-400 transition-colors flex-shrink-0 ml-2"
                 title="Delete location"
               >
-                <Trash2 className="h-4 w-4" strokeWidth={1.5} />
+                ✕
               </button>
             )}
           </div>

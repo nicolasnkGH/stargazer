@@ -1,6 +1,7 @@
 "use client";
 
-import { Clock3, FileText, Download, Trash2, ArrowUp, ArrowDown, Calendar } from "lucide-react";
+import { FiFileText, FiDownload, FiTrash2, FiCalendar } from "react-icons/fi";
+import { LuClock3 } from "react-icons/lu";
 import { DEFAULT_DUSK_HOUR, DEFAULT_DAWN_HOUR } from "@/lib/constants";
 import { useNightPlan, addToPlan, removeFromPlan, movePlanItem, clearPlan } from "@/hooks/useNightPlan";
 import { exportPlanTxt, exportPlanCsv } from "@/lib/plan-export";
@@ -26,18 +27,18 @@ export default function PlanMyNight() {
     <section id="card-plan-my-night" className="card w-full">
       <div className="card-header justify-between flex-wrap gap-2">
         <div className="flex items-center gap-2">
-          <Clock3 className="h-5 w-5 text-purple-400" strokeWidth={1.6} />
+          <LuClock3 className="h-5 w-5 text-purple-400" />
           <h2>Plan My Night</h2>
         </div>
         <div className="flex items-center gap-2">
           <button onClick={() => exportPlanTxt(plan)} className="flex items-center gap-1 rounded-lg bg-white/5 border border-white/10 px-2.5 py-1.5 text-xs text-zinc-300 hover:bg-white/10 transition-colors">
-            <FileText className="h-3.5 w-3.5" strokeWidth={1.5} /> Export Text
+            <FiFileText className="h-3.5 w-3.5" /> Export Text
           </button>
           <button onClick={() => exportPlanCsv(plan)} className="flex items-center gap-1 rounded-lg bg-white/5 border border-white/10 px-2.5 py-1.5 text-xs text-zinc-300 hover:bg-white/10 transition-colors">
-            <Download className="h-3.5 w-3.5" strokeWidth={1.5} /> Export CSV
+            <FiDownload className="h-3.5 w-3.5" /> Export CSV
           </button>
           <button onClick={onClear} className="flex items-center gap-1 rounded-lg bg-red-500/10 border border-red-500/20 px-2.5 py-1.5 text-xs text-red-400 hover:bg-red-500/20 transition-colors">
-            <Trash2 className="h-3.5 w-3.5" strokeWidth={1.5} /> Clear
+            <FiTrash2 className="h-3.5 w-3.5" /> Clear
           </button>
         </div>
       </div>
@@ -94,7 +95,7 @@ export default function PlanMyNight() {
         {/* Scheduled targets list */}
         {plan.length === 0 ? (
           <div id="scheduler-empty-state" className="rounded-lg border border-dashed border-white/10 bg-white/[0.01] px-4 py-8 text-center">
-            <Calendar className="h-9 w-9 text-zinc-600 mx-auto mb-2.5 opacity-50" strokeWidth={1.5} />
+            <FiCalendar className="h-9 w-9 text-zinc-600 mx-auto mb-2.5 opacity-50" />
             <h3 className="text-sm text-white mb-1">Your night schedule is empty</h3>
             <p className="text-xs text-zinc-500">Click &quot;Add to Plan&quot; on any target card in the database above to plan your night session.</p>
           </div>
@@ -117,14 +118,14 @@ export default function PlanMyNight() {
                     disabled={idx === 0}
                     className="rounded-lg border border-white/10 bg-white/5 px-2 py-1 text-zinc-300 hover:bg-white/10 disabled:opacity-30 transition-colors"
                   >
-                    <ArrowUp className="h-3.5 w-3.5" strokeWidth={1.5} />
+                    ↑
                   </button>
                   <button
                     onClick={() => movePlanItem(idx, "down")}
                     disabled={idx === plan.length - 1}
                     className="rounded-lg border border-white/10 bg-white/5 px-2 py-1 text-zinc-300 hover:bg-white/10 disabled:opacity-30 transition-colors"
                   >
-                    <ArrowDown className="h-3.5 w-3.5" strokeWidth={1.5} />
+                    ↓
                   </button>
                   <button
                     onClick={() => removeFromPlan(idx)}

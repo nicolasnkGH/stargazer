@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { User, Flag } from "lucide-react";
+import { FiUser, FiFlag } from "react-icons/fi";
 import Modal from "./Modal";
 import { API_BASE } from "@/lib/constants";
 import { compressImage } from "@/lib/compress-image";
@@ -188,7 +188,7 @@ export default function GalleryModal({ targetId, targetName, open, onClose }: Ga
                   title="Report this image"
                   className="absolute top-2.5 right-2.5 z-10 rounded border border-red-500/40 bg-red-500/20 px-1.5 py-0.5 text-[0.65rem] text-red-300 hover:bg-red-500/30 transition-colors flex items-center gap-1"
                 >
-                  <Flag className="h-2.5 w-2.5" strokeWidth={1.5} />
+                  <FiFlag className="h-2.5 w-2.5" />
                   Report
                 </button>
                 <div className="flex max-h-[250px] items-center justify-center overflow-hidden rounded-md bg-black">
@@ -200,7 +200,7 @@ export default function GalleryModal({ targetId, targetName, open, onClose }: Ga
                   />
                 </div>
                 <div className="flex items-center gap-1.5 text-sm font-semibold text-zinc-100">
-                  <User className="h-3.5 w-3.5 text-zinc-400" strokeWidth={1.5} />
+                  <FiUser className="h-3.5 w-3.5 text-zinc-400" />
                   Shared by: {entry.author}
                 </div>
                 <div className="flex flex-col gap-0.5 text-xs text-zinc-400">

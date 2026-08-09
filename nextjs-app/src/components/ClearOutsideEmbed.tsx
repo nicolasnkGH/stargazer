@@ -1,4 +1,4 @@
-import { CloudSun } from "lucide-react";
+import { LuCloudSun } from "react-icons/lu";
 import type { LocationCoords } from "@/types";
 
 const DEFAULT_LAT = 40.13;
@@ -13,7 +13,7 @@ export default function ClearOutsideEmbed({ coords }: { coords?: LocationCoords 
     <section id="card-weather" className="card w-full">
       <div className="card-header justify-between flex-wrap gap-2">
         <div className="flex items-center gap-2">
-          <CloudSun className="h-5 w-5 text-sky-400" strokeWidth={1.6} />
+          <LuCloudSun className="h-5 w-5 text-sky-400" />
           <h2>Clear Outside — Astronomical Weather Forecast</h2>
         </div>
         <a href={forecastUrl} target="_blank" rel="noopener" className="text-xs text-sky-400 hover:underline">

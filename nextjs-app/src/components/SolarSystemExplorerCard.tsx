@@ -1,7 +1,8 @@
 "use client";
 
 import { useState } from "react";
-import { Orbit, Maximize } from "lucide-react";
+import { FiMaximize } from "react-icons/fi";
+import { LuOrbit } from "react-icons/lu";
 
 export default function SolarSystemExplorerCard() {
   const [interactive, setInteractive] = useState(false);
@@ -10,7 +11,7 @@ export default function SolarSystemExplorerCard() {
     <section id="card-solar-system-scope" className="card w-full">
       <div className="card-header justify-between">
         <div className="flex items-center gap-2">
-          <Orbit className="h-5 w-5 text-sky-400" strokeWidth={1.6} />
+          <LuOrbit className="h-5 w-5 text-sky-400" />
           <div>
             <h2>Interactive 3D Solar System</h2>
             <p className="text-[0.7rem] text-zinc-500 mt-0.5">
@@ -28,7 +29,7 @@ export default function SolarSystemExplorerCard() {
           className="text-zinc-500 hover:text-zinc-300 transition-colors"
           title="Full Screen"
         >
-          <Maximize className="h-4 w-4" strokeWidth={1.5} />
+          <FiMaximize className="h-4 w-4" />
         </a>
       </div>
       <div className="card-body px-0 py-0 overflow-hidden rounded-b-xl relative h-[450px]">

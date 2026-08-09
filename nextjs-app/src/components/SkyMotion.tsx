@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { Rocket } from "lucide-react";
+import { LuRocket } from "react-icons/lu";
 import type { IssPass, NeoObject, CometData, MeteorShower } from "@/types";
 import { API_BASE, TABS } from "@/lib/constants";
 import MotionFactCard from "./MotionFactCard";
@@ -75,7 +75,7 @@ export default function SkyMotion() {
   return (
     <section id="card-motion" className="card w-full">
       <div className="card-header">
-        <Rocket className="h-5 w-5 text-sky-400" strokeWidth={1.6} />
+        <LuRocket className="h-5 w-5 text-sky-400" />
         <h2>Sky Objects in Motion</h2>
       </div>
       <div className="card-body">
@@ -94,7 +94,7 @@ export default function SkyMotion() {
                   : "bg-white/5 text-zinc-400 border border-white/5 hover:bg-white/10 hover:text-zinc-300"
               }`}
             >
-              <Icon className="h-3.5 w-3.5" strokeWidth={1.5} />
+              <Icon className="h-3.5 w-3.5" />
               {t.label}
             </button>
           );

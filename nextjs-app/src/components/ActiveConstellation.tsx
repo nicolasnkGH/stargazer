@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from "react";
 import { useTranslations } from "next-intl";
-import { Star, Maximize, X } from "lucide-react";
+import { FiStar } from "react-icons/fi";
 import type { ConstellationData, ConstellationWindow, MapTarget } from "@/types";
 import { API_BASE, ALL_CONSTELLATIONS } from "@/lib/constants";
 import CelestialMap from "./CelestialMap";
@@ -96,7 +96,7 @@ export default function ActiveConstellation() {
     <section id="card-active-const" className="card w-full">
       <div className="card-header justify-between">
         <div className="flex items-center gap-2">
-          <Star className="h-5 w-5 text-amber-400" strokeWidth={1.6} />
+          <FiStar className="h-5 w-5 text-amber-400" />
           <h2>Active Constellations</h2>
         </div>
         <select
@@ -158,7 +158,7 @@ export default function ActiveConstellation() {
                 title="Toggle Fullscreen"
                 className="text-zinc-500 hover:text-zinc-300 transition-colors flex-shrink-0"
               >
-                {fullscreen ? <X className="h-4 w-4" strokeWidth={1.5} /> : <Maximize className="h-4 w-4" strokeWidth={1.5} />}
+                {fullscreen ? "✕" : "⤢"}
               </button>
             </div>
             <div className={fullscreen ? "fixed inset-4 z-[9999] rounded-xl border border-purple-500/40 bg-slate-950 p-4 overflow-y-auto shadow-2xl" : ""}>

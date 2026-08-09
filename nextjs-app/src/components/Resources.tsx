@@ -1,4 +1,4 @@
-import { ExternalLink } from "lucide-react";
+import { FiExternalLink } from "react-icons/fi";
 import { getTranslations } from "next-intl/server";
 import { RESOURCES } from "@/lib/constants";
 
@@ -8,7 +8,7 @@ export default async function Resources() {
   return (
     <section className="card w-full">
       <div className="card-header">
-        <ExternalLink className="h-5 w-5 text-sky-400" strokeWidth={1.6} />
+        <FiExternalLink className="h-5 w-5 text-sky-400" />
         <h2>{t("card_resources")}</h2>
       </div>
       <div className="card-body">
@@ -27,7 +27,7 @@ export default async function Resources() {
               <p className="text-sm font-semibold text-zinc-100">{r.name}</p>
               <p className="text-xs text-zinc-500">{r.desc}</p>
             </div>
-            <ExternalLink className="h-3.5 w-3.5 text-zinc-600 flex-shrink-0 mt-0.5" strokeWidth={1.5} />
+            <FiExternalLink className="h-3.5 w-3.5 text-zinc-600 flex-shrink-0 mt-0.5" />
           </a>
         ))}
       </div>

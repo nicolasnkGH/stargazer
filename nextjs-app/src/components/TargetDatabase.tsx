@@ -3,7 +3,7 @@
 import { useState, useEffect, useMemo } from "react";
 import useSWR from "swr";
 import { useTranslations } from "next-intl";
-import { Binoculars, X } from "lucide-react";
+import { LuBinoculars } from "react-icons/lu";
 import type { CatalogTarget, GalleryCounts } from "@/types";
 import { API_BASE, CONSTELLATION_FILTERS, BORTLE_CLASSES, BORTLE_STORAGE_KEY } from "@/lib/constants";
 import { addToPlan } from "@/hooks/useNightPlan";
@@ -151,7 +151,7 @@ export default function TargetDatabase() {
   return (
     <section id="card-targets" className="card w-full">
       <div className="card-header flex-wrap gap-2">
-        <Binoculars className="h-5 w-5 text-sky-400" strokeWidth={1.6} />
+        <LuBinoculars className="h-5 w-5 text-sky-400" />
         <h2>Target Database</h2>
       </div>
       <div className="card-body">
@@ -240,7 +240,7 @@ export default function TargetDatabase() {
             onClick={clearBortleFilter}
             className="flex items-center gap-1.5 rounded-lg bg-red-500/85 border border-red-500 px-3 py-1.5 text-xs font-bold text-white hover:bg-red-500 transition-colors"
           >
-            <X className="h-3.5 w-3.5" strokeWidth={2} /> Show All Targets
+            ✖ Show All Targets
           </button>
         </div>
       )}

@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import useSWR from "swr";
-import { Camera } from "lucide-react";
+import { FiCamera } from "react-icons/fi";
 import GalleryModal from "./GalleryModal";
 import { API_BASE } from "@/lib/constants";
 import type { GalleryCounts } from "@/types";
@@ -23,7 +23,7 @@ export default function GalleryButton({ targetId, targetName }: { targetId: stri
         className="flex items-center gap-1 rounded border border-green-500/30 bg-green-500/[0.08] px-2 py-0.5 text-[0.7rem] font-medium text-green-300 hover:bg-green-500/[0.15] transition-colors"
         title="Gallery & Share"
       >
-        <Camera className="h-3 w-3" strokeWidth={1.5} />
+        <FiCamera className="h-3 w-3" />
         Gallery{count > 0 ? ` (${count})` : ""}
       </button>
       <GalleryModal targetId={targetId} targetName={targetName} open={open} onClose={() => setOpen(false)} />

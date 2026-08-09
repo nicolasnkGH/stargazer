@@ -1,4 +1,5 @@
-import { Zap, Sparkles, AlertTriangle } from "lucide-react";
+import { FiZap, FiAlertTriangle } from "react-icons/fi";
+import { LuSparkles } from "react-icons/lu";
 import type { AuroraForecast, SpaceWeatherReport } from "@/types";
 
 interface AuroraCardProps {
@@ -23,7 +24,7 @@ export default function AuroraCard({ aurora, spaceWeather }: AuroraCardProps) {
   return (
     <section id="card-space-weather" className="card w-full border border-purple-500/20">
       <div className="card-header">
-        <Zap className="h-5 w-5 text-purple-400" strokeWidth={1.6} />
+        <FiZap className="h-5 w-5 text-purple-400" />
         <div>
           <h2>Aurora &amp; Space Weather</h2>
           <p className="text-[0.7rem] text-zinc-500 mt-0.5">
@@ -55,7 +56,7 @@ export default function AuroraCard({ aurora, spaceWeather }: AuroraCardProps) {
         {/* Aurora probability */}
         <div className="flex flex-col justify-center rounded-xl border border-white/5 bg-white/[0.02] p-4">
           <h3 className="flex items-center gap-1.5 text-sm text-zinc-400 mb-2.5">
-            <Sparkles className="h-4 w-4 text-purple-400" strokeWidth={1.5} /> Aurora Visibility
+            <LuSparkles className="h-4 w-4 text-purple-400" /> Aurora Visibility
           </h3>
           <div className="flex items-baseline gap-2">
             <span className="text-[2.2rem] font-bold text-purple-400 leading-none">{probabilityLabel}</span>
@@ -76,7 +77,7 @@ export default function AuroraCard({ aurora, spaceWeather }: AuroraCardProps) {
         {/* Space weather alerts */}
         <div className="flex flex-col justify-center rounded-xl border border-white/5 bg-white/[0.02] p-4">
           <h3 className="flex items-center gap-1.5 text-sm text-zinc-400 mb-2.5">
-            <AlertTriangle className="h-4 w-4 text-amber-400" strokeWidth={1.5} /> Space Weather Alerts
+            <FiAlertTriangle className="h-4 w-4 text-amber-400" /> Space Weather Alerts
           </h3>
           <div id="space-weather-alerts-container" className="flex flex-col gap-2 max-h-[120px] overflow-y-auto pr-1">
             {events.length === 0 ? (

@@ -57,7 +57,7 @@ export default async function Home() {
       <StarfieldBackground />
       <SolarSystemHero />
       <div className="flex w-full flex-col items-center gap-8">
-        <div className="w-full max-w-5xl px-4 sm:px-8 py-8">
+        <div className="w-full max-w-[1600px] px-4 sm:px-8 py-8">
           <GoNoGoBanner seeing={tonight?.seeing ?? null} />
           <CardRow id="card-tonight">
             <SeeingConditions seeing={tonight?.seeing ?? null} twilight={tonight?.twilight_timeline} />
