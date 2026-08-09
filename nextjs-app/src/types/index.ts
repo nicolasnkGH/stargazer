@@ -11,3 +11,4 @@ export * from "./i18n";
 export * from "./celestial";
 export * from "./motion-facts";
 export * from "./gallery";
+export * from "./location";

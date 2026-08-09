@@ -14,6 +14,7 @@ import {
 } from "@/lib/constants";
 import type { Locale } from "@/types";
 import Modal from "./Modal";
+import LocationControl from "./LocationControl";
 
 const healthFetcher = (url: string) => fetch(url).then((r) => {
   if (!r.ok) throw new Error(`HTTP ${r.status}`);
@@ -109,10 +110,7 @@ export default function Header() {
             <span className="text-[0.75rem] text-sky-400/80 transition-opacity hover:opacity-100 hover:underline cursor-pointer">
               {t("app_slogan")}
             </span>
-            <div className="mt-2 flex flex-col items-start gap-0.5">
-              <span className="text-[0.7rem] font-semibold text-zinc-400">{t("loading_loc")}</span>
-              <span className="font-mono text-[0.75rem] text-zinc-500/60 tracking-widest">Lat: --, Lon: --</span>
-            </div>
+            <LocationControl />
           </div>
         </div>
 

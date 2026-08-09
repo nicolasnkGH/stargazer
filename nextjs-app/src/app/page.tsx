@@ -1,3 +1,4 @@
+import { cookies } from "next/headers";
 import SolarSystemHero from "@/components/SolarSystemHero";
 import StarfieldBackground from "@/components/StarfieldBackground";
 import PlanetGrid from "@/components/PlanetGrid";
@@ -16,15 +17,20 @@ import Footer from "@/components/Footer";
 import CardRow from "@/components/CardRow";
 import AiTargets from "@/components/AiTargets";
 import { fetchBackend } from "@/lib/api-proxy";
-import { REVALIDATE } from "@/lib/constants";
+import { REVALIDATE, LOCATION_COOKIE } from "@/lib/constants";
+import { parseLocationCookie } from "@/lib/location-cookie";
 import type { TonightReport, WeeklyReport, PlanetsResponse, ConstellationsResponse } from "@/types";
 
 export default async function Home() {
+  const cookieStore = await cookies();
+  const coords = parseLocationCookie(cookieStore.get(LOCATION_COOKIE)?.value);
+  const locSearch = coords ? `?lat=${coords.lat}&lon=${coords.lon}` : "";
+
   const [tonight, weekly, planetsData, constellationsData] = await Promise.all([
-    fetchBackend<TonightReport>("/tonight", "", REVALIDATE.tonight),
-    fetchBackend<WeeklyReport>("/weekly", "", REVALIDATE.weekly),
-    fetchBackend<PlanetsResponse>("/planets", "", REVALIDATE.planets),
-    fetchBackend<ConstellationsResponse>("/constellations", "", REVALIDATE.constellations),
+    fetchBackend<TonightReport>("/tonight", locSearch, REVALIDATE.tonight),
+    fetchBackend<WeeklyReport>("/weekly", locSearch, REVALIDATE.weekly),
+    fetchBackend<PlanetsResponse>("/planets", locSearch, REVALIDATE.planets),
+    fetchBackend<ConstellationsResponse>("/constellations", locSearch, REVALIDATE.constellations),
   ]);
 
   return (
