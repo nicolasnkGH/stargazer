@@ -20,3 +20,6 @@ export const AI_SEEING_MAX_POLLS = 30; // ~5 minutes
 
 /** API health badge polling (Header). */
 export const HEALTH_POLL_INTERVAL_MS = 30_000;
+
+/** Header HUD moon/weather readout polling. */
+export const HUD_POLL_INTERVAL_MS = 60_000;

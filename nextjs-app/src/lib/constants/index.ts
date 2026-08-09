@@ -13,3 +13,4 @@ export * from "./planet-grid";
 export * from "./celestial";
 export * from "./motion-facts";
 export * from "./location";
+export * from "./bortle";

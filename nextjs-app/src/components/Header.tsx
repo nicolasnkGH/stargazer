@@ -3,18 +3,22 @@
 import { useState, useEffect, useRef } from "react";
 import useSWR from "swr";
 import { useLocale, useTranslations } from "next-intl";
-import { Telescope, Info, Menu, Flashlight } from "lucide-react";
+import { Telescope, Info, Menu, Flashlight, ChevronRight, ArrowUpRight } from "lucide-react";
 import {
   HEALTH_POLL_INTERVAL_MS,
+  HUD_POLL_INTERVAL_MS,
   NAV_LINKS,
   LANG_OPTIONS,
   LOCALE_COOKIE,
   UNITS_STORAGE_KEY,
   STARGAZER_REPO_URL,
+  RESOURCES,
 } from "@/lib/constants";
-import type { Locale } from "@/types";
+import type { Locale, TonightReport } from "@/types";
 import Modal from "./Modal";
 import LocationControl from "./LocationControl";
+import DataSettingsModal from "./DataSettingsModal";
+import { startOnboardingTour } from "./OnboardingTour";
 
 const healthFetcher = (url: string) => fetch(url).then((r) => {
   if (!r.ok) throw new Error(`HTTP ${r.status}`);
@@ -36,12 +40,38 @@ export default function Header() {
   });
   const isChecking = !health && !healthError;
   const isLive = !healthError && health?.status === "ok";
+  const { data: tonight } = useSWR<TonightReport>("/api/tonight", healthFetcher, {
+    refreshInterval: HUD_POLL_INTERVAL_MS,
+    revalidateOnFocus: false,
+  });
   const [currentTime, setCurrentTime] = useState("--:-- --");
   const [currentDate, setCurrentDate] = useState("Loading...");
   const [nightMode, setNightMode] = useState(false);
   const [isMetric, setIsMetric] = useState(true);
   const [aboutOpen, setAboutOpen] = useState(false);
+  const [dataSettingsOpen, setDataSettingsOpen] = useState(false);
+  const [resourcesExpanded, setResourcesExpanded] = useState(false);
   const menuRef = useRef<HTMLDivElement>(null);
+
+  // Live HUD readouts — mirrors legacy web/app.js's hud-moon/hud-weather population.
+  const moon = tonight?.moon;
+  const hudMoon = moon
+    ? (() => {
+        const icon = moon.phase_name ? moon.phase_name.split(" ")[0] : "🌙";
+        const phaseNameOnly = (moon.phase_name ?? "").replace(icon, "").trim();
+        return `${icon} ${phaseNameOnly} (${moon.illumination_pct ?? "?"}%)`;
+      })()
+    : "🌙 --";
+  const seeing = tonight?.seeing;
+  const hudWeather = seeing
+    ? (() => {
+        const tVal = seeing.tonight_temp_c;
+        const tempStr = tVal != null ? (isMetric ? `${tVal}°C` : `${Math.round((tVal * 9) / 5 + 32)}°F`) : "--";
+        const wVal = seeing.tonight_wind_kmh;
+        const windStr = wVal != null ? (isMetric ? `${wVal} km/h` : `${Math.round(wVal * 0.621371)} mph`) : "--";
+        return `🌡️ ${tempStr} | 💨 ${windStr}`;
+      })()
+    : "🌡️ -- | 💨 --";
 
   // Hydrate the unit system from localStorage — can't be a lazy useState initializer
   // without a hydration mismatch, since localStorage doesn't exist during SSR.
@@ -138,8 +168,8 @@ export default function Header() {
 
             {/* Moon & weather */}
             <div className="flex items-center gap-3 font-mono text-[0.75rem] text-slate-400">
-              <span id="hud-moon">🌙 --</span>
-              <span id="hud-weather">🌡️ -- | 💨 --</span>
+              <span id="hud-moon">{hudMoon}</span>
+              <span id="hud-weather">{hudWeather}</span>
             </div>
 
             {/* Clock */}
@@ -151,7 +181,18 @@ export default function Header() {
 
           {/* Controls */}
           <div className="flex items-center gap-2">
+            <a
+              href={`${STARGAZER_REPO_URL}/issues`}
+              target="_blank"
+              rel="noopener"
+              className="hidden md:inline-flex items-center gap-1 rounded-lg border border-sky-500/30 bg-sky-500/10 px-3 py-1.5 text-xs font-medium text-sky-300 hover:bg-sky-500/20 transition-colors mr-1"
+            >
+              Collaborate
+              <ArrowUpRight className="h-3 w-3" strokeWidth={1.5} />
+            </a>
+
             <button
+              id="btn-night-mode"
               onClick={() => setNightMode((v) => !v)}
               className={`flex h-9 w-9 items-center justify-center rounded-lg border transition ${
                 nightMode
@@ -183,9 +224,10 @@ export default function Header() {
             </select>
 
             <button
-              onClick={() => setAboutOpen(true)}
+              id="btn-about"
+              onClick={() => startOnboardingTour()}
               className="flex h-9 w-9 items-center justify-center rounded-lg border border-white/10 bg-white/5 text-zinc-200 transition hover:bg-purple-600/20 hover:border-purple-500/50"
-              title={t("about_title")}
+              title="Dashboard Tour"
             >
               <Info className="h-4 w-4" strokeWidth={1.5} />
             </button>
@@ -193,6 +235,7 @@ export default function Header() {
             {/* Menu button + dropdown */}
             <div className="relative" ref={menuRef}>
               <button
+                id="btn-menu"
                 className="flex h-9 items-center gap-1.5 rounded-lg border border-white/10 bg-white/5 px-3.5 text-sm font-semibold uppercase tracking-wider text-zinc-200 transition hover:bg-purple-600/20 hover:border-purple-500/50"
                 onClick={() => setMenuOpen(!menuOpen)}
                 title="Navigation"
@@ -229,12 +272,60 @@ export default function Header() {
                       {t(link.key)}
                     </a>
                   ))}
+
+                  <button
+                    onClick={() => {
+                      setMenuOpen(false);
+                      setDataSettingsOpen(true);
+                    }}
+                    className="block w-full rounded px-4 py-2.5 text-left text-[0.9rem] text-zinc-200 transition hover:bg-purple-600/20 hover:text-white"
+                  >
+                    💾 Data &amp; Settings
+                  </button>
+
+                  <button
+                    onClick={() => {
+                      setMenuOpen(false);
+                      setAboutOpen(true);
+                    }}
+                    className="block w-full rounded px-4 py-2.5 text-left text-[0.9rem] text-zinc-200 transition hover:bg-purple-600/20 hover:text-white"
+                  >
+                    ℹ️ About StarGazer
+                  </button>
+
+                  <div>
+                    <button
+                      onClick={() => setResourcesExpanded((v) => !v)}
+                      className="flex w-full items-center justify-between rounded px-4 py-2.5 text-left text-[0.9rem] text-zinc-200 transition hover:bg-purple-600/20 hover:text-white"
+                    >
+                      Resources
+                      <ChevronRight className={`h-3.5 w-3.5 transition-transform ${resourcesExpanded ? "rotate-90" : ""}`} strokeWidth={1.5} />
+                    </button>
+                    {resourcesExpanded && (
+                      <div className="ml-2 border-l border-white/10 pl-2">
+                        {RESOURCES.map((r) => (
+                          <a
+                            key={r.url}
+                            href={r.url}
+                            target="_blank"
+                            rel="noopener"
+                            className="block rounded px-4 py-2 text-[0.8rem] text-zinc-400 transition hover:bg-purple-600/20 hover:text-white"
+                            onClick={() => setMenuOpen(false)}
+                          >
+                            {r.icon} {r.name}
+                          </a>
+                        ))}
+                      </div>
+                    )}
+                  </div>
                 </div>
               )}
             </div>
           </div>
         </div>
       </div>
+
+      <DataSettingsModal open={dataSettingsOpen} onClose={() => setDataSettingsOpen(false)} />
 
       <Modal open={aboutOpen} onClose={() => setAboutOpen(false)} title={t("about_title")}>
         <div className="flex flex-col gap-3 text-sm text-zinc-300">

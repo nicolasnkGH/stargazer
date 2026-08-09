@@ -31,3 +31,27 @@ const serwist = new Serwist({
 });
 
 serwist.addEventListeners();
+
+self.addEventListener("push", (event) => {
+  if (!event.data) return;
+  let payload: { title?: string; body?: string; url?: string } = {};
+  try {
+    payload = event.data.json();
+  } catch {
+    payload = { title: "StarGazer", body: event.data.text() };
+  }
+  const title = payload.title ?? "StarGazer";
+  event.waitUntil(
+    self.registration.showNotification(title, {
+      body: payload.body ?? "",
+      icon: "/assets/ai_stargazer_mascot.png",
+      data: { url: payload.url ?? "/" },
+    })
+  );
+});
+
+self.addEventListener("notificationclick", (event) => {
+  event.notification.close();
+  const url = (event.notification.data as { url?: string } | undefined)?.url ?? "/";
+  event.waitUntil(self.clients.openWindow(url));
+});

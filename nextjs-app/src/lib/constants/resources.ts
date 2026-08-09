@@ -6,4 +6,6 @@ export const RESOURCES = [
   { icon: "🛸", name: "Heavens-Above", desc: "ISS & satellite passes", url: "https://www.heavens-above.com/" },
   { icon: "📸", name: "AstroBin", desc: "Astrophotography community", url: "https://www.astrob.in" },
   { icon: "⭐", name: "KStars", desc: "Free Stellarium alternative with EKOS", url: "https://edu.kde.org/kstars/" },
+  { icon: "🪐", name: "NASA Eyes on the Solar System", desc: "Interactive real-time 3D solar system explorer", url: "https://eyes.nasa.gov/apps/solar-system/" },
+  { icon: "🌃", name: "Light Pollution Map", desc: "Interactive Bortle-scale sky darkness map", url: "https://lightpollutionmap.app/" },
 ];

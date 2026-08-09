@@ -45,7 +45,7 @@ export default function LocationControl() {
 
   return (
     <>
-      <button onClick={() => setModalOpen(true)} className="mt-2 flex flex-col items-start gap-0.5 text-left" title={t("set_loc_btn")}>
+      <button id="btn-location" onClick={() => setModalOpen(true)} className="mt-2 flex flex-col items-start gap-0.5 text-left" title={t("set_loc_btn")}>
         <span className="text-[0.7rem] font-semibold text-zinc-400 hover:text-sky-400 transition-colors">
           {hydrated && active ? active.name : t("loading_loc")}
         </span>
