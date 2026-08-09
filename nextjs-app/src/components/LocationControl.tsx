@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from "react";
 import { useTranslations } from "next-intl";
-import { FiMapPin, FiCrosshair, FiEdit2 } from "react-icons/fi";
+import Icon from "./Icon";
 import { DEFAULT_LOCATIONS, SAVED_LOCATIONS_STORAGE_KEY, ACTIVE_LOCATION_STORAGE_KEY } from "@/lib/constants";
 import type { SavedLocation } from "@/types";
 import LocationModal from "./LocationModal";
@@ -53,19 +53,19 @@ export default function LocationControl() {
           className="flex h-6 w-6 items-center justify-center rounded text-zinc-400 hover:text-sky-400 transition-colors"
           title={t("set_loc_btn")}
         >
-          <FiMapPin className="h-3.5 w-3.5" />
+          <Icon name="map-pin" className="h-3.5 w-3.5" />
         </button>
         <button
           onClick={() => setModalOpen(true)}
           className="flex h-6 w-6 items-center justify-center rounded text-zinc-400 hover:text-sky-400 transition-colors"
           title="Auto-detect Location"
         >
-          <FiCrosshair className="h-3.5 w-3.5" />
+          <Icon name="crosshair" className="h-3.5 w-3.5" />
         </button>
         <button onClick={() => setModalOpen(true)} className="flex flex-col items-start leading-tight text-left hover:opacity-80 transition-opacity">
           <span className="flex items-center gap-1 text-[0.7rem] font-semibold text-zinc-200">
             {hydrated && active ? active.name : t("loading_loc")}
-            <FiEdit2 className="h-2.5 w-2.5 text-zinc-500" />
+            <Icon name="pencil" className="h-2.5 w-2.5 text-zinc-500" />
           </span>
           <span className="font-mono text-[0.65rem] text-zinc-500">
             {hydrated && active ? `Lat: ${active.lat.toFixed(2)}, Lon: ${active.lon.toFixed(2)}` : "Lat: --, Lon: --"}

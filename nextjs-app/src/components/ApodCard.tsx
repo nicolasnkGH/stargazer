@@ -1,4 +1,4 @@
-import { FiImage as ImageIcon, FiExternalLink } from "react-icons/fi";
+import Icon from "./Icon";
 import type { ApodData } from "@/types";
 
 interface ApodCardProps {
@@ -12,7 +12,7 @@ export default function ApodCard({ apod }: ApodCardProps) {
     <section id="apod-card" className="card w-full">
       <div className="card-header justify-between flex-wrap gap-2">
         <div className="flex items-center gap-2">
-          <ImageIcon className="h-5 w-5 text-sky-400" />
+          <Icon name="image" className="h-5 w-5 text-sky-400" />
           <h2>🌌 NASA Astronomy Picture of the Day</h2>
         </div>
         <div className="flex items-center gap-2.5">
@@ -47,7 +47,7 @@ export default function ApodCard({ apod }: ApodCardProps) {
               rel="noopener noreferrer"
               className="flex items-center gap-1 text-xs font-semibold text-sky-400 hover:text-sky-300 transition-colors"
             >
-              Full Archive <FiExternalLink className="h-3 w-3" />
+              Full Archive <Icon name="external-link" className="h-3 w-3" />
             </a>
           </div>
         </div>

@@ -1,8 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { FiCopy, FiInfo } from "react-icons/fi";
-import { LuTelescope } from "react-icons/lu";
+import Icon from "./Icon";
 import { OPTICS_TARGET_TYPES, OPTICS_RECOMMENDATIONS, OPTICS_DEFAULTS } from "@/lib/constants";
 import { computeOptics } from "@/lib/telescope-math";
 
@@ -13,12 +12,12 @@ function Metric({ label, value, tooltip, color }: { label: string; value: string
   return (
     <div className="flex-1 text-center">
       <div className="flex items-center justify-center gap-1 text-xs text-zinc-400 mb-1" title={tooltip}>
-        {label} <FiInfo className="h-3 w-3 opacity-60" />
+        {label} <Icon name="info" className="h-3 w-3 opacity-60" />
       </div>
       <div className="flex items-center justify-center gap-1.5">
         <span className="text-lg font-bold" style={{ color }}>{value}</span>
         <button onClick={copy} title={`Copy ${label}`} className="text-zinc-500 hover:text-zinc-300 transition-colors">
-          <FiCopy className="h-3 w-3" />
+          <Icon name="copy" className="h-3 w-3" />
         </button>
       </div>
     </div>
@@ -37,7 +36,7 @@ export default function TelescopeCalculator() {
   return (
     <section id="card-optics" className="card w-full">
       <div className="card-header">
-        <LuTelescope className="h-5 w-5 text-sky-400" />
+        <Icon name="telescope" className="h-5 w-5 text-sky-400" />
         <h2>Telescope Optics &amp; Eyepiece Guide</h2>
       </div>
       <div className="card-body">

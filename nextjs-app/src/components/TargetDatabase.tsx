@@ -3,7 +3,7 @@
 import { useState, useEffect, useMemo } from "react";
 import useSWR from "swr";
 import { useTranslations } from "next-intl";
-import { LuBinoculars } from "react-icons/lu";
+import Icon from "./Icon";
 import type { CatalogTarget, GalleryCounts } from "@/types";
 import { API_BASE, CONSTELLATION_FILTERS, BORTLE_CLASSES, BORTLE_STORAGE_KEY } from "@/lib/constants";
 import { addToPlan } from "@/hooks/useNightPlan";
@@ -151,7 +151,7 @@ export default function TargetDatabase() {
   return (
     <section id="card-targets" className="card w-full">
       <div className="card-header flex-wrap gap-2">
-        <LuBinoculars className="h-5 w-5 text-sky-400" />
+        <Icon name="binoculars" className="h-5 w-5 text-sky-400" />
         <h2>Target Database</h2>
       </div>
       <div className="card-body">

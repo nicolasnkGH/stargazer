@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from "react";
 import { useTranslations } from "next-intl";
-import { FiStar } from "react-icons/fi";
+import Icon from "./Icon";
 import type { ConstellationData, ConstellationWindow, MapTarget } from "@/types";
 import { API_BASE, ALL_CONSTELLATIONS } from "@/lib/constants";
 import CelestialMap from "./CelestialMap";
@@ -96,7 +96,7 @@ export default function ActiveConstellation() {
     <section id="card-active-const" className="card w-full">
       <div className="card-header justify-between">
         <div className="flex items-center gap-2">
-          <FiStar className="h-5 w-5 text-amber-400" />
+          <Icon name="star" className="h-5 w-5 text-amber-400" />
           <h2>Active Constellations</h2>
         </div>
         <select

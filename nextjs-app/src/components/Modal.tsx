@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect } from "react";
-import { FiX } from "react-icons/fi";
+import Icon from "./Icon";
 
 interface ModalProps {
   open: boolean;
@@ -37,7 +37,7 @@ export default function Modal({ open, onClose, title, children }: ModalProps) {
             className="text-zinc-500 hover:text-zinc-300 transition-colors"
             title="Close"
           >
-            <FiX className="h-5 w-5" />
+            <Icon name="x" className="h-5 w-5" />
           </button>
         </div>
         <div className="p-5">{children}</div>

@@ -1,4 +1,4 @@
-import { LuCalendarDays } from "react-icons/lu";
+import Icon from "./Icon";
 import type { WeeklyReport } from "@/types";
 
 function RatingBadge({ rating }: { rating: string }) {
@@ -30,7 +30,7 @@ export default function WeeklyForecast({ report }: { report: WeeklyReport | null
     <section id="card-weekly" className="card w-full">
       <div className="card-header justify-between">
         <div className="flex items-center gap-2">
-          <LuCalendarDays className="h-5 w-5 text-sky-400" />
+          <Icon name="calendar-days" className="h-5 w-5 text-sky-400" />
           <h2>7-Day Forecast</h2>
         </div>
         <span className="text-xs text-zinc-500 font-mono">{report.week_start}</span>

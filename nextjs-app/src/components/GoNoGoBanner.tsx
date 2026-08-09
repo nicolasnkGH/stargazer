@@ -1,4 +1,4 @@
-import { FiCheckCircle, FiXCircle, FiAlertTriangle } from "react-icons/fi";
+import Icon from "./Icon";
 import type { SeeingData } from "@/types";
 
 export default function GoNoGoBanner({ seeing }: { seeing: SeeingData | null }) {
@@ -22,11 +22,11 @@ export default function GoNoGoBanner({ seeing }: { seeing: SeeingData | null }) 
       ? "bg-yellow-500/[0.06] border-yellow-500/20"
       : "bg-red-500/[0.06] border-red-500/20";
 
-  const Icon = isGo ? FiCheckCircle : isMaybe ? FiAlertTriangle : FiXCircle;
+  const iconName = isGo ? "check-circle" : isMaybe ? "alert-triangle" : "x-circle";
 
   return (
     <div className={`w-full rounded-lg border ${bgColor} px-4 py-3 flex items-center gap-3`}>
-      <Icon className={`h-5 w-5 flex-shrink-0 ${iconColor}`} />
+      <Icon name={iconName} className={`h-5 w-5 flex-shrink-0 ${iconColor}`} />
       <div className="flex-1 min-w-0">
         <div className="flex items-center gap-2">
           <span className={`text-sm font-bold ${iconColor}`}>{data.go_nogo}</span>

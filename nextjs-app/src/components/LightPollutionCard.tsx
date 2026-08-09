@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { FiMap as MapIcon, FiExternalLink } from "react-icons/fi";
+import Icon from "./Icon";
 import { BORTLE_CLASSES, BORTLE_STORAGE_KEY } from "@/lib/constants";
 import type { BortleInfo } from "@/types";
 
@@ -22,7 +22,7 @@ export default function LightPollutionCard({ bortle }: LightPollutionCardProps) 
   return (
     <section id="card-light-pollution" className="card w-full">
       <div className="card-header">
-        <MapIcon className="h-5 w-5 text-sky-400" />
+        <Icon name="map" className="h-5 w-5 text-sky-400" />
         <div>
           <h2>Light Pollution Map</h2>
           <p className="text-[0.7rem] text-zinc-500 mt-0.5">
@@ -39,7 +39,7 @@ export default function LightPollutionCard({ bortle }: LightPollutionCardProps) 
             Your sky: Class {bortle.bortle} — {bortle.name}
           </div>
         )}
-        <MapIcon className="h-10 w-10 text-sky-400/85" />
+        <Icon name="map" className="h-10 w-10 text-sky-400/85" />
         <div>
           <h3 className="text-[1.1rem] text-white mb-2">Explore Light Pollution Near You</h3>
           <p className="text-sm text-zinc-400 max-w-md leading-relaxed">
@@ -52,7 +52,7 @@ export default function LightPollutionCard({ bortle }: LightPollutionCardProps) 
           rel="noopener"
           className="inline-flex items-center gap-2 rounded-lg bg-sky-500 px-4 py-2 text-sm font-semibold text-white hover:bg-sky-400 transition-colors"
         >
-          Open Interactive Map <FiExternalLink className="h-3.5 w-3.5" />
+          Open Interactive Map <Icon name="external-link" className="h-3.5 w-3.5" />
         </a>
 
         {/* Bortle Sky Capability Explorer */}

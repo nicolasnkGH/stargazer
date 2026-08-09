@@ -1,8 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { FiTrash2, FiPlus, FiCamera } from "react-icons/fi";
-import { LuNotebookPen } from "react-icons/lu";
+import Icon from "./Icon";
 import type { LogEntry } from "@/types";
 import { DEFAULT_ENTRIES, OBSERVATION_LOG_STORAGE_KEY } from "@/lib/constants";
 
@@ -66,14 +65,14 @@ export default function ObservationLog() {
     <section className="card w-full">
       <div className="card-header justify-between">
         <div className="flex items-center gap-2">
-          <LuNotebookPen className="h-5 w-5 text-sky-400" />
+          <Icon name="notebook-pen" className="h-5 w-5 text-sky-400" />
           <h2>Observation Log</h2>
         </div>
         <button
           onClick={() => setShowForm(!showForm)}
           className="flex items-center gap-1 rounded-lg bg-white/5 border border-white/10 px-3 py-1.5 text-xs text-zinc-300 hover:bg-white/10 transition-colors"
         >
-          <FiPlus className="h-3.5 w-3.5" />
+          <Icon name="plus" className="h-3.5 w-3.5" />
           New Entry
         </button>
       </div>
@@ -137,7 +136,7 @@ export default function ObservationLog() {
         <div className="flex flex-col gap-2">
           {entries.map((entry) => (
             <div key={entry.id} className="rounded-lg bg-white/[0.02] border border-white/5 p-4 flex items-start gap-3 group">
-              <FiCamera className="h-4 w-4 text-zinc-600 flex-shrink-0 mt-0.5" />
+              <Icon name="camera" className="h-4 w-4 text-zinc-600 flex-shrink-0 mt-0.5" />
               <div className="min-w-0 flex-1">
                 <div className="flex items-center justify-between mb-0.5">
                   <p className="text-sm font-semibold text-zinc-100">{entry.target}</p>
@@ -146,7 +145,7 @@ export default function ObservationLog() {
                     className="opacity-0 group-hover:opacity-100 text-zinc-600 hover:text-red-400 transition-all"
                     title="Delete entry"
                   >
-                    <FiTrash2 className="h-3.5 w-3.5" />
+                    <Icon name="trash-2" className="h-3.5 w-3.5" />
                   </button>
                 </div>
                 <div className="flex flex-wrap gap-x-4 gap-y-0.5 text-xs text-zinc-400">
