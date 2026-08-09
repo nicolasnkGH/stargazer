@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useEffect, useRef } from "react";
+import { createPortal } from "react-dom";
 import useSWR from "swr";
 import { useLocale, useTranslations } from "next-intl";
 import Icon from "./Icon";
@@ -51,7 +52,24 @@ export default function Header() {
   const [aboutOpen, setAboutOpen] = useState(false);
   const [dataSettingsOpen, setDataSettingsOpen] = useState(false);
   const [resourcesExpanded, setResourcesExpanded] = useState(false);
+  const [resourcesFlyoutStyle, setResourcesFlyoutStyle] = useState<{ top: number; right: number; maxHeight: number } | null>(null);
   const menuRef = useRef<HTMLDivElement>(null);
+  const resourcesBtnRef = useRef<HTMLButtonElement>(null);
+
+  // Anchor the flyout to the trigger's real on-screen position (like Radix/shadcn's
+  // DropdownMenu does), clamped so it always stays fully within the viewport.
+  function openResourcesFlyout() {
+    const rect = resourcesBtnRef.current?.getBoundingClientRect();
+    if (!rect) return;
+    const margin = 8;
+    const top = Math.min(rect.top, window.innerHeight - margin);
+    setResourcesFlyoutStyle({
+      top,
+      right: window.innerWidth - rect.left + margin,
+      maxHeight: window.innerHeight - top - margin,
+    });
+    setResourcesExpanded(true);
+  }
 
   // Live HUD readouts — mirrors legacy web/app.js's hud-moon/hud-weather population.
   const moon = tonight?.moon;
@@ -139,9 +157,9 @@ export default function Header() {
           </span>
         </a>
 
-        {/* Telemetry pill */}
-        <div className="hidden flex-shrink-0 items-center gap-3 whitespace-nowrap rounded-full border border-white/10 bg-white/5 px-4 py-1.5 lg:flex">
-          <div className="flex items-center gap-1.5 text-[0.7rem] font-bold tracking-[0.12em]">
+        {/* Telemetry pill — allowed to shrink/truncate so it never pushes the menu button off-screen */}
+        <div className="hidden min-w-0 flex-1 items-center gap-3 overflow-hidden rounded-full border border-white/10 bg-white/5 px-4 py-1.5 lg:flex">
+          <div className="flex flex-shrink-0 items-center gap-1.5 text-[0.7rem] font-bold tracking-[0.12em]">
             <span
               className={`inline-block h-1.5 w-1.5 rounded-full ${
                 isChecking ? "bg-zinc-500" : isLive ? "animate-pulse bg-green-500" : "bg-red-500"
@@ -151,11 +169,11 @@ export default function Header() {
               {isChecking ? "..." : isLive ? "LIVE" : "OFFLINE"}
             </span>
           </div>
-          <span className="h-4 w-px bg-white/10" />
-          <span id="hud-moon" className="font-mono text-[0.75rem] text-slate-400">{hudMoon}</span>
-          <span className="h-4 w-px bg-white/10" />
-          <span id="hud-weather" className="font-mono text-[0.75rem] text-slate-400">{hudWeather}</span>
-          <span className="h-4 w-px bg-white/10" />
+          <span className="h-4 w-px flex-shrink-0 bg-white/10" />
+          <span id="hud-moon" className="flex-shrink-0 truncate font-mono text-[0.75rem] text-slate-400">{hudMoon}</span>
+          <span className="h-4 w-px flex-shrink-0 bg-white/10" />
+          <span id="hud-weather" className="flex-shrink-0 truncate font-mono text-[0.75rem] text-slate-400">{hudWeather}</span>
+          <span className="h-4 w-px flex-shrink-0 bg-white/10" />
           <LocationControl />
         </div>
 
@@ -224,16 +242,15 @@ export default function Header() {
             <div className="relative" ref={menuRef}>
               <button
                 id="btn-menu"
-                className="flex h-9 items-center gap-1.5 rounded-lg border border-white/10 bg-white/5 px-3.5 text-sm font-semibold uppercase tracking-wider text-zinc-200 transition hover:bg-purple-600/20 hover:border-purple-500/50"
+                className="flex h-9 w-9 items-center justify-center rounded-lg border border-white/10 bg-white/5 text-zinc-200 transition hover:bg-purple-600/20 hover:border-purple-500/50"
                 onClick={() => setMenuOpen(!menuOpen)}
                 title="Navigation"
               >
                 <Icon name="menu" className="h-[18px] w-[18px]" />
-                <span className="hidden text-[0.8rem] font-semibold uppercase tracking-wider md:inline">Menu</span>
               </button>
 
               {menuOpen && (
-                <div className="absolute right-0 top-[45px] z-[9999] min-w-[200px] rounded-lg border border-purple-500/40 bg-[rgba(20,20,30,0.95)] p-2 shadow-[0_8px_24px_rgba(0,0,0,0.8)] backdrop-blur-md">
+                <div className="fixed right-4 top-[60px] z-[9999] max-h-[calc(100vh-80px)] min-w-[200px] overflow-y-auto rounded-lg border border-purple-500/40 bg-[rgba(20,20,30,0.95)] p-2 shadow-[0_8px_24px_rgba(0,0,0,0.8)] backdrop-blur-md">
                   {/* Mobile-only clock + lang inside dropdown */}
                   <div className="mb-2 block border-b border-white/10 pb-2 font-mono text-[0.8rem] text-slate-400 md:hidden">
                     <div className="text-zinc-200">{currentTime}</div>
@@ -281,16 +298,21 @@ export default function Header() {
                     ℹ️ About StarGazer
                   </button>
 
-                  <div className="relative">
+                  <div>
                     <button
-                      onClick={() => setResourcesExpanded((v) => !v)}
+                      ref={resourcesBtnRef}
+                      onClick={() => (resourcesExpanded ? setResourcesExpanded(false) : openResourcesFlyout())}
                       className="flex w-full items-center justify-between rounded px-4 py-2.5 text-left text-[0.9rem] text-zinc-200 transition hover:bg-purple-600/20 hover:text-white"
                     >
                       Resources
                       <Icon name="chevron-right" className="h-3.5 w-3.5 rotate-180" />
                     </button>
-                    {resourcesExpanded && (
-                      <div className="absolute right-full top-0 z-10 mr-1 min-w-[200px] rounded-lg border border-indigo-500/30 bg-[rgba(15,23,42,0.95)] p-2 shadow-[0_8px_32px_rgba(0,0,0,0.4)] backdrop-blur-md">
+                    {resourcesExpanded && resourcesFlyoutStyle && createPortal(
+                      <div
+                        className="fixed z-[10000] min-w-[200px] overflow-y-auto rounded-lg border border-indigo-500/30 bg-[rgba(15,23,42,0.95)] p-2 shadow-[0_8px_32px_rgba(0,0,0,0.4)] backdrop-blur-md"
+                        style={{ top: resourcesFlyoutStyle.top, right: resourcesFlyoutStyle.right, maxHeight: resourcesFlyoutStyle.maxHeight }}
+                        onMouseDown={(e) => e.stopPropagation()}
+                      >
                         {RESOURCES.map((r) => (
                           <a
                             key={r.url}
@@ -303,7 +325,8 @@ export default function Header() {
                             {r.icon} {r.name}
                           </a>
                         ))}
-                      </div>
+                      </div>,
+                      document.body
                     )}
                   </div>
                 </div>

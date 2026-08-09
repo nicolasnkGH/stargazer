@@ -403,10 +403,33 @@
   }
 }
 
+html {
+  scroll-behavior: smooth;
+  scrollbar-gutter: stable;
+}
+
 body {
   background: var(--background);
   color: var(--foreground);
   font-family: 'Space Grotesk', system-ui, sans-serif;
+  overflow-x: hidden;
+}
+
+/* Browsers default <button> to cursor:default, not pointer — force pointer on every
+   clickable control app-wide instead of adding cursor-pointer to each one individually. */
+button:not(:disabled),
+[role="button"]:not([aria-disabled="true"]),
+a,
+select,
+label[for],
+input[type="checkbox"],
+input[type="radio"] {
+  cursor: pointer;
+}
+
+button:disabled,
+[role="button"][aria-disabled="true"] {
+  cursor: not-allowed;
 }
 
 /* ── Night Vision Mode — ported from original style.css ─────────────────── */
