@@ -48,6 +48,7 @@ import {
   LuNotebookPen,
   LuOrbit,
   LuRocket,
+  LuScan,
   LuSparkles,
   LuTelescope,
   LuZap,
@@ -95,6 +96,7 @@ const ICONS: Record<string, IconType> = {
   pencil: FiEdit2,
   plus: FiPlus, // no legacy equivalent (ObservationLog "New Entry")
   rocket: LuRocket, // no legacy equivalent (Sky Objects in Motion / ISS tab)
+  scan: LuScan,
   sparkles: LuSparkles,
   square: FiSquare, // unchecked-checkbox state, pairs with check-square
   star: FiStar,

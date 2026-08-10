@@ -15,4 +15,6 @@ export interface CatalogTarget {
   visible?: boolean;
   altitude_deg?: number;
   bortle_min?: number;
+  ra_hours?: number;
+  dec_degrees?: number;
 }

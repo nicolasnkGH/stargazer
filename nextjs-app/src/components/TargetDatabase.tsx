@@ -8,6 +8,7 @@ import type { CatalogTarget, GalleryCounts } from "@/types";
 import { API_BASE, CONSTELLATION_FILTERS, BORTLE_CLASSES, BORTLE_STORAGE_KEY } from "@/lib/constants";
 import { addToPlan } from "@/hooks/useNightPlan";
 import GalleryButton from "./GalleryButton";
+import FovModal from "./FovModal";
 
 const galleryFetcher = (url: string) => fetch(url).then((r) => r.json());
 
@@ -61,6 +62,7 @@ export default function TargetDatabase() {
   const [activeBortle, setActiveBortle] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [fovTarget, setFovTarget] = useState<CatalogTarget | null>(null);
 
   const { data: galleryCounts } = useSWR<GalleryCounts>(`${API_BASE}/gallery/counts`, galleryFetcher, {
     revalidateOnFocus: false,
@@ -277,6 +279,14 @@ export default function TargetDatabase() {
                   <p className="text-xs text-zinc-500 mt-1.5 italic">{t.description ?? t.notes}</p>
                 )}
                 <div className="mt-2 flex flex-wrap gap-2">
+                  {t.ra_hours != null && t.dec_degrees != null && (
+                    <button
+                      onClick={() => setFovTarget(t)}
+                      className="flex items-center gap-1 rounded-lg bg-white/5 border border-white/10 px-3 py-1.5 text-xs text-zinc-300 hover:bg-white/10 transition-colors"
+                    >
+                      Simulate View 🔭
+                    </button>
+                  )}
                   <GalleryButton targetId={t.id} targetName={t.name} />
                   <button
                     onClick={() => {
@@ -294,6 +304,16 @@ export default function TargetDatabase() {
         </div>
       )}
       </div>
+
+      {fovTarget && fovTarget.ra_hours != null && fovTarget.dec_degrees != null && (
+        <FovModal
+          open
+          onClose={() => setFovTarget(null)}
+          raDeg={fovTarget.ra_hours * 15}
+          decDeg={fovTarget.dec_degrees}
+          targetName={fovTarget.name}
+        />
+      )}
     </section>
   );
 }
