@@ -1,5 +1,7 @@
 name = "stargazer"
 compatibility_date = "2024-06-19"
 
-[assets]
-directory = "./web"
+# The frontend is now a Next.js app (nextjs-app/) served via Docker/Cloud Run.
+# If deploying to Cloudflare Pages, use @cloudflare/next-on-pages and update
+# the [assets] directory to the generated output (e.g. nextjs-app/.vercel/output/static).
+# See: https://developers.cloudflare.com/pages/framework-guides/nextjs/

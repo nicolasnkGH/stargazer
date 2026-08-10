@@ -2,15 +2,13 @@
   "version": "2.9.0",
   "description": "A personal, distraction-free stargazing dashboard and astronomy portal",
   "scripts": {
-    "generate-og": "node web/generate-og.js"
-  },
-  "dependencies": {
-    "puppeteer": "^25.3.0",
-    "sharp": "^0.35.2"
+    "dev": "cd nextjs-app && npm run dev",
+    "build": "cd nextjs-app && npm run build",
+    "lint": "cd nextjs-app && npm run lint",
+    "test": "npx playwright test tests/smoke.spec.js"
   },
   "devDependencies": {
     "@lhci/cli": "^0.15.1",
-    "@playwright/test": "^1.54.0",
-    "serve": "^14.1.2"
+    "@playwright/test": "^1.54.0"
   }
 }

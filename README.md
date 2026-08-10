@@ -5,8 +5,8 @@
 
   [![Python](https://img.shields.io/badge/Python-3.11+-blue.svg)](https://python.org)
   [![FastAPI](https://img.shields.io/badge/FastAPI-0.115+-00a393.svg)](https://fastapi.tiangolo.com)
-  [![Vanilla JS](https://img.shields.io/badge/Vanilla-JS-f7df1e.svg)](https://developer.mozilla.org/en-US/docs/Web/JavaScript)
-  [![Cloudflare Pages](https://img.shields.io/badge/Frontend-Cloudflare_Pages-f38020.svg)](https://pages.cloudflare.com)
+  [![Next.js](https://img.shields.io/badge/Next.js-16-black.svg)](https://nextjs.org)
+  [![React](https://img.shields.io/badge/React-19-61dafb.svg)](https://react.dev)
   [![Google Cloud Run](https://img.shields.io/badge/Backend-Google_Cloud_Run-4285F4.svg)](https://cloud.google.com/run)
   [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
   [![Release](https://img.shields.io/github/v/release/nicolasnkGH/stargazer)](https://github.com/nicolasnkGH/stargazer/releases)
@@ -67,8 +67,8 @@ Getting started with amateur astronomy can be overwhelming. Commercial star char
 
 ```mermaid
 graph TD
-    User([User Browser]) -->|HTTPS / PWA| CF[Cloudflare Pages - Frontend]
-    User -->|API Requests| CR[Google Cloud Run - Backend API]
+    User([User Browser]) -->|HTTPS / PWA| NX[Next.js 16 — Frontend + API Routes]
+    NX -->|Server-side proxy| CR[Google Cloud Run - Backend API]
     CR -->|Astrometrics| SF[(Skyfield Engine)]
     CR -->|Weather Forecast| OM[Open-Meteo API]
     CR -->|Star Scanning| SB[SIMBAD TAP Database]
@@ -76,10 +76,12 @@ graph TD
     CR -->|Asteroids| NS[NASA NeoWs API]
 ```
 
-### 1. Frontend (`web/`)
-* Built with 100% Vanilla HTML5, CSS3, and modern JavaScript.
-* Zero build steps, bundlers, or heavy frameworks (No React, Webpack, or Vite).
-* Uses **Three.js** for interactive 3D planet models, which are lazy-loaded via `IntersectionObserver` to save mobile battery and data.
+### 1. Frontend (`nextjs-app/`)
+* Built with **Next.js 16** (App Router), **React 19**, **TypeScript**, and **Tailwind CSS 4**.
+* All API calls go through Next.js route handlers (`src/app/api/*/route.ts`) which proxy to the Python backend — the browser only ever talks to the same origin.
+* Progressive Web App with offline support via **Serwist** (service worker).
+* Internationalized in English, Spanish, and Portuguese via **next-intl**.
+* Containerized with a multi-stage **Dockerfile** (`nextjs-app/Dockerfile`).
 
 ### 2. Backend (`api/`)
 * Lightweight **FastAPI** Python service.
@@ -88,7 +90,7 @@ graph TD
 
 ### 3. CI/CD (`.github/workflows/pipeline.yml`)
 * **Single source of truth workflow:** `Stargazer Enterprise Pipeline`.
-* **Pre-deploy quality gates:** JS syntax, HTML critical IDs, Python lint/security, Playwright smoke tests, Lighthouse CI.
+* **Pre-deploy quality gates:** Next.js lint + build, Python lint/security, Playwright smoke tests, Lighthouse CI.
 * **Safe deploy flow:** Deploy runs only after validation, then performs post-deploy `/health` checks with retries.
 * **Release automation:** Auto patch-tag release on successful `main` pipeline runs; manual release supports explicit version or auto increment.
 * **Rollback support:** Manual rollback creates a PR from a validated release tag.
@@ -119,23 +121,20 @@ AI_API_URL="" AI_API_KEY="" NASA_APOD_KEY=DEMO_KEY uvicorn main:app --host 0.0.0
 The API docs will be available at `http://localhost:8181/docs`.
 
 ### 2. Run the Frontend
-Run the local development proxy (recommended):
-
 ```bash
-cd /path/to/stargazer
-node dev-server.js
+cd nextjs-app
+npm install
+npm run dev
 ```
 
-This serves the frontend at `http://localhost:8080` and proxies `/api/*` to `http://localhost:8181`.
+Opens at `http://localhost:3000`. The Next.js API routes automatically proxy to the backend at `http://localhost:8181` (configurable via `API_BACKEND`).
 
-Alternative static-only frontend server:
-
+### 3. Run with Docker Compose (full stack)
 ```bash
-cd web
-python3 -m http.server 8000
+docker compose up --build
 ```
 
-Open `http://localhost:8000`. The frontend will automatically detect the localhost environment and point its API requests to your local FastAPI backend.
+This starts the Python API (`localhost:8181`), the Next.js frontend (`localhost:3000`), and Redis.
 
 ---
 
@@ -144,6 +143,12 @@ Open `http://localhost:8000`. The frontend will automatically detect the localho
 The backend API reads the following variables (configured in your `.env` file locally or in the Cloud Run console).
 
 > **🔒 Security:** This repository contains **no API keys or secrets**. All API keys below must be supplied by **you** in your own `.env` file or deployment environment. Never commit `.env` files.
+
+### Frontend (Next.js)
+
+| Variable | Description | Default |
+| :--- | :--- | :--- |
+| `API_BACKEND` | URL of the Python backend, used by Next.js route handlers (server-side only) | `http://localhost:8181` |
 
 ### Required for Core Functionality (No API Keys Needed)
 The app works **without any AI or third-party API keys** — it falls back to free public APIs:
