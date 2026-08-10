@@ -1,6 +1,6 @@
 # StarGazer — Next.js app
 
-Next.js 16 (App Router, TypeScript, Tailwind CSS) rewrite of the vanilla-JS dashboard in [`../web`](../web). Tracks migration issue [#209](https://github.com/nicolasnkGH/stargazer/issues/209). The legacy `web/` app stays live and untouched until this reaches parity.
+Next.js 16 (App Router, TypeScript, Tailwind CSS) frontend for the StarGazer dashboard. This is the production frontend, replacing the legacy vanilla JS app as part of [#209](https://github.com/nicolasnkGH/stargazer/issues/209).
 
 ## Development
 

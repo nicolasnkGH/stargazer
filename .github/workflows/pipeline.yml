@@ -92,41 +92,23 @@ jobs:
         with:
           python-version: "3.11"
 
-      - name: JavaScript syntax checks
+      - name: Install Next.js dependencies
         run: |
           set -euo pipefail
-          echo "Checking JS files in web/..."
-          ERRORS=0
-          for f in web/*.js; do
-            node --check "$f" && echo "OK $f" || { echo "ERROR: syntax error in $f"; ERRORS=$((ERRORS+1)); }
-          done
-          if [ "$ERRORS" -gt 0 ]; then
-            echo "Found $ERRORS JS file(s) with syntax errors."
-            exit 1
-          fi
+          cd nextjs-app
+          npm ci
 
-      - name: HTML critical element checks
+      - name: Lint Next.js
         run: |
           set -euo pipefail
-          node -e "
-            const fs = require('fs');
-            const html = fs.readFileSync('web/index.html', 'utf8');
-            const required = [
-              'card-motion', 'card-targets',
-              'scheduler-list-container', 'scheduler-empty-state',
-              'scheduler-timeline-bar'
-            ];
-            let errors = 0;
-            required.forEach(id => {
-              if (!html.includes('id=\"' + id + '\"')) {
-                console.error('Missing required element #' + id);
-                errors++;
-              } else {
-                console.log('OK #' + id);
-              }
-            });
-            if (errors > 0) process.exit(1);
-          "
+          cd nextjs-app
+          npm run lint
+
+      - name: Build Next.js
+        run: |
+          set -euo pipefail
+          cd nextjs-app
+          npm run build
 
       - name: Install Python dependencies
         run: |
@@ -147,7 +129,7 @@ jobs:
           set -euo pipefail
           bandit -r api/ -x api/venv -ll -ii -s B104
 
-      - name: Install JS dependencies and browser
+      - name: Install Playwright browser
         run: |
           set -euo pipefail
           npm ci
@@ -158,10 +140,12 @@ jobs:
           CI: true
         run: |
           set -euo pipefail
-          npx serve web/ -p 3000 --no-clipboard &
+          cd nextjs-app
+          npm run start &
           SERVER_PID=$!
           trap 'kill $SERVER_PID' EXIT
-          sleep 4
+          sleep 8
+          cd ..
 
           # 1) Functional smoke tests (must pass)
           npx playwright test tests/smoke.spec.js --reporter=line
@@ -225,9 +209,6 @@ jobs:
         with:
           ref: ${{ github.event_name == 'workflow_dispatch' && github.event.inputs.target_branch || github.ref }}
 
-      - name: Copy package.json to API directory
-        run: cp package.json api/package.json
-
       - name: Validate deployment configuration
         env:
           GCP_SERVICE_NAME: ${{ vars.GCP_SERVICE_NAME || secrets.GCP_SERVICE_NAME }}
@@ -251,8 +232,6 @@ jobs:
           VAPID_PUBLIC_KEY: ${{ secrets.VAPID_PUBLIC_KEY }}
           VAPID_ADMIN_EMAIL: ${{ secrets.VAPID_ADMIN_EMAIL }}
           NASA_APOD_KEY: ${{ secrets.NASA_APOD_KEY }}
-          TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
-          TELEGRAM_CHAT_ID: ${{ secrets.TELEGRAM_CHAT_ID }}
         run: |
           set -euo pipefail
           missing=0
@@ -281,8 +260,6 @@ jobs:
             VAPID_PUBLIC_KEY
             VAPID_ADMIN_EMAIL
             NASA_APOD_KEY
-            TELEGRAM_BOT_TOKEN
-            TELEGRAM_CHAT_ID
           )
 
           for key in "${required[@]}"; do
@@ -344,8 +321,6 @@ jobs:
             VAPID_PUBLIC_KEY=${{ secrets.VAPID_PUBLIC_KEY }}
             VAPID_ADMIN_EMAIL=${{ secrets.VAPID_ADMIN_EMAIL }}
             NASA_APOD_KEY=${{ secrets.NASA_APOD_KEY }}
-            TELEGRAM_BOT_TOKEN=${{ secrets.TELEGRAM_BOT_TOKEN }}
-            TELEGRAM_CHAT_ID=${{ secrets.TELEGRAM_CHAT_ID }}
 
       - name: Post-deploy health check
         if: github.event_name != 'workflow_dispatch' || github.event.inputs.dry_run != 'true'
