@@ -1,23 +1,29 @@
 "use client";
 
+import { useState } from "react";
 import Icon from "./Icon";
 import { DEFAULT_DUSK_HOUR, DEFAULT_DAWN_HOUR } from "@/lib/constants";
 import { useNightPlan, addToPlan, removeFromPlan, movePlanItem, clearPlan } from "@/hooks/useNightPlan";
 import { exportPlanTxt, exportPlanCsv } from "@/lib/plan-export";
+import { showToast } from "@/lib/toast";
 
 export default function PlanMyNight() {
   const plan = useNightPlan();
+  const [showClearConfirm, setShowClearConfirm] = useState(false);
 
   function quickAdd(id: string, name: string, ra = 0, dec = 0) {
     const err = addToPlan(id, name, ra, dec);
-    if (err) alert(err);
+    if (err) showToast(err);
   }
 
   function onClear() {
     if (plan.length === 0) return;
-    if (confirm(`This will remove all ${plan.length} item${plan.length !== 1 ? "s" : ""} from your plan. This cannot be undone.`)) {
-      clearPlan();
-    }
+    setShowClearConfirm(true);
+  }
+
+  function confirmClear() {
+    clearPlan();
+    setShowClearConfirm(false);
   }
 
   const nightDuration = (DEFAULT_DAWN_HOUR - DEFAULT_DUSK_HOUR + 24) % 24;
@@ -128,7 +134,7 @@ export default function PlanMyNight() {
                   </button>
                   <button
                     onClick={() => removeFromPlan(idx)}
-                    className="rounded-lg border border-red-500/20 bg-red-500/10 px-2.5 py-1 text-xs text-red-400 hover:bg-red-500/20 transition-colors"
+                    className="whitespace-nowrap rounded-lg border border-red-500/20 bg-red-500/10 px-1.5 py-1 text-[0.7rem] sm:px-2.5 sm:text-xs text-red-400 hover:bg-red-500/20 transition-colors"
                     title="Remove from plan"
                   >
                     Remove
@@ -139,6 +145,35 @@ export default function PlanMyNight() {
           </div>
         )}
       </div>
+
+      {showClearConfirm && (
+        <div
+          className="fixed inset-0 z-[9999] flex items-center justify-center bg-black/70 backdrop-blur-sm"
+          onClick={(e) => { if (e.target === e.currentTarget) setShowClearConfirm(false); }}
+        >
+          <div className="w-[90%] max-w-[380px] rounded-2xl border border-purple-500/40 bg-[#1e1b2e] p-7 text-center shadow-2xl">
+            <div className="mb-3 text-3xl">🗑️</div>
+            <div className="mb-2 text-base font-bold text-white">Clear Night Plan?</div>
+            <div className="mb-5 text-sm text-zinc-400">
+              This will remove all {plan.length} item{plan.length !== 1 ? "s" : ""} from your plan. This cannot be undone.
+            </div>
+            <div className="flex justify-center gap-3">
+              <button
+                onClick={() => setShowClearConfirm(false)}
+                className="rounded-lg border border-white/15 bg-white/[0.07] px-6 py-2 text-sm font-semibold text-zinc-200 hover:bg-white/10 transition-colors"
+              >
+                Cancel
+              </button>
+              <button
+                onClick={confirmClear}
+                className="rounded-lg border border-red-500 bg-red-500/15 px-6 py-2 text-sm font-bold text-red-400 hover:bg-red-500/25 transition-colors"
+              >
+                Clear All
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </section>
   );
 }

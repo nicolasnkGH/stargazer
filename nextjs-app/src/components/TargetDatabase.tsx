@@ -7,6 +7,7 @@ import Icon from "./Icon";
 import type { CatalogTarget, GalleryCounts } from "@/types";
 import { API_BASE, CONSTELLATION_FILTERS, BORTLE_CLASSES, BORTLE_STORAGE_KEY } from "@/lib/constants";
 import { addToPlan } from "@/hooks/useNightPlan";
+import { showToast } from "@/lib/toast";
 import GalleryButton from "./GalleryButton";
 import FovModal from "./FovModal";
 
@@ -291,7 +292,7 @@ export default function TargetDatabase() {
                   <button
                     onClick={() => {
                       const err = addToPlan(t.id, `${t.emoji ?? "🔭"} ${t.name}`);
-                      if (err) alert(err);
+                      if (err) showToast(err);
                     }}
                     className="flex items-center gap-1 rounded-lg bg-white/5 border border-white/10 px-3 py-1.5 text-xs text-zinc-300 hover:bg-white/10 transition-colors"
                   >

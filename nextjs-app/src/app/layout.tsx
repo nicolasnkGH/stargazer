@@ -6,6 +6,7 @@ import { SerwistProvider } from "@serwist/turbopack/react";
 import "./globals.css";
 import Header from "@/components/Header";
 import InstallPrompt from "@/components/InstallPrompt";
+import Toast from "@/components/Toast";
 
 const spaceGrotesk = Space_Grotesk({
   variable: "--font-space-grotesk",
@@ -65,6 +66,7 @@ export default async function RootLayout({
             <Header />
             <main className="flex flex-1 w-full flex-col items-center">{children}</main>
             <InstallPrompt />
+            <Toast />
           </NextIntlClientProvider>
         </SerwistProvider>
       </body>
