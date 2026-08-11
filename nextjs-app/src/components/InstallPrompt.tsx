@@ -31,7 +31,7 @@ export default function InstallPrompt() {
   }
 
   return (
-    <div className="fixed bottom-5 right-5 z-[9999] flex items-center gap-3 rounded-xl border border-sky-500/30 bg-slate-900/95 px-4 py-3 shadow-[0_8px_24px_rgba(0,0,0,0.6)] backdrop-blur-md">
+    <div className="fixed inset-x-4 bottom-5 z-[9999] flex flex-wrap items-center gap-3 rounded-xl border border-sky-500/30 bg-slate-900/95 px-4 py-3 shadow-[0_8px_24px_rgba(0,0,0,0.6)] backdrop-blur-md sm:inset-x-auto sm:right-5 sm:max-w-sm">
       <p className="text-sm text-zinc-200">Install StarGazer for quick, offline-friendly access.</p>
       <button
         onClick={install}

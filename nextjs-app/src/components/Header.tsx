@@ -62,10 +62,13 @@ export default function Header() {
     const rect = resourcesBtnRef.current?.getBoundingClientRect();
     if (!rect) return;
     const margin = 8;
+    const flyoutWidth = 200; // matches min-w-[200px] on the flyout below
     const top = Math.min(rect.top, window.innerHeight - margin);
+    const rawRight = window.innerWidth - rect.left + margin;
+    const maxRight = Math.max(margin, window.innerWidth - flyoutWidth - margin);
     setResourcesFlyoutStyle({
       top,
-      right: window.innerWidth - rect.left + margin,
+      right: Math.min(rawRight, maxRight),
       maxHeight: window.innerHeight - top - margin,
     });
     setResourcesExpanded(true);
