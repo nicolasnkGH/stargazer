@@ -258,6 +258,70 @@ jobs:
           if [ "$missing" -ne 0 ]; then
             exit 1
           fi
+      # Frontend deploy
+      - name: Setup Node.js for frontend
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: Install Next.js dependencies
+        run: |
+          set -euo pipefail
+          cd nextjs-app
+          npm ci
+
+      - name: Build Next.js
+        run: |
+          set -euo pipefail
+          cd nextjs-app
+          npm run build
+
+      - name: Deploy Frontend to Cloud Run
+        id: deploy_frontend
+        if: github.event_name != 'workflow_dispatch' || github.event.inputs.dry_run != 'true'
+        uses: google-github-actions/deploy-cloudrun@v2
+        with:
+          service: ${{ vars.GCP_SERVICE_NAME_FRONTEND || secrets.GCP_SERVICE_NAME_FRONTEND }}
+          region: ${{ vars.GCP_REGION }}
+          source: ./nextjs-app
+          flags: >-
+            --execution-environment=${{ vars.CLOUD_RUN_EXECUTION_ENV }}
+          env_vars: |-
+            API_BACKEND=${{ steps.deploy_cloud_run.outputs.url }}
+
+      - name: Post-deploy health check for frontend
+        if: github.event_name != 'workflow_dispatch' || github.event.inputs.dry_run != 'true'
+        run: |
+          set -euo pipefail
+          BASE_URL="${{ steps.deploy_frontend.outputs.url }}"
+          if [ -z "$BASE_URL" ]; then
+            echo "Cloud Run URL output not found from deploy step."
+            exit 1
+          fi
+
+          HEALTH_URL="${BASE_URL%/}/api/health"
+          echo "Checking $HEALTH_URL"
+          ID_TOKEN="$(gcloud auth print-identity-token --audiences="$BASE_URL")"
+          if [ -z "$ID_TOKEN" ]; then
+            echo "Unable to mint identity token for Cloud Run health check."
+            exit 1
+          fi
+
+          for attempt in 1 2 3 4 5; do
+            if curl --fail --silent --show-error --max-time 10 \
+              -H "Authorization: Bearer ***" \
+              "$HEALTH_URL" >/tmp/health_frontend.json; then
+              echo "Frontend health check passed on attempt $attempt"
+              cat /tmp/health_frontend.json
+              exit 0
+              fi
+            echo "Health check failed (attempt $attempt). Retrying..."
+            sleep 5
+          done
+
+          echo "Frontend health endpoint failed after retries: $HEALTH_URL"
+          exit 1
+
 
       - name: Dry-run deploy preview
         if: github.event_name == 'workflow_dispatch' && github.event.inputs.dry_run == 'true'
