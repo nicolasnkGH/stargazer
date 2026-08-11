@@ -1,24 +1,32 @@
-# Git Branching & Automated Pull Request Workflow
+# Agent Rules for Stargazer
 
-All autonomous developer agents working on this repository must strictly adhere to the following git workflow:
+These rules apply to ALL AI agents working in this repository. There are no exceptions.
 
-## 1. Do NOT Push Directly to Protected Branches
-- You are strictly forbidden from committing or pushing directly to `main` or any other protected branch.
+## ❌ What Agents Must NEVER Do
+- Push directly to `main` or any protected branch
+- Open Pull Requests (the owner handles all PRs)
+- Merge Pull Requests
+- Delete branches
+- Create GitHub releases or tags
+- Modify CI/CD pipeline files (`.github/workflows/`)
+- Modify deployment configs (`docker-compose.yml`, `Dockerfile`, GCP configs)
+- Add, remove, or modify repository secrets or environment variables
+- Install new dependencies without explicit instruction (`requirements.txt`, `package.json`)
+- Call any Kanban tools (`kanban_complete`, `kanban_block`, etc.) unless explicitly told to
 
-## 2. Work on Feature Branches
-- Before making any code changes, create and check out a dedicated branch named:
-  `wt/t_<task_id>_fix` (replace `<task_id>` with the current Kanban task ID you are working on).
-- Implement, test, and commit all your changes on this feature branch.
+## ✅ What Agents Are Allowed to Do
+- Read and modify source code files within `api/`, `web/`, `tests/`, `nextjs-app/`
+- Write and run local tests
+- Create a feature branch and commit code changes to it
+- Push the feature branch to origin
 
-## 3. Push and Submit a Pull Request
-- Push your feature branch to the remote origin.
-- Once pushed, use the GitHub REST API to automatically create a Pull Request from your branch to `main`.
-- You can perform this using `curl` and the authenticated `GITHUB_TOKEN` environment variable:
-  ```bash
-  curl -s -X POST \
-    -H "Authorization: token $GITHUB_TOKEN" \
-    -H "Accept: application/vnd.github.v3+json" \
-    https://api.github.com/repos/nicolasnkGH/stargazer/pulls \
-    -d "{\"title\":\"Fix: Resolve Kanban Task <task_id>\",\"head\":\"wt/t_<task_id>_fix\",\"base\":\"main\",\"body\":\"This PR resolves task <task_id>. Please review and merge.\"}"
-  ```
-- Post the link of the created Pull Request as a comment on the Kanban card, and then call `kanban_complete`.
+## Workflow
+1. Create a branch: `git checkout -b fix/<short-description>`
+2. Make only the code changes requested — nothing more
+3. Commit and push the branch: `git push origin <branch-name>`
+4. **Stop. Do not open a PR, do not merge, do not do anything else.**
+   The owner will take it from here.
+
+## Scope Constraint
+Only touch files directly relevant to the task. Do not refactor unrelated code,
+update documentation unprompted, or make "while I'm here" changes.
