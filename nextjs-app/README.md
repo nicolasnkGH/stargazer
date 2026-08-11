@@ -17,6 +17,8 @@ Route handlers under `src/app/api/*` proxy to the Python/FastAPI backend in [`..
 API_BACKEND=http://localhost:8181 npm run dev
 ```
 
+For Docker Compose (default in .env.example) use `API_BACKEND=http://stargazer-api:8181`; for Cloud Run, set to the Cloud Run service URL.
+
 ## Build
 
 ```bash

@@ -148,7 +148,7 @@ The backend API reads the following variables (configured in your `.env` file lo
 
 | Variable | Description | Default |
 | :--- | :--- | :--- |
-| `API_BACKEND` | URL of the Python backend, used by Next.js route handlers (server-side only) | `http://localhost:8181` |
+| `API_BACKEND` | URL of the Python backend, used by Next.js route handlers (server-side only). For Docker Compose (default in .env.example) use http://stargazer-api:8181; for local development, set to http://localhost:8181; for Cloud Run, set to the Cloud Run service URL. | `http://stargazer-api:8181` |
 
 ### Required for Core Functionality (No API Keys Needed)
 The app works **without any AI or third-party API keys** — it falls back to free public APIs:
