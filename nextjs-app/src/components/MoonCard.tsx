@@ -7,6 +7,7 @@ import Icon from "./Icon";
 import type { MoonData } from "@/types";
 import { MOON_FACT_STORAGE_KEY_PREFIX } from "@/lib/constants";
 import { addToPlan } from "@/hooks/useNightPlan";
+import { showToast } from "@/lib/toast";
 import GalleryButton from "./GalleryButton";
 
 function Moon3DWidget({ illumination_pct }: { illumination_pct: number }) {
@@ -111,7 +112,7 @@ export default function MoonCard({ moon, moonFact }: { moon: MoonData | null; mo
 
   function addMoonToPlan() {
     const err = addToPlan("moon", "🌙 The Moon");
-    if (err) alert(err);
+    if (err) showToast(err);
   }
 
   if (!moon) {
