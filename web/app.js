@@ -3876,7 +3876,7 @@ document.addEventListener('DOMContentLoaded', () => {
         
         const rawName = a.name || 'Asteroid';
         const asteroidId = 'ast_' + rawName.replace(/[^a-zA-Z0-9]/g, '_').toLowerCase();
-        const asteroidName = '🪨 ' + rawName.replace(/'/g, "\\'");
+        const asteroidName = escapeForSingleQuotedString('🪨 ' + rawName);
         
         const haz = a.is_hazardous ? `<span style="color:#ef4444; font-size:0.75rem;">⚠️ ${hazardText}</span>` : '';
         list.innerHTML += `
