@@ -3874,18 +3874,22 @@ document.addEventListener('DOMContentLoaded', () => {
         const speedText = dict.asteroid_speed || 'Speed:';
         const missDistText = dict.asteroid_miss_distance || 'Miss Distance';
         
+        const rawName = a.name || 'Asteroid';
+        const asteroidId = 'ast_' + rawName.replace(/[^a-zA-Z0-9]/g, '_').toLowerCase();
+        const asteroidName = '🪨 ' + rawName.replace(/'/g, "\\'");
+        
         const haz = a.is_hazardous ? `<span style="color:#ef4444; font-size:0.75rem;">⚠️ ${hazardText}</span>` : '';
         list.innerHTML += `
           <div style="background: rgba(255,255,255,0.05); padding: 10px; border-radius: 6px; display: flex; justify-content: space-between; align-items: center;">
             <div>
-              <div style="color: #e2e8f0; font-weight: bold; font-size: 0.9rem;">${a.name} ${haz}</div>
+              <div style="color: #e2e8f0; font-weight: bold; font-size: 0.9rem;">${rawName} ${haz}</div>
               <div style="color: #94a3b8; font-size: 0.75rem;">${diamText} ~${isMetric ? a.diameter_m : Math.round(a.diameter_m * 3.28084)}${isMetric ? 'm' : 'ft'} • ${speedText} ${isMetric ? a.velocity_kmh.toLocaleString() : Math.round(a.velocity_kmh * 0.621371).toLocaleString()} ${isMetric ? 'km/h' : 'mph'}</div>
             </div>
             <div style="text-align: right; color: #a855f7; font-size: 0.85rem; font-family: var(--font-mono);">
               <div style="font-size: 0.6rem; color: #94a3b8; font-family: var(--font-sans); text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 2px;">${missDistText}</div>
               ${isMetric ? a.miss_distance_km.toLocaleString() : Math.round(a.miss_distance_km * 0.621371).toLocaleString()} ${isMetric ? 'km' : 'mi'}
               <div style="margin-top:6px;">
-                <button onclick="addToPlan('ast_' + ('${a.name}'.replace(/[^a-zA-Z0-9]/g, '_').toLowerCase()), '🪨 ' + ('${a.name}'.replace(/'/g, '')), 0, 0)" class="btn-fov" style="background:rgba(34,197,94,0.15); color:#86efac; border:1px solid rgba(34,197,94,0.3); padding:2px 8px; border-radius:4px; cursor:pointer; font-size:0.75rem;">+ Add to Plan</button>
+                <button onclick="addToPlan('${asteroidId}', '${asteroidName}', 0, 0)" class="btn-fov" style="background:rgba(34,197,94,0.15); color:#86efac; border:1px solid rgba(34,197,94,0.3); padding:2px 8px; border-radius:4px; cursor:pointer; font-size:0.75rem;">+ Add to Plan</button>
               </div>
             </div>
           </div>
