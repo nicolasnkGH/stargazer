@@ -110,24 +110,23 @@ export default function LocationModal({ open, onClose, locations, activeId }: Lo
     setFormError(null);
     const latNum = parseFloat(lat);
     let lonNum = parseFloat(lon);
-    let name = profileName.trim();
-
-    if (isNaN(latNum) || isNaN(lonNum)) return setFormError("Invalid coordinates. Please enter a valid number.");
-    if (latNum < -90 || latNum > 90) return setFormError("Latitude must be between -90 and 90 degrees.");
     if (lonNum > 180) lonNum -= 360;
     if (lonNum < -180) lonNum += 360;
-    if (lonNum < -180 || lonNum > 180) return setFormError("Longitude must be between -180 and 180 degrees.");
 
-    let minAzNum = 0;
-    let maxAzNum = 360;
-    if (porchMode) {
-      minAzNum = parseFloat(minAz) || 0;
-      maxAzNum = parseFloat(maxAz) || 360;
-      if (minAzNum < 0 || minAzNum > 360 || maxAzNum < 0 || maxAzNum > 360)
-        return setFormError("Azimuth values must be between 0 and 360 degrees.");
-      if (minAzNum > maxAzNum) return setFormError("Min Azimuth cannot be greater than Max Azimuth.");
-    }
+    const minAzNum = porchMode ? parseFloat(minAz) || 0 : 0;
+    const maxAzNum = porchMode ? parseFloat(maxAz) || 360 : 360;
 
+    const rules: Array<[boolean, string]> = [
+      [isNaN(latNum) || isNaN(lonNum), "Latitude and Longitude are required. Please enter your location's coordinates."],
+      [latNum < -90 || latNum > 90, "Latitude must be between -90 and 90 degrees."],
+      [lonNum < -180 || lonNum > 180, "Longitude must be between -180 and 180 degrees."],
+      [porchMode && (minAzNum < 0 || minAzNum > 360 || maxAzNum < 0 || maxAzNum > 360), "Azimuth values must be between 0 and 360 degrees."],
+      [porchMode && minAzNum > maxAzNum, "Min Azimuth cannot be greater than Max Azimuth."],
+    ];
+    const error = rules.find(([invalid]) => invalid)?.[1];
+    if (error) return setFormError(error);
+
+    let name = profileName.trim();
     setSaving(true);
     if (!name || name === "GPS Location" || name === "Custom Location") {
       try {

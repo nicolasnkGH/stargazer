@@ -1,6 +1,7 @@
 "use client";
 
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
+import { createPortal } from "react-dom";
 import Icon from "./Icon";
 
 interface ModalProps {
@@ -11,6 +12,10 @@ interface ModalProps {
 }
 
 export default function Modal({ open, onClose, title, children }: ModalProps) {
+  const [mounted, setMounted] = useState(false);
+
+  useEffect(() => setMounted(true), []);
+
   useEffect(() => {
     if (!open) return;
     function onKeyDown(e: KeyboardEvent) {
@@ -20,9 +25,9 @@ export default function Modal({ open, onClose, title, children }: ModalProps) {
     return () => document.removeEventListener("keydown", onKeyDown);
   }, [open, onClose]);
 
-  if (!open) return null;
+  if (!open || !mounted) return null;
 
-  return (
+  return createPortal(
     <div
       className="fixed inset-0 z-[9999] flex items-center justify-center bg-black/60 backdrop-blur-sm p-4"
       onClick={(e) => {
@@ -42,6 +47,7 @@ export default function Modal({ open, onClose, title, children }: ModalProps) {
         </div>
         <div className="p-5">{children}</div>
       </div>
-    </div>
+    </div>,
+    document.body
   );
 }
