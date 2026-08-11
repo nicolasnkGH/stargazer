@@ -194,9 +194,13 @@ The app works **without any AI or third-party API keys** — it falls back to fr
 
 The Cloud Run pipeline is fully configuration-driven. Store deploy/runtime values in GitHub **Variables** and **Secrets**.
 
-GitHub **Variables**:
+The pipeline deploys two services:
+- Backend API (`api/`)
+- Frontend (`nextjs-app/`)
 
-- `GCP_SERVICE_NAME`
+GitHub **Variables**:
+- `GCP_SERVICE_NAME` - Backend service name
+- `GCP_SERVICE_NAME_FRONTEND` - Frontend service name
 - `GCP_REGION`
 - `GCP_SOURCE_DIR`
 - `CLOUD_RUN_EXECUTION_ENV`
@@ -208,7 +212,6 @@ GitHub **Variables**:
 - `AI_TIMEOUT`
 
 GitHub **Secrets**:
-
 - `GCP_SA_KEY`
 - `AI_MODEL`
 - `AI_API_URL`
