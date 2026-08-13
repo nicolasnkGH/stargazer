@@ -940,78 +940,168 @@
       </div>
     </section>
 
-    <!-- ── Telescope Optics Calculator ── -->
+    <!-- ── Field of View Calculator ── -->
     <section class="card" id="card-optics" style="margin-top: 24px;">
       <div class="card-header">
         <span class="card-icon"><i data-lucide="telescope"></i></span>
-        <h2 class="card-title">Telescope Optics & Eyepiece Guide</h2>
+        <h2 class="card-title">Field of View Calculator</h2>
       </div>
       <div class="card-body">
-        <p style="font-size: 0.85rem; color: var(--text-secondary); margin-bottom: 12px;">Not sure what eyepiece to use? Select what you want to look at, and we'll tell you what you need!</p>
-        
-        <div style="margin-bottom: 16px;">
-          <label style="font-size: 0.8rem; color: var(--text-secondary); display: block; margin-bottom: 4px;">What do you want to observe?</label>
-          <select id="calc-target-type" aria-label="Optics Target Type" style="width: 100%; background: rgba(0,0,0,0.4); border: 1px solid rgba(255,255,255,0.2); color: var(--text-primary); border-radius: 4px; padding: 8px;" onchange="updateOptics()">
-            <option value="planets">Planets (Jupiter, Saturn, Mars)</option>
-            <option value="moon">The Moon</option>
-            <option value="clusters">Star Clusters (Globular & Open)</option>
-            <option value="nebulae">Wide Nebulae (Orion, Andromeda)</option>
-          </select>
+        <p style="font-size: 0.85rem; color: var(--text-secondary); margin-bottom: 12px;">Try out telescope, eyepiece, camera and binocular combinations to see exactly how much sky each setup shows — and what fits inside it.</p>
+
+        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 12px; margin-bottom: 16px;">
+          <div>
+            <label for="calc-mode" style="font-size: 0.8rem; color: var(--text-secondary); display: block; margin-bottom: 4px;">Mode</label>
+            <select id="calc-mode" aria-label="Field of View Mode" style="width: 100%; background: rgba(0,0,0,0.4); border: 1px solid rgba(255,255,255,0.2); color: var(--text-primary); border-radius: 4px; padding: 8px;" onchange="switchOpticsMode()">
+              <option value="visual">👁️ Visual (telescope + eyepiece)</option>
+              <option value="imaging">📷 Imaging (telescope + camera)</option>
+              <option value="binocular">🔭 Binoculars</option>
+            </select>
+          </div>
+          <div>
+            <label for="calc-preset" style="font-size: 0.8rem; color: var(--text-secondary); display: block; margin-bottom: 4px;">Equipment preset</label>
+            <select id="calc-preset" aria-label="Equipment Preset" style="width: 100%; background: rgba(0,0,0,0.4); border: 1px solid rgba(255,255,255,0.2); color: var(--text-primary); border-radius: 4px; padding: 8px;" onchange="applyOpticsPreset()">
+              <!-- Populated by JS -->
+            </select>
+          </div>
+          <div>
+            <label for="calc-target-type" style="font-size: 0.8rem; color: var(--text-secondary); display: block; margin-bottom: 4px;">What do you want to observe?</label>
+            <select id="calc-target-type" aria-label="Optics Target Type" style="width: 100%; background: rgba(0,0,0,0.4); border: 1px solid rgba(255,255,255,0.2); color: var(--text-primary); border-radius: 4px; padding: 8px;" onchange="updateOptics()">
+              <option value="planets">Planets (Jupiter, Saturn, Mars)</option>
+              <option value="moon">The Moon</option>
+              <option value="clusters">Star Clusters (Globular & Open)</option>
+              <option value="nebulae">Wide Nebulae (Orion, Andromeda)</option>
+            </select>
+          </div>
         </div>
 
         <div id="calc-recommendation" style="background: rgba(74,158,255,0.1); border-left: 3px solid var(--accent-blue); padding: 10px 12px; font-size: 0.85rem; color: rgba(255,255,255,0.9); margin-bottom: 16px; border-radius: 0 4px 4px 0;">
           <!-- Populated by JS -->
         </div>
 
-        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 12px;">
+        <div id="calc-scope-inputs" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 12px; margin-bottom: 12px;">
           <div>
             <label for="calc-scope-fl" style="font-size: 0.8rem; color: var(--text-secondary);">Telescope Focal Length (mm)</label>
-            <input type="number" id="calc-scope-fl" value="650" style="width: 100%; background: rgba(0,0,0,0.2); border: 1px solid rgba(255,255,255,0.1); color: var(--text-primary); border-radius: 4px; padding: 6px;" oninput="updateOptics()">
+            <input type="number" id="calc-scope-fl" value="650" min="1" style="width: 100%; background: rgba(0,0,0,0.2); border: 1px solid rgba(255,255,255,0.1); color: var(--text-primary); border-radius: 4px; padding: 6px;" oninput="updateOptics()">
           </div>
           <div>
             <label for="calc-scope-ap" style="font-size: 0.8rem; color: var(--text-secondary);">Telescope Aperture (mm)</label>
-            <input type="number" id="calc-scope-ap" value="130" style="width: 100%; background: rgba(0,0,0,0.2); border: 1px solid rgba(255,255,255,0.1); color: var(--text-primary); border-radius: 4px; padding: 6px;" oninput="updateOptics()">
+            <input type="number" id="calc-scope-ap" value="130" min="1" style="width: 100%; background: rgba(0,0,0,0.2); border: 1px solid rgba(255,255,255,0.1); color: var(--text-primary); border-radius: 4px; padding: 6px;" oninput="updateOptics()">
           </div>
           <div>
-            <label for="calc-ep-fl" style="font-size: 0.8rem; color: var(--text-secondary);">Eyepiece Focal Length (mm)</label>
-            <input type="number" id="calc-ep-fl" value="25" style="width: 100%; background: rgba(0,0,0,0.2); border: 1px solid rgba(255,255,255,0.1); color: var(--text-primary); border-radius: 4px; padding: 6px;" oninput="updateOptics()">
-          </div>
-          <div>
-            <label for="calc-ep-afov" style="font-size: 0.8rem; color: var(--text-secondary);">Apparent FOV (°)</label>
-            <input type="number" id="calc-ep-afov" value="52" style="width: 100%; background: rgba(0,0,0,0.2); border: 1px solid rgba(255,255,255,0.1); color: var(--text-primary); border-radius: 4px; padding: 6px;" oninput="updateOptics()">
+            <label for="calc-barlow" style="font-size: 0.8rem; color: var(--text-secondary);">Barlow / Reducer</label>
+            <select id="calc-barlow" style="width: 100%; background: rgba(0,0,0,0.2); border: 1px solid rgba(255,255,255,0.1); color: var(--text-primary); border-radius: 4px; padding: 6px;" onchange="updateOptics()">
+              <option value="0.5">0.5x Reducer</option>
+              <option value="0.63">0.63x Reducer</option>
+              <option value="0.8">0.8x Reducer</option>
+              <option value="1" selected>None (1x)</option>
+              <option value="1.5">1.5x Barlow</option>
+              <option value="2">2x Barlow</option>
+              <option value="3">3x Barlow</option>
+            </select>
           </div>
         </div>
 
-        <div style="background: rgba(255,255,255,0.05); padding: 12px; border-radius: 6px; display: flex; justify-content: space-between; text-align: center; gap: 8px;">
-          <div style="flex: 1;">
-            <div style="font-size: 0.75rem; color: var(--text-secondary); display: flex; align-items: center; justify-content: center; gap: 4px; margin-bottom: 4px;">Magnification <span style="cursor:pointer; opacity:0.6;" onclick="showInfo('How many times larger the object appears.', event)"><i data-lucide="info" style="width:12px; height:12px;"></i></span></div>
+        <div id="calc-eyepiece-inputs" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 12px; margin-bottom: 12px;">
+          <div>
+            <label for="calc-ep-fl" style="font-size: 0.8rem; color: var(--text-secondary);">Eyepiece Focal Length (mm)</label>
+            <input type="number" id="calc-ep-fl" value="25" min="1" style="width: 100%; background: rgba(0,0,0,0.2); border: 1px solid rgba(255,255,255,0.1); color: var(--text-primary); border-radius: 4px; padding: 6px;" oninput="updateOptics()">
+          </div>
+          <div>
+            <label for="calc-ep-afov" style="font-size: 0.8rem; color: var(--text-secondary);">Apparent FOV (°)</label>
+            <input type="number" id="calc-ep-afov" value="52" min="1" style="width: 100%; background: rgba(0,0,0,0.2); border: 1px solid rgba(255,255,255,0.1); color: var(--text-primary); border-radius: 4px; padding: 6px;" oninput="updateOptics()">
+          </div>
+        </div>
+
+        <div id="calc-camera-inputs" class="hidden" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 12px; margin-bottom: 12px;">
+          <div>
+            <label for="calc-sensor-w" style="font-size: 0.8rem; color: var(--text-secondary);">Sensor Width (mm)</label>
+            <input type="number" id="calc-sensor-w" value="23.5" min="0.1" step="0.1" style="width: 100%; background: rgba(0,0,0,0.2); border: 1px solid rgba(255,255,255,0.1); color: var(--text-primary); border-radius: 4px; padding: 6px;" oninput="updateOptics()">
+          </div>
+          <div>
+            <label for="calc-sensor-h" style="font-size: 0.8rem; color: var(--text-secondary);">Sensor Height (mm)</label>
+            <input type="number" id="calc-sensor-h" value="15.6" min="0.1" step="0.1" style="width: 100%; background: rgba(0,0,0,0.2); border: 1px solid rgba(255,255,255,0.1); color: var(--text-primary); border-radius: 4px; padding: 6px;" oninput="updateOptics()">
+          </div>
+          <div>
+            <label for="calc-pixel-size" style="font-size: 0.8rem; color: var(--text-secondary);">Pixel Size (µm)</label>
+            <input type="number" id="calc-pixel-size" value="3.76" min="0.1" step="0.01" style="width: 100%; background: rgba(0,0,0,0.2); border: 1px solid rgba(255,255,255,0.1); color: var(--text-primary); border-radius: 4px; padding: 6px;" oninput="updateOptics()">
+          </div>
+        </div>
+
+        <div id="calc-binocular-inputs" class="hidden" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 12px; margin-bottom: 12px;">
+          <div>
+            <label for="calc-bino-mag" style="font-size: 0.8rem; color: var(--text-secondary);">Magnification (x)</label>
+            <input type="number" id="calc-bino-mag" value="10" min="1" style="width: 100%; background: rgba(0,0,0,0.2); border: 1px solid rgba(255,255,255,0.1); color: var(--text-primary); border-radius: 4px; padding: 6px;" oninput="updateOptics()">
+          </div>
+          <div>
+            <label for="calc-bino-ap" style="font-size: 0.8rem; color: var(--text-secondary);">Objective Aperture (mm)</label>
+            <input type="number" id="calc-bino-ap" value="50" min="1" style="width: 100%; background: rgba(0,0,0,0.2); border: 1px solid rgba(255,255,255,0.1); color: var(--text-primary); border-radius: 4px; padding: 6px;" oninput="updateOptics()">
+          </div>
+          <div>
+            <label for="calc-bino-afov" style="font-size: 0.8rem; color: var(--text-secondary);">Apparent FOV (°)</label>
+            <input type="number" id="calc-bino-afov" value="65" min="1" style="width: 100%; background: rgba(0,0,0,0.2); border: 1px solid rgba(255,255,255,0.1); color: var(--text-primary); border-radius: 4px; padding: 6px;" oninput="updateOptics()">
+          </div>
+        </div>
+
+        <div style="background: rgba(255,255,255,0.05); padding: 12px; border-radius: 6px; display: grid; grid-template-columns: repeat(auto-fit, minmax(130px, 1fr)); text-align: center; gap: 8px;">
+          <div>
+            <div style="font-size: 0.75rem; color: var(--text-secondary); display: flex; align-items: center; justify-content: center; gap: 4px; margin-bottom: 4px;"><span id="calc-label-mag">Magnification</span> <span id="calc-info-mag" style="cursor:pointer; opacity:0.6;" data-info="How many times larger the object appears." onclick="showInfo(this.dataset.info, event)"><i data-lucide="info" style="width:12px; height:12px;"></i></span></div>
             <div style="display: flex; align-items: center; justify-content: center; gap: 6px;">
               <div id="calc-out-mag" style="font-size: 1.2rem; font-weight: bold; color: var(--accent-blue);">26x</div>
-              <button class="icon-btn copy-metric-btn" data-target="calc-out-mag" title="Copy Magnification" style="background: none; border: none; padding: 4px; cursor: pointer; color: var(--text-dim); display: inline-flex; align-items: center;"><i data-lucide="copy" style="width: 13px; height: 13px;"></i></button>
+              <button class="icon-btn copy-metric-btn" data-target="calc-out-mag" title="Copy value" style="background: none; border: none; padding: 4px; cursor: pointer; color: var(--text-dim); display: inline-flex; align-items: center;"><i data-lucide="copy" style="width: 13px; height: 13px;"></i></button>
             </div>
           </div>
-          <div style="flex: 1;">
-            <div style="font-size: 0.75rem; color: var(--text-secondary); display: flex; align-items: center; justify-content: center; gap: 4px; margin-bottom: 4px;">Exit Pupil <span style="cursor:pointer; opacity:0.6;" onclick="showInfo('The diameter of the light beam coming out of the eyepiece. A 5-7mm exit pupil is ideal for dark skies; smaller for light-polluted skies or older observers.', event)">ℹ️</span></div>
+          <div>
+            <div style="font-size: 0.75rem; color: var(--text-secondary); display: flex; align-items: center; justify-content: center; gap: 4px; margin-bottom: 4px;"><span id="calc-label-ep">Exit Pupil</span> <span id="calc-info-ep" style="cursor:pointer; opacity:0.6;" data-info="The diameter of the light beam coming out of the eyepiece. A 5-7mm exit pupil is ideal for dark skies; smaller for light-polluted skies or older observers." onclick="showInfo(this.dataset.info, event)"><i data-lucide="info" style="width:12px; height:12px;"></i></span></div>
             <div style="display: flex; align-items: center; justify-content: center; gap: 6px;">
               <div id="calc-out-ep" style="font-size: 1.2rem; font-weight: bold; color: var(--accent-green);">5.0mm</div>
-              <button class="icon-btn copy-metric-btn" data-target="calc-out-ep" title="Copy Exit Pupil" style="background: none; border: none; padding: 4px; cursor: pointer; color: var(--text-dim); display: inline-flex; align-items: center;"><i data-lucide="copy" style="width: 13px; height: 13px;"></i></button>
+              <button class="icon-btn copy-metric-btn" data-target="calc-out-ep" title="Copy value" style="background: none; border: none; padding: 4px; cursor: pointer; color: var(--text-dim); display: inline-flex; align-items: center;"><i data-lucide="copy" style="width: 13px; height: 13px;"></i></button>
             </div>
           </div>
-          <div style="flex: 1;">
-            <div style="font-size: 0.75rem; color: var(--text-secondary); display: flex; align-items: center; justify-content: center; gap: 4px; margin-bottom: 4px;">True FOV <span style="cursor:pointer; opacity:0.6;" onclick="showInfo('How much actual sky you can see at once (e.g. the full Moon is ~0.5° wide).', event)"><i data-lucide="info" style="width:12px; height:12px;"></i></span></div>
+          <div>
+            <div style="font-size: 0.75rem; color: var(--text-secondary); display: flex; align-items: center; justify-content: center; gap: 4px; margin-bottom: 4px;"><span id="calc-label-tfov">True FOV</span> <span id="calc-info-tfov" style="cursor:pointer; opacity:0.6;" data-info="How much actual sky you can see at once (e.g. the full Moon is ~0.5° wide)." onclick="showInfo(this.dataset.info, event)"><i data-lucide="info" style="width:12px; height:12px;"></i></span></div>
             <div style="display: flex; align-items: center; justify-content: center; gap: 6px;">
               <div id="calc-out-tfov" style="font-size: 1.2rem; font-weight: bold; color: var(--accent-orange);">2.00°</div>
-              <button class="icon-btn copy-metric-btn" data-target="calc-out-tfov" title="Copy True Field of View" style="background: none; border: none; padding: 4px; cursor: pointer; color: var(--text-dim); display: inline-flex; align-items: center;"><i data-lucide="copy" style="width: 13px; height: 13px;"></i></button>
+              <button class="icon-btn copy-metric-btn" data-target="calc-out-tfov" title="Copy value" style="background: none; border: none; padding: 4px; cursor: pointer; color: var(--text-dim); display: inline-flex; align-items: center;"><i data-lucide="copy" style="width: 13px; height: 13px;"></i></button>
             </div>
           </div>
-          <div style="flex: 1;">
-            <div style="font-size: 0.75rem; color: var(--text-secondary); display: flex; align-items: center; justify-content: center; gap: 4px; margin-bottom: 4px;">Max Useful <span style="cursor:pointer; opacity:0.6;" onclick="showInfo('The maximum useful magnification before the image gets too blurry for this aperture.', event)"><i data-lucide="info" style="width:12px; height:12px;"></i></span></div>
+          <div>
+            <div style="font-size: 0.75rem; color: var(--text-secondary); display: flex; align-items: center; justify-content: center; gap: 4px; margin-bottom: 4px;"><span id="calc-label-max">Max Useful</span> <span id="calc-info-max" style="cursor:pointer; opacity:0.6;" data-info="The maximum useful magnification before the image gets too blurry for this aperture." onclick="showInfo(this.dataset.info, event)"><i data-lucide="info" style="width:12px; height:12px;"></i></span></div>
             <div style="display: flex; align-items: center; justify-content: center; gap: 6px;">
               <div id="calc-out-max" style="font-size: 1.2rem; font-weight: bold; color: var(--accent-purple);">260x</div>
-              <button class="icon-btn copy-metric-btn" data-target="calc-out-max" title="Copy Max Useful Magnification" style="background: none; border: none; padding: 4px; cursor: pointer; color: var(--text-dim); display: inline-flex; align-items: center;"><i data-lucide="copy" style="width: 13px; height: 13px;"></i></button>
+              <button class="icon-btn copy-metric-btn" data-target="calc-out-max" title="Copy value" style="background: none; border: none; padding: 4px; cursor: pointer; color: var(--text-dim); display: inline-flex; align-items: center;"><i data-lucide="copy" style="width: 13px; height: 13px;"></i></button>
             </div>
           </div>
         </div>
+
+        <div id="calc-fov-breakdown" style="font-size: 0.8rem; color: var(--text-dim); text-align: center; margin-top: 8px;">
+          <!-- Populated by JS -->
+        </div>
+
+        <div id="calc-explanation" style="background: rgba(168,85,247,0.08); border-left: 3px solid var(--accent-purple); padding: 10px 12px; font-size: 0.85rem; color: rgba(255,255,255,0.9); margin-top: 12px; border-radius: 0 4px 4px 0; line-height: 1.5;">
+          <!-- Populated by JS -->
+        </div>
+
+        <div id="calc-target-fit" style="font-size: 0.85rem; color: var(--text-secondary); margin-top: 12px; line-height: 1.6;">
+          <!-- Populated by JS -->
+        </div>
+
+        <details style="margin-top: 16px; background: rgba(255,255,255,0.03); border: 1px solid rgba(255,255,255,0.08); border-radius: 6px; padding: 10px 12px;">
+          <summary style="cursor: pointer; font-size: 0.85rem; color: var(--text-primary); font-weight: 600;">📖 How to use this calculator</summary>
+          <div style="font-size: 0.82rem; color: var(--text-secondary); line-height: 1.6; margin-top: 10px;">
+            <p style="margin: 0 0 10px 0;"><strong>What is field of view?</strong> Field of view (FOV) is how much sky you see at once, measured as an angle. The full Moon is about <strong>0.5°</strong> across, so a 2° field of view is four Moons wide. Degrees split into arcminutes (1° = 60′) and arcseconds (1′ = 60″) for small objects like planets.</p>
+            <p style="margin: 0 0 10px 0;"><strong>How combinations change the view.</strong> A shorter eyepiece (or a Barlow) raises magnification, which <em>shrinks</em> the field of view and dims the image. A longer eyepiece (or a focal reducer) does the opposite: wider field, brighter image, less detail. In imaging mode the sensor size sets the frame instead of the eyepiece — a bigger sensor on the same telescope captures more sky.</p>
+            <p style="margin: 0 0 10px 0;"><strong>Choosing an eyepiece or camera.</strong> Match the field of view to the target: aim for the object to fill roughly a quarter to a half of the frame so there is context around it. Keep the exit pupil under about 7mm (your eye cannot use more) and stay below the max useful magnification, or the image just gets bigger and blurrier. For imaging, an image scale near <strong>1–2″/pixel</strong> matches typical seeing.</p>
+            <p style="margin: 0 0 6px 0;"><strong>Example setups:</strong></p>
+            <ul style="margin: 0 0 10px 0; padding-left: 18px;">
+              <li><strong>Moon &amp; planets:</strong> 650mm scope + 6mm eyepiece (108x, 0.48°) — the full Moon just fills the view.</li>
+              <li><strong>Globular clusters:</strong> 650mm + 10mm (65x, 0.80°) — enough power to resolve stars at the edges.</li>
+              <li><strong>Orion Nebula:</strong> 650mm + 25mm (26x, 2.00°) — wide and bright, with room around the nebula.</li>
+              <li><strong>Andromeda Galaxy:</strong> 10x50 binoculars (6.5°) — the whole galaxy plus surrounding star fields.</li>
+            </ul>
+            <p style="margin: 0;">Want to see the frame drawn on a real star chart? Open the <strong>FOV Simulator</strong> from any target card to overlay these boundaries on the sky.</p>
+          </div>
+        </details>
       </div>
     </section>
 

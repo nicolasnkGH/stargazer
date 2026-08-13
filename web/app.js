@@ -4141,17 +4141,159 @@ document.addEventListener('DOMContentLoaded', () => {
   }, 1000);
 });
 
-// ── Optics Calculator ───────────────────────────────────────────────────────
+// ── Optics / Field of View Calculator ───────────────────────────────────────
+// Apparent sizes in degrees, used to explain what fits inside the calculated FOV.
+const OPTICS_TARGET_SIZES = [
+  { name: 'The Moon', size: 0.52 },
+  { name: 'The Sun', size: 0.53 },
+  { name: 'Jupiter', size: 0.013 },
+  { name: 'Saturn (with rings)', size: 0.012 },
+  { name: 'Mars', size: 0.006 },
+  { name: 'M31 Andromeda Galaxy', size: 3.2 },
+  { name: 'M45 Pleiades', size: 2.0 },
+  { name: 'M44 Beehive Cluster', size: 1.6 },
+  { name: 'M42 Orion Nebula', size: 1.1 },
+  { name: 'Double Cluster (NGC 869/884)', size: 1.0 },
+  { name: 'M81 & M82 galaxy pair', size: 0.6 },
+  { name: 'M13 Hercules Cluster', size: 0.33 },
+  { name: 'M27 Dumbbell Nebula', size: 0.13 },
+  { name: 'M51 Whirlpool Galaxy', size: 0.19 },
+  { name: 'M104 Sombrero Galaxy', size: 0.15 },
+  { name: 'M57 Ring Nebula', size: 0.023 }
+];
+
+// Quick-start equipment profiles per mode.
+const OPTICS_PRESETS = {
+  visual: [
+    { label: '130mm f/5 Newtonian + 25mm Plössl', scopeFl: 650, scopeAp: 130, epFl: 25, epAfov: 52 },
+    { label: '130mm f/5 Newtonian + 10mm Plössl', scopeFl: 650, scopeAp: 130, epFl: 10, epAfov: 52 },
+    { label: '200mm f/6 Dobsonian + 9mm wide-field', scopeFl: 1200, scopeAp: 200, epFl: 9, epAfov: 68 },
+    { label: '80mm f/7 Refractor + 24mm wide-field', scopeFl: 560, scopeAp: 80, epFl: 24, epAfov: 68 },
+    { label: '90mm Maksutov + 32mm Plössl', scopeFl: 1250, scopeAp: 90, epFl: 32, epAfov: 52 }
+  ],
+  imaging: [
+    { label: 'Seestar S50 (smart telescope)', scopeFl: 250, scopeAp: 50, sensorW: 5.6, sensorH: 3.2, pixelSize: 2.9 },
+    { label: 'APS-C DSLR + 250mm telephoto', scopeFl: 250, scopeAp: 71, sensorW: 23.5, sensorH: 15.6, pixelSize: 3.9 },
+    { label: 'APS-C DSLR + 50mm lens (wide field)', scopeFl: 50, scopeAp: 28, sensorW: 23.5, sensorH: 15.6, pixelSize: 3.9 },
+    { label: 'ASI533MC + 480mm apo refractor', scopeFl: 480, scopeAp: 80, sensorW: 11.3, sensorH: 11.3, pixelSize: 3.76 },
+    { label: 'Full-frame DSLR + 650mm Newtonian', scopeFl: 650, scopeAp: 130, sensorW: 36, sensorH: 24, pixelSize: 5.9 }
+  ],
+  binocular: [
+    { label: '7x50 (classic night binoculars)', binoMag: 7, binoAp: 50, binoAfov: 50 },
+    { label: '10x50 (all-round stargazing)', binoMag: 10, binoAp: 50, binoAfov: 65 },
+    { label: '8x42 (lightweight, handheld)', binoMag: 8, binoAp: 42, binoAfov: 60 },
+    { label: '15x70 (tripod recommended)', binoMag: 15, binoAp: 70, binoAfov: 65 },
+    { label: '25x100 (mounted giant)', binoMag: 25, binoAp: 100, binoAfov: 60 }
+  ]
+};
+
+function getOpticsMode() {
+  const sel = document.getElementById('calc-mode');
+  return sel ? sel.value : 'visual';
+}
+
+function setOpticsMetric(key, label, value, info) {
+  const labelEl = document.getElementById('calc-label-' + key);
+  const valueEl = document.getElementById('calc-out-' + key);
+  const infoEl = document.getElementById('calc-info-' + key);
+  if (labelEl) labelEl.innerText = label;
+  if (valueEl) valueEl.innerText = value;
+  if (infoEl) infoEl.dataset.info = info;
+}
+
+// Formats a field of view given in degrees as degrees, arcminutes and arcseconds.
+function formatFovBreakdown(deg) {
+  return `${deg.toFixed(3)}° &nbsp;=&nbsp; ${(deg * 60).toFixed(1)}′ &nbsp;=&nbsp; ${Math.round(deg * 3600).toLocaleString()}″`;
+}
+
+// Plain-language description of what a field of view of this width shows.
+function describeOpticsFov(fovDeg) {
+  const moon = 0.518;
+  if (fovDeg >= moon) {
+    const moons = fovDeg / moon;
+    return `Your view is <strong>${fovDeg.toFixed(2)}°</strong> wide — about <strong>${moons < 10 ? moons.toFixed(1) : Math.round(moons)} full Moons</strong> side by side. The full Moon would fill roughly <strong>${Math.round(100 / moons)}%</strong> of the width, leaving plenty of sky around it.`;
+  }
+  return `Your view is <strong>${fovDeg.toFixed(3)}°</strong> (${(fovDeg * 60).toFixed(1)}′) wide — narrower than the full Moon, so only about <strong>${Math.round((fovDeg / moon) * 100)}%</strong> of the lunar disc fits in the frame at once. This is a close-up view, best for craters, planets and small bright objects.`;
+}
+
+// Targets that frame well: large enough to show detail, small enough to fit.
+function listOpticsTargets(fovDeg) {
+  const fits = OPTICS_TARGET_SIZES
+    .filter(t => t.size <= fovDeg * 0.85 && t.size >= fovDeg * 0.08)
+    .sort((a, b) => b.size - a.size)
+    .slice(0, 5);
+
+  if (!fits.length) {
+    return `<strong>Recommended targets:</strong> nothing in the beginner catalogue frames well at this field of view — try a different eyepiece, sensor or Barlow to widen or narrow the view.`;
+  }
+
+  const chips = fits.map(t =>
+    `<span style="display:inline-block; background:rgba(74,158,255,0.12); border:1px solid rgba(74,158,255,0.25); color:var(--text-primary); border-radius:12px; padding:2px 10px; margin:2px 4px 2px 0; font-size:0.78rem;">${window.escapeHtml(t.name)} · ${t.size < 0.1 ? (t.size * 60).toFixed(1) + '′' : t.size.toFixed(2) + '°'}</span>`
+  ).join('');
+
+  return `<strong>Recommended targets for this field of view:</strong><br>${chips}`;
+}
+
 window.updateOptics = function() {
+  const mode = getOpticsMode();
+  const targetType = document.getElementById('calc-target-type').value;
+  const barlow = parseFloat(document.getElementById('calc-barlow')?.value) || 1;
+
   const scopeFl = parseFloat(document.getElementById('calc-scope-fl').value) || 650;
   const scopeAp = parseFloat(document.getElementById('calc-scope-ap').value) || 130;
-  const epFl = parseFloat(document.getElementById('calc-ep-fl').value) || 25;
-  const epAfov = parseFloat(document.getElementById('calc-ep-afov').value) || 52;
-  const targetType = document.getElementById('calc-target-type').value;
+  const effFl = scopeFl * barlow;
 
-  const mag = scopeFl / epFl;
-  const tfov = epAfov / mag;
-  const max = scopeAp * 2;
+  // fovWidth is the horizontal field of view in degrees, used for all explanations.
+  let fovWidth;
+
+  if (mode === 'imaging') {
+    const sensorW = parseFloat(document.getElementById('calc-sensor-w').value) || 23.5;
+    const sensorH = parseFloat(document.getElementById('calc-sensor-h').value) || 15.6;
+    const pixelSize = parseFloat(document.getElementById('calc-pixel-size').value) || 3.76;
+
+    // Rectilinear projection: FOV = 2 * atan(sensor / (2 * focal length)).
+    const fovW = 2 * Math.atan(sensorW / (2 * effFl)) * 180 / Math.PI;
+    const fovH = 2 * Math.atan(sensorH / (2 * effFl)) * 180 / Math.PI;
+    const scale = 206.265 * pixelSize / effFl;
+    const ratio = effFl / scopeAp;
+    let sampling = 'Well sampled';
+    if (scale < 1) sampling = 'Oversampled';
+    else if (scale > 2) sampling = 'Undersampled';
+
+    fovWidth = fovW;
+    setOpticsMetric('mag', 'Image Scale', scale.toFixed(2) + '″/px', 'How much sky each pixel covers. Around 1-2 arcseconds per pixel matches typical seeing conditions.');
+    setOpticsMetric('ep', 'Focal Ratio', 'f/' + ratio.toFixed(1), 'Focal length divided by aperture. Lower numbers gather light faster, so exposures can be shorter.');
+    setOpticsMetric('tfov', 'Field of View', `${fovW.toFixed(2)}° × ${fovH.toFixed(2)}°`, 'The rectangle of sky your sensor records, set by the sensor size and focal length.');
+    setOpticsMetric('max', 'Sampling', sampling, 'Whether your pixels match the detail the sky and optics can deliver. Oversampled wastes resolution; undersampled loses detail.');
+  } else if (mode === 'binocular') {
+    const binoMag = parseFloat(document.getElementById('calc-bino-mag').value) || 10;
+    const binoAp = parseFloat(document.getElementById('calc-bino-ap').value) || 50;
+    const binoAfov = parseFloat(document.getElementById('calc-bino-afov').value) || 65;
+
+    const tfov = binoAfov / binoMag;
+    const exitPupil = binoAp / binoMag;
+    const lightGain = Math.pow(binoAp / 7, 2);
+
+    fovWidth = tfov;
+    setOpticsMetric('mag', 'Magnification', Math.round(binoMag) + 'x', 'How many times larger the object appears. Above about 12x you will want a tripod.');
+    setOpticsMetric('ep', 'Exit Pupil', exitPupil.toFixed(1) + 'mm', 'The diameter of the light beam reaching your eye. A 5-7mm exit pupil is ideal for dark skies; smaller for light-polluted skies or older observers.');
+    setOpticsMetric('tfov', 'True FOV', tfov.toFixed(2) + '°', 'How much actual sky you can see at once (e.g. the full Moon is ~0.5° wide).');
+    setOpticsMetric('max', 'Light Gain', Math.round(lightGain) + 'x', 'How much more light these binoculars gather than your dark-adapted eye.');
+  } else {
+    const epFl = parseFloat(document.getElementById('calc-ep-fl').value) || 25;
+    const epAfov = parseFloat(document.getElementById('calc-ep-afov').value) || 52;
+
+    const mag = effFl / epFl;
+    const tfov = epAfov / mag;
+    const exitPupil = scopeAp / mag;
+    const max = scopeAp * 2;
+
+    fovWidth = tfov;
+    setOpticsMetric('mag', 'Magnification', Math.round(mag) + 'x', 'How many times larger the object appears.');
+    setOpticsMetric('ep', 'Exit Pupil', exitPupil.toFixed(1) + 'mm', 'The diameter of the light beam coming out of the eyepiece. A 5-7mm exit pupil is ideal for dark skies; smaller for light-polluted skies or older observers.');
+    setOpticsMetric('tfov', 'True FOV', tfov.toFixed(2) + '°', 'How much actual sky you can see at once (e.g. the full Moon is ~0.5° wide).');
+    setOpticsMetric('max', 'Max Useful', Math.round(max) + 'x', 'The maximum useful magnification before the image gets too blurry for this aperture.');
+  }
 
   let recText = "";
   if (targetType === 'planets') {
@@ -4163,18 +4305,70 @@ window.updateOptics = function() {
   } else if (targetType === 'nebulae') {
     recText = `<strong>Nebulae are faint and sprawling.</strong> You want a very wide True FOV (<strong>&gt; 1.5°</strong>) and low magnification to concentrate their faint light. Stick to your <strong>25mm or 32mm</strong> eyepiece!`;
   }
-  
-  document.getElementById('calc-recommendation').innerHTML = recText;
 
-  document.getElementById('calc-out-mag').innerText = Math.round(mag) + 'x';
-  document.getElementById('calc-out-tfov').innerText = tfov.toFixed(2) + '°';
-  document.getElementById('calc-out-max').innerText = Math.round(max) + 'x';
+  document.getElementById('calc-recommendation').innerHTML = recText;
+  document.getElementById('calc-fov-breakdown').innerHTML = formatFovBreakdown(fovWidth);
+  document.getElementById('calc-explanation').innerHTML = describeOpticsFov(fovWidth);
+  document.getElementById('calc-target-fit').innerHTML = listOpticsTargets(fovWidth);
+};
+
+// Show only the inputs that apply to the selected mode, then recalculate.
+window.switchOpticsMode = function() {
+  const mode = getOpticsMode();
+  const panels = {
+    'calc-scope-inputs': mode !== 'binocular',
+    'calc-eyepiece-inputs': mode === 'visual',
+    'calc-camera-inputs': mode === 'imaging',
+    'calc-binocular-inputs': mode === 'binocular'
+  };
+  Object.keys(panels).forEach(id => {
+    document.getElementById(id)?.classList.toggle('hidden', !panels[id]);
+  });
+
+  window.renderOpticsPresets();
+  window.updateOptics();
+};
+
+// Rebuild the preset dropdown for the active mode.
+window.renderOpticsPresets = function() {
+  const select = document.getElementById('calc-preset');
+  if (!select) return;
+  const presets = OPTICS_PRESETS[getOpticsMode()] || [];
+  select.innerHTML = '<option value="">Custom setup…</option>' +
+    presets.map((p, i) => `<option value="${i}">${window.escapeHtml(p.label)}</option>`).join('');
+};
+
+// Copy the selected preset's values into the input fields.
+window.applyOpticsPreset = function() {
+  const select = document.getElementById('calc-preset');
+  if (!select || select.value === '') return;
+  const preset = (OPTICS_PRESETS[getOpticsMode()] || [])[parseInt(select.value, 10)];
+  if (!preset) return;
+
+  const fields = {
+    'calc-scope-fl': preset.scopeFl,
+    'calc-scope-ap': preset.scopeAp,
+    'calc-ep-fl': preset.epFl,
+    'calc-ep-afov': preset.epAfov,
+    'calc-sensor-w': preset.sensorW,
+    'calc-sensor-h': preset.sensorH,
+    'calc-pixel-size': preset.pixelSize,
+    'calc-bino-mag': preset.binoMag,
+    'calc-bino-ap': preset.binoAp,
+    'calc-bino-afov': preset.binoAfov
+  };
+  Object.keys(fields).forEach(id => {
+    const el = document.getElementById(id);
+    if (el && fields[id] !== undefined) el.value = fields[id];
+  });
+
+  window.updateOptics();
 };
 
 // Initialize optics on load
 document.addEventListener('DOMContentLoaded', () => {
   if (document.getElementById('calc-target-type')) {
-    window.updateOptics();
+    window.switchOpticsMode();
   }
 });
 
@@ -4188,12 +4382,9 @@ document.querySelectorAll('.copy-metric-btn').forEach(btn => {
     
     if (targetElement) {
       const valueText = targetElement.innerText.trim();
-      let labelText = '';
-      
-      if (targetId === 'calc-out-mag') labelText = 'Magnification';
-      if (targetId === 'calc-out-tfov') labelText = 'True FOV';
-      if (targetId === 'calc-out-max') labelText = 'Max Useful Magnification';
-      
+      const labelElement = document.getElementById(targetId.replace('calc-out-', 'calc-label-'));
+      const labelText = labelElement ? labelElement.innerText.trim() : '';
+
       const copyString = `${labelText}: ${valueText}`;
       
       navigator.clipboard.writeText(copyString)
