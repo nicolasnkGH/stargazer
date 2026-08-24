@@ -1,16 +1,105 @@
 "use client";
 
-import { useEffect, useRef, useCallback } from "react";
+import { useEffect, useRef, useCallback, useState } from "react";
 import * as THREE from "three";
 import { OrbitControls } from "three/examples/jsm/controls/OrbitControls.js";
-import type { PlanetDef } from "@/types";
+import type { PlanetDef, TwilightTimeline } from "@/types";
 import { TEX_BASE, PLANETS } from "@/lib/constants";
+
+// ── Dark-in countdown helper ────────────────────────────────────────────────
+
+/** Parse "HH:MM" into minutes-since-midnight (NaN if invalid). */
+function parseTimeToMinutes(timeStr: string | null): number | null {
+  if (!timeStr || timeStr.length < 5) return null;
+  const [hStr, mStr] = timeStr.split(":");
+  const h = parseInt(hStr, 10);
+  const m = parseInt(mStr, 10);
+  if (isNaN(h) || isNaN(m)) return null;
+  return h * 60 + m;
+}
+
+/** Format minutes difference into human-readable string like "2h 15m". */
+function formatDuration(minutes: number): string {
+  const absMin = Math.abs(Math.round(minutes));
+  const hrs = Math.floor(absMin / 60);
+  const mins = absMin % 60;
+  const parts: string[] = [];
+  if (hrs > 0) parts.push(`${hrs}h`);
+  if (mins > 0 || parts.length === 0) parts.push(`${mins}m`);
+  return parts.join(" ");
+}
+
+/** Compute a display string for the dark-in metric.
+ *
+ *  Before astro_start → "In Xh Ym"  (countdown until dark begins)
+ *  During dark        → "Xh Ym left" (remaining dark window, counting down to astro_end/dawn)
+ *  After astro_end    → "--:--"      (daytime, no dark window remaining)
+ */
+function useDarkInCountdown(
+  astroStart: string | null,
+  astroEnd: string | null,
+): string {
+  const [display, setDisplay] = useState("--:--");
+
+  useEffect(() => {
+    const startMin = parseTimeToMinutes(astroStart);
+    const endMin = parseTimeToMinutes(astroEnd);
+    if (startMin == null) return;
+
+    const tick = () => {
+      const now = new Date();
+      const nowMin = now.getHours() * 60 + now.getMinutes();
+
+      // Normalize times relative to now for day-boundary handling.
+      // astro_start is usually evening (e.g. 21:30), astro_end is early morning (e.g. 04:45).
+      let start = startMin - nowMin;
+      let end = endMin != null ? endMin - nowMin : null;
+
+      // If astro_start already passed today (diff < 0), it belongs to tonight —
+      // push it forward so the "In Xh" countdown still works for early-evening now.
+      // If astro_end < astro_start (crosses midnight), push end to tomorrow as well.
+      if (end != null && end < start) end += 24 * 60;
+      if (start < 0) {
+        start += 24 * 60;
+        if (end != null) end += 24 * 60;
+      }
+
+      if (start > 0) {
+        // Before dark: countdown to astro_start
+        setDisplay(`In ${formatDuration(start)}`);
+      } else if (end != null && end > 0) {
+        // During dark: remaining dark window (countdown to dawn/astro_end)
+        setDisplay(`${formatDuration(end)} left`);
+      } else {
+        // After astro_end (daytime) — dark window has passed
+        setDisplay("--:--");
+      }
+    };
+
+    tick();
+    const id = setInterval(tick, 60_000); // update every minute
+    return () => clearInterval(id);
+  }, [astroStart, astroEnd]);
+
+  return display;
+}
 
 // ── Component ────────────────────────────────────────────────────────────────
 
-export default function SolarSystemHero() {
+interface SolarSystemHeroProps {
+  twilight?: TwilightTimeline | null;
+  bortle?: number | null;
+}
+
+export default function SolarSystemHero({ twilight, bortle }: SolarSystemHeroProps) {
   const containerRef = useRef<HTMLDivElement>(null);
   const labelContainerRef = useRef<HTMLDivElement>(null);
+
+  const darkInValue = useDarkInCountdown(
+    twilight?.astro_start ?? null,
+    twilight?.astro_end ?? null,
+  );
+  const bortleValue = bortle != null ? `Class ${bortle}` : "--";
 
   const isDragging = useRef(false);
   const autoRotate = useRef(true);
@@ -421,12 +510,12 @@ export default function SolarSystemHero() {
           <div className="hero-stats">
             <div className="hero-stat">
               <span className="hero-stat-label">Dark In</span>
-              <span className="hero-stat-value">--:--</span>
+              <span className="hero-stat-value">{darkInValue}</span>
             </div>
             <div className="hero-stat-divider" />
             <div className="hero-stat">
               <span className="hero-stat-label">Bortle Scale</span>
-              <span className="hero-stat-value">--</span>
+              <span className="hero-stat-value">{bortleValue}</span>
             </div>
           </div>
           {/* Badges */}
