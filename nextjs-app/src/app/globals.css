@@ -556,3 +556,58 @@ body.night-mode #night-overlay {
     right: 20px;
   }
 }
+
+/* ── 3D Orrery Hero Console Styles ───────────────────────────────────────── */
+.orrery-glass-panel {
+  background: rgba(8, 14, 28, 0.65);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  border: 1px solid rgba(80, 140, 240, 0.18);
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.4), inset 0 1px 1px rgba(255, 255, 255, 0.1);
+}
+
+.orrery-pill-btn {
+  background: rgba(15, 25, 48, 0.6);
+  border: 1px solid rgba(80, 140, 240, 0.2);
+  color: #c0d4f0;
+  transition: all 0.2s ease;
+}
+
+.orrery-pill-btn:hover {
+  background: rgba(25, 45, 85, 0.8);
+  border-color: rgba(0, 210, 255, 0.5);
+  color: #ffffff;
+  box-shadow: 0 0 12px rgba(0, 210, 255, 0.25);
+}
+
+.orrery-pill-btn.active {
+  background: rgba(0, 180, 240, 0.25);
+  border-color: #00e1ff;
+  color: #00f0ff;
+  box-shadow: 0 0 16px rgba(0, 225, 255, 0.4);
+}
+
+.orrery-title-glow {
+  background: linear-gradient(135deg, #ffffff 0%, #70c8ff 50%, #00e1ff 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  filter: drop-shadow(0 0 25px rgba(0, 200, 255, 0.5));
+}
+
+.orrery-dpad-btn {
+  background: rgba(12, 20, 38, 0.7);
+  border: 1px solid rgba(80, 140, 240, 0.25);
+  color: #70a0e0;
+  transition: all 0.15s ease;
+}
+
+.orrery-dpad-btn:hover {
+  background: rgba(0, 180, 240, 0.3);
+  border-color: #00e1ff;
+  color: #ffffff;
+}
+
+.orrery-slider-track {
+  background: rgba(15, 28, 52, 0.7);
+  border: 1px solid rgba(80, 140, 240, 0.2);
+}
