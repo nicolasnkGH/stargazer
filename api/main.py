@@ -240,7 +240,7 @@ def get_apod():
     url = f"https://api.nasa.gov/planetary/apod?api_key={api_key}"
     try:
         req = urllib.request.Request(url)
-        with urllib.request.urlopen(req, timeout=10) as response:
+        with urllib.request.urlopen(req, timeout=10) as response:  # nosec B310
             data = json.loads(response.read().decode())
             if data.get("url"):
                 result = {
