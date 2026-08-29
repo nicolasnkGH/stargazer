@@ -12,7 +12,7 @@ export const TargetReticle: React.FC<TargetReticleProps> = ({
   planetName,
   distanceStr,
   isSelected,
-  isHovered,
+  // isHovered
 }) => {
   return (
     <Html center distanceFactor={15} style={{ pointerEvents: 'none' }}>

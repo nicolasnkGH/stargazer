@@ -9,7 +9,7 @@ interface OrbitRingProps {
 
 export const OrbitRing: React.FC<OrbitRingProps> = ({ radius, speed = 0.2 }) => {
   const cometRef = useRef<THREE.Mesh>(null);
-  const angleRef = useRef<number>(Math.random() * Math.PI * 2);
+  const angleRef = useRef<number>((radius * 1.5) % (Math.PI * 2));
 
   const lineMesh = useMemo(() => {
     const points: THREE.Vector3[] = [];

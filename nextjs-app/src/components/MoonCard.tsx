@@ -153,9 +153,9 @@ function useMoonFact(fresh: string | undefined) {
     const key = `${MOON_FACT_STORAGE_KEY_PREFIX}${locale}`;
     if (fresh) {
       localStorage.setItem(key, fresh);
-      setCached(fresh);
+      setTimeout(() => setCached(fresh), 0);
     } else {
-      setCached(localStorage.getItem(key));
+      setTimeout(() => setCached(localStorage.getItem(key)), 0);
     }
   }, [fresh, locale]);
 

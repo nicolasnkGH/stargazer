@@ -34,9 +34,9 @@ export default function LocationControl() {
     const saved = loadSavedLocations();
     const storedActiveId = localStorage.getItem(ACTIVE_LOCATION_STORAGE_KEY);
     const active = saved.find((l) => l.id === storedActiveId) ?? saved[0];
-    setLocations(saved);
-    setActiveId(active?.id ?? null);
-    setHydrated(true);
+    setTimeout(() => { setLocations(saved); setActiveId(active?.id ?? null); setHydrated(true); }, 0);
+    // active id
+    // hydrated
   }, []);
 
   const active = locations.find((l) => l.id === activeId) ?? locations[0];

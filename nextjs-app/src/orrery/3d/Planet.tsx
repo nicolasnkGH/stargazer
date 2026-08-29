@@ -42,7 +42,7 @@ export const Planet: React.FC<PlanetProps> = ({
   const groupRef = useRef<THREE.Group>(null);
 
   const [hovered, setHovered] = useState(false);
-  const angleRef = useRef<number>(Math.random() * Math.PI * 2);
+  const angleRef = useRef<number>((data.distanceFromSunAU * 2) % (Math.PI * 2));
 
   // Smart texture loader with CDN & Procedural fallback
   const texture = useMemo(() => {

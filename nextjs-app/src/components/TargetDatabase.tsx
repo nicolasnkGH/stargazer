@@ -86,7 +86,7 @@ export default function TargetDatabase() {
 
   // Reset pagination count on filter change
   useEffect(() => {
-    setDisplayedCount(12);
+    setTimeout(() => setDisplayedCount(12), 0);
   }, [filter, typeFilter, equipFilter, nameQuery, sortVal]);
 
   // Listen for sg-select-constellation custom event from ConstellationsTonight cards
@@ -97,7 +97,7 @@ export default function TargetDatabase() {
         const constName = detail.name || detail.abbr;
         if (constName) {
           setFilter(constName);
-          setDisplayedCount(12);
+          setTimeout(() => setDisplayedCount(12), 0);
         }
       }
     };
@@ -109,7 +109,7 @@ export default function TargetDatabase() {
     const storedBortle = localStorage.getItem(BORTLE_STORAGE_KEY);
     if (storedBortle) {
       const b = parseInt(storedBortle, 10);
-      if (!isNaN(b) && b >= 1 && b <= 9) setActiveBortle(b);
+      if (!isNaN(b) && b >= 1 && b <= 9) setTimeout(() => setActiveBortle(b), 0);
     }
   }, []);
 

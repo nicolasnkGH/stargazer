@@ -14,7 +14,7 @@ interface ModalProps {
 export default function Modal({ open, onClose, title, children }: ModalProps) {
   const [mounted, setMounted] = useState(false);
 
-  useEffect(() => setMounted(true), []);
+  useEffect(() => { const t = setTimeout(() => setMounted(true), 0); return () => clearTimeout(t); }, []);
 
   useEffect(() => {
     if (!open) return;

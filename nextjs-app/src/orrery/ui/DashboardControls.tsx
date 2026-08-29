@@ -107,7 +107,7 @@ export const DashboardControls: React.FC<DashboardControlsProps> = ({
             <button
               onClick={() => {
                 onSelectBody(null);
-                onPan && onPan("reset");
+                if (onPan) onPan("reset");
               }}
               className="w-8 h-8 sm:w-10 sm:h-10 rounded-full bg-gradient-to-tr from-cyan-500/30 to-blue-600/30 border border-cyan-400/40 shadow-[0_0_15px_rgba(6,182,212,0.4)] flex items-center justify-center text-cyan-300 hover:scale-105 active:scale-95 transition-all"
               title="Reset System View"
@@ -165,7 +165,7 @@ export const DashboardControls: React.FC<DashboardControlsProps> = ({
           <button
             onClick={() => {
               onSelectBody(null);
-              onPan && onPan("reset");
+              if (onPan) onPan("reset");
             }}
             className="p-2 rounded-xl hover:bg-cyan-500/20 text-slate-300 hover:text-cyan-300 transition-colors flex-shrink-0 border-l border-white/10 pl-2"
             title="Reset to Full System View"

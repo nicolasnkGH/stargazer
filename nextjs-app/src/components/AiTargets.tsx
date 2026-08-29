@@ -8,7 +8,9 @@ interface AiTargetsProps {
 }
 
 export default function AiTargets({
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   bestTargets = [],
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   mustSee = [],
 }: AiTargetsProps) {
   return (

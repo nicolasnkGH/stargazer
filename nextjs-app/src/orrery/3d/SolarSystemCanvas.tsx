@@ -18,6 +18,7 @@ interface CameraControllerProps {
 
 const CameraController: React.FC<CameraControllerProps> = ({ selectedBody, zoomLevel, panOffset }) => {
   const { camera } = useThree();
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const controlsRef = useRef<any>(null);
 
   const targetPos = useRef(new THREE.Vector3(0, 0, 0));
