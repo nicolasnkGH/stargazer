@@ -433,14 +433,8 @@ button:disabled,
 }
 
 /* ── Night Vision Mode — ported from original style.css ─────────────────── */
-/* The red look comes from the inline style NightVisionButton applies to
-   #nv-scope (the page-content wrapper). It is set as an inline style on
-   purpose: Next 16's lightningcss minifier mangles `sepia(100%)` →
-   `sepia()`, invalidating any stylesheet filter chain. Inline styles skip
-   that pipeline entirely. */
-body.night-mode {
-  background-color: #050000;
-}
+/* NOTE: Use decimal filter values (sepia(1) not sepia(100%)) because
+   Next.js lightningcss minifier strips percentage args from sepia(). */
 
 #night-overlay {
   display: none;
@@ -448,11 +442,17 @@ body.night-mode {
   top: 0; left: 0; right: 0; bottom: 0;
   pointer-events: none;
   z-index: 9998;
+  backdrop-filter: sepia(1) hue-rotate(320deg) saturate(5) brightness(0.8);
+  -webkit-backdrop-filter: sepia(1) hue-rotate(320deg) saturate(5) brightness(0.8);
   background: rgba(5, 0, 0, 0.2);
 }
 
 body.night-mode #night-overlay {
   display: block;
+}
+
+body.night-mode {
+  background-color: #050000;
 }
 
 /* ── Night Vision floating button — ported from .floating-night-btn ─────── */
