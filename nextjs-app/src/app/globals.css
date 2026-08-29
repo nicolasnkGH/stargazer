@@ -437,17 +437,17 @@ button:disabled,
    Next.js lightningcss minifier strips percentage args from sepia(). */
 
 body.night-mode {
-  filter: sepia(0.99) hue-rotate(320deg) saturate(5) brightness(0.8);
-  -webkit-filter: sepia(0.99) hue-rotate(320deg) saturate(5) brightness(0.8);
-  background-color: #050000 !important;
+  background-color: #050000;
 }
 
 #night-overlay {
   display: none;
   position: fixed;
-  top: 0; left: 0; right: 0; bottom: 0;
+  inset: 0;
   pointer-events: none;
   z-index: 9998;
+  backdrop-filter: sepia(0.99) hue-rotate(320deg) saturate(5) brightness(0.8);
+  -webkit-backdrop-filter: sepia(0.99) hue-rotate(320deg) saturate(5) brightness(0.8);
   background: rgba(255, 0, 0, 0.15);
 }
 
