@@ -278,6 +278,13 @@ jobs:
           if [ "$missing" -ne 0 ]; then
             exit 1
           fi
+
+      - name: Google Auth
+        if: github.event_name != 'workflow_dispatch' || github.event.inputs.dry_run != 'true'
+        uses: google-github-actions/auth@v2
+        with:
+          credentials_json: ${{ secrets.GCP_SA_KEY }}
+
       # Frontend deploy
       - name: Setup Node.js for frontend
         uses: actions/setup-node@v4
@@ -307,7 +314,7 @@ jobs:
           flags: >-
             --execution-environment=${{ vars.CLOUD_RUN_EXECUTION_ENV }}
           env_vars: |-
-            API_BACKEND=${{ steps.deploy_cloud_run.outputs.url }}
+            API_BACKEND=https://stargazer-api-700732233634.us-central1.run.app
 
       - name: Post-deploy health check for frontend
         if: github.event_name != 'workflow_dispatch' || github.event.inputs.dry_run != 'true'
@@ -351,12 +358,6 @@ jobs:
           echo "Would deploy service: ${{ vars.GCP_SERVICE_NAME || secrets.GCP_SERVICE_NAME }}"
           echo "Would deploy region: ${{ vars.GCP_REGION }}"
           echo "Would deploy source: ${{ vars.GCP_SOURCE_DIR }}"
-
-      - name: Google Auth
-        if: github.event_name != 'workflow_dispatch' || github.event.inputs.dry_run != 'true'
-        uses: google-github-actions/auth@v2
-        with:
-          credentials_json: ${{ secrets.GCP_SA_KEY }}
 
       - name: Deploy to Cloud Run
         id: deploy_cloud_run
