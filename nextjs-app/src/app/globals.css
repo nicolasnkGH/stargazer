@@ -436,23 +436,23 @@ button:disabled,
 /* NOTE: Use decimal filter values (sepia(1) not sepia(100%)) because
    Next.js lightningcss minifier strips percentage args from sepia(). */
 
+body.night-mode {
+  filter: sepia(0.99) hue-rotate(320deg) saturate(5) brightness(0.8);
+  -webkit-filter: sepia(0.99) hue-rotate(320deg) saturate(5) brightness(0.8);
+  background-color: #050000 !important;
+}
+
 #night-overlay {
   display: none;
   position: fixed;
   top: 0; left: 0; right: 0; bottom: 0;
   pointer-events: none;
   z-index: 9998;
-  backdrop-filter: sepia(0.99) hue-rotate(320deg) saturate(5) brightness(0.8);
-  -webkit-backdrop-filter: sepia(0.99) hue-rotate(320deg) saturate(5) brightness(0.8);
-  background: rgba(5, 0, 0, 0.2);
+  background: rgba(255, 0, 0, 0.15);
 }
 
 body.night-mode #night-overlay {
   display: block;
-}
-
-body.night-mode {
-  background-color: #050000;
 }
 
 /* ── Night Vision floating button — ported from .floating-night-btn ─────── */
