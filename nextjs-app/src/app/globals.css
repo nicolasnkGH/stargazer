@@ -442,8 +442,8 @@ button:disabled,
   top: 0; left: 0; right: 0; bottom: 0;
   pointer-events: none;
   z-index: 9998;
-  backdrop-filter: sepia(1) hue-rotate(320deg) saturate(5) brightness(0.8);
-  -webkit-backdrop-filter: sepia(1) hue-rotate(320deg) saturate(5) brightness(0.8);
+  backdrop-filter: sepia(0.99) hue-rotate(320deg) saturate(5) brightness(0.8);
+  -webkit-backdrop-filter: sepia(0.99) hue-rotate(320deg) saturate(5) brightness(0.8);
   background: rgba(5, 0, 0, 0.2);
 }
 
