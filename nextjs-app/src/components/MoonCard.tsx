@@ -2,17 +2,23 @@
 
 import { useEffect, useRef, useState } from "react";
 import * as THREE from "three";
+import { OrbitControls } from "three/examples/jsm/controls/OrbitControls.js";
 import { useLocale, useTranslations } from "next-intl";
 import Icon from "./Icon";
 import type { MoonData } from "@/types";
 import { MOON_FACT_STORAGE_KEY_PREFIX } from "@/lib/constants";
 import { addToPlan } from "@/hooks/useNightPlan";
 import GalleryButton from "./GalleryButton";
+import { makePlanetBump } from "@/lib/three/planet-surface";
 
-function Moon3DWidget({ illumination_pct }: { illumination_pct: number }) {
+/**
+ * Interactive 3D moon — ported from legacy web/moon3d.js v6:
+ * drag-to-rotate / scroll-to-zoom (OrbitControls), procedural crater bump map,
+ * idle spin that pauses while dragging, and a sun-directional light whose
+ * position follows the real lunar phase (waxing vs waning).
+ */
+function Moon3DWidget({ illumination_pct, phase_name }: { illumination_pct: number; phase_name?: string }) {
   const containerRef = useRef<HTMLDivElement>(null);
-  const rafRef = useRef(0);
-  const meshRef = useRef<THREE.Mesh | null>(null);
 
   useEffect(() => {
     const container = containerRef.current;
@@ -35,48 +41,113 @@ function Moon3DWidget({ illumination_pct }: { illumination_pct: number }) {
     }
     container.appendChild(renderer.domElement);
 
-    const ambient = new THREE.AmbientLight(0x222233, 0.5);
-    scene.add(ambient);
-
-    const illum = illumination_pct / 100;
-    const lightAngle = Math.PI * (1 - illum * 2);
-
-    const dirLight = new THREE.DirectionalLight(0xffeedd, 1.2);
-    dirLight.position.set(Math.cos(lightAngle) * 5, 0.5, Math.sin(lightAngle) * 5);
+    // Lighting — soft ambient + directional "Sun" (position set by phase below)
+    scene.add(new THREE.AmbientLight(0x1a1a2e, 0.4));
+    const dirLight = new THREE.DirectionalLight(0xfff5e6, 1.5);
+    dirLight.position.set(-2, 1, 2);
     scene.add(dirLight);
+    const fillLight = new THREE.DirectionalLight(0x8090b0, 0.15);
+    fillLight.position.set(2, -0.5, 1);
+    scene.add(fillLight);
+    const rimLight = new THREE.DirectionalLight(0x4040a0, 0.1);
+    rimLight.position.set(5, 0, -5);
+    scene.add(rimLight);
+
+    // Phase-driven light direction (legacy applyMoon3DPhase):
+    // New moon → light behind; full moon → light in front; sign flips for waning.
+    const pName = (phase_name ?? "").toLowerCase();
+    const isWaxing = !(pName.includes("waning") || pName.includes("last") || pName.includes("third") || pName.includes("3q"));
+    const fraction = Math.max(0, Math.min(100, illumination_pct)) / 100;
+    let angle = Math.PI * (1 - fraction);
+    if (!isWaxing) angle = -Math.PI * (1 - fraction);
+    dirLight.position.set(Math.sin(angle) * 3, 0.5, Math.cos(angle) * 3);
 
     const geo = new THREE.SphereGeometry(1, 48, 48);
     const texLoader = new THREE.TextureLoader();
-    const mat = new THREE.MeshPhongMaterial({
+    const mat = new THREE.MeshStandardMaterial({
       map: texLoader.load("/assets/moon_texture.jpg"),
-      bumpMap: texLoader.load("/assets/moon_texture.jpg"),
-      bumpScale: 0.02,
-      specular: 0x111111,
-      shininess: 5,
+      bumpMap: new THREE.CanvasTexture(makePlanetBump("moon")),
+      bumpScale: 0.01,
+      roughness: 0.95,
+      metalness: 0.0,
     });
 
     const mesh = new THREE.Mesh(geo, mat);
-    meshRef.current = mesh;
-    mesh.rotation.y = -Math.PI / 2;
-    mesh.rotation.x = 0.1;
     scene.add(mesh);
 
-    const animate = () => {
-      rafRef.current = requestAnimationFrame(animate);
-      if (meshRef.current) {
-        meshRef.current.rotation.y += 0.001;
+    // Drag-to-rotate + scroll-to-zoom (legacy interaction model)
+    const controls = new OrbitControls(camera, renderer.domElement);
+    controls.enablePan = false;
+    controls.enableZoom = true;
+    controls.minDistance = 1.5;
+    controls.maxDistance = 6;
+    controls.autoRotate = false;
+    controls.autoRotateSpeed = 0.5;
+
+    // Idle spin: pause while dragging, resume 2s after release (legacy behavior)
+    let idle = true;
+    let idleTimer: ReturnType<typeof setTimeout> | null = null;
+    const dom = renderer.domElement;
+    const onPointerDown = () => {
+      idle = false;
+      if (idleTimer) clearTimeout(idleTimer);
+    };
+    const onPointerUp = () => {
+      idleTimer = setTimeout(() => { idle = true; }, 2000);
+    };
+    dom.addEventListener("pointerdown", onPointerDown);
+    dom.addEventListener("pointerup", onPointerUp);
+
+    // Pause rendering when the card scrolls off screen or the tab hides
+    let visible = true;
+    const io = new IntersectionObserver(([e]) => { visible = e.isIntersecting; }, { threshold: 0.05 });
+    io.observe(container);
+    let pageVisible = !document.hidden;
+    const onVisibilityChange = () => { pageVisible = !document.hidden; };
+    document.addEventListener("visibilitychange", onVisibilityChange);
+
+    // 30fps throttled loop (legacy)
+    const FPS_INTERVAL = 1000 / 30;
+    let rafId = 0;
+    let lastT = 0;
+    const animate = (t: number) => {
+      rafId = requestAnimationFrame(animate);
+      if (!visible || !pageVisible) return;
+      if (t - lastT < FPS_INTERVAL) return;
+      lastT = t;
+      controls.update();
+      if (idle) {
+        mesh.rotation.y += 0.0012;
       }
       renderer.render(scene, camera);
     };
-    animate();
+    animate(performance.now());
+
+    const resizeObserver = new ResizeObserver((entries) => {
+      for (const entry of entries) {
+        const { width, height } = entry.contentRect;
+        if (!width || !height) continue;
+        camera.aspect = width / height;
+        camera.updateProjectionMatrix();
+        renderer.setSize(width, height);
+      }
+    });
+    resizeObserver.observe(container);
 
     return () => {
-      cancelAnimationFrame(rafRef.current);
+      cancelAnimationFrame(rafId);
+      if (idleTimer) clearTimeout(idleTimer);
+      io.disconnect();
+      resizeObserver.disconnect();
+      document.removeEventListener("visibilitychange", onVisibilityChange);
+      dom.removeEventListener("pointerdown", onPointerDown);
+      dom.removeEventListener("pointerup", onPointerUp);
+      controls.dispose();
       renderer.dispose();
       mat.dispose();
       geo.dispose();
     };
-  }, [illumination_pct]);
+  }, [illumination_pct, phase_name]);
 
   return (
     <div className="w-full h-44 flex items-center justify-center">
@@ -154,7 +225,7 @@ export default function MoonCard({ moon, moonFact }: { moon: MoonData | null; mo
         />
       </div>
 
-      <Moon3DWidget illumination_pct={moon.illumination_pct} />
+      <Moon3DWidget illumination_pct={moon.illumination_pct} phase_name={moon.phase_name} />
 
       {(moon.moonrise || moon.moonset || moon.altitude_deg != null) && (
         <div className="mt-3 flex flex-wrap gap-x-4 gap-y-1 text-xs text-zinc-400 font-mono">

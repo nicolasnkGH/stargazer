@@ -2,78 +2,236 @@
 
 import { useEffect, useRef } from "react";
 import * as THREE from "three";
+import { OrbitControls } from "three/examples/jsm/controls/OrbitControls.js";
 import Icon from "./Icon";
 import type { PlanetData } from "@/types";
 import { PLANET_TEXTURES } from "@/lib/constants";
+import { makePlanetBump, makeProceduralTexture, makeSaturnRingGeo } from "@/lib/three/planet-surface";
 
-function Planet3DWidget({ textureUrl }: { textureUrl: string }) {
+/* ── Per-planet surface config — ported from legacy web/planets3d.js CFG ─── */
+
+interface SurfaceCfg {
+  tilt: number;        // axial tilt (degrees)
+  bumpScale: number;   // procedural bump strength
+  tex?: string;        // texture path (falls back to procedural if missing)
+  hasRing?: boolean;
+  ringTex?: string;
+}
+
+const SURFACE_CFG: Record<string, SurfaceCfg> = {
+  mercury: { tilt: 0.03, bumpScale: 0.015 },
+  venus:   { tilt: 177.4, bumpScale: 0.006 },
+  earth:   { tilt: 23.4, bumpScale: 0.008 },
+  mars:    { tilt: 25.2, bumpScale: 0.012 },
+  jupiter: { tilt: 3.1, bumpScale: 0.003 },
+  saturn:  { tilt: 26.7, bumpScale: 0.003, hasRing: true, ringTex: "/assets/saturn_ring_color.jpg" },
+  uranus:  { tilt: 97.8, bumpScale: 0.002 },
+  neptune: { tilt: 28.3, bumpScale: 0.003 },
+};
+
+// Gentle auto-rotation while idle — matches the moon's idle spin rate (legacy).
+const ROT_SPEED = 0.036;
+const FPS_INTERVAL = 1000 / 25; // 25fps throttled loop (legacy)
+
+/* ── Interactive 3D planet widget (drag to rotate · scroll to zoom) ──────── */
+
+function Planet3DWidget({ name }: { name: string }) {
   const containerRef = useRef<HTMLDivElement>(null);
-  const rafRef = useRef(0);
-  const meshRef = useRef<THREE.Mesh | null>(null);
 
   useEffect(() => {
     const container = containerRef.current;
     if (!container || typeof window === "undefined") return;
 
-    const w = container.clientWidth;
-    const h = container.clientHeight;
-    if (!w || !h) return;
+    const cfg = SURFACE_CFG[name.toLowerCase()] ?? SURFACE_CFG.mercury;
+    const texUrl = PLANET_TEXTURES[name.toLowerCase()];
 
-    const scene = new THREE.Scene();
-    const camera = new THREE.PerspectiveCamera(45, w / h, 0.1, 1000);
-    camera.position.z = 3.2;
+    let renderer: THREE.WebGLRenderer | null = null;
+    let scene: THREE.Scene | null = null;
+    let camera: THREE.PerspectiveCamera | null = null;
+    let controls: OrbitControls | null = null;
+    let mesh: THREE.Mesh | null = null;
+    let rafId = 0;
+    let lastT = 0;
+    let disposed = false;
+    let visible = true;
+    let pageVisible = !document.hidden;
+    let idle = true;
+    let idleTimer: ReturnType<typeof setTimeout> | null = null;
+    let io: IntersectionObserver | null = null;
+    let resizeObserver: ResizeObserver | null = null;
 
-    const renderer = new THREE.WebGLRenderer({ alpha: true, antialias: true });
-    renderer.setSize(w, h);
-    renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+    const onVisibilityChange = () => { pageVisible = !document.hidden; };
+    document.addEventListener("visibilitychange", onVisibilityChange);
 
-    while (container.firstChild) {
-      container.removeChild(container.firstChild);
-    }
-    container.appendChild(renderer.domElement);
+    function build(texture: THREE.Texture) {
+      if (disposed || !container) return;
+      const width = container.clientWidth || 300;
+      const height = container.clientHeight || 200;
 
-    const ambient = new THREE.AmbientLight(0x303050, 0.5);
-    const keyLight = new THREE.DirectionalLight(0xfff5e6, 1.2);
-    keyLight.position.set(-2, 1, 2);
-    scene.add(ambient, keyLight);
+      renderer = new THREE.WebGLRenderer({ antialias: true });
+      renderer.setClearColor(0x050510, 1);
+      renderer.setSize(width, height);
+      renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, 1.5));
+      container.appendChild(renderer.domElement);
 
-    const geo = new THREE.SphereGeometry(1, 48, 48);
-    const texLoader = new THREE.TextureLoader();
-    const mat = new THREE.MeshPhongMaterial({
-      map: texLoader.load(textureUrl),
-      specular: 0x111111,
-      shininess: 5,
-    });
+      scene = new THREE.Scene();
+      scene.fog = new THREE.FogExp2(0x050510, 0.06);
 
-    const mesh = new THREE.Mesh(geo, mat);
-    meshRef.current = mesh;
-    scene.add(mesh);
+      camera = new THREE.PerspectiveCamera(45, width / height, 0.1, 1000);
+      camera.position.z = 3.5;
 
-    const animate = () => {
-      rafRef.current = requestAnimationFrame(animate);
-      if (meshRef.current) {
-        meshRef.current.rotation.y += 0.0015;
+      const ambient = new THREE.AmbientLight(0x303050, 0.35);
+      const keyLight = new THREE.DirectionalLight(0xfff5e6, 1.2);
+      keyLight.position.set(-2, 1, 2);
+      const fillLight = new THREE.DirectionalLight(0x8090b0, 0.25);
+      fillLight.position.set(2, -0.5, 1);
+      const rimLight = new THREE.DirectionalLight(0x4040a0, 0.15);
+      rimLight.position.set(5, 0, -5);
+      scene.add(ambient, keyLight, fillLight, rimLight);
+
+      // Drag-to-rotate + scroll-to-zoom (legacy interaction model)
+      controls = new OrbitControls(camera, renderer.domElement);
+      controls.enablePan = false;
+      controls.enableZoom = true;
+      controls.minDistance = 1.5;
+      controls.maxDistance = 6;
+      controls.autoRotate = false;
+      controls.autoRotateSpeed = 0.5;
+
+      // Idle spin: pause while the user is dragging, resume 2s after release
+      const dom = renderer.domElement;
+      const onPointerDown = () => {
+        idle = false;
+        if (idleTimer) clearTimeout(idleTimer);
+      };
+      const onPointerUp = () => {
+        idleTimer = setTimeout(() => { idle = true; }, 2000);
+      };
+      dom.addEventListener("pointerdown", onPointerDown);
+      dom.addEventListener("pointerup", onPointerUp);
+
+      const geo = new THREE.SphereGeometry(1, 48, 48);
+      const bumpTexture = new THREE.CanvasTexture(makePlanetBump(name));
+      const mat = new THREE.MeshStandardMaterial({
+        map: texture,
+        bumpMap: bumpTexture,
+        bumpScale: cfg.bumpScale || 0.01,
+        roughness: 0.95,
+        metalness: 0.0,
+      });
+      mesh = new THREE.Mesh(geo, mat);
+      mesh.rotation.x = THREE.MathUtils.degToRad(cfg.tilt || 0);
+      scene.add(mesh);
+
+      const loader = new THREE.TextureLoader();
+      if (cfg.hasRing && cfg.ringTex) {
+        loader.load(cfg.ringTex, (ringTex) => {
+          if (!scene) return;
+          const ringMat = new THREE.MeshBasicMaterial({
+            map: ringTex, side: THREE.DoubleSide, transparent: true, opacity: 0.92,
+          });
+          const ring = new THREE.Mesh(makeSaturnRingGeo(1.26, 2.22), ringMat);
+          ring.rotation.x = Math.PI / 2;
+          scene.add(ring);
+        });
+      } else if (cfg.hasRing) {
+        const ringMat = new THREE.MeshBasicMaterial({ color: 0xc8b890, side: THREE.DoubleSide, transparent: true, opacity: 0.65 });
+        const ring = new THREE.Mesh(makeSaturnRingGeo(1.26, 2.22), ringMat);
+        ring.rotation.x = Math.PI / 2;
+        scene.add(ring);
       }
-      renderer.render(scene, camera);
-    };
-    animate();
+
+      // Pause rendering when the card scrolls off screen (legacy behavior)
+      io = new IntersectionObserver(([e]) => { visible = e.isIntersecting; }, { threshold: 0.05 });
+      io.observe(container);
+
+      resizeObserver = new ResizeObserver((entries) => {
+        for (const e of entries) {
+          const { width: w, height: h } = e.contentRect;
+          if (!w || !h || !camera || !renderer) continue;
+          camera.aspect = w / h;
+          camera.updateProjectionMatrix();
+          renderer.setSize(w, h);
+        }
+      });
+      resizeObserver.observe(container);
+
+      const loop = (t: number) => {
+        rafId = requestAnimationFrame(loop);
+        if (disposed || !visible || !pageVisible) return;
+        if (t - lastT < FPS_INTERVAL) return;
+        lastT = t;
+        controls?.update();
+        if (idle && mesh) {
+          mesh.rotation.y += ROT_SPEED * (FPS_INTERVAL / 1000);
+        }
+        if (scene && camera && renderer) renderer.render(scene, camera);
+      };
+      rafId = requestAnimationFrame(loop);
+    }
+
+    // Lazy setup: only initialize the WebGL scene once the card scrolls into view
+    const loadObserver = new IntersectionObserver(
+      (entries, obs) => {
+        entries.forEach((entry) => {
+          if (entry.isIntersecting) {
+            obs.unobserve(entry.target);
+            if (texUrl) {
+              const loader = new THREE.TextureLoader();
+              loader.load(
+                texUrl,
+                (tex) => build(tex),
+                undefined,
+                () => {
+                  console.warn(`PlanetGrid: failed to load ${texUrl}, using procedural`);
+                  build(makeProceduralTexture(name));
+                }
+              );
+            } else {
+              build(makeProceduralTexture(name));
+            }
+          }
+        });
+      },
+      { threshold: 0.05 }
+    );
+    loadObserver.observe(container);
 
     return () => {
-      cancelAnimationFrame(rafRef.current);
-      renderer.dispose();
-      mat.dispose();
-      geo.dispose();
+      disposed = true;
+      cancelAnimationFrame(rafId);
+      if (idleTimer) clearTimeout(idleTimer);
+      loadObserver.disconnect();
+      io?.disconnect();
+      resizeObserver?.disconnect();
+      document.removeEventListener("visibilitychange", onVisibilityChange);
+      controls?.dispose();
+      if (renderer) {
+        try { renderer.dispose(); } catch { /* already gone */ }
+        renderer.domElement.remove();
+      }
+      scene?.traverse((obj) => {
+        if (obj instanceof THREE.Mesh) {
+          obj.geometry?.dispose();
+          if (Array.isArray(obj.material)) {
+            obj.material.forEach((m) => m.dispose());
+          } else {
+            obj.material?.dispose();
+          }
+        }
+      });
     };
-  }, [textureUrl]);
+  }, [name]);
 
-  return <div ref={containerRef} className="h-full w-full" />;
+  return (
+    <div ref={containerRef} className="h-full w-full" />
+  );
 }
 
 function PlanetCard({ planet }: { planet: PlanetData }) {
   const altStr = `${planet.altitude_deg}° ${planet.direction}`;
   const magStr = `Mag ${planet.magnitude_approx}`;
   const distStr = `${planet.distance_mkm}M km (${planet.light_time_minutes} min light)`;
-  const textureUrl = PLANET_TEXTURES[planet.name.toLowerCase()];
 
   return (
     <div className={`flex flex-col card transition-colors hover:border-sky-400/18 ${planet.visible_tonight ? "" : "opacity-45"}`}>
@@ -83,7 +241,7 @@ function PlanetCard({ planet }: { planet: PlanetData }) {
           background: "radial-gradient(circle at center, rgba(30,40,60,0.3) 0%, transparent 70%)",
         }}
       >
-        {textureUrl && <Planet3DWidget textureUrl={textureUrl} />}
+        <Planet3DWidget name={planet.name} />
       </div>
 
       {/* Info column */}
