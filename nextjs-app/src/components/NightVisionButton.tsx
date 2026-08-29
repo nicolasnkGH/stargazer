@@ -26,6 +26,9 @@ export default function NightVisionButton() {
   const [pos, setPos] = useState<{ left: number; top: number } | null>(null);
 
   const wrapRef = useRef<HTMLDivElement>(null);
+  // Set when the current gesture becomes a drag; read by onFabClick AFTER
+  // pointerup has already run (dragState is nulled there, so it can't be used).
+  const movedRef = useRef(false);
   const dragState = useRef<{
     startX: number;
     startY: number;
@@ -80,6 +83,7 @@ export default function NightVisionButton() {
     const el = wrapRef.current;
     if (!el) return;
     const rect = el.getBoundingClientRect();
+    movedRef.current = false;
     dragState.current = {
       startX: e.clientX,
       startY: e.clientY,
@@ -87,7 +91,10 @@ export default function NightVisionButton() {
       startTop: rect.top,
       moved: false,
     };
-    el.setPointerCapture(e.pointerId);
+    // NOTE: deliberately NOT calling setPointerCapture() here. Capturing on
+    // press retargets the trailing click event onto this wrapper, which would
+    // prevent the button's onClick from ever firing. We capture lazily in
+    // onPointerMove, only once the gesture has proven to be a drag.
   }
 
   function onPointerMove(e: React.PointerEvent) {
@@ -96,7 +103,15 @@ export default function NightVisionButton() {
     if (!ds || !el) return;
     const dx = e.clientX - ds.startX;
     const dy = e.clientY - ds.startY;
-    if (Math.abs(dx) > 5 || Math.abs(dy) > 5) ds.moved = true;
+    if (!ds.moved && (Math.abs(dx) > 5 || Math.abs(dy) > 5)) {
+      ds.moved = true;
+      movedRef.current = true;
+      // Now that we know this is a drag, take over the pointer so tracking
+      // continues even when the cursor leaves the element mid-drag.
+      try {
+        el.setPointerCapture(e.pointerId);
+      } catch { /* pointer already gone — ignore */ }
+    }
     if (!ds.moved) return;
     const nextLeft = Math.min(Math.max(ds.startLeft + dx, 0), window.innerWidth - el.offsetWidth);
     const nextTop = Math.min(Math.max(ds.startTop + dy, 0), window.innerHeight - el.offsetHeight);
@@ -120,8 +135,12 @@ export default function NightVisionButton() {
   }
 
   function onFabClick() {
-    // Ignore the click that ends a drag gesture
-    if (dragState.current?.moved) return;
+    // Ignore the click that ends a drag gesture (movedRef survives pointerup,
+    // unlike dragState which is nulled there before this runs).
+    if (movedRef.current) {
+      movedRef.current = false;
+      return;
+    }
     setNightMode((v) => !v);
   }
 
