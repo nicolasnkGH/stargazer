@@ -1,4 +1,4 @@
-name: Stargazer Enterprise Pipeline
+name: CI/CD Pipeline
 
 on:
   push:
