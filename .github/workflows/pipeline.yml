@@ -315,7 +315,7 @@ jobs:
             --execution-environment=${{ vars.CLOUD_RUN_EXECUTION_ENV }}
             --allow-unauthenticated
           env_vars: |-
-            API_BACKEND=https://stargazer-api-700732233634.us-central1.run.app
+            API_BACKEND=${{ vars.FRONTEND_API_URL }}
 
       - name: Post-deploy health check for frontend
         if: github.event_name != 'workflow_dispatch' || github.event.inputs.dry_run != 'true'
