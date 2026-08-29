@@ -14,7 +14,6 @@ import {
   UNITS_STORAGE_KEY,
   STARGAZER_REPO_URL,
   RESOURCES,
-  NIGHT_MODE_STORAGE_KEY,
 } from "@/lib/constants";
 import type { Locale, TonightReport } from "@/types";
 import Modal from "./Modal";
@@ -48,10 +47,6 @@ export default function Header() {
   });
   const [currentTime, setCurrentTime] = useState("--:-- --");
   const [currentDate, setCurrentDate] = useState("Loading...");
-  const [nightMode, setNightMode] = useState(false);
-  // Portal target only exists client-side; gating avoids both the SSR crash
-  // and a hydration mismatch (server + first client render agree: no overlay).
-  const [mounted, setMounted] = useState(false);
   const [isMetric, setIsMetric] = useState(true);
   const [aboutOpen, setAboutOpen] = useState(false);
   const [dataSettingsOpen, setDataSettingsOpen] = useState(false);
@@ -146,19 +141,6 @@ export default function Header() {
     return () => clearInterval(id);
   }, []);
 
-  // Hydrate night mode from localStorage (legacy key stargazer_night_mode) —
-  // can't be a lazy useState initializer without a hydration mismatch.
-  useEffect(() => {
-    // eslint-disable-next-line react-hooks/set-state-in-effect -- restoring persisted client state after mount
-    setMounted(true);
-    setNightMode(localStorage.getItem(NIGHT_MODE_STORAGE_KEY) === "1");
-  }, []);
-
-  useEffect(() => {
-    document.body.classList.toggle("night-mode", nightMode);
-    try { localStorage.setItem(NIGHT_MODE_STORAGE_KEY, nightMode ? "1" : "0"); } catch { /* ignore */ }
-  }, [nightMode]);
-
   return (
     <header className="sticky top-0 z-[100] border-b border-white/10 bg-slate-950/90 py-3 px-6 backdrop-blur-xl">
       <div className="mx-auto flex max-w-full flex-nowrap items-center justify-between gap-4">
@@ -212,19 +194,6 @@ export default function Header() {
               Collaborate
               <Icon name="arrow-up-right" className="h-3 w-3" />
             </a>
-
-            <button
-              id="btn-night-mode"
-              onClick={() => setNightMode((v) => !v)}
-              className={`flex h-9 w-9 items-center justify-center rounded-lg border transition ${
-                nightMode
-                  ? "border-red-500/50 bg-red-500/20 text-red-400"
-                  : "border-white/10 bg-white/5 text-zinc-200 hover:bg-purple-600/20 hover:border-purple-500/50"
-              }`}
-              title="Night Vision Mode"
-            >
-              <Icon name="flashlight" className="h-4 w-4" />
-            </button>
 
             <button
               onClick={toggleUnits}
@@ -376,11 +345,6 @@ export default function Header() {
           </div>
         </div>
       </Modal>
-
-      {/* Portaled to <body>: the header's backdrop-filter makes it a containing
-          block for fixed-positioned descendants, which would trap the overlay
-          inside the 65px header strip (it must cover the whole viewport). */}
-      {mounted && createPortal(<div id="night-overlay" aria-hidden="true" />, document.body)}
     </header>
   );
 }

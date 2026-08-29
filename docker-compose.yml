@@ -34,11 +34,17 @@ services:
       - "3000:3000"
     environment:
       - NODE_ENV=production
+      # Next.js standalone server binds to $HOSTNAME by default, which Docker
+      # sets to the container id — that made it listen on the container IP
+      # only, breaking the localhost healthcheck. Force all interfaces.
+      - HOSTNAME=0.0.0.0
       - API_BACKEND=http://stargazer-api:8181
     depends_on:
       - stargazer-api
     healthcheck:
-      test: ["CMD", "wget", "-q", "--spider", "http://localhost:3000/api/health"]
+      # Use 127.0.0.1 explicitly: busybox wget tries ::1 for "localhost" first
+      # and the Next.js server only listens on IPv4.
+      test: ["CMD", "wget", "-q", "--spider", "http://127.0.0.1:3000/api/health"]
       interval: 30s
       timeout: 10s
       retries: 3

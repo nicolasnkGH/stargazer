@@ -6,6 +6,7 @@ import { SerwistProvider } from "@serwist/turbopack/react";
 import "./globals.css";
 import Header from "@/components/Header";
 import InstallPrompt from "@/components/InstallPrompt";
+import NightVisionButton from "@/components/NightVisionButton";
 import Toast from "@/components/Toast";
 
 const spaceGrotesk = Space_Grotesk({
@@ -66,6 +67,7 @@ export default async function RootLayout({
             <Header />
             <main className="flex flex-1 w-full flex-col items-center">{children}</main>
             <InstallPrompt />
+            <NightVisionButton />
             <Toast />
           </NextIntlClientProvider>
         </SerwistProvider>
