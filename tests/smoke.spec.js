@@ -65,7 +65,7 @@ test.describe('StarGazer UI Smoke Tests', () => {
   test('Sky Objects in Motion tabs exist', async ({ page }) => {
     await page.goto(BASE_URL, { waitUntil: 'domcontentloaded', timeout: 15000 });
 
-    const tabs = ['ISS Passes', 'Near-Earth Objects', 'Comets', 'Meteor Showers'];
+    const tabs = ['ISS Passes', 'Asteroids (NEOs)', 'Comets', 'Meteor Showers'];
     for (const tab of tabs) {
       const el = page.getByText(tab).first();
       await expect(el).toBeAttached({ timeout: 5000 });
