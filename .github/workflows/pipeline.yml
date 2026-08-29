@@ -96,7 +96,7 @@ jobs:
         run: |
           set -euo pipefail
           cd nextjs-app
-          npm ci
+          npm ci --legacy-peer-deps
 
       - name: Lint Next.js
         run: |
@@ -132,7 +132,7 @@ jobs:
       - name: Install Playwright browser
         run: |
           set -euo pipefail
-          npm ci
+          npm ci --legacy-peer-deps
           npx playwright install --with-deps chromium
 
       - name: Run UI smoke tests and performance gate
@@ -288,7 +288,7 @@ jobs:
         run: |
           set -euo pipefail
           cd nextjs-app
-          npm ci
+          npm ci --legacy-peer-deps
 
       - name: Build Next.js
         run: |
