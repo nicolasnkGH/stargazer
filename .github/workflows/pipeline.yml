@@ -313,6 +313,7 @@ jobs:
           source: ./nextjs-app
           flags: >-
             --execution-environment=${{ vars.CLOUD_RUN_EXECUTION_ENV }}
+            --allow-unauthenticated
           env_vars: |-
             API_BACKEND=https://stargazer-api-700732233634.us-central1.run.app
 
