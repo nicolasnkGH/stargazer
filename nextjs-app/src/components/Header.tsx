@@ -14,6 +14,7 @@ import {
   UNITS_STORAGE_KEY,
   STARGAZER_REPO_URL,
   RESOURCES,
+  NIGHT_MODE_STORAGE_KEY,
 } from "@/lib/constants";
 import type { Locale, TonightReport } from "@/types";
 import Modal from "./Modal";
@@ -48,6 +49,9 @@ export default function Header() {
   const [currentTime, setCurrentTime] = useState("--:-- --");
   const [currentDate, setCurrentDate] = useState("Loading...");
   const [nightMode, setNightMode] = useState(false);
+  // Portal target only exists client-side; gating avoids both the SSR crash
+  // and a hydration mismatch (server + first client render agree: no overlay).
+  const [mounted, setMounted] = useState(false);
   const [isMetric, setIsMetric] = useState(true);
   const [aboutOpen, setAboutOpen] = useState(false);
   const [dataSettingsOpen, setDataSettingsOpen] = useState(false);
@@ -142,8 +146,17 @@ export default function Header() {
     return () => clearInterval(id);
   }, []);
 
+  // Hydrate night mode from localStorage (legacy key stargazer_night_mode) —
+  // can't be a lazy useState initializer without a hydration mismatch.
+  useEffect(() => {
+    // eslint-disable-next-line react-hooks/set-state-in-effect -- restoring persisted client state after mount
+    setMounted(true);
+    setNightMode(localStorage.getItem(NIGHT_MODE_STORAGE_KEY) === "1");
+  }, []);
+
   useEffect(() => {
     document.body.classList.toggle("night-mode", nightMode);
+    try { localStorage.setItem(NIGHT_MODE_STORAGE_KEY, nightMode ? "1" : "0"); } catch { /* ignore */ }
   }, [nightMode]);
 
   return (
@@ -364,7 +377,10 @@ export default function Header() {
         </div>
       </Modal>
 
-      <div id="night-overlay" />
+      {/* Portaled to <body>: the header's backdrop-filter makes it a containing
+          block for fixed-positioned descendants, which would trap the overlay
+          inside the 65px header strip (it must cover the whole viewport). */}
+      {mounted && createPortal(<div id="night-overlay" aria-hidden="true" />, document.body)}
     </header>
   );
 }
