@@ -80,5 +80,26 @@ Opens at `http://localhost:3000` (Next.js frontend) and `http://localhost:8181` 
 
 ---
 
+
+---
+
+## 🔄 Emergency Rollback Procedure
+
+If issues ever occur in production, **StarGazer** includes an automated enterprise rollback mechanism built into the GitHub Actions pipeline:
+
+### How to Trigger an Emergency Rollback:
+1. Go to **GitHub Actions** $\rightarrow$ **Stargazer Enterprise Pipeline**.
+2. Click **Run workflow**.
+3. Select **Operation to run**: `rollback`.
+4. Enter **Tag to rollback to**: e.g., `v2.9.34` (or any known-good tag).
+5. Enter **Rollback reason**: (e.g. *Rolling back to v2.9.34 due to production incident*).
+6. Click **Run workflow**.
+
+### What Happens Automatically:
+- The pipeline verifies the release tag and checks out the known-good release state.
+- Creates a dedicated branch (`rollback-YYYYMMDD-v2.9.34`) and automatically opens a **Rollback PR**.
+- Merging the PR resets `main` to the target tag and triggers a clean re-deployment to Google Cloud Run with automated health check verification.
+
+
 ## 📄 License
 Distributed under the MIT License. See [LICENSE](LICENSE) for details.
