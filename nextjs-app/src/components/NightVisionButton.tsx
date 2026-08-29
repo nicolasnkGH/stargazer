@@ -76,7 +76,7 @@ export default function NightVisionButton() {
   // would trap the fixed-positioned overlay inside that strip.
   if (!mounted) return null;
 
-  const fabVisible = !dismissed;
+  const fabVisible = true;
 
   function onPointerDown(e: React.PointerEvent) {
     if ((e.target as HTMLElement).closest("[data-nv-dismiss]")) return;
@@ -195,15 +195,7 @@ export default function NightVisionButton() {
           >
             🔴
           </button>
-          <button
-            type="button"
-            className="nv-dismiss"
-            data-nv-dismiss
-            title="Dismiss"
-            onClick={onDismiss}
-          >
-            ✕
-          </button>
+
         </>
       )}
       </div>
