@@ -1,3 +1,6 @@
+"use client";
+
+import React from "react";
 import Icon from "./Icon";
 import type { ConstellationData } from "@/types";
 
@@ -6,82 +9,95 @@ export default function ConstellationsTonight({
 }: {
   constellations?: ConstellationData[];
 }) {
-  const visible = constellations.filter((c) => c.visible).sort((a, b) => b.altitude_deg - a.altitude_deg);
-  const rising = visible.filter((c) => c.rising);
-  const setting = visible.filter((c) => c.setting);
-  const stable = visible.filter((c) => !c.rising && !c.setting);
+  const visibleConst = constellations
+    .filter((c) => c.visible)
+    .sort((a, b) => b.altitude_deg - a.altitude_deg);
+
+  const handleCardClick = (c: ConstellationData) => {
+    window.dispatchEvent(new CustomEvent("sg-select-constellation", { detail: c }));
+    const targetDb = document.getElementById("card-targets");
+    if (targetDb) {
+      targetDb.scrollIntoView({ behavior: "smooth" });
+    }
+  };
 
   return (
-    <section id="card-constellations" className="card w-full">
-      <div className="card-header">
-        <Icon name="star" className="h-5 w-5 text-amber-400" />
-        <h2>Constellations Tonight</h2>
-      </div>
-      <div className="card-body">
-
-      {/* All visible grid */}
-      <div className="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-6 gap-2 mb-5">
-        {visible.map((c) => (
-          <div
-            key={c.name}
-            className={`rounded-lg border p-2.5 flex flex-col items-center text-center gap-1 transition-colors ${
-              c.rising
-                ? "border-amber-500/20 bg-amber-500/[0.04]"
-                : c.setting
-                  ? "border-orange-500/20 bg-orange-500/[0.04]"
-                  : "border-white/10 bg-white/[0.03]"
-            }`}
-          >
-            <span className="text-xl">{c.emoji}</span>
-            <p className="text-[0.7rem] font-medium text-zinc-200 truncate w-full">{c.name}</p>
-            <p className="text-[0.6rem] text-zinc-500 font-mono">{c.altitude_deg}°</p>
-            {c.rising && <span className="text-[0.55rem] text-amber-400">Rising</span>}
-            {c.setting && <span className="text-[0.55rem] text-orange-400">Setting</span>}
-          </div>
-        ))}
+    <section id="card-constellations" className="card w-full mb-8 border border-cyan-500/20 bg-slate-900/90 shadow-xl">
+      <div className="card-header justify-between border-b border-cyan-500/20 px-6 py-4 bg-slate-900/80">
+        <div className="flex items-center gap-2">
+          <Icon name="star" className="h-5 w-5 text-amber-400" />
+          <h2 className="text-base font-bold text-slate-100 tracking-wide">Constellations Tonight</h2>
+        </div>
+        <span className="rounded-full border border-purple-500/30 bg-purple-950/40 px-3.5 py-1 text-xs font-semibold text-purple-300 shadow-sm">
+          Sorted by best view
+        </span>
       </div>
 
-      {/* Rising section */}
-      {rising.length > 0 && (
-        <div className="mb-4">
-          <p className="text-xs text-amber-400 font-medium mb-2">Rising Tonight</p>
-          <div className="flex flex-wrap gap-1.5">
-            {rising.map((c) => (
-              <span key={c.name} className="rounded bg-amber-500/10 border border-amber-500/20 px-2.5 py-1 text-xs text-amber-300">
-                {c.emoji} {c.name}
-              </span>
-            ))}
-          </div>
-        </div>
-      )}
+      <div className="card-body p-6">
+        {visibleConst.length === 0 ? (
+          <p className="text-sm text-slate-400 py-4 text-center">No constellations visible tonight.</p>
+        ) : (
+          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 lg:grid-cols-8 gap-3">
+            {visibleConst.map((c) => {
+              const alt = c.altitude_deg;
+              const az = c.azimuth_deg;
+              const azStr = az != null && !isNaN(az) ? ` (${Math.round(az)}°)` : "";
+              const color = alt > 30 ? "#22c55e" : alt > 10 ? "#f59e0b" : "#ef4444";
+              const barPct = Math.min(100, Math.max(0, Math.round((alt / 90) * 100)));
+              const barColor = alt > 30 ? "#22c55e" : alt > 10 ? "#f59e0b" : "#ef4444";
 
-      {/* Setting section */}
-      {setting.length > 0 && (
-        <div className="mb-4">
-          <p className="text-xs text-orange-400 font-medium mb-2">Setting Tonight</p>
-          <div className="flex flex-wrap gap-1.5">
-            {setting.map((c) => (
-              <span key={c.name} className="rounded bg-orange-500/10 border border-orange-500/20 px-2.5 py-1 text-xs text-orange-300">
-                {c.emoji} {c.name}
-              </span>
-            ))}
-          </div>
-        </div>
-      )}
+              const qualityLabel = alt > 30 ? "High in sky" : alt > 10 ? "Low in sky" : "Near horizon";
+              const qualityIcon = alt > 30 ? "🟢" : alt > 10 ? "🟡" : "🔴";
 
-      {/* Stable section */}
-      {stable.length > 0 && (
-        <div>
-          <p className="text-xs text-zinc-500 font-medium mb-2">Stable All Night</p>
-          <div className="flex flex-wrap gap-1.5">
-            {stable.map((c) => (
-              <span key={c.name} className="rounded bg-white/5 border border-white/10 px-2.5 py-1 text-xs text-zinc-400">
-                {c.emoji} {c.name}
-              </span>
-            ))}
+              return (
+                <div
+                  key={c.name}
+                  onClick={() => handleCardClick(c)}
+                  className="rounded-xl border border-white/10 bg-slate-950/80 p-3.5 flex flex-col justify-between transition-all hover:border-cyan-400/60 hover:bg-slate-900 shadow-md cursor-pointer group hover:scale-[1.02] active:scale-95"
+                  title={`Click to view ${c.name} targets`}
+                >
+                  {/* Name & Abbreviation */}
+                  <div className="flex items-center justify-between font-bold text-slate-100 text-xs sm:text-sm mb-2">
+                    <span className="flex items-center gap-1.5 truncate">
+                      <span className="text-base">{c.emoji || "✨"}</span>
+                      <span className="truncate">{c.name}</span>
+                    </span>
+                    <span className="text-[0.65rem] text-slate-400 font-mono font-normal ml-1 flex-shrink-0">
+                      {c.abbr}
+                    </span>
+                  </div>
+
+                  {/* Altitude Header */}
+                  <div className="flex items-center justify-between text-[0.6rem] uppercase tracking-wider font-semibold text-slate-400 mt-1 mb-1">
+                    <span>ALTITUDE ABOVE HORIZON</span>
+                    <span className="font-mono text-xs font-bold" style={{ color }}>
+                      {alt}°
+                    </span>
+                  </div>
+
+                  {/* Progress Bar */}
+                  <div className="w-full h-1.5 bg-slate-800 rounded-full overflow-hidden mb-2.5">
+                    <div
+                      className="h-full rounded-full transition-all duration-500"
+                      style={{ width: `${barPct}%`, backgroundColor: barColor }}
+                    />
+                  </div>
+
+                  {/* Footer Meta */}
+                  <div className="flex items-center justify-between text-[0.7rem] font-semibold pt-1 border-t border-white/5">
+                    <span className="flex items-center gap-1 font-medium" style={{ color }}>
+                      <span>{qualityIcon}</span>
+                      <span>{qualityLabel}</span>
+                    </span>
+                    <span className="font-mono text-[0.65rem] text-slate-400 font-normal">
+                      {c.direction}{azStr}
+                    </span>
+                  </div>
+                </div>
+              );
+            })}
           </div>
-        </div>
-      )}
+        )}
       </div>
     </section>
   );

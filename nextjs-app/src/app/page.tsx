@@ -55,28 +55,48 @@ export default async function Home() {
   return (
     <>
       <StarfieldBackground />
-      <SolarSystemHero />
+      <SolarSystemHero
+        twilight={tonight?.twilight_timeline}
+        bortle={bortle?.bortle}
+      />
       <div className="flex w-full flex-col items-center gap-8">
         <div className="w-full max-w-[1600px] px-4 sm:px-8 py-8">
+          {/* Top Priority Observing Conditions */}
           <GoNoGoBanner seeing={tonight?.seeing ?? null} />
+          
           <CardRow id="card-tonight">
             <SeeingConditions seeing={tonight?.seeing ?? null} twilight={tonight?.twilight_timeline} />
             <MoonCard moon={tonight?.moon ?? null} moonFact={tonight?.seeing?.moon_fact} />
             <SkyMotion />
           </CardRow>
+
+          {/* 7-Day Astronomical Observing Forecast */}
+          <WeeklyForecast report={weekly} />
+
+          {/* Clear Outside Weather Chart */}
+          <ClearOutsideEmbed coords={coords} />
+
+          {/* Light Pollution Map moved UP right below Clear Outside */}
+          <LightPollutionCard bortle={bortle} />
+
+          {/* NASA Astronomy Picture of the Day moved right below Light Pollution Card */}
+          <ApodCard apod={apod} />
+
+          {/* Aurora & Space Weather Forecast */}
+          <AuroraCard aurora={aurora} spaceWeather={spaceWeather} />
+
+          {/* Must-See & AI Picks with 1:1 Vanilla HUD scanlines & glowing cards */}
           <AiTargets bestTargets={tonight?.best_targets_tonight} mustSee={tonight?.must_see} />
+
+          {/* Planets Tonight with 3D spin rotation & radial planet color glows */}
           <PlanetGrid planets={planetsData?.planets} />
+
           <ActiveConstellation />
           <ConstellationsTonight constellations={constellationsData?.constellations} />
           <TargetDatabase />
           <PlanMyNight />
-          <WeeklyForecast report={weekly} />
           <TelescopeCalculator />
           <SolarSystemExplorerCard />
-          <LightPollutionCard bortle={bortle} />
-          <ClearOutsideEmbed coords={coords} />
-          <AuroraCard aurora={aurora} spaceWeather={spaceWeather} />
-          <ApodCard apod={apod} />
           <ObservationLog />
           <Resources />
           <Footer />

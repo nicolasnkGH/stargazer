@@ -42,8 +42,16 @@ def get_visible_targets(dt: Optional[datetime] = None, lat=None, lon=None, const
 
     results = []
     all_targets = SCORPIUS_TARGETS + NEARBY_TARGETS + OTHER_TARGETS
-    if constellation and constellation.lower() not in ["all", "all_visible", "*", "visible"]:
-        all_targets = [t for t in all_targets if t.get("constellation", "Sco").lower() == constellation.lower()]
+    if constellation and constellation.lower() not in ["all", "all_visible", "*", "visible", "all constellations (full db)"]:
+        c_search = constellation.lower().strip()
+        all_targets = [
+            target for target in all_targets
+            if (
+                target.get("constellation", "").lower() == c_search
+                or (len(c_search) >= 3 and target.get("constellation", "").lower().startswith(c_search[:3]))
+                or (len(target.get("constellation", "")) >= 3 and c_search.startswith(target.get("constellation", "").lower()[:3]))
+            )
+        ]
 
     for target in all_targets:
         ra_h = target["ra_h"] + target["ra_m"] / 60 + target["ra_s"] / 3600
@@ -62,7 +70,6 @@ def get_visible_targets(dt: Optional[datetime] = None, lat=None, lon=None, const
         
         # Check light pollution requirement
         target_bortle_min = target.get("bortle_min")
-        mag = target.get("magnitude", 99)
         t_type = str(target.get("type", "")).lower()
         if target_bortle_min == 1 and (mag <= 3 or "star" in t_type):
             target_bortle_min = 9
@@ -80,7 +87,6 @@ def get_visible_targets(dt: Optional[datetime] = None, lat=None, lon=None, const
 
         bortle_ok = True
         if bortle is not None:
-            # If user's sky is worse (higher number) than the target requires (lower number), it's washed out
             bortle_ok = int(bortle) <= target_bortle_min
             
         observable = bool(visible and in_limiting_mag and bortle_ok)
@@ -113,7 +119,7 @@ def get_visible_targets(dt: Optional[datetime] = None, lat=None, lon=None, const
         })
         results.append(result)
 
-    if constellation.lower() in ["all", "*"]:
+    if constellation.lower() in ["all", "*", "all constellations (full db)"]:
         results.sort(key=lambda x: (x.get("constellation", ""), x.get("name", x.get("id", ""))))
     else:
         results.sort(key=lambda x: (-x["altitude_deg"]))

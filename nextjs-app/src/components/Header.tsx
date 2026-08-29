@@ -47,7 +47,6 @@ export default function Header() {
   });
   const [currentTime, setCurrentTime] = useState("--:-- --");
   const [currentDate, setCurrentDate] = useState("Loading...");
-  const [nightMode, setNightMode] = useState(false);
   const [isMetric, setIsMetric] = useState(true);
   const [aboutOpen, setAboutOpen] = useState(false);
   const [dataSettingsOpen, setDataSettingsOpen] = useState(false);
@@ -142,12 +141,8 @@ export default function Header() {
     return () => clearInterval(id);
   }, []);
 
-  useEffect(() => {
-    document.body.classList.toggle("night-mode", nightMode);
-  }, [nightMode]);
-
   return (
-    <header className="sticky top-0 z-[100] border-b border-white/10 bg-slate-950/90 py-3 px-6 backdrop-blur-xl">
+    <header className="sticky top-0 z-[100] border-b border-cyan-500/10 bg-slate-950/80 py-2.5 px-4 sm:px-6 backdrop-blur-2xl shadow-[0_4px_30px_rgba(0,0,0,0.5)]">
       <div className="mx-auto flex max-w-full flex-nowrap items-center justify-between gap-4">
         {/* Logo */}
         <a href="#hero-section" className="flex flex-shrink-0 items-center gap-2.5 no-underline">
@@ -160,8 +155,13 @@ export default function Header() {
           </span>
         </a>
 
-        {/* Telemetry pill — allowed to shrink/truncate so it never pushes the menu button off-screen */}
-        <div className="hidden min-w-0 flex-1 items-center gap-3 overflow-hidden rounded-full border border-white/10 bg-white/5 px-4 py-1.5 lg:flex">
+        {/* Dedicated Location Control Pill (ALWAYS visible & flex-shrink-0) */}
+        <div className="flex flex-shrink-0 items-center rounded-full border border-sky-500/30 bg-sky-950/40 px-3 py-1 text-xs text-sky-200 shadow-[0_0_15px_rgba(56,189,248,0.15)] hover:border-sky-400 transition-all">
+          <LocationControl />
+        </div>
+
+        {/* Telemetry pill */}
+        <div className="hidden sm:flex min-w-0 flex-1 items-center gap-2 sm:gap-3 overflow-hidden rounded-full border border-white/10 bg-white/5 px-3 py-1.5 text-xs text-slate-200">
           <div className="flex flex-shrink-0 items-center gap-1.5 text-[0.7rem] font-bold tracking-[0.12em]">
             <span
               className={`inline-block h-1.5 w-1.5 rounded-full ${
@@ -177,7 +177,6 @@ export default function Header() {
           <span className="h-4 w-px flex-shrink-0 bg-white/10" />
           <span id="hud-weather" className="flex-shrink-0 truncate font-mono text-[0.75rem] text-slate-400">{hudWeather}</span>
           <span className="h-4 w-px flex-shrink-0 bg-white/10" />
-          <LocationControl />
         </div>
 
         {/* Right side */}
@@ -199,19 +198,6 @@ export default function Header() {
               Collaborate
               <Icon name="arrow-up-right" className="h-3 w-3" />
             </a>
-
-            <button
-              id="btn-night-mode"
-              onClick={() => setNightMode((v) => !v)}
-              className={`flex h-9 w-9 items-center justify-center rounded-lg border transition ${
-                nightMode
-                  ? "border-red-500/50 bg-red-500/20 text-red-400"
-                  : "border-white/10 bg-white/5 text-zinc-200 hover:bg-purple-600/20 hover:border-purple-500/50"
-              }`}
-              title="Night Vision Mode"
-            >
-              <Icon name="flashlight" className="h-4 w-4" />
-            </button>
 
             <button
               onClick={toggleUnits}
@@ -363,8 +349,6 @@ export default function Header() {
           </div>
         </div>
       </Modal>
-
-      <div id="night-overlay" />
     </header>
   );
 }

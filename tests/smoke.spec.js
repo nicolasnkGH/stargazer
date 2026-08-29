@@ -12,7 +12,7 @@ test.describe('StarGazer UI Smoke Tests', () => {
     await page.goto(BASE_URL, { waitUntil: 'domcontentloaded', timeout: 15000 });
 
     // Filter out known external/network errors (SSL, CDN, etc.)
-    const fatalErrors = jsErrors.filter(e =>
+    const fatalErrors = jsErrors.filter(e => 
       !e.includes('net::ERR') &&
       !e.includes('Failed to load resource') &&
       !e.includes('ERR_SSL') &&
@@ -34,18 +34,23 @@ test.describe('StarGazer UI Smoke Tests', () => {
   test('Critical sections render in the DOM', async ({ page }) => {
     await page.goto(BASE_URL, { waitUntil: 'domcontentloaded', timeout: 15000 });
 
+    // First, add an item to the plan so that the scheduler list container is rendered
+    const issBtn = page.getByText('+ ISS Pass');
+    await expect(issBtn).toBeVisible({ timeout: 5000 });
+    await issBtn.click();
+
+    // Now check for the critical sections that should be present when there is at least one item in the plan
     const criticalIds = [
-      '#card-motion',
-      '#card-targets',
-      '#scheduler-list-container',
-      '#scheduler-empty-state',
-      '#scheduler-timeline-bar',
+      '#card-targets',           // Target database card
+      '#scheduler-list-container', // List of scheduled targets
+      '#scheduler-timeline-bar',   // Timeline bar
+      '#card-space-weather'        // AuroraCard container (replaced #card-motion)
     ];
 
     for (const id of criticalIds) {
       const el = page.locator(id);
       await expect(el).toBeAttached({ timeout: 5000 });
-      console.log(`✅ ${id} found in DOM`);
+      console.log(`��✅ ${id} found in DOM`);
     }
   });
 
@@ -64,7 +69,7 @@ test.describe('StarGazer UI Smoke Tests', () => {
     for (const tab of tabs) {
       const el = page.getByText(tab).first();
       await expect(el).toBeAttached({ timeout: 5000 });
-      console.log(`✅ Tab "${tab}" found`);
+      console.log(`��✅ Tab "${tab}" found`);
     }
   });
 

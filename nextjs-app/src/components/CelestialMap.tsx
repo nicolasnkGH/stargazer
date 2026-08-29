@@ -137,11 +137,13 @@ export default function CelestialMap({ targets, centerRaHours, centerDecDeg }: C
     return () => canvas.removeEventListener("click", handleClick);
   }, [ready, centerRaHours, centerDecDeg]);
 
+  const [interactive, setInteractive] = useState(false);
+
   return (
     <div className="relative w-full">
       <div
         id={CELESTIAL_MAP_CONTAINER_ID}
-        className="relative h-[360px] w-full overflow-hidden rounded-lg bg-[#0a0f1c]"
+        className={`relative h-[360px] w-full overflow-hidden rounded-xl bg-[#0a0f1c] border border-white/10 ${interactive ? "pointer-events-auto" : "pointer-events-none select-none"}`}
       >
         {!ready && (
           <div className="absolute inset-0 flex items-center justify-center text-sm text-zinc-500">
@@ -149,6 +151,26 @@ export default function CelestialMap({ targets, centerRaHours, centerDecDeg }: C
           </div>
         )}
       </div>
+
+      {!interactive && ready && (
+        <div className="absolute inset-0 z-10 flex flex-col items-center justify-center bg-slate-950/50 backdrop-blur-[2px] rounded-xl">
+          <button
+            onClick={() => setInteractive(true)}
+            className="flex items-center gap-2 rounded-full border border-sky-400/50 bg-slate-900/90 px-6 py-3 text-sm font-bold text-white shadow-[0_0_25px_rgba(56,189,248,0.4)] hover:scale-105 hover:border-sky-300 transition-all pointer-events-auto"
+          >
+            <span>✨ Click to interact</span>
+          </button>
+        </div>
+      )}
+
+      {interactive && (
+        <button
+          onClick={() => setInteractive(false)}
+          className="absolute top-3 right-3 z-20 rounded-lg bg-slate-900/90 px-3 py-1.5 text-xs font-semibold text-cyan-300 border border-cyan-500/40 hover:bg-slate-800 transition-colors shadow-lg"
+        >
+          🔒 Lock Map (Allow Page Scroll)
+        </button>
+      )}
 
       {(selectedTarget || skyClick) && (
         <div className="mt-3 rounded-lg border border-purple-500/30 bg-white/[0.03] p-3 text-sm">

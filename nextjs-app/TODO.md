@@ -2,12 +2,12 @@
 
 ## Overview
 
-This directory contains a Next.js 14+ rewrite of the original StarGazer dashboard
-([web/index.html](../web/index.html)), which is a vanilla JS + CSS single-page app
-powered by a Python/FastAPI backend ([api/main.py](../api/main.py)).
+This directory contains the Next.js 16 frontend for StarGazer, replacing the legacy
+vanilla JS app as part of [#209](https://github.com/nicolasnkGH/stargazer/issues/209).
+It is powered by the Python/FastAPI backend ([api/main.py](../api/main.py)).
 
 **Goal:** Feature-complete, production-ready Next.js app that replicates every section
-of the original HTML app, with the same data, styling, and interactivity.
+of the original dashboard, with the same data, styling, and interactivity.
 
 ---
 
