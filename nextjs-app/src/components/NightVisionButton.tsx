@@ -18,6 +18,20 @@ import { NIGHT_MODE_STORAGE_KEY } from "@/lib/constants";
 const POS_KEY = "stargazer_floating-night_pos";
 const DISMISS_KEY = "stargazer_floating-night_dismissed";
 
+// Deep-red night-vision look, ported from original web/style.css.
+// Applied as an INLINE style on #nv-scope (not via stylesheet): Next 16's
+// CSS minifier (lightningcss) mangles stylesheet backdrop-filter/filter
+// declarations containing sepia(), silently dropping the argument and
+// invalidating the whole chain. Inline styles bypass the CSS pipeline.
+const NV_FILTER = "sepia(100%) hue-rotate(320deg) saturate(500%) brightness(0.8)";
+
+/** Toggle the night-mode visual state on the DOM. */
+function applyNightMode(on: boolean) {
+  document.body.classList.toggle("night-mode", on);
+  const scope = document.getElementById("nv-scope");
+  if (scope) scope.style.filter = on ? NV_FILTER : "";
+}
+
 export default function NightVisionButton() {
   const [mounted, setMounted] = useState(false);
   const [nightMode, setNightMode] = useState(false);
@@ -61,9 +75,11 @@ export default function NightVisionButton() {
     if (!isDismissed) setTooltipOpen(true);
   }, []);
 
-  // Keep <body> class in sync with the toggle.
+  // Keep <body> class + the inline red filter on #nv-scope in sync with the
+  // toggle. The filter must be inline (not stylesheet): Next 16's minifier
+  // mangles sepia() in CSS rules, which silently kills the red chain.
   useEffect(() => {
-    document.body.classList.toggle("night-mode", nightMode);
+    applyNightMode(nightMode);
     try {
       localStorage.setItem(NIGHT_MODE_STORAGE_KEY, nightMode ? "1" : "0");
     } catch { /* ignore */ }
