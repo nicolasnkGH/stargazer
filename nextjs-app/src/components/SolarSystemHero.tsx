@@ -31,9 +31,9 @@ function formatDuration(minutes: number): string {
 
 /** Compute a display string for the dark-in metric.
  *
- *  Before astro_start → "In Xh Ym"  (countdown until dark begins)
- *  During dark        → "Xh Ym left" (remaining dark window, counting down to astro_end/dawn)
- *  After astro_end    → "--:--"      (daytime, no dark window remaining)
+ *  Before dark  → "In Xh Ym"   (countdown until astro_start)
+ *  During dark  → "Xh Ym left" (reverse countdown to astro_end/dawn)
+ *  After dark   → "In Xh Ym"   (countdown to next night's dark)
  */
 function useDarkInCountdown(
   astroStart: string | null,
@@ -50,29 +50,40 @@ function useDarkInCountdown(
       const now = new Date();
       const nowMin = now.getHours() * 60 + now.getMinutes();
 
-      // Normalize times relative to now for day-boundary handling.
-      // astro_start is usually evening (e.g. 21:30), astro_end is early morning (e.g. 04:45).
-      let start = startMin - nowMin;
-      let end = endMin != null ? endMin - nowMin : null;
-
-      // If astro_start already passed today (diff < 0), it belongs to tonight —
-      // push it forward so the "In Xh" countdown still works for early-evening now.
-      // If astro_end < astro_start (crosses midnight), push end to tomorrow as well.
-      if (end != null && end < start) end += 24 * 60;
-      if (start < 0) {
-        start += 24 * 60;
-        if (end != null) end += 24 * 60;
+      // The report's dark window runs from astro_start (usually evening,
+      // e.g. 21:15) to astro_end (early morning, e.g. 04:45), so it normally
+      // crosses midnight. Three display states:
+      //   before dark  -> "In Xh Ym"   (countdown to astro_start)
+      //   during dark  -> "Xh Ym left" (reverse countdown to astro_end/dawn)
+      //   no data      -> "--:--" / "Dark"
+      if (endMin == null) {
+        // No end time: only the pre-dark countdown is computable.
+        setDisplay(startMin - nowMin > 0 ? `In ${formatDuration(startMin - nowMin)}` : "Dark");
+        return;
       }
 
-      if (start > 0) {
-        // Before dark: countdown to astro_start
-        setDisplay(`In ${formatDuration(start)}`);
-      } else if (end != null && end > 0) {
-        // During dark: remaining dark window (countdown to dawn/astro_end)
-        setDisplay(`${formatDuration(end)} left`);
+      if (endMin <= startMin) {
+        // Window crosses midnight: [yesterday startMin, today endMin].
+        if (nowMin < endMin) {
+          // Inside last night's window — remaining dark until dawn.
+          setDisplay(`${formatDuration(endMin - nowMin)} left`);
+        } else if (nowMin < startMin) {
+          // Daytime — countdown to tonight's dark.
+          setDisplay(`In ${formatDuration(startMin - nowMin)}`);
+        } else {
+          // Tonight's dark just started — ends tomorrow at endMin.
+          setDisplay(`${formatDuration(endMin + 24 * 60 - nowMin)} left`);
+        }
       } else {
-        // After astro_end (daytime) — dark window has passed
-        setDisplay("--:--");
+        // Same-day window (rare, e.g. short high-latitude nights).
+        if (nowMin < startMin) {
+          setDisplay(`In ${formatDuration(startMin - nowMin)}`);
+        } else if (nowMin < endMin) {
+          setDisplay(`${formatDuration(endMin - nowMin)} left`);
+        } else {
+          // After the window — countdown to next night's dark.
+          setDisplay(`In ${formatDuration(startMin + 24 * 60 - nowMin)}`);
+        }
       }
     };
 
