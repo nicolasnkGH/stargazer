@@ -5,110 +5,199 @@ import * as THREE from "three";
 import { OrbitControls } from "three/examples/jsm/controls/OrbitControls.js";
 import Icon from "./Icon";
 import type { PlanetData } from "@/types";
-import { PLANET_TEXTURES } from "@/lib/constants";
-import { makePlanetBump, makeProceduralTexture, makeSaturnRingGeo } from "@/lib/three/planet-surface";
 
-/* ── Per-planet surface config — ported from legacy web/planets3d.js CFG ─── */
-
-interface SurfaceCfg {
-  tilt: number;        // axial tilt (degrees)
-  bumpScale: number;   // procedural bump strength
-  tex?: string;        // texture path (falls back to procedural if missing)
-  hasRing?: boolean;
-  ringTex?: string;
-}
-
-const SURFACE_CFG: Record<string, SurfaceCfg> = {
-  mercury: { tilt: 0.03, bumpScale: 0.015 },
-  venus:   { tilt: 177.4, bumpScale: 0.006 },
-  earth:   { tilt: 23.4, bumpScale: 0.008 },
-  mars:    { tilt: 25.2, bumpScale: 0.012 },
-  jupiter: { tilt: 3.1, bumpScale: 0.003 },
-  saturn:  { tilt: 26.7, bumpScale: 0.003, hasRing: true, ringTex: "/assets/saturn_ring_color.jpg" },
-  uranus:  { tilt: 97.8, bumpScale: 0.002 },
-  neptune: { tilt: 28.3, bumpScale: 0.003 },
+const PLANET_CONFIGS: Record<
+  string,
+  {
+    rotSpeed?: number;
+    bumpScale?: number;
+    hasRing?: boolean;
+    ringTex?: string;
+    tilt?: number;
+    texUrl?: string;
+    radialGlow?: string;
+  }
+> = {
+  sun: {
+    rotSpeed: 0.002,
+    tilt: 7.25,
+    texUrl: "/textures/2k_sun.jpg",
+    radialGlow: "radial-gradient(circle at center, rgba(245,158,11,0.35) 0%, rgba(217,119,6,0.15) 50%, transparent 80%)",
+  },
+  mercury: {
+    rotSpeed: 0.003,
+    bumpScale: 0.015,
+    tilt: 0.03,
+    texUrl: "/textures/mercury.jpg",
+    radialGlow: "radial-gradient(circle at center, rgba(217,119,6,0.25) 0%, rgba(100,116,139,0.15) 60%, transparent 80%)",
+  },
+  venus: {
+    rotSpeed: -0.001,
+    bumpScale: 0.005,
+    tilt: 177.3,
+    texUrl: "/textures/venus.jpg",
+    radialGlow: "radial-gradient(circle at center, rgba(234,179,8,0.35) 0%, rgba(161,98,7,0.15) 60%, transparent 80%)",
+  },
+  mars: {
+    rotSpeed: 0.005,
+    bumpScale: 0.02,
+    tilt: 25.19,
+    texUrl: "/textures/mars.jpg",
+    radialGlow: "radial-gradient(circle at center, rgba(239,68,68,0.35) 0%, rgba(153,27,27,0.15) 60%, transparent 80%)",
+  },
+  jupiter: {
+    rotSpeed: 0.012,
+    bumpScale: 0.008,
+    tilt: 3.13,
+    texUrl: "/textures/jupiter.jpg",
+    radialGlow: "radial-gradient(circle at center, rgba(249,115,22,0.35) 0%, rgba(194,65,12,0.15) 60%, transparent 80%)",
+  },
+  saturn: {
+    rotSpeed: 0.01,
+    bumpScale: 0.005,
+    hasRing: true,
+    ringTex: "/textures/saturn_ring_color.jpg",
+    tilt: 26.73,
+    texUrl: "/textures/saturn.jpg",
+    radialGlow: "radial-gradient(circle at center, rgba(234,179,8,0.3) 0%, rgba(202,138,4,0.15) 60%, transparent 80%)",
+  },
+  uranus: {
+    rotSpeed: -0.007,
+    bumpScale: 0.004,
+    tilt: 97.77,
+    texUrl: "/textures/uranus.jpg",
+    radialGlow: "radial-gradient(circle at center, rgba(6,182,212,0.35) 0%, rgba(14,116,144,0.15) 60%, transparent 80%)",
+  },
+  neptune: {
+    rotSpeed: 0.008,
+    bumpScale: 0.004,
+    tilt: 28.32,
+    texUrl: "/textures/neptune.jpg",
+    radialGlow: "radial-gradient(circle at center, rgba(59,130,246,0.35) 0%, rgba(29,78,216,0.15) 60%, transparent 80%)",
+  },
 };
 
-// Gentle auto-rotation while idle — matches the moon's idle spin rate (legacy).
-const ROT_SPEED = 0.036;
-const FPS_INTERVAL = 1000 / 25; // 25fps throttled loop (legacy)
+function makePlanetBump(name: string): HTMLCanvasElement {
+  const canvas = document.createElement("canvas");
+  canvas.width = 512;
+  canvas.height = 256;
+  const ctx = canvas.getContext("2d");
+  if (!ctx) return canvas;
+  ctx.fillStyle = "#808080";
+  ctx.fillRect(0, 0, 512, 256);
+  const numCraters = name === "moon" ? 180 : 80;
+  for (let i = 0; i < numCraters; i++) {
+    const cx = Math.random() * 512;
+    const cy = Math.random() * 256;
+    const r = Math.random() * 12 + 2;
+    const g = ctx.createRadialGradient(cx, cy, 0, cx, cy, r);
+    g.addColorStop(0, "#ffffff");
+    g.addColorStop(0.7, "#404040");
+    g.addColorStop(1, "#808080");
+    ctx.fillStyle = g;
+    ctx.beginPath();
+    ctx.arc(cx, cy, r, 0, Math.PI * 2);
+    ctx.fill();
+  }
+  return canvas;
+}
 
-/* ── Interactive 3D planet widget (drag to rotate · scroll to zoom) ──────── */
+function makeSaturnRingGeo(innerR = 1.25, outerR = 2.2): THREE.BufferGeometry {
+  const geo = new THREE.BufferGeometry();
+  const segs = 64;
+  const pos: number[] = [];
+  const uvs: number[] = [];
+  const indices: number[] = [];
+
+  for (let i = 0; i <= segs; i++) {
+    const a = (i / segs) * Math.PI * 2;
+    const cos = Math.cos(a);
+    const sin = Math.sin(a);
+
+    pos.push(cos * innerR, sin * innerR, 0);
+    uvs.push(0, i / segs);
+
+    pos.push(cos * outerR, sin * outerR, 0);
+    uvs.push(1, i / segs);
+  }
+
+  for (let i = 0; i < segs; i++) {
+    const vi = i * 2;
+    indices.push(vi, vi + 1, vi + 2);
+    indices.push(vi + 1, vi + 3, vi + 2);
+  }
+
+  geo.setAttribute("position", new THREE.Float32BufferAttribute(pos, 3));
+  geo.setAttribute("uv", new THREE.Float32BufferAttribute(uvs, 2));
+  geo.setIndex(indices);
+  geo.computeVertexNormals();
+  return geo;
+}
 
 function Planet3DWidget({ name }: { name: string }) {
   const containerRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     const container = containerRef.current;
-    if (!container || typeof window === "undefined") return;
+    if (!container) return;
 
-    const cfg = SURFACE_CFG[name.toLowerCase()] ?? SURFACE_CFG.mercury;
-    const texUrl = PLANET_TEXTURES[name.toLowerCase()];
-
-    let renderer: THREE.WebGLRenderer | null = null;
+    let disposed = false;
     let scene: THREE.Scene | null = null;
     let camera: THREE.PerspectiveCamera | null = null;
+    let renderer: THREE.WebGLRenderer | null = null;
     let controls: OrbitControls | null = null;
     let mesh: THREE.Mesh | null = null;
     let rafId = 0;
-    let lastT = 0;
-    let disposed = false;
-    let visible = true;
-    let pageVisible = !document.hidden;
-    let idle = true;
-    let idleTimer: ReturnType<typeof setTimeout> | null = null;
     let io: IntersectionObserver | null = null;
     let resizeObserver: ResizeObserver | null = null;
 
+    const lower = name.toLowerCase();
+    const cfg = PLANET_CONFIGS[lower] || {};
+    const ROT_SPEED = cfg.rotSpeed ?? 0.005;
+    const texUrl = cfg.texUrl;
+
+    let visible = true;
+    let pageVisible = !document.hidden;
     const onVisibilityChange = () => { pageVisible = !document.hidden; };
     document.addEventListener("visibilitychange", onVisibilityChange);
 
+    const FPS_INTERVAL = 1000 / 30;
+    let lastT = 0;
+
     function build(texture: THREE.Texture) {
       if (disposed || !container) return;
-      const width = container.clientWidth || 300;
-      const height = container.clientHeight || 200;
-
-      renderer = new THREE.WebGLRenderer({ antialias: true });
-      renderer.setClearColor(0x050510, 1);
-      renderer.setSize(width, height);
-      renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, 1.5));
-      container.appendChild(renderer.domElement);
+      const w = container.clientWidth || 220;
+      const h = container.clientHeight || 200;
 
       scene = new THREE.Scene();
-      scene.fog = new THREE.FogExp2(0x050510, 0.06);
+      camera = new THREE.PerspectiveCamera(45, w / h, 0.1, 100);
+      camera.position.z = cfg.hasRing ? 4.2 : 3.2;
 
-      camera = new THREE.PerspectiveCamera(45, width / height, 0.1, 1000);
-      camera.position.z = 3.5;
+      renderer = new THREE.WebGLRenderer({ alpha: true, antialias: true });
+      renderer.setSize(w, h);
+      renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+      renderer.domElement.style.pointerEvents = "auto";
 
-      const ambient = new THREE.AmbientLight(0x303050, 0.35);
-      const keyLight = new THREE.DirectionalLight(0xfff5e6, 1.2);
-      keyLight.position.set(-2, 1, 2);
-      const fillLight = new THREE.DirectionalLight(0x8090b0, 0.25);
-      fillLight.position.set(2, -0.5, 1);
-      const rimLight = new THREE.DirectionalLight(0x4040a0, 0.15);
-      rimLight.position.set(5, 0, -5);
-      scene.add(ambient, keyLight, fillLight, rimLight);
+      while (container.firstChild) {
+        container.removeChild(container.firstChild);
+      }
+      container.appendChild(renderer.domElement);
 
-      // Drag-to-rotate + scroll-to-zoom (legacy interaction model)
+      const amb = new THREE.AmbientLight(0xffffff, lower === "sun" ? 2.5 : 0.4);
+      scene.add(amb);
+      if (lower !== "sun") {
+        const sunLight = new THREE.DirectionalLight(0xfff5e6, 1.8);
+        sunLight.position.set(5, 3, 5);
+        scene.add(sunLight);
+        const fill = new THREE.DirectionalLight(0x8090b0, 0.2);
+        fill.position.set(-5, -2, -3);
+        scene.add(fill);
+      }
+
       controls = new OrbitControls(camera, renderer.domElement);
       controls.enablePan = false;
-      controls.enableZoom = true;
-      controls.minDistance = 1.5;
-      controls.maxDistance = 6;
+      controls.enableZoom = false; // Disabled wheel zoom capture to allow smooth page scrolling
       controls.autoRotate = false;
-      controls.autoRotateSpeed = 0.5;
-
-      // Idle spin: pause while the user is dragging, resume 2s after release
-      const dom = renderer.domElement;
-      const onPointerDown = () => {
-        idle = false;
-        if (idleTimer) clearTimeout(idleTimer);
-      };
-      const onPointerUp = () => {
-        idleTimer = setTimeout(() => { idle = true; }, 2000);
-      };
-      dom.addEventListener("pointerdown", onPointerDown);
-      dom.addEventListener("pointerup", onPointerUp);
 
       const geo = new THREE.SphereGeometry(1, 48, 48);
       const bumpTexture = new THREE.CanvasTexture(makePlanetBump(name));
@@ -134,24 +223,18 @@ function Planet3DWidget({ name }: { name: string }) {
           ring.rotation.x = Math.PI / 2;
           scene.add(ring);
         });
-      } else if (cfg.hasRing) {
-        const ringMat = new THREE.MeshBasicMaterial({ color: 0xc8b890, side: THREE.DoubleSide, transparent: true, opacity: 0.65 });
-        const ring = new THREE.Mesh(makeSaturnRingGeo(1.26, 2.22), ringMat);
-        ring.rotation.x = Math.PI / 2;
-        scene.add(ring);
       }
 
-      // Pause rendering when the card scrolls off screen (legacy behavior)
       io = new IntersectionObserver(([e]) => { visible = e.isIntersecting; }, { threshold: 0.05 });
       io.observe(container);
 
       resizeObserver = new ResizeObserver((entries) => {
         for (const e of entries) {
-          const { width: w, height: h } = e.contentRect;
-          if (!w || !h || !camera || !renderer) continue;
-          camera.aspect = w / h;
+          const { width: rw, height: rh } = e.contentRect;
+          if (!rw || !rh || !camera || !renderer) continue;
+          camera.aspect = rw / rh;
           camera.updateProjectionMatrix();
-          renderer.setSize(w, h);
+          renderer.setSize(rw, rh);
         }
       });
       resizeObserver.observe(container);
@@ -161,16 +244,14 @@ function Planet3DWidget({ name }: { name: string }) {
         if (disposed || !visible || !pageVisible) return;
         if (t - lastT < FPS_INTERVAL) return;
         lastT = t;
-        controls?.update();
-        if (idle && mesh) {
-          mesh.rotation.y += ROT_SPEED * (FPS_INTERVAL / 1000);
+        if (mesh) {
+          mesh.rotation.y += ROT_SPEED;
         }
         if (scene && camera && renderer) renderer.render(scene, camera);
       };
       rafId = requestAnimationFrame(loop);
     }
 
-    // Lazy setup: only initialize the WebGL scene once the card scrolls into view
     const loadObserver = new IntersectionObserver(
       (entries, obs) => {
         entries.forEach((entry) => {
@@ -183,12 +264,11 @@ function Planet3DWidget({ name }: { name: string }) {
                 (tex) => build(tex),
                 undefined,
                 () => {
-                  console.warn(`PlanetGrid: failed to load ${texUrl}, using procedural`);
-                  build(makeProceduralTexture(name));
+                  build(new THREE.TextureLoader().load("/textures/jupiter.jpg"));
                 }
               );
             } else {
-              build(makeProceduralTexture(name));
+              build(new THREE.TextureLoader().load("/textures/jupiter.jpg"));
             }
           }
         });
@@ -200,14 +280,13 @@ function Planet3DWidget({ name }: { name: string }) {
     return () => {
       disposed = true;
       cancelAnimationFrame(rafId);
-      if (idleTimer) clearTimeout(idleTimer);
       loadObserver.disconnect();
       io?.disconnect();
       resizeObserver?.disconnect();
       document.removeEventListener("visibilitychange", onVisibilityChange);
       controls?.dispose();
       if (renderer) {
-        try { renderer.dispose(); } catch { /* already gone */ }
+        try { renderer.dispose(); } catch {}
         renderer.domElement.remove();
       }
       scene?.traverse((obj) => {
@@ -223,70 +302,72 @@ function Planet3DWidget({ name }: { name: string }) {
     };
   }, [name]);
 
-  return (
-    <div ref={containerRef} className="h-full w-full" />
-  );
+  return <div ref={containerRef} className="h-full w-full touch-pan-y" />;
 }
 
 function PlanetCard({ planet }: { planet: PlanetData }) {
   const altStr = `${planet.altitude_deg}° ${planet.direction}`;
   const magStr = `Mag ${planet.magnitude_approx}`;
   const distStr = `${planet.distance_mkm}M km (${planet.light_time_minutes} min light)`;
+  const lower = planet.name.toLowerCase();
+  const cfg = PLANET_CONFIGS[lower] || {};
+  const glowStyle = cfg.radialGlow || "radial-gradient(circle at center, rgba(59,130,246,0.25) 0%, transparent 70%)";
 
   return (
-    <div className={`flex flex-col card transition-colors hover:border-sky-400/18 ${planet.visible_tonight ? "" : "opacity-45"}`}>
+    <div className={`flex flex-col card transition-all duration-300 hover:border-sky-400/40 border border-slate-800 bg-slate-900/90 shadow-xl overflow-hidden touch-pan-y ${planet.visible_tonight ? "" : "opacity-60"}`}>
+      {/* 3D Planet Header Box with Astronomical Radial Color Glow */}
       <div
-        className="relative h-[200px] w-full flex-shrink-0 overflow-hidden bg-transparent"
-        style={{
-          background: "radial-gradient(circle at center, rgba(30,40,60,0.3) 0%, transparent 70%)",
-        }}
+        className="relative h-[210px] w-full flex-shrink-0 overflow-hidden touch-pan-y"
+        style={{ background: glowStyle }}
       >
         <Planet3DWidget name={planet.name} />
       </div>
 
-      {/* Info column */}
-      <div className="flex flex-col gap-1.5 p-4">
-        {/* Name row */}
-        <div className="flex items-center justify-between">
-          <span className="flex items-center gap-2 text-lg font-semibold text-zinc-100">
-            <span className="text-xl">{planet.emoji}</span>
-            {planet.name}
+      {/* Detailed Planet Info Section */}
+      <div className="flex flex-col gap-2 p-5 border-t border-white/10 bg-slate-950/80">
+        {/* Name row with symbol & Naked Eye badge */}
+        <div className="flex items-center justify-between gap-2">
+          <span className="flex items-center gap-2 text-lg font-bold text-slate-100">
+            <span className="text-xl text-cyan-300 font-serif">{planet.emoji}</span>
+            <span>{planet.name}</span>
           </span>
           {planet.naked_eye && (
-            <span className="rounded border border-purple-500/30 bg-purple-500/15 px-2 py-0.5 text-[0.7rem] font-medium text-purple-400">
+            <span className="rounded-full border border-purple-500/40 bg-purple-950/60 px-2.5 py-0.5 text-[0.65rem] font-bold text-purple-300 shadow-sm">
               Naked Eye
             </span>
           )}
         </div>
 
-        {/* Constellation pill */}
-        <span className="inline-block w-fit rounded border border-zinc-600/30 bg-zinc-700/15 px-2 py-0.5 text-[0.7rem] text-zinc-300">
-          {planet.constellation}
-        </span>
+        {/* Constellation Pill */}
+        <div className="flex items-center gap-2">
+          <span className="inline-block rounded-md border border-sky-500/30 bg-sky-950/40 px-2 py-0.5 text-[0.7rem] font-mono font-bold text-sky-300">
+            {planet.constellation}
+          </span>
+        </div>
 
-        {/* Meta rows */}
-        <div className="flex flex-col gap-1 font-mono text-[0.75rem]">
-          <span className="block w-full truncate text-sky-400 font-medium" title={altStr}>
+        {/* Telemetry Grid */}
+        <div className="flex flex-col gap-1 font-mono text-xs mt-1">
+          <span className="text-cyan-300 font-bold" title={altStr}>
             {altStr}
           </span>
-          <span className="block w-full truncate text-amber-300" title={magStr}>
+          <span className="text-amber-300 font-bold" title={magStr}>
             {magStr}
           </span>
-          <span className="block w-full truncate text-zinc-400" title={distStr}>
+          <span className="text-slate-300 font-medium" title={distStr}>
             {distStr}
           </span>
         </div>
 
-        {/* Bottom info */}
-        <div className="mt-2 border-t border-purple-500/18 pt-2 text-[0.78rem] text-zinc-400 flex flex-col gap-0.5">
-          <span className={`font-semibold text-[0.78rem] ${planet.visible_tonight ? "text-purple-300" : "text-zinc-500"}`}>
-            <span
-              className={`mr-1.5 inline-block h-[7px] w-[7px] rounded-full ${planet.visible_tonight ? "bg-green-500" : "bg-zinc-600"}`}
-            />
+        {/* Visibility Status & Finding Instructions */}
+        <div className="mt-2 border-t border-white/10 pt-2 text-xs flex flex-col gap-1">
+          <span className={`font-bold flex items-center gap-1.5 ${planet.visible_tonight ? "text-emerald-300" : "text-slate-400"}`}>
+            <span className={`h-2 w-2 rounded-full ${planet.visible_tonight ? "bg-emerald-400 shadow-[0_0_8px_rgba(52,211,153,0.8)]" : "bg-slate-600"}`} />
             {planet.visible_tonight ? "Visible tonight" : "Not visible tonight"}
           </span>
-          <span className="truncate">{planet.how_to_find}</span>
-          <span className="text-zinc-500">
+          <p className="text-[0.75rem] text-slate-300 leading-snug line-clamp-2 mt-0.5">
+            {planet.how_to_find}
+          </p>
+          <span className="text-[0.7rem] text-slate-400 font-mono mt-0.5">
             Rise: {planet.rise_time} · Set: {planet.set_time}
           </span>
         </div>
@@ -297,29 +378,31 @@ function PlanetCard({ planet }: { planet: PlanetData }) {
 
 export default function PlanetGrid({ planets = [] }: { planets?: PlanetData[] }) {
   return (
-    <section className="card card-planets">
-      {/* Card header */}
-      <div className="card-header">
-        <Icon name="orbit" className="h-5 w-5" />
-        <h2 className="text-[0.92rem] font-semibold text-zinc-100 tracking-wide">
-          Planets Tonight
-        </h2>
+    <section id="card-planets" className="card w-full mb-8 border border-sky-500/20 bg-slate-900/90 shadow-xl overflow-hidden">
+      {/* Header */}
+      <div className="card-header border-b border-sky-500/20 px-6 py-4 bg-slate-900/80 justify-between">
+        <div className="flex items-center gap-2">
+          <Icon name="orbit" className="h-5 w-5 text-sky-400" />
+          <h2 className="text-base font-bold text-slate-100 tracking-wide">
+            Planets Tonight
+          </h2>
+        </div>
         <span
-          className="ml-1.5 flex cursor-pointer items-center"
+          className="flex cursor-pointer items-center text-xs text-slate-400 hover:text-sky-300"
           title="Calculated locally via Skyfield Ephemeris"
         >
-          <Icon name="info" className="h-[14px] w-[14px] stroke-zinc-500/60" />
+          <Icon name="info" className="h-4 w-4 stroke-slate-400" />
         </span>
       </div>
 
-      {/* Card body — responsive grid */}
-      <div className="p-5">
+      {/* Grid */}
+      <div className="p-6">
         {planets.length === 0 ? (
-          <div className="rounded-lg border border-red-500/30 bg-red-500/10 p-4 text-sm text-red-400">
+          <div className="rounded-2xl border border-red-500/30 bg-red-500/10 p-5 text-sm text-red-400">
             Planet data unavailable.
           </div>
         ) : (
-          <div className="grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
+          <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
             {planets.map((p) => (
               <PlanetCard key={p.name} planet={p} />
             ))}

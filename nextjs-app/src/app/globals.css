@@ -13,8 +13,8 @@
   /* Backgrounds — deep midnight navy / astronomy console */
   --bg-void:        #050510;
   --bg-deep:        #08091a;
-  --bg-card:        rgba(2, 6, 23, 0.40);
-  --bg-card-hover:  rgba(2, 6, 23, 0.65);
+  --bg-card:        rgba(11, 17, 32, 0.95);
+  --bg-card-hover:  rgba(15, 23, 42, 0.98);
   --bg-glass:       rgba(15, 23, 42, 0.35);
 
   /* Borders — subtle midnight blue */

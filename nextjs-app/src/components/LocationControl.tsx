@@ -18,7 +18,7 @@ function loadSavedLocations(): SavedLocation[] {
       if (valid.length > 0) return valid;
     }
   } catch {
-    // ignore malformed saved data, keep defaults
+    // ignore
   }
   return DEFAULT_LOCATIONS;
 }
@@ -30,13 +30,10 @@ export default function LocationControl() {
   const [hydrated, setHydrated] = useState(false);
   const [modalOpen, setModalOpen] = useState(false);
 
-  // localStorage doesn't exist during SSR — hydrate after mount to avoid a mismatch,
-  // matching the pattern already used by ObservationLog.tsx / Header.tsx's isMetric.
   useEffect(() => {
     const saved = loadSavedLocations();
     const storedActiveId = localStorage.getItem(ACTIVE_LOCATION_STORAGE_KEY);
     const active = saved.find((l) => l.id === storedActiveId) ?? saved[0];
-    // eslint-disable-next-line react-hooks/set-state-in-effect
     setLocations(saved);
     setActiveId(active?.id ?? null);
     setHydrated(true);
@@ -44,34 +41,31 @@ export default function LocationControl() {
 
   const active = locations.find((l) => l.id === activeId) ?? locations[0];
 
+  const formatCoords = (lat: number, lon: number) => {
+    const latStr = lat >= 0 ? `${lat.toFixed(2)}°N` : `${Math.abs(lat).toFixed(2)}°S`;
+    const lonStr = lon >= 0 ? `${lon.toFixed(2)}°E` : `${Math.abs(lon).toFixed(2)}°W`;
+    return `${latStr}, ${lonStr}`;
+  };
+
   return (
     <>
-      <div className="flex min-w-0 items-center gap-1.5">
-        <button
-          id="btn-location"
-          onClick={() => setModalOpen(true)}
-          className="flex h-6 w-6 flex-shrink-0 items-center justify-center rounded text-zinc-400 hover:text-sky-400 transition-colors"
-          title={t("set_loc_btn")}
-        >
-          <Icon name="map-pin" className="h-3.5 w-3.5" />
-        </button>
-        <button
-          onClick={() => setModalOpen(true)}
-          className="flex h-6 w-6 flex-shrink-0 items-center justify-center rounded text-zinc-400 hover:text-sky-400 transition-colors"
-          title="Auto-detect Location"
-        >
-          <Icon name="crosshair" className="h-3.5 w-3.5" />
-        </button>
-        <button onClick={() => setModalOpen(true)} className="flex min-w-0 flex-col items-start leading-tight text-left hover:opacity-80 transition-opacity">
-          <span className="flex min-w-0 max-w-[140px] items-center gap-1 text-[0.7rem] font-semibold text-zinc-200">
-            <span className="truncate">{hydrated && active ? active.name : t("loading_loc")}</span>
-            <Icon name="pencil" className="h-2.5 w-2.5 flex-shrink-0 text-zinc-500" />
+      <button
+        id="btn-location"
+        onClick={() => setModalOpen(true)}
+        className="flex items-center gap-2 text-left hover:text-sky-300 transition-colors py-0.5 px-1"
+        title={t("set_loc_btn")}
+      >
+        <Icon name="map-pin" className="h-3.5 w-3.5 text-sky-400 flex-shrink-0 animate-bounce-subtle" />
+        <div className="flex flex-col leading-tight min-w-0">
+          <span className="text-[0.75rem] font-bold text-slate-100 flex items-center gap-1">
+            <span className="truncate max-w-[100px] sm:max-w-[140px]">{hydrated && active ? active.name : t("loading_loc")}</span>
+            <Icon name="pencil" className="h-2.5 w-2.5 text-sky-400/80 flex-shrink-0" />
           </span>
-          <span className="truncate font-mono text-[0.65rem] text-zinc-500">
-            {hydrated && active ? `Lat: ${active.lat.toFixed(2)}, Lon: ${active.lon.toFixed(2)}` : "Lat: --, Lon: --"}
+          <span className="font-mono text-[0.65rem] text-sky-300/80 tracking-tight whitespace-nowrap">
+            {hydrated && active ? formatCoords(active.lat, active.lon) : "Lat: --, Lon: --"}
           </span>
-        </button>
-      </div>
+        </div>
+      </button>
 
       <LocationModal open={modalOpen} onClose={() => setModalOpen(false)} locations={locations} activeId={activeId} />
     </>
