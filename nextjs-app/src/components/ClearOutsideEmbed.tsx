@@ -4,8 +4,8 @@ import { useState } from "react";
 import Icon from "./Icon";
 import type { LocationCoords } from "@/types";
 
-const DEFAULT_LAT = 40.13;
-const DEFAULT_LON = -83.04;
+const DEFAULT_LAT = 40.14;
+const DEFAULT_LON = -83.01;
 
 export default function ClearOutsideEmbed({ coords }: { coords?: LocationCoords | null }) {
   const [imgError, setImgError] = useState(false);
@@ -21,23 +21,25 @@ export default function ClearOutsideEmbed({ coords }: { coords?: LocationCoords 
           <Icon name="cloud-sun" className="h-5 w-5 text-sky-400" />
           <h2>Clear Outside — Astronomical Weather Forecast</h2>
         </div>
-        <a href={forecastUrl} target="_blank" rel="noopener" className="text-xs text-sky-400 hover:underline">
+        <a href={forecastUrl} target="_blank" rel="noopener noreferrer" className="text-xs text-sky-400 hover:underline">
           Open Full Forecast ↗
         </a>
       </div>
       <div className="card-body grid grid-cols-1 lg:grid-cols-[1.4fr_1fr] gap-5">
-        <div className="rounded-xl overflow-hidden border border-white/5 bg-black/20 p-2 text-center">
+        <div className="rounded-xl overflow-hidden border border-white/5 bg-black/20 p-3 text-center flex flex-col items-center justify-center min-h-[260px] w-full">
           {!imgError ? (
-            /* eslint-disable-next-line @next/next/no-img-element */
-            <img
-              src={proxiedImageUrl}
-              alt="Clear Outside astronomical weather forecast"
-              loading="lazy"
-              onError={() => setImgError(true)}
-              className="w-full h-auto rounded-lg"
-            />
+            <a href={forecastUrl} target="_blank" rel="noopener noreferrer" className="block w-full transition hover:opacity-90">
+              {/* eslint-disable-next-line @next/next/no-img-element */}
+              <img
+                src={proxiedImageUrl}
+                alt={`Clear Outside astronomical forecast chart for coordinates (${lat}, ${lon})`}
+                loading="lazy"
+                onError={() => setImgError(true)}
+                className="w-full h-auto rounded-lg mx-auto object-contain max-h-[380px]"
+              />
+            </a>
           ) : (
-            <div className="p-8 text-center flex flex-col items-center justify-center min-h-[220px]">
+            <div className="p-8 text-center flex flex-col items-center justify-center">
               <span className="text-3xl mb-2">🌤️</span>
               <p className="text-sm font-semibold text-white mb-1">Clear Outside Astronomical Forecast</p>
               <p className="text-xs text-zinc-400 mb-4 max-w-sm">
@@ -46,7 +48,7 @@ export default function ClearOutsideEmbed({ coords }: { coords?: LocationCoords 
               <a
                 href={forecastUrl}
                 target="_blank"
-                rel="noopener"
+                rel="noopener noreferrer"
                 className="flex items-center gap-2 rounded-full border border-sky-500/40 bg-sky-500/10 px-4 py-2 text-xs font-semibold text-sky-300 hover:bg-sky-500/20 transition-all"
               >
                 View Live Forecast on ClearOutside.com ↗
