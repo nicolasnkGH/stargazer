@@ -7,6 +7,7 @@ import "./globals.css";
 import Header from "@/components/Header";
 import InstallPrompt from "@/components/InstallPrompt";
 import NightVisionButton from "@/components/NightVisionButton";
+import LocationGate from "@/components/LocationGate";
 import Toast from "@/components/Toast";
 
 const spaceGrotesk = Space_Grotesk({
@@ -25,7 +26,7 @@ const spaceMono = Space_Mono({
 export const metadata: Metadata = {
   metadataBase: new URL("https://stargazer.nick-t.net"),
   title: "StarGazer — Observatory Dashboard",
-  description: "Personal stargazing dashboard. Celestron StarSense Explorer 5\" DX. Scorpius targets, planet tracker, ISS alerts, and nightly conditions.",
+  description: "Personal stargazing dashboard. Deep-sky targets, planet tracker, ISS alerts, and nightly observing conditions.",
   openGraph: {
     type: "website",
     url: "https://stargazer.nick-t.net/",
@@ -69,6 +70,7 @@ export default async function RootLayout({
             <main className="flex flex-1 w-full flex-col items-center overflow-x-hidden">{children}</main>
             <InstallPrompt />
             <NightVisionButton />
+            <LocationGate />
             <Toast />
           </NextIntlClientProvider>
         </SerwistProvider>

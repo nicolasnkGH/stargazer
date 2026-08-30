@@ -8,11 +8,11 @@ import os
 import json
 
 # --- StarGazer Configuration ---
-LATITUDE = float(os.getenv("LATITUDE", "40.0638"))
-LONGITUDE = float(os.getenv("LONGITUDE", "-83.0457"))
+LATITUDE = float(os.getenv("LATITUDE", "19.8207"))
+LONGITUDE = float(os.getenv("LONGITUDE", "-155.4681"))
 TELESCOPE_APERTURE_MM = int(os.getenv("TELESCOPE_APERTURE_MM", "130"))
-ELEVATION_M = int(os.getenv("ELEVATION_M", "250"))
-TIMEZONE = os.getenv("OBSERVER_TIMEZONE", "America/New_York")
+ELEVATION_M = int(os.getenv("ELEVATION_M", "4205"))
+TIMEZONE = os.getenv("OBSERVER_TIMEZONE", "Pacific/Honolulu")
 
 # Telescope defaults (can be overridden by environment variables)
 TELESCOPE_FOCAL_MM = int(os.getenv("TELESCOPE_FOCAL_MM", "650"))

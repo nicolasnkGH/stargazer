@@ -35,7 +35,7 @@ export default function ObservationLog() {
   const [newTarget, setNewTarget] = useState("");
   const [newNotes, setNewNotes] = useState("");
   const [newConditions, setNewConditions] = useState("Good");
-  const [newEquipment, setNewEquipment] = useState("Celestron StarSense 5DX");
+  const [newEquipment, setNewEquipment] = useState("Telescope (130mm)");
 
   function addEntry(e: React.FormEvent) {
     e.preventDefault();
@@ -112,7 +112,7 @@ export default function ObservationLog() {
               onChange={(e) => setNewEquipment(e.target.value)}
               className="rounded-lg bg-white/5 border border-white/10 px-3 py-2 text-sm text-zinc-200 focus:outline-none focus:border-sky-500/40"
             >
-              <option>Celestron StarSense 5DX</option>
+              <option>Telescope (130mm)</option>
               <option>Binoculars 10x50</option>
               <option>Telescope + Camera</option>
               <option>Naked Eye</option>

@@ -6,8 +6,8 @@ import { parseLocationCookie } from "@/lib/location-cookie";
 import { LOCATION_COOKIE } from "@/lib/constants";
 import type { LocationCoords } from "@/types";
 
-const DEFAULT_LAT = 40.14;
-const DEFAULT_LON = -83.01;
+const DEFAULT_LAT = 19.82;
+const DEFAULT_LON = -155.47;
 
 function getClientCoords(): LocationCoords | null {
   if (typeof document === "undefined") return null;
