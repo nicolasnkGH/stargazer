@@ -1,107 +1,111 @@
-import { cookies } from "next/headers";
-import SolarSystemHero from "@/components/SolarSystemHero";
-import StarfieldBackground from "@/components/StarfieldBackground";
-import PlanetGrid from "@/components/PlanetGrid";
+"use client";
+
+import useSWR from "swr";
+import SkyHeroConsole from "@/components/SkyHeroConsole";
+import ClearOutsideEmbed from "@/components/ClearOutsideEmbed";
 import SeeingConditions from "@/components/SeeingConditions";
 import MoonCard from "@/components/MoonCard";
-import ActiveConstellation from "@/components/ActiveConstellation";
-import ConstellationsTonight from "@/components/ConstellationsTonight";
-import TargetDatabase from "@/components/TargetDatabase";
+import PlanetGrid from "@/components/PlanetGrid";
+import ConstellationGrid from "@/components/ConstellationGrid";
 import SkyMotion from "@/components/SkyMotion";
+import ApodCard from "@/components/ApodCard";
+import TargetDatabase from "@/components/TargetDatabase";
 import WeeklyForecast from "@/components/WeeklyForecast";
-import GoNoGoBanner from "@/components/GoNoGoBanner";
-import ClearOutsideEmbed from "@/components/ClearOutsideEmbed";
-import ObservationLog from "@/components/ObservationLog";
-import Resources from "@/components/Resources";
-import Footer from "@/components/Footer";
-import CardRow from "@/components/CardRow";
-import AiTargets from "@/components/AiTargets";
-import PlanMyNight from "@/components/PlanMyNight";
+import NightPlanner from "@/components/NightPlanner";
 import TelescopeCalculator from "@/components/TelescopeCalculator";
 import SolarSystemExplorerCard from "@/components/SolarSystemExplorerCard";
 import LightPollutionCard from "@/components/LightPollutionCard";
-import AuroraCard from "@/components/AuroraCard";
-import ApodCard from "@/components/ApodCard";
-import { fetchBackend } from "@/lib/api-proxy";
-import { REVALIDATE, LOCATION_COOKIE } from "@/lib/constants";
-import { parseLocationCookie } from "@/lib/location-cookie";
-import type {
-  TonightReport,
-  WeeklyReport,
-  PlanetsResponse,
-  ConstellationsResponse,
-  BortleInfo,
-  AuroraForecast,
-  SpaceWeatherReport,
-  ApodData,
-} from "@/types";
+import SkyMapCard from "@/components/SkyMapCard";
+import ObservationLogger from "@/components/ObservationLogger";
+import ExternalResourcesCard from "@/components/ExternalResourcesCard";
+import Footer from "@/components/Footer";
+import type { TonightReport, Target, LocationCoords } from "@/types";
+import { HUD_POLL_INTERVAL_MS } from "@/lib/constants";
 
-export default async function Home() {
-  const cookieStore = await cookies();
-  const coords = parseLocationCookie(cookieStore.get(LOCATION_COOKIE)?.value);
-  const locSearch = coords ? `?lat=${coords.lat}&lon=${coords.lon}` : "";
+const fetcher = (url: string) => fetch(url).then((r) => r.json());
 
-  const [tonight, weekly, planetsData, constellationsData, bortle, aurora, spaceWeather, apod] = await Promise.all([
-    fetchBackend<TonightReport>("/tonight", locSearch, REVALIDATE.tonight),
-    fetchBackend<WeeklyReport>("/weekly", locSearch, REVALIDATE.weekly),
-    fetchBackend<PlanetsResponse>("/planets", locSearch, REVALIDATE.planets),
-    fetchBackend<ConstellationsResponse>("/constellations", locSearch, REVALIDATE.constellations),
-    fetchBackend<BortleInfo>("/api/bortle", locSearch, REVALIDATE.bortle),
-    fetchBackend<AuroraForecast>("/api/aurora", coords ? `?lat=${coords.lat}` : "", REVALIDATE.aurora),
-    fetchBackend<SpaceWeatherReport>("/nasa/space-weather", "", REVALIDATE.spaceWeather),
-    fetchBackend<ApodData>("/nasa/apod", "", REVALIDATE.apod),
-  ]);
+export default function Page() {
+  const { data: tonight } = useSWR<TonightReport>("/api/tonight", fetcher, {
+    refreshInterval: HUD_POLL_INTERVAL_MS,
+  });
+
+  const seeing = tonight?.seeing ?? null;
+  const moon = tonight?.moon ?? null;
+  const moonFact = tonight?.moon_fact;
+  const planets = tonight?.planets ?? [];
+  const apod = tonight?.apod ?? null;
+  const weekly = tonight?.weekly ?? null;
+  const coords: LocationCoords = {
+    lat: tonight?.location?.lat ?? 40.13,
+    lon: tonight?.location?.lon ?? -83.04,
+    city: tonight?.location?.city ?? "Columbus",
+  };
+
+  function handleSelectTarget(t: Target) {
+    const el = document.getElementById("card-targets");
+    if (el) {
+      el.scrollIntoView({ behavior: "smooth" });
+    }
+  }
 
   return (
-    <>
-      <StarfieldBackground />
-      <SolarSystemHero
-        twilight={tonight?.twilight_timeline}
-        bortle={bortle?.bortle}
-      />
-      <div className="flex w-full flex-col items-center gap-8">
-        <div className="w-full max-w-[1600px] px-4 sm:px-8 py-8">
-          {/* Top Priority Observing Conditions */}
-          <GoNoGoBanner seeing={tonight?.seeing ?? null} />
-          
-          <CardRow id="card-tonight">
-            <SeeingConditions seeing={tonight?.seeing ?? null} twilight={tonight?.twilight_timeline} />
-            <MoonCard moon={tonight?.moon ?? null} moonFact={tonight?.seeing?.moon_fact} />
-            <SkyMotion />
-          </CardRow>
+    <div className="w-full max-w-full flex flex-col items-center overflow-x-hidden">
+      {/* 3D Solar System Orrery Hero Console */}
+      <SkyHeroConsole onSelectTarget={handleSelectTarget} />
 
-          {/* 7-Day Astronomical Observing Forecast */}
-          <WeeklyForecast report={weekly} />
-
-          {/* Clear Outside Weather Chart */}
-          <ClearOutsideEmbed coords={coords} />
-
-          {/* Light Pollution Map moved UP right below Clear Outside */}
-          <LightPollutionCard bortle={bortle} />
-
-          {/* NASA Astronomy Picture of the Day moved right below Light Pollution Card */}
-          <ApodCard apod={apod} />
-
-          {/* Aurora & Space Weather Forecast */}
-          <AuroraCard aurora={aurora} spaceWeather={spaceWeather} />
-
-          {/* Must-See & AI Picks with 1:1 Vanilla HUD scanlines & glowing cards */}
-          <AiTargets bestTargets={tonight?.best_targets_tonight} mustSee={tonight?.must_see} />
-
-          {/* Planets Tonight with 3D spin rotation & radial planet color glows */}
-          <PlanetGrid planets={planetsData?.planets} />
-
-          <ActiveConstellation />
-          <ConstellationsTonight constellations={constellationsData?.constellations} />
-          <TargetDatabase />
-          <PlanMyNight />
-          <TelescopeCalculator />
-          <SolarSystemExplorerCard />
-          <ObservationLog />
-          <Resources />
-          <Footer />
+      {/* Main Observing Dashboard Body */}
+      <div className="w-full max-w-7xl px-3 sm:px-6 py-6 space-y-8 overflow-x-hidden">
+        {/* Conditions & Moon Cards */}
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6 items-stretch">
+          <SeeingConditions seeing={seeing} />
+          <MoonCard moon={moon} moonFact={moonFact} />
         </div>
+
+        {/* Clear Outside Astronomical Weather Chart */}
+        <ClearOutsideEmbed coords={coords} />
+
+        {/* Light Pollution Map */}
+        <LightPollutionCard coords={coords} />
+
+        {/* APOD + 7-Day Outlook */}
+        <div className="grid grid-cols-1 lg:grid-cols-[1fr_1.5fr] gap-6">
+          <ApodCard apod={apod} />
+          <WeeklyForecast report={weekly} />
+        </div>
+
+        {/* Planets Tonight */}
+        <PlanetGrid planets={planets} />
+
+        {/* Active Constellations */}
+        <ConstellationGrid />
+
+        {/* Sky Map */}
+        <SkyMapCard coords={coords} />
+
+        {/* Deep Sky Target Database */}
+        <TargetDatabase />
+
+        {/* Sky Objects in Motion */}
+        <SkyMotion />
+
+        {/* Night Planner */}
+        <NightPlanner />
+
+        {/* Telescope Optics Calculator */}
+        <TelescopeCalculator />
+
+        {/* 3D Solar System Explorer */}
+        <SolarSystemExplorerCard />
+
+        {/* Observation Log */}
+        <ObservationLogger />
+
+        {/* Resources & Links */}
+        <ExternalResourcesCard />
+
+        {/* Footer */}
+        <Footer />
       </div>
-    </>
+    </div>
   );
 }
