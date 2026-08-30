@@ -5,6 +5,26 @@ const BASE_URL = 'http://localhost:3000';
 
 test.describe('StarGazer UI Smoke Tests', () => {
 
+  test.beforeEach(async ({ page, context }) => {
+    // Set location cookie to Mauna Kea default to bypass LocationGate
+    await context.addCookies([
+      {
+        name: 'stargazer_loc',
+        value: encodeURIComponent(JSON.stringify({ lat: 19.8206, lon: -155.4681 })),
+        domain: 'localhost',
+        path: '/',
+      }
+    ]);
+    
+    // Inject active location into localStorage BEFORE the page loads
+    await page.addInitScript(() => {
+      localStorage.setItem('stargazer_active_loc', 'default-mauna-kea');
+      localStorage.setItem('stargazer_locations', JSON.stringify([
+        { id: "default-mauna-kea", name: "Mauna Kea Observatory, HI", lat: 19.8206, lon: -155.4681 }
+      ]));
+    });
+  });
+
   test('Page loads without fatal JS errors', async ({ page }) => {
     const jsErrors = [];
     page.on('pageerror', err => jsErrors.push(err.message));
