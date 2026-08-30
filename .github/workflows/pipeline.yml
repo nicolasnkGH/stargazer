@@ -1,4 +1,4 @@
-name: Stargazer Enterprise Pipeline
+name: CI/CD Pipeline
 
 on:
   push:
@@ -82,51 +82,40 @@ jobs:
         with:
           ref: ${{ github.event_name == 'workflow_dispatch' && github.event.inputs.target_branch || github.ref }}
 
+      - name: Mask sensitive multiline secrets
+        run: |
+          set -euo pipefail
+          echo '${{ secrets.VAPID_PRIVATE_KEY }}' | while IFS= read -r line; do
+            if [ -n "$line" ]; then echo "::add-mask::$line"; fi
+          done
+
       - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
-          node-version: '20'
+          node-version: '22'
 
       - name: Set up Python 3.11
         uses: actions/setup-python@v5
         with:
           python-version: "3.11"
 
-      - name: JavaScript syntax checks
+      - name: Install Next.js dependencies
         run: |
           set -euo pipefail
-          echo "Checking JS files in web/..."
-          ERRORS=0
-          for f in web/*.js; do
-            node --check "$f" && echo "OK $f" || { echo "ERROR: syntax error in $f"; ERRORS=$((ERRORS+1)); }
-          done
-          if [ "$ERRORS" -gt 0 ]; then
-            echo "Found $ERRORS JS file(s) with syntax errors."
-            exit 1
-          fi
+          cd nextjs-app
+          npm ci --legacy-peer-deps
 
-      - name: HTML critical element checks
+      - name: Lint Next.js
         run: |
           set -euo pipefail
-          node -e "
-            const fs = require('fs');
-            const html = fs.readFileSync('web/index.html', 'utf8');
-            const required = [
-              'card-motion', 'card-targets',
-              'scheduler-list-container', 'scheduler-empty-state',
-              'scheduler-timeline-bar'
-            ];
-            let errors = 0;
-            required.forEach(id => {
-              if (!html.includes('id=\"' + id + '\"')) {
-                console.error('Missing required element #' + id);
-                errors++;
-              } else {
-                console.log('OK #' + id);
-              }
-            });
-            if (errors > 0) process.exit(1);
-          "
+          cd nextjs-app
+          npm run lint
+
+      - name: Build Next.js
+        run: |
+          set -euo pipefail
+          cd nextjs-app
+          npm run build
 
       - name: Install Python dependencies
         run: |
@@ -147,10 +136,10 @@ jobs:
           set -euo pipefail
           bandit -r api/ -x api/venv -ll -ii -s B104
 
-      - name: Install JS dependencies and browser
+      - name: Install Playwright browser
         run: |
           set -euo pipefail
-          npm ci
+          npm ci --legacy-peer-deps
           npx playwright install --with-deps chromium
 
       - name: Run UI smoke tests and performance gate
@@ -158,10 +147,12 @@ jobs:
           CI: true
         run: |
           set -euo pipefail
-          npx serve web/ -p 3000 --no-clipboard &
+          cd nextjs-app
+          npm run start &
           SERVER_PID=$!
           trap 'kill $SERVER_PID' EXIT
-          sleep 4
+          sleep 8
+          cd ..
 
           # 1) Functional smoke tests (must pass)
           npx playwright test tests/smoke.spec.js --reporter=line
@@ -225,8 +216,24 @@ jobs:
         with:
           ref: ${{ github.event_name == 'workflow_dispatch' && github.event.inputs.target_branch || github.ref }}
 
-      - name: Copy package.json to API directory
-        run: cp package.json api/package.json
+      - name: Mask sensitive multiline secrets
+        run: |
+          set -euo pipefail
+          echo '${{ secrets.VAPID_PRIVATE_KEY }}' | while IFS= read -r line; do
+            if [ -n "$line" ]; then echo "::add-mask::$line"; fi
+          done
+          echo '${{ secrets.GCP_SA_KEY }}' | while IFS= read -r line; do
+            if [ -n "$line" ]; then echo "::add-mask::$line"; fi
+          done
+          echo '${{ secrets.CF_ACCESS_CLIENT_SECRET }}' | while IFS= read -r line; do
+            if [ -n "$line" ]; then echo "::add-mask::$line"; fi
+          done
+          echo '${{ secrets.AI_API_KEY }}' | while IFS= read -r line; do
+            if [ -n "$line" ]; then echo "::add-mask::$line"; fi
+          done
+          echo '${{ secrets.FALLBACK_AI_API_KEY }}' | while IFS= read -r line; do
+            if [ -n "$line" ]; then echo "::add-mask::$line"; fi
+          done
 
       - name: Validate deployment configuration
         env:
@@ -251,8 +258,6 @@ jobs:
           VAPID_PUBLIC_KEY: ${{ secrets.VAPID_PUBLIC_KEY }}
           VAPID_ADMIN_EMAIL: ${{ secrets.VAPID_ADMIN_EMAIL }}
           NASA_APOD_KEY: ${{ secrets.NASA_APOD_KEY }}
-          TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
-          TELEGRAM_CHAT_ID: ${{ secrets.TELEGRAM_CHAT_ID }}
         run: |
           set -euo pipefail
           missing=0
@@ -281,8 +286,6 @@ jobs:
             VAPID_PUBLIC_KEY
             VAPID_ADMIN_EMAIL
             NASA_APOD_KEY
-            TELEGRAM_BOT_TOKEN
-            TELEGRAM_CHAT_ID
           )
 
           for key in "${required[@]}"; do
@@ -302,6 +305,77 @@ jobs:
             exit 1
           fi
 
+      - name: Google Auth
+        if: github.event_name != 'workflow_dispatch' || github.event.inputs.dry_run != 'true'
+        uses: google-github-actions/auth@v2
+        with:
+          credentials_json: ${{ secrets.GCP_SA_KEY }}
+
+      # Frontend deploy
+      - name: Setup Node.js for frontend
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+
+      - name: Install Next.js dependencies
+        run: |
+          set -euo pipefail
+          cd nextjs-app
+          npm ci --legacy-peer-deps
+
+      - name: Build Next.js
+        run: |
+          set -euo pipefail
+          cd nextjs-app
+          npm run build
+
+      - name: Deploy Frontend to Cloud Run
+        id: deploy_frontend
+        if: github.event_name != 'workflow_dispatch' || github.event.inputs.dry_run != 'true'
+        uses: google-github-actions/deploy-cloudrun@v2
+        with:
+          service: ${{ vars.GCP_SERVICE_NAME_FRONTEND || secrets.GCP_SERVICE_NAME_FRONTEND }}
+          region: ${{ vars.GCP_REGION }}
+          source: ./nextjs-app
+          flags: >-
+            --execution-environment=${{ vars.CLOUD_RUN_EXECUTION_ENV }}
+            --allow-unauthenticated
+          env_vars: |-
+            API_BACKEND=${{ vars.FRONTEND_API_URL }}
+
+      - name: Post-deploy health check for frontend
+        if: github.event_name != 'workflow_dispatch' || github.event.inputs.dry_run != 'true'
+        run: |
+          set -euo pipefail
+          BASE_URL="${{ steps.deploy_frontend.outputs.url }}"
+          if [ -z "$BASE_URL" ]; then
+            echo "Cloud Run URL output not found from deploy step."
+            exit 1
+          fi
+
+          HEALTH_URL="${BASE_URL%/}/api/health"
+          echo "Checking $HEALTH_URL"
+          ID_TOKEN="$(gcloud auth print-identity-token --audiences="$BASE_URL")"
+          if [ -z "$ID_TOKEN" ]; then
+            echo "Unable to mint identity token for Cloud Run health check."
+            exit 1
+          fi
+
+          for attempt in 1 2 3 4 5; do
+            if curl --fail --silent --show-error --max-time 10 \
+              -H "Authorization: Bearer $ID_TOKEN" \
+              "$HEALTH_URL" >/tmp/health_frontend.json; then
+              echo "Frontend health check passed on attempt $attempt"
+              cat /tmp/health_frontend.json
+              exit 0
+            fi
+            echo "Health check failed (attempt $attempt). Retrying..."
+            sleep 5
+          done
+
+          echo "Frontend health endpoint failed after retries: $HEALTH_URL"
+          exit 1
+
       - name: Dry-run deploy preview
         if: github.event_name == 'workflow_dispatch' && github.event.inputs.dry_run == 'true'
         run: |
@@ -310,12 +384,6 @@ jobs:
           echo "Would deploy service: ${{ vars.GCP_SERVICE_NAME || secrets.GCP_SERVICE_NAME }}"
           echo "Would deploy region: ${{ vars.GCP_REGION }}"
           echo "Would deploy source: ${{ vars.GCP_SOURCE_DIR }}"
-
-      - name: Google Auth
-        if: github.event_name != 'workflow_dispatch' || github.event.inputs.dry_run != 'true'
-        uses: google-github-actions/auth@v2
-        with:
-          credentials_json: ${{ secrets.GCP_SA_KEY }}
 
       - name: Deploy to Cloud Run
         id: deploy_cloud_run
@@ -344,8 +412,6 @@ jobs:
             VAPID_PUBLIC_KEY=${{ secrets.VAPID_PUBLIC_KEY }}
             VAPID_ADMIN_EMAIL=${{ secrets.VAPID_ADMIN_EMAIL }}
             NASA_APOD_KEY=${{ secrets.NASA_APOD_KEY }}
-            TELEGRAM_BOT_TOKEN=${{ secrets.TELEGRAM_BOT_TOKEN }}
-            TELEGRAM_CHAT_ID=${{ secrets.TELEGRAM_CHAT_ID }}
 
       - name: Post-deploy health check
         if: github.event_name != 'workflow_dispatch' || github.event.inputs.dry_run != 'true'
@@ -405,7 +471,7 @@ jobs:
         run: |
           set -euo pipefail
           INPUT_VERSION="${{ github.event_name == 'workflow_dispatch' && github.event.inputs.version || '' }}"
-          LAST_TAG=$(git describe --tags --match "v*" --abbrev=0 2>/dev/null || echo "v0.0.0")
+          LAST_TAG=$(git describe --tags --match "v3.*" --abbrev=0 2>/dev/null || echo "v3.0.0")
           echo "last_tag=$LAST_TAG" >> "$GITHUB_OUTPUT"
 
           if [ -n "$INPUT_VERSION" ]; then

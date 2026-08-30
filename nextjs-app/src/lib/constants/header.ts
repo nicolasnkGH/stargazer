@@ -24,3 +24,7 @@ export const LANG_OPTIONS: Array<{ value: Locale; label: string }> = [
   { value: "es", label: "\u{1F310} ES" },
   { value: "pt", label: "\u{1F310} PT" },
 ];
+
+// Night Vision Mode — matches the legacy web/app.js localStorage key so the
+// setting survives the cutover from the vanilla build.
+export const NIGHT_MODE_STORAGE_KEY = "stargazer_night_mode";

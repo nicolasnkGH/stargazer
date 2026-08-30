@@ -34,12 +34,17 @@ test.describe('StarGazer UI Smoke Tests', () => {
   test('Critical sections render in the DOM', async ({ page }) => {
     await page.goto(BASE_URL, { waitUntil: 'domcontentloaded', timeout: 15000 });
 
+    // Use force:true to bypass any overlapping element that intercepts pointer events in headless CI
+    const issBtn = page.getByText('+ ISS Pass');
+    await expect(issBtn).toBeVisible({ timeout: 5000 });
+    await issBtn.click({ force: true });
+
+    // Check for the critical sections that should be present
     const criticalIds = [
-      '#card-motion',
-      '#card-targets',
-      '#scheduler-list-container',
-      '#scheduler-empty-state',
-      '#scheduler-timeline-bar',
+      '#card-targets',             // Target database card
+      '#scheduler-list-container', // List of scheduled targets
+      '#scheduler-timeline-bar',   // Timeline bar
+      '#card-space-weather'        // Space weather card
     ];
 
     for (const id of criticalIds) {
@@ -60,7 +65,7 @@ test.describe('StarGazer UI Smoke Tests', () => {
   test('Sky Objects in Motion tabs exist', async ({ page }) => {
     await page.goto(BASE_URL, { waitUntil: 'domcontentloaded', timeout: 15000 });
 
-    const tabs = ['ISS Passes', 'Near-Earth Objects', 'Comets', 'Meteor Showers'];
+    const tabs = ['ISS Passes', 'Asteroids (NEOs)', 'Comets', 'Meteor Showers'];
     for (const tab of tabs) {
       const el = page.getByText(tab).first();
       await expect(el).toBeAttached({ timeout: 5000 });

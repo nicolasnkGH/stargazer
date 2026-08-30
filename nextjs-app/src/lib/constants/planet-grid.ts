@@ -1,4 +1,4 @@
-/** Texture per planet, matching Moon3DWidget's simple sphere+texture pattern (no drag, no bump map, no rings). */
+/** Texture per planet — drives the interactive 3D widgets in PlanetGrid (drag/zoom via OrbitControls). */
 export const PLANET_TEXTURES: Record<string, string> = {
   mercury: "/assets/mercury.jpg",
   venus: "/assets/venus.jpg",

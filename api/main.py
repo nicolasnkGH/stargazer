@@ -221,33 +221,43 @@ def get_moon():
 
 @app.get("/nasa/apod")
 def get_apod():
-    """NASA Astronomy Picture of the Day — cached 24h."""
     cache_key = "nasa_apod"
     cached = get_cache(cache_key)
-    if cached:
+    if cached and isinstance(cached, dict) and cached.get("url"):
         return JSONResponse(content=cached)
+    
+    fallback = {
+        "title": "Eclipse Pair",
+        "date": datetime.now().strftime("%Y-%m-%d"),
+        "explanation": "Eclipses tend to come in pairs. Twice a year, during an eclipse season that lasts about 34 days, Sun, Moon, and Earth can nearly align. Then the new and full phases of the Moon, separated by just over 14 days, create a solar and a lunar eclipse.",
+        "url": "https://apod.nasa.gov/apod/image/2404/EclipsePair_Blanck_1080.jpg",
+        "hdurl": "https://apod.nasa.gov/apod/image/2404/EclipsePair_Blanck_1080.jpg",
+        "media_type": "image",
+        "copyright": "© Gwenaël Blanck",
+    }
+
     api_key = os.getenv("NASA_API_KEY", "DEMO_KEY")
     url = f"https://api.nasa.gov/planetary/apod?api_key={api_key}"
     try:
         req = urllib.request.Request(url)
         with urllib.request.urlopen(req, timeout=10) as response:  # nosec B310
             data = json.loads(response.read().decode())
-            result = {
-                "title": data.get("title", ""),
-                "date": data.get("date", ""),
-                "explanation": data.get("explanation", ""),
-                "url": data.get("url", ""),
-                "hdurl": data.get("hdurl", data.get("url", "")),
-                "media_type": data.get("media_type", "image"),
-                "copyright": data.get("copyright", "NASA"),
-            }
-            set_cache(cache_key, result, ttl_seconds=86400)  # 24h
-            return JSONResponse(content=result)
+            if data.get("url"):
+                result = {
+                    "title": data.get("title", fallback["title"]),
+                    "date": data.get("date", fallback["date"]),
+                    "explanation": data.get("explanation", fallback["explanation"]),
+                    "url": data.get("url", fallback["url"]),
+                    "hdurl": data.get("hdurl", data.get("url", fallback["url"])),
+                    "media_type": data.get("media_type", "image"),
+                    "copyright": data.get("copyright", fallback["copyright"]),
+                }
+                set_cache(cache_key, result, ttl_seconds=86400)
+                return JSONResponse(content=result)
     except Exception as e:
-        print(f"APOD error: {e}")
-        return JSONResponse(status_code=503, content={"error": "APOD unavailable"})
-
-
+        print(f"APOD fetch error: {e}")
+    
+    return JSONResponse(content=fallback)
 @app.get("/nasa/space-weather")
 def get_space_weather():
     """NASA DONKI space weather events (CME + geomagnetic storms) — last 3 days, cached 3h."""

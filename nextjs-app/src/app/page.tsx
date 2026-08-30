@@ -54,7 +54,10 @@ export default async function Home() {
   return (
     <div className="w-full max-w-full overflow-x-hidden flex flex-col items-center">
       <StarfieldBackground />
-      <SolarSystemHero />
+      <SolarSystemHero
+        twilight={tonight?.twilight_timeline}
+        bortle={bortle?.bortle}
+      />
       <div className="flex w-full flex-col items-center gap-8 overflow-x-hidden">
         <div className="w-full max-w-[1600px] px-2 sm:px-8 py-8 space-y-8 overflow-x-hidden">
           <CardRow id="card-tonight">
