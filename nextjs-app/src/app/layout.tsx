@@ -1,7 +1,7 @@
 import type { Metadata, Viewport } from "next";
 import { Space_Grotesk, Space_Mono } from "next/font/google";
 import { NextIntlClientProvider } from "next-intl";
-import { getLocale } from "next-intl/server";
+import { getLocale, getMessages } from "next-intl/server";
 import { SerwistProvider } from "@serwist/turbopack/react";
 import "./globals.css";
 import Header from "@/components/Header";
@@ -54,17 +54,18 @@ export default async function RootLayout({
   children: React.ReactNode;
 }>) {
   const locale = await getLocale();
+  const messages = await getMessages();
 
   return (
     <html
       lang={locale}
-      className={`${spaceGrotesk.variable} ${spaceMono.variable} h-full antialiased`}
+      className={`${spaceGrotesk.variable} ${spaceMono.variable} h-full antialiased overflow-x-hidden`}
     >
-      <body className="min-h-screen flex flex-col">
+      <body className="min-h-screen flex flex-col overflow-x-hidden">
         <SerwistProvider swUrl="/serwist/sw.js">
-          <NextIntlClientProvider>
+          <NextIntlClientProvider locale={locale} messages={messages}>
             <Header />
-            <main className="flex flex-1 w-full flex-col items-center">{children}</main>
+            <main className="flex flex-1 w-full flex-col items-center overflow-x-hidden">{children}</main>
             <InstallPrompt />
             <Toast />
           </NextIntlClientProvider>

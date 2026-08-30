@@ -1,3 +1,6 @@
+"use client";
+
+import { useState } from "react";
 import Icon from "./Icon";
 import type { LocationCoords } from "@/types";
 
@@ -5,12 +8,14 @@ const DEFAULT_LAT = 40.13;
 const DEFAULT_LON = -83.04;
 
 export default function ClearOutsideEmbed({ coords }: { coords?: LocationCoords | null }) {
-  const lat = coords?.lat ?? DEFAULT_LAT;
-  const lon = coords?.lon ?? DEFAULT_LON;
+  const [imgError, setImgError] = useState(false);
+  const lat = (coords?.lat ?? DEFAULT_LAT).toFixed(2);
+  const lon = (coords?.lon ?? DEFAULT_LON).toFixed(2);
   const forecastUrl = `https://clearoutside.com/forecast/${lat}/${lon}`;
+  const imageUrl = `https://clearoutside.com/forecast_image/large/${lat}/${lon}/forecast.png`;
 
   return (
-    <section id="card-weather" className="card w-full">
+    <section id="card-weather" className="card w-full mb-8">
       <div className="card-header justify-between flex-wrap gap-2">
         <div className="flex items-center gap-2">
           <Icon name="cloud-sun" className="h-5 w-5 text-sky-400" />
@@ -21,14 +26,33 @@ export default function ClearOutsideEmbed({ coords }: { coords?: LocationCoords 
         </a>
       </div>
       <div className="card-body grid grid-cols-1 lg:grid-cols-[1.4fr_1fr] gap-5">
-        <div className="rounded-xl overflow-hidden border border-white/5 bg-black/20">
-          {/* eslint-disable-next-line @next/next/no-img-element */}
-          <img
-            src={`https://clearoutside.com/forecast_image_large/${lat}/${lon}/forecast.png`}
-            alt="Clear Outside astronomical weather forecast"
-            loading="lazy"
-            className="w-full"
-          />
+        <div className="rounded-xl overflow-hidden border border-white/5 bg-black/20 p-2 text-center">
+          {!imgError ? (
+            /* eslint-disable-next-line @next/next/no-img-element */
+            <img
+              src={imageUrl}
+              alt="Clear Outside astronomical weather forecast"
+              loading="lazy"
+              onError={() => setImgError(true)}
+              className="w-full h-auto rounded-lg"
+            />
+          ) : (
+            <div className="p-8 text-center flex flex-col items-center justify-center min-h-[220px]">
+              <span className="text-3xl mb-2">🌤️</span>
+              <p className="text-sm font-semibold text-white mb-1">Clear Outside Chart</p>
+              <p className="text-xs text-zinc-400 mb-4 max-w-sm">
+                Forecast image preview unavailable directly in browser frame for coordinates ({lat}, {lon}).
+              </p>
+              <a
+                href={forecastUrl}
+                target="_blank"
+                rel="noopener"
+                className="flex items-center gap-2 rounded-full border border-sky-500/40 bg-sky-500/10 px-4 py-2 text-xs font-semibold text-sky-300 hover:bg-sky-500/20 transition-all"
+              >
+                View Full Interactive Forecast on ClearOutside.com
+              </a>
+            </div>
+          )}
         </div>
         <div className="text-sm">
           <h3 className="text-white font-semibold mb-3">How to read this chart</h3>

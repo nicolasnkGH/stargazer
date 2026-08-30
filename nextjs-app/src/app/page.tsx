@@ -9,7 +9,6 @@ import ConstellationsTonight from "@/components/ConstellationsTonight";
 import TargetDatabase from "@/components/TargetDatabase";
 import SkyMotion from "@/components/SkyMotion";
 import WeeklyForecast from "@/components/WeeklyForecast";
-import GoNoGoBanner from "@/components/GoNoGoBanner";
 import ClearOutsideEmbed from "@/components/ClearOutsideEmbed";
 import ObservationLog from "@/components/ObservationLog";
 import Resources from "@/components/Resources";
@@ -53,35 +52,49 @@ export default async function Home() {
   ]);
 
   return (
-    <>
+    <div className="w-full max-w-full overflow-x-hidden flex flex-col items-center">
       <StarfieldBackground />
       <SolarSystemHero />
-      <div className="flex w-full flex-col items-center gap-8">
-        <div className="w-full max-w-[1600px] px-4 sm:px-8 py-8">
-          <GoNoGoBanner seeing={tonight?.seeing ?? null} />
+      <div className="flex w-full flex-col items-center gap-8 overflow-x-hidden">
+        <div className="w-full max-w-[1600px] px-2 sm:px-8 py-8 space-y-8 overflow-x-hidden">
           <CardRow id="card-tonight">
             <SeeingConditions seeing={tonight?.seeing ?? null} twilight={tonight?.twilight_timeline} />
             <MoonCard moon={tonight?.moon ?? null} moonFact={tonight?.seeing?.moon_fact} />
             <SkyMotion />
           </CardRow>
+
+          {/* 7-Day Astronomical Observing Forecast */}
+          <WeeklyForecast report={weekly} />
+
+          {/* Clear Outside Weather Chart */}
+          <ClearOutsideEmbed coords={coords} />
+
+          {/* Light Pollution Map */}
+          <LightPollutionCard bortle={bortle} />
+
+          {/* NASA APOD */}
+          <ApodCard apod={apod} />
+
+          {/* Aurora & Space Weather Forecast */}
+          <AuroraCard aurora={aurora} spaceWeather={spaceWeather} />
+
+          {/* Must-See & AI Picks */}
           <AiTargets bestTargets={tonight?.best_targets_tonight} mustSee={tonight?.must_see} />
+
+          {/* Planets Tonight */}
           <PlanetGrid planets={planetsData?.planets} />
+
           <ActiveConstellation />
           <ConstellationsTonight constellations={constellationsData?.constellations} />
           <TargetDatabase />
           <PlanMyNight />
-          <WeeklyForecast report={weekly} />
           <TelescopeCalculator />
           <SolarSystemExplorerCard />
-          <LightPollutionCard bortle={bortle} />
-          <ClearOutsideEmbed coords={coords} />
-          <AuroraCard aurora={aurora} spaceWeather={spaceWeather} />
-          <ApodCard apod={apod} />
           <ObservationLog />
           <Resources />
           <Footer />
         </div>
       </div>
-    </>
+    </div>
   );
 }
