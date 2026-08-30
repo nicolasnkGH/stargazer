@@ -226,13 +226,13 @@ export default function Header() {
                 <div className="border-b border-white/10 pb-1 mb-1">
                   {NAV_LINKS.map((link) => (
                     <a
-                      key={link.id}
+                      key={link.href}
                       href={link.href}
                       onClick={() => setMenuOpen(false)}
                       className="flex items-center gap-2.5 rounded-lg px-3 py-2 text-xs text-zinc-300 transition hover:bg-white/10 hover:text-white"
                     >
-                      <Icon name={link.icon} className="h-4 w-4 text-sky-400" />
-                      <span>{link.label}</span>
+                      <Icon name="star" className="h-4 w-4 text-sky-400" />
+                      <span>{"label" in link ? link.label : t(link.key)}</span>
                     </a>
                   ))}
                 </div>
@@ -259,8 +259,8 @@ export default function Header() {
         </div>
       </div>
 
-      {aboutOpen && <Modal title="About StarGazer v3.0.0" onClose={() => setAboutOpen(false)}><div>Dashboard built for amateur astronomers.</div></Modal>}
-      {dataSettingsOpen && <DataSettingsModal isOpen={dataSettingsOpen} onClose={() => setDataSettingsOpen(false)} />}
+      {aboutOpen && <Modal open={aboutOpen} title="About StarGazer v3.0.0" onClose={() => setAboutOpen(false)}><div>Dashboard built for amateur astronomers.</div></Modal>}
+      {dataSettingsOpen && <DataSettingsModal open={dataSettingsOpen} onClose={() => setDataSettingsOpen(false)} />}
     </header>
   );
 }
