@@ -1,8 +1,9 @@
 "use client";
 
-import React from "react";
+import React, { useState, useEffect } from "react";
 import Icon from "./Icon";
 import type { WeeklyReport } from "@/types";
+import { UNITS_STORAGE_KEY } from "@/lib/constants";
 
 function RatingBadge({ rating }: { rating: string }) {
   if (!rating) return <span className="text-xs font-semibold text-slate-400">—</span>;
@@ -38,6 +39,13 @@ function StatusDot({ cloud_pct }: { cloud_pct: number }) {
 }
 
 export default function WeeklyForecast({ report }: { report: WeeklyReport | null }) {
+  const [isMetric, setIsMetric] = useState(true);
+
+  useEffect(() => {
+    // eslint-disable-next-line react-hooks/set-state-in-effect
+    setIsMetric(localStorage.getItem(UNITS_STORAGE_KEY) !== "imperial");
+  }, []);
+
   if (!report) {
     return (
       <section id="card-weekly" className="w-full mb-8">
@@ -86,6 +94,10 @@ export default function WeeklyForecast({ report }: { report: WeeklyReport | null
         <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-7 gap-3">
           {(report.days ?? []).map((day, i) => {
             const isToday = i === 0;
+            const tempDisplay = isMetric
+              ? `${Math.round(day.temp_c)}°C`
+              : `${Math.round((day.temp_c * 9) / 5 + 32)}°F`;
+
             return (
               <div
                 key={i}
@@ -123,7 +135,7 @@ export default function WeeklyForecast({ report }: { report: WeeklyReport | null
                   </div>
                   <div className="flex items-center justify-between text-slate-300">
                     <span className="text-slate-400">Temp</span>
-                    <span className="font-mono font-bold text-amber-300">{Math.round(day.temp_c)}°C</span>
+                    <span className="font-mono font-bold text-amber-300">{tempDisplay}</span>
                   </div>
                   <div className="flex items-center justify-between text-slate-300">
                     <span className="text-slate-400">Moon</span>
