@@ -82,10 +82,17 @@ jobs:
         with:
           ref: ${{ github.event_name == 'workflow_dispatch' && github.event.inputs.target_branch || github.ref }}
 
+      - name: Mask sensitive multiline secrets
+        run: |
+          set -euo pipefail
+          echo '${{ secrets.VAPID_PRIVATE_KEY }}' | while IFS= read -r line; do
+            if [ -n "$line" ]; then echo "::add-mask::$line"; fi
+          done
+
       - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
-          node-version: '20'
+          node-version: '22'
 
       - name: Set up Python 3.11
         uses: actions/setup-python@v5
@@ -209,6 +216,25 @@ jobs:
         with:
           ref: ${{ github.event_name == 'workflow_dispatch' && github.event.inputs.target_branch || github.ref }}
 
+      - name: Mask sensitive multiline secrets
+        run: |
+          set -euo pipefail
+          echo '${{ secrets.VAPID_PRIVATE_KEY }}' | while IFS= read -r line; do
+            if [ -n "$line" ]; then echo "::add-mask::$line"; fi
+          done
+          echo '${{ secrets.GCP_SA_KEY }}' | while IFS= read -r line; do
+            if [ -n "$line" ]; then echo "::add-mask::$line"; fi
+          done
+          echo '${{ secrets.CF_ACCESS_CLIENT_SECRET }}' | while IFS= read -r line; do
+            if [ -n "$line" ]; then echo "::add-mask::$line"; fi
+          done
+          echo '${{ secrets.AI_API_KEY }}' | while IFS= read -r line; do
+            if [ -n "$line" ]; then echo "::add-mask::$line"; fi
+          done
+          echo '${{ secrets.FALLBACK_AI_API_KEY }}' | while IFS= read -r line; do
+            if [ -n "$line" ]; then echo "::add-mask::$line"; fi
+          done
+
       - name: Validate deployment configuration
         env:
           GCP_SERVICE_NAME: ${{ vars.GCP_SERVICE_NAME || secrets.GCP_SERVICE_NAME }}
@@ -289,7 +315,7 @@ jobs:
       - name: Setup Node.js for frontend
         uses: actions/setup-node@v4
         with:
-          node-version: '20'
+          node-version: '22'
 
       - name: Install Next.js dependencies
         run: |
@@ -337,19 +363,18 @@ jobs:
 
           for attempt in 1 2 3 4 5; do
             if curl --fail --silent --show-error --max-time 10 \
-              -H "Authorization: Bearer ***" \
+              -H "Authorization: Bearer $ID_TOKEN" \
               "$HEALTH_URL" >/tmp/health_frontend.json; then
               echo "Frontend health check passed on attempt $attempt"
               cat /tmp/health_frontend.json
               exit 0
-              fi
+            fi
             echo "Health check failed (attempt $attempt). Retrying..."
             sleep 5
           done
 
           echo "Frontend health endpoint failed after retries: $HEALTH_URL"
           exit 1
-
 
       - name: Dry-run deploy preview
         if: github.event_name == 'workflow_dispatch' && github.event.inputs.dry_run == 'true'
