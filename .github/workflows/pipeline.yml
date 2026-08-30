@@ -91,11 +91,9 @@ jobs:
           echo '${{ secrets.VAPID_PRIVATE_KEY }}' | while IFS= read -r line; do
             if [ -n "$line" ]; then echo "::add-mask::$line"; fi
           done
-          VAPID_RAW='${{ secrets.VAPID_PRIVATE_KEY }}'
-          VAPID_SINGLE=$(echo "$VAPID_RAW" | tr -d '\r\n')
-          if [ -n "$VAPID_SINGLE" ]; then echo "::add-mask::$VAPID_SINGLE"; fi
-          VAPID_ESCAPED=$(echo "$VAPID_RAW" | sed ':a;N;$!ba;s/\n/\\n/g')
-          if [ -n "$VAPID_ESCAPED" ]; then echo "::add-mask::$VAPID_ESCAPED"; fi
+          echo '${{ vars.FALLBACK_AI_API_URL }}' | while IFS= read -r line; do
+            if [ -n "$line" ]; then echo "::add-mask::$line"; fi
+          done
 
       - name: Setup Node.js
         uses: actions/setup-node@v4
@@ -230,12 +228,6 @@ jobs:
           echo '${{ secrets.VAPID_PRIVATE_KEY }}' | while IFS= read -r line; do
             if [ -n "$line" ]; then echo "::add-mask::$line"; fi
           done
-          VAPID_RAW='${{ secrets.VAPID_PRIVATE_KEY }}'
-          VAPID_SINGLE=$(echo "$VAPID_RAW" | tr -d '\r\n')
-          if [ -n "$VAPID_SINGLE" ]; then echo "::add-mask::$VAPID_SINGLE"; fi
-          VAPID_ESCAPED=$(echo "$VAPID_RAW" | sed ':a;N;$!ba;s/\n/\\n/g')
-          if [ -n "$VAPID_ESCAPED" ]; then echo "::add-mask::$VAPID_ESCAPED"; fi
-
           echo '${{ secrets.GCP_SA_KEY }}' | while IFS= read -r line; do
             if [ -n "$line" ]; then echo "::add-mask::$line"; fi
           done
@@ -246,6 +238,9 @@ jobs:
             if [ -n "$line" ]; then echo "::add-mask::$line"; fi
           done
           echo '${{ secrets.FALLBACK_AI_API_KEY }}' | while IFS= read -r line; do
+            if [ -n "$line" ]; then echo "::add-mask::$line"; fi
+          done
+          echo '${{ vars.FALLBACK_AI_API_URL }}' | while IFS= read -r line; do
             if [ -n "$line" ]; then echo "::add-mask::$line"; fi
           done
 
@@ -292,26 +287,10 @@ jobs:
             AI_TIMEOUT
           )
 
-          optional=(
-            FALLBACK_AI_API_URL
-            FALLBACK_AI_MODEL
-            FALLBACK_AI_API_KEY
-            VAPID_PRIVATE_KEY
-            VAPID_PUBLIC_KEY
-            VAPID_ADMIN_EMAIL
-            NASA_APOD_KEY
-          )
-
           for key in "${required[@]}"; do
             if [ -z "${!key:-}" ]; then
               echo "::error::Missing required GitHub secret/variable: $key"
               missing=1
-            fi
-          done
-
-          for key in "${optional[@]}"; do
-            if [ -z "${!key:-}" ]; then
-              echo "::warning::Optional value is empty: $key"
             fi
           done
 
@@ -395,37 +374,42 @@ jobs:
         run: |
           set -euo pipefail
           echo "Dry run mode enabled."
-          echo "Would deploy service: ${{ vars.GCP_SERVICE_NAME || secrets.GCP_SERVICE_NAME }}"
-          echo "Would deploy region: ${{ vars.GCP_REGION }}"
-          echo "Would deploy source: ${{ vars.GCP_SOURCE_DIR }}"
 
-      - name: Deploy to Cloud Run
+      - name: Deploy Backend to Cloud Run via env-vars-file
         id: deploy_cloud_run
         if: github.event_name != 'workflow_dispatch' || github.event.inputs.dry_run != 'true'
-        uses: google-github-actions/deploy-cloudrun@v2
-        with:
-          service: ${{ vars.GCP_SERVICE_NAME || secrets.GCP_SERVICE_NAME }}
-          region: ${{ vars.GCP_REGION }}
-          source: ${{ vars.GCP_SOURCE_DIR }}
-          flags: >-
-            --execution-environment=${{ vars.CLOUD_RUN_EXECUTION_ENV }}
-            --add-volume=name=${{ vars.CLOUD_RUN_DB_VOLUME }},type=cloud-storage,bucket=${{ vars.CLOUD_RUN_DB_BUCKET }}
-            --add-volume-mount=volume=${{ vars.CLOUD_RUN_DB_VOLUME }},mount-path=${{ vars.CLOUD_RUN_DB_MOUNT_PATH }}
-          env_vars: |-
-            DB_DIR=${{ vars.CLOUD_RUN_DB_MOUNT_PATH }}
-            AI_MODEL=${{ secrets.AI_MODEL }}
-            AI_API_URL=${{ secrets.AI_API_URL }}
-            AI_API_KEY=${{ secrets.AI_API_KEY }}
-            CF_ACCESS_CLIENT_ID=${{ secrets.CF_ACCESS_CLIENT_ID }}
-            CF_ACCESS_CLIENT_SECRET=${{ secrets.CF_ACCESS_CLIENT_SECRET }}
-            FALLBACK_AI_API_URL=${{ vars.FALLBACK_AI_API_URL }}
-            FALLBACK_AI_MODEL=${{ vars.FALLBACK_AI_MODEL }}
-            FALLBACK_AI_API_KEY=${{ secrets.FALLBACK_AI_API_KEY }}
-            AI_TIMEOUT=${{ vars.AI_TIMEOUT }}
-            VAPID_PRIVATE_KEY=${{ secrets.VAPID_PRIVATE_KEY }}
-            VAPID_PUBLIC_KEY=${{ secrets.VAPID_PUBLIC_KEY }}
-            VAPID_ADMIN_EMAIL=${{ secrets.VAPID_ADMIN_EMAIL }}
-            NASA_APOD_KEY=${{ secrets.NASA_APOD_KEY }}
+        run: |
+          set -euo pipefail
+          cat <<EOF > /tmp/env.yaml
+          DB_DIR: "${{ vars.CLOUD_RUN_DB_MOUNT_PATH }}"
+          AI_MODEL: "${{ secrets.AI_MODEL }}"
+          AI_API_URL: "${{ secrets.AI_API_URL }}"
+          AI_API_KEY: "${{ secrets.AI_API_KEY }}"
+          CF_ACCESS_CLIENT_ID: "${{ secrets.CF_ACCESS_CLIENT_ID }}"
+          CF_ACCESS_CLIENT_SECRET: "${{ secrets.CF_ACCESS_CLIENT_SECRET }}"
+          FALLBACK_AI_API_URL: "${{ vars.FALLBACK_AI_API_URL }}"
+          FALLBACK_AI_MODEL: "${{ vars.FALLBACK_AI_MODEL }}"
+          FALLBACK_AI_API_KEY: "${{ secrets.FALLBACK_AI_API_KEY }}"
+          AI_TIMEOUT: "${{ vars.AI_TIMEOUT }}"
+          VAPID_PRIVATE_KEY: "${{ secrets.VAPID_PRIVATE_KEY }}"
+          VAPID_PUBLIC_KEY: "${{ secrets.VAPID_PUBLIC_KEY }}"
+          VAPID_ADMIN_EMAIL: "${{ secrets.VAPID_ADMIN_EMAIL }}"
+          NASA_APOD_KEY: "${{ secrets.NASA_APOD_KEY }}"
+          EOF
+
+          gcloud run deploy "${{ vars.GCP_SERVICE_NAME || secrets.GCP_SERVICE_NAME }}" \
+            --region="${{ vars.GCP_REGION }}" \
+            --source="${{ vars.GCP_SOURCE_DIR }}" \
+            --execution-environment="${{ vars.CLOUD_RUN_EXECUTION_ENV }}" \
+            --add-volume="name=${{ vars.CLOUD_RUN_DB_VOLUME }},type=cloud-storage,bucket=${{ vars.CLOUD_RUN_DB_BUCKET }}" \
+            --add-volume-mount="volume=${{ vars.CLOUD_RUN_DB_VOLUME }},mount-path=${{ vars.CLOUD_RUN_DB_MOUNT_PATH }}" \
+            --env-vars-file=/tmp/env.yaml \
+            --format=json > /tmp/deploy_out.json
+
+          rm -f /tmp/env.yaml
+
+          URL=$(jq -r '.status.url' /tmp/deploy_out.json)
+          echo "url=$URL" >> "$GITHUB_OUTPUT"
 
       - name: Post-deploy health check
         if: github.event_name != 'workflow_dispatch' || github.event.inputs.dry_run != 'true'
@@ -510,8 +494,6 @@ jobs:
         run: |
           set -euo pipefail
           echo "Dry run mode enabled."
-          echo "Would create tag: v${{ steps.version.outputs.new_version }}"
-          echo "Would create GitHub Release: Release v${{ steps.version.outputs.new_version }}"
 
       - name: Generate changelog
         id: changelog
