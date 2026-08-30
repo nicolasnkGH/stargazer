@@ -25,6 +25,7 @@ export default function ClearOutsideEmbed({ coords: initialCoords }: { coords?: 
 
   useEffect(() => {
     const active = getClientCoords();
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     if (active) setCoords(active);
 
     const handleLoc = () => {
