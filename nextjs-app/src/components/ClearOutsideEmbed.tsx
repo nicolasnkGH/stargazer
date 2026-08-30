@@ -12,7 +12,7 @@ export default function ClearOutsideEmbed({ coords }: { coords?: LocationCoords 
   const lat = (coords?.lat ?? DEFAULT_LAT).toFixed(2);
   const lon = (coords?.lon ?? DEFAULT_LON).toFixed(2);
   const forecastUrl = `https://clearoutside.com/forecast/${lat}/${lon}`;
-  const imageUrl = `https://clearoutside.com/forecast_image/large/${lat}/${lon}/forecast.png`;
+  const proxiedImageUrl = `/api/clearoutside/image?lat=${lat}&lon=${lon}`;
 
   return (
     <section id="card-weather" className="card w-full mb-8">
@@ -30,7 +30,7 @@ export default function ClearOutsideEmbed({ coords }: { coords?: LocationCoords 
           {!imgError ? (
             /* eslint-disable-next-line @next/next/no-img-element */
             <img
-              src={imageUrl}
+              src={proxiedImageUrl}
               alt="Clear Outside astronomical weather forecast"
               loading="lazy"
               onError={() => setImgError(true)}
@@ -39,9 +39,9 @@ export default function ClearOutsideEmbed({ coords }: { coords?: LocationCoords 
           ) : (
             <div className="p-8 text-center flex flex-col items-center justify-center min-h-[220px]">
               <span className="text-3xl mb-2">🌤️</span>
-              <p className="text-sm font-semibold text-white mb-1">Clear Outside Chart</p>
+              <p className="text-sm font-semibold text-white mb-1">Clear Outside Astronomical Forecast</p>
               <p className="text-xs text-zinc-400 mb-4 max-w-sm">
-                Forecast image preview unavailable directly in browser frame for coordinates ({lat}, {lon}).
+                Coordinates ({lat}, {lon})
               </p>
               <a
                 href={forecastUrl}
@@ -49,7 +49,7 @@ export default function ClearOutsideEmbed({ coords }: { coords?: LocationCoords 
                 rel="noopener"
                 className="flex items-center gap-2 rounded-full border border-sky-500/40 bg-sky-500/10 px-4 py-2 text-xs font-semibold text-sky-300 hover:bg-sky-500/20 transition-all"
               >
-                View Full Interactive Forecast on ClearOutside.com
+                View Live Forecast on ClearOutside.com ↗
               </a>
             </div>
           )}
