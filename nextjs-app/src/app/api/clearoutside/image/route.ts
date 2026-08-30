@@ -2,23 +2,25 @@ import { NextResponse } from "next/server";
 
 export async function GET(request: Request) {
   const url = new URL(request.url);
-  const lat = url.searchParams.get("lat") || "40.13";
-  const lon = url.searchParams.get("lon") || "-83.04";
+  const lat = url.searchParams.get("lat") || "40.14";
+  const lon = url.searchParams.get("lon") || "-83.01";
 
-  const targetUrl = `https://clearoutside.com/forecast_image/large/${lat}/${lon}/forecast.png`;
+  // Official Clear Outside forecast image endpoint format: forecast_image_large/{lat}/{lon}/forecast.png
+  const targetUrl = `https://clearoutside.com/forecast_image_large/${lat}/${lon}/forecast.png`;
 
   try {
     const res = await fetch(targetUrl, {
       headers: {
         "User-Agent":
-          "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36",
+          "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36",
         Accept: "image/png,image/*;q=0.8",
+        Referer: "https://clearoutside.com/",
       },
       next: { revalidate: 1800 },
     });
 
     if (!res.ok) {
-      return new NextResponse("Failed to fetch forecast image", { status: 502 });
+      return new NextResponse("Failed to fetch forecast image", { status: res.status });
     }
 
     const imageBuffer = await res.arrayBuffer();
