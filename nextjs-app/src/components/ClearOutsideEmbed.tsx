@@ -1,18 +1,16 @@
 "use client";
 
-import { useState } from "react";
 import Icon from "./Icon";
 import type { LocationCoords } from "@/types";
 
-const DEFAULT_LAT = 40.13;
-const DEFAULT_LON = -83.04;
+const DEFAULT_LAT = 40.14;
+const DEFAULT_LON = -83.01;
 
 export default function ClearOutsideEmbed({ coords }: { coords?: LocationCoords | null }) {
-  const [imgError, setImgError] = useState(false);
   const lat = (coords?.lat ?? DEFAULT_LAT).toFixed(2);
   const lon = (coords?.lon ?? DEFAULT_LON).toFixed(2);
+  const embedUrl = `https://clearoutside.com/forecast_embed/${lat}/${lon}`;
   const forecastUrl = `https://clearoutside.com/forecast/${lat}/${lon}`;
-  const proxiedImageUrl = `/api/clearoutside/image?lat=${lat}&lon=${lon}`;
 
   return (
     <section id="card-weather" className="card w-full mb-8">
@@ -26,33 +24,14 @@ export default function ClearOutsideEmbed({ coords }: { coords?: LocationCoords 
         </a>
       </div>
       <div className="card-body grid grid-cols-1 lg:grid-cols-[1.4fr_1fr] gap-5">
-        <div className="rounded-xl overflow-hidden border border-white/5 bg-black/20 p-2 text-center">
-          {!imgError ? (
-            /* eslint-disable-next-line @next/next/no-img-element */
-            <img
-              src={proxiedImageUrl}
-              alt="Clear Outside astronomical weather forecast"
-              loading="lazy"
-              onError={() => setImgError(true)}
-              className="w-full h-auto rounded-lg"
-            />
-          ) : (
-            <div className="p-8 text-center flex flex-col items-center justify-center min-h-[220px]">
-              <span className="text-3xl mb-2">🌤️</span>
-              <p className="text-sm font-semibold text-white mb-1">Clear Outside Astronomical Forecast</p>
-              <p className="text-xs text-zinc-400 mb-4 max-w-sm">
-                Coordinates ({lat}, {lon})
-              </p>
-              <a
-                href={forecastUrl}
-                target="_blank"
-                rel="noopener"
-                className="flex items-center gap-2 rounded-full border border-sky-500/40 bg-sky-500/10 px-4 py-2 text-xs font-semibold text-sky-300 hover:bg-sky-500/20 transition-all"
-              >
-                View Live Forecast on ClearOutside.com ↗
-              </a>
-            </div>
-          )}
+        <div className="rounded-xl overflow-hidden border border-white/5 bg-black/20 p-2 text-center h-[380px] w-full">
+          <iframe
+            src={embedUrl}
+            title="Clear Outside Astronomical Weather Forecast"
+            className="w-full h-full border-0 rounded-lg bg-slate-950"
+            loading="lazy"
+            allow="fullscreen"
+          />
         </div>
         <div className="text-sm">
           <h3 className="text-white font-semibold mb-3">How to read this chart</h3>
