@@ -471,7 +471,7 @@ jobs:
         run: |
           set -euo pipefail
           INPUT_VERSION="${{ github.event_name == 'workflow_dispatch' && github.event.inputs.version || '' }}"
-          LAST_TAG=$(git describe --tags --match "v*" --abbrev=0 2>/dev/null || echo "v0.0.0")
+          LAST_TAG=$(git describe --tags --match "v3.*" --abbrev=0 2>/dev/null || echo "v3.0.0")
           echo "last_tag=$LAST_TAG" >> "$GITHUB_OUTPUT"
 
           if [ -n "$INPUT_VERSION" ]; then
