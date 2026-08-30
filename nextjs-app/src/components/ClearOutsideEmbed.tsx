@@ -6,8 +6,8 @@ import { parseLocationCookie } from "@/lib/location-cookie";
 import { LOCATION_COOKIE } from "@/lib/constants";
 import type { LocationCoords } from "@/types";
 
-const DEFAULT_LAT = 40.14;
-const DEFAULT_LON = -83.01;
+const DEFAULT_LAT = 19.82;
+const DEFAULT_LON = -155.47;
 
 function getClientCoords(): LocationCoords | null {
   if (typeof document === "undefined") return null;
@@ -25,6 +25,7 @@ export default function ClearOutsideEmbed({ coords: initialCoords }: { coords?: 
 
   useEffect(() => {
     const active = getClientCoords();
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     if (active) setCoords(active);
 
     const handleLoc = () => {
@@ -43,7 +44,7 @@ export default function ClearOutsideEmbed({ coords: initialCoords }: { coords?: 
   const lat = (coords?.lat ?? initialCoords?.lat ?? DEFAULT_LAT).toFixed(2);
   const lon = (coords?.lon ?? initialCoords?.lon ?? DEFAULT_LON).toFixed(2);
   const forecastUrl = `https://clearoutside.com/forecast/${lat}/${lon}`;
-  const proxiedImageUrl = `/api/clearoutside/image?size=small&lat=${lat}&lon=${lon}`;
+  const proxiedImageUrl = `/api/clearoutside/image?size=large&lat=${lat}&lon=${lon}`;
 
   return (
     <section id="card-weather" className="card w-full mb-8">
@@ -57,7 +58,7 @@ export default function ClearOutsideEmbed({ coords: initialCoords }: { coords?: 
         </a>
       </div>
       <div className="card-body grid grid-cols-1 lg:grid-cols-[1.4fr_1fr] gap-5">
-        <div className="rounded-xl overflow-hidden border border-white/5 bg-black/20 p-3 text-center flex flex-col items-center justify-center min-h-[240px] w-full">
+        <div className="rounded-xl overflow-hidden border border-white/5 bg-black/20 p-3 text-center flex flex-col items-center justify-center min-h-[300px] w-full">
           {!imgError ? (
             <a href={forecastUrl} target="_blank" rel="noopener noreferrer" className="block w-full transition hover:opacity-90">
               {/* eslint-disable-next-line @next/next/no-img-element */}
@@ -66,7 +67,7 @@ export default function ClearOutsideEmbed({ coords: initialCoords }: { coords?: 
                 alt={`Clear Outside astronomical forecast chart for coordinates (${lat}, ${lon})`}
                 loading="lazy"
                 onError={() => setImgError(true)}
-                className="w-full h-auto rounded-lg mx-auto object-contain max-h-[380px]"
+                className="w-full h-auto rounded-lg mx-auto object-contain max-h-[500px]"
               />
             </a>
           ) : (

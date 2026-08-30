@@ -2,9 +2,10 @@ import { NextResponse } from "next/server";
 
 export async function GET(request: Request) {
   const url = new URL(request.url);
-  const lat = url.searchParams.get("lat") || "40.14";
-  const lon = url.searchParams.get("lon") || "-83.01";
-  const size = url.searchParams.get("size") === "large" ? "forecast_image_large" : "forecast_image_small";
+  const lat = url.searchParams.get("lat") || "19.82";
+  const lon = url.searchParams.get("lon") || "-155.47";
+  const sizeParam = url.searchParams.get("size");
+  const size = sizeParam === "small" ? "forecast_image_small" : "forecast_image_large";
 
   const targetUrl = `https://clearoutside.com/${size}/${lat}/${lon}/forecast.png`;
 
