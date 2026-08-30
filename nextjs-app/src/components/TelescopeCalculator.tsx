@@ -2,27 +2,21 @@
 
 import { useState } from "react";
 import Icon from "./Icon";
-import { EYEPIECE_TARGET_SUGGESTIONS } from "@/lib/constants/telescope";
+import { OPTICS_TARGET_TYPES, OPTICS_RECOMMENDATIONS } from "@/lib/constants/telescope";
 
 export default function TelescopeCalculator() {
   const [focalLength, setFocalLength] = useState<number>(650);
   const [aperture, setAperture] = useState<number>(130);
   const [eyepieceFocalLength, setEyepieceFocalLength] = useState<number>(25);
   const [eyepieceAfov, setEyepieceAfov] = useState<number>(52);
-  const [selectedPresetIndex, setSelectedPresetIndex] = useState<number>(0);
+  const [selectedTargetKey, setSelectedTargetKey] = useState<string>("planets");
 
   const magnification = focalLength > 0 && eyepieceFocalLength > 0 ? Math.round(focalLength / eyepieceFocalLength) : 0;
   const exitPupil = aperture > 0 && magnification > 0 ? (aperture / magnification).toFixed(1) : "0.0";
   const trueFov = magnification > 0 && eyepieceAfov > 0 ? (eyepieceAfov / magnification).toFixed(2) : "0.00";
   const maxUsefulMagnification = aperture > 0 ? Math.round(aperture * 2) : 0;
 
-  const handleSelectPreset = (idx: number) => {
-    setSelectedPresetIndex(idx);
-    const p = EYEPIECE_TARGET_SUGGESTIONS[idx];
-    if (p) {
-      setEyepieceFocalLength(p.recommendedEyepieceMm);
-    }
-  };
+  const recommendation = OPTICS_RECOMMENDATIONS[selectedTargetKey] ?? "";
 
   return (
     <section id="card-optics" className="card w-full mb-8">
@@ -36,7 +30,7 @@ export default function TelescopeCalculator() {
       </div>
 
       <div className="card-body p-6 flex flex-col gap-6">
-        {/* Preset Selector */}
+        {/* Target Preset Selector */}
         <div className="mb-2">
           <label htmlFor="target-preset-select" className="text-xs text-zinc-400 mb-1.5 block">
             Not sure what eyepiece to use? Select what you want to view:
@@ -44,16 +38,22 @@ export default function TelescopeCalculator() {
           <select
             id="target-preset-select"
             aria-label="Target observation type preset"
-            value={selectedPresetIndex}
-            onChange={(e) => handleSelectPreset(Number(e.target.value))}
+            value={selectedTargetKey}
+            onChange={(e) => setSelectedTargetKey(e.target.value)}
             className="w-full rounded-lg bg-black/40 border border-white/20 px-3 py-2 text-sm text-zinc-100 focus:outline-none focus:border-sky-400"
           >
-            {EYEPIECE_TARGET_SUGGESTIONS.map((s, idx) => (
-              <option key={s.category} value={idx}>
-                {s.category} ({s.recommendedType})
+            {OPTICS_TARGET_TYPES.map((t) => (
+              <option key={t.value} value={t.value}>
+                {t.label}
               </option>
             ))}
           </select>
+
+          {recommendation && (
+            <p className="mt-2.5 text-xs text-sky-300/90 italic bg-sky-950/40 border border-sky-500/20 rounded-lg p-2.5">
+              💡 {recommendation}
+            </p>
+          )}
         </div>
 
         {/* Form Inputs Grid */}
