@@ -1,4 +1,4 @@
-import React, { useRef, useEffect } from "react";
+import React, { useRef, useEffect, useState } from "react";
 import { Canvas, useFrame, useThree } from "@react-three/fiber";
 import { OrbitControls } from "@react-three/drei";
 import { EffectComposer, Bloom } from "@react-three/postprocessing";
@@ -81,13 +81,31 @@ export const SolarSystemCanvas: React.FC<SolarSystemCanvasProps> = ({
   zoomLevel,
   panOffset,
 }) => {
+  const containerRef = useRef<HTMLDivElement>(null);
+  const [isVisible, setIsVisible] = useState(true);
+
+  useEffect(() => {
+    const el = containerRef.current;
+    if (!el) return;
+    const observer = new IntersectionObserver(
+      ([entry]) => {
+        setIsVisible(entry.isIntersecting);
+      },
+      { threshold: 0.05 }
+    );
+    observer.observe(el);
+    return () => observer.disconnect();
+  }, []);
+
   const sunData = CELESTIAL_BODIES.find((b) => b.id === "sun")!;
   const planetBodies = CELESTIAL_BODIES.filter((b) => b.type !== "star" && b.id !== "moon");
 
   return (
-    <div className="absolute inset-0 w-full h-full bg-slate-950 overflow-hidden select-none touch-pan-y">
+    <div ref={containerRef} className="absolute inset-0 w-full h-full bg-slate-950 overflow-hidden select-none touch-pan-y">
       <Canvas
-        shadows
+        frameloop={isVisible ? "always" : "never"}
+        dpr={[1, 1.5]}
+        shadows={false}
         camera={{ position: [0, 35, 55], fov: 45, near: 0.1, far: 1000 }}
         gl={{
           antialias: true,
@@ -128,12 +146,11 @@ export const SolarSystemCanvas: React.FC<SolarSystemCanvasProps> = ({
           />
         ))}
 
-        <EffectComposer multisampling={4}>
+        <EffectComposer multisampling={0}>
           <Bloom
-            intensity={1.2}
-            luminanceThreshold={0.25}
+            intensity={0.8}
+            luminanceThreshold={0.4}
             luminanceSmoothing={0.85}
-            mipmapBlur
           />
         </EffectComposer>
       </Canvas>
