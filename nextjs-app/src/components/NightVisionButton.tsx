@@ -22,6 +22,7 @@ export default function NightVisionButton() {
   } | null>(null);
 
   useEffect(() => {
+    // eslint-disable-next-line react-hooks/set-state-in-effect -- restoring client state on mount
     setMounted(true);
     let mode = false;
     let savedPos: { left: number; top: number } | null = null;

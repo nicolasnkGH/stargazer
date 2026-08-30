@@ -1,6 +1,5 @@
 "use client";
 
-import { useState } from "react";
 import Icon from "./Icon";
 import type { LocationCoords } from "@/types";
 
@@ -8,11 +7,10 @@ const DEFAULT_LAT = 40.14;
 const DEFAULT_LON = -83.01;
 
 export default function ClearOutsideEmbed({ coords }: { coords?: LocationCoords | null }) {
-  const [imgError, setImgError] = useState(false);
   const lat = (coords?.lat ?? DEFAULT_LAT).toFixed(2);
   const lon = (coords?.lon ?? DEFAULT_LON).toFixed(2);
+  const embedUrl = `https://clearoutside.com/forecast_embed/${lat}/${lon}`;
   const forecastUrl = `https://clearoutside.com/forecast/${lat}/${lon}`;
-  const proxiedImageUrl = `/api/clearoutside/image?lat=${lat}&lon=${lon}`;
 
   return (
     <section id="card-weather" className="card w-full mb-8">
@@ -26,6 +24,7 @@ export default function ClearOutsideEmbed({ coords }: { coords?: LocationCoords 
         </a>
       </div>
       <div className="card-body grid grid-cols-1 lg:grid-cols-[1.4fr_1fr] gap-5">
+<<<<<<< HEAD
         <div className="rounded-xl overflow-hidden border border-white/5 bg-black/20 p-3 text-center flex flex-col items-center justify-center min-h-[260px] w-full">
           {!imgError ? (
             <a href={forecastUrl} target="_blank" rel="noopener noreferrer" className="block w-full transition hover:opacity-90">
@@ -55,6 +54,16 @@ export default function ClearOutsideEmbed({ coords }: { coords?: LocationCoords 
               </a>
             </div>
           )}
+=======
+        <div className="rounded-xl overflow-hidden border border-white/5 bg-black/20 p-2 text-center h-[380px] w-full">
+          <iframe
+            src={embedUrl}
+            title="Clear Outside Astronomical Weather Forecast"
+            className="w-full h-full border-0 rounded-lg bg-slate-950"
+            loading="lazy"
+            allow="fullscreen"
+          />
+>>>>>>> origin/main
         </div>
         <div className="text-sm">
           <h3 className="text-white font-semibold mb-3">How to read this chart</h3>
