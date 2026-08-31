@@ -8,6 +8,7 @@ import GalleryButton from "./GalleryButton";
 import type { MoonData } from "@/types";
 import { addToPlan } from "@/hooks/useNightPlan";
 import { useTranslations, useLocale } from "next-intl";
+import SourceTooltip from "./SourceTooltip";
 import { MOON_FACT_STORAGE_KEY_PREFIX } from "@/lib/constants";
 
 function makePlanetBump(name: string): HTMLCanvasElement {
@@ -184,7 +185,14 @@ export default function MoonCard({ moon, moonFact }: { moon: MoonData | null; mo
       <div className="flex items-center gap-2 mb-3">
         <Icon name="moon" className="h-5 w-5 text-amber-400" />
         <h3 className="text-[0.92rem] font-semibold text-zinc-100 tracking-wide">Moon</h3>
-        <span className="ml-auto text-xs text-zinc-500 font-mono font-bold">{moon.illumination_pct}%</span>
+        <div className="ml-auto flex items-center gap-2">
+          <SourceTooltip
+            source="NASA JPL DE421"
+            description="Precise lunar phase geometry, sub-solar coordinates, rise/set times, and illumination percentage calculated using NASA JPL DE421 planetary ephemeris via Skyfield."
+            attribution="NASA JPL / Skyfield"
+          />
+          <span className="text-xs text-zinc-400 font-mono font-bold">{moon.illumination_pct}%</span>
+        </div>
       </div>
 
       <div className="mb-3 flex flex-wrap gap-2">

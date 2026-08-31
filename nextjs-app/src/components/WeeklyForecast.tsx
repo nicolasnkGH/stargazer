@@ -2,6 +2,7 @@
 
 import React, { useState, useEffect } from "react";
 import Icon from "./Icon";
+import SourceTooltip from "./SourceTooltip";
 import type { WeeklyReport } from "@/types";
 import { UNITS_STORAGE_KEY } from "@/lib/constants";
 
@@ -66,7 +67,14 @@ export default function WeeklyForecast({ report }: { report: WeeklyReport | null
           <Icon name="calendar-days" className="h-5 w-5 text-sky-400" />
           <h2 className="text-base font-bold text-slate-100 tracking-wide">7-Day Astronomical Observing Forecast</h2>
         </div>
-        <span className="text-xs font-mono text-slate-400 font-semibold">{report.week_start}</span>
+        <div className="flex items-center gap-3">
+          <SourceTooltip
+            source="Open-Meteo & Ephemeris"
+            description="7-day outlook combining multi-model atmospheric forecasts (ECMWF, GFS, ICON) with lunar illumination and astronomical dark window calculations."
+            attribution="Open-Meteo / Astronomical Ephemeris"
+          />
+          <span className="text-xs font-mono text-slate-400 font-semibold">{report.week_start}</span>
+        </div>
       </div>
 
       <div className="card-body p-6">

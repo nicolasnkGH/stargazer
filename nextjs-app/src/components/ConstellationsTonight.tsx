@@ -2,6 +2,7 @@
 
 import React, { useRef } from "react";
 import Icon from "./Icon";
+import SourceTooltip from "./SourceTooltip";
 import type { ConstellationData } from "@/types";
 
 export default function ConstellationsTonight({
@@ -42,6 +43,11 @@ export default function ConstellationsTonight({
         </div>
 
         <div className="flex items-center gap-3">
+          <SourceTooltip
+            source="Skyfield & IAU Boundaries"
+            description="Computes apparent topocentric altitude, azimuth, and culmination windows for all 88 constellations based on your latitude, longitude, and current local sidereal time."
+            attribution="IAU / Skyfield"
+          />
           <span className="rounded-full border border-purple-500/30 bg-purple-950/40 px-3 py-0.5 text-xs font-semibold text-purple-300 shadow-sm hidden md:inline">
             Sorted by best view
           </span>

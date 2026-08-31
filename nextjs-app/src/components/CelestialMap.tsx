@@ -147,7 +147,7 @@ export default function CelestialMap({ targets, centerRaHours, centerDecDeg }: C
     <div className="relative w-full">
       <div
         id={CELESTIAL_MAP_CONTAINER_ID}
-        className={`relative h-[360px] w-full overflow-hidden rounded-xl bg-[#0a0f1c] border border-white/10 ${interactive ? "pointer-events-auto" : "pointer-events-none select-none"}`}
+        className={`relative h-[340px] sm:h-[380px] lg:h-[400px] max-h-[46vh] w-full overflow-hidden rounded-xl bg-[#0a0f1c] border border-white/10 ${interactive ? "pointer-events-auto" : "pointer-events-none select-none"}`}
       >
         {!ready && (
           <div className="absolute inset-0 flex items-center justify-center text-sm text-zinc-500">

@@ -54,6 +54,9 @@ test.describe('StarGazer UI Smoke Tests', () => {
   test('Critical sections render in the DOM', async ({ page }) => {
     await page.goto(BASE_URL, { waitUntil: 'domcontentloaded', timeout: 15000 });
 
+    // Navigate to Plan My Night tab first
+    await page.locator('button:has-text("Plan My Night")').first().click();
+
     // Use force:true to bypass any overlapping element that intercepts pointer events in headless CI
     const issBtn = page.getByText('+ ISS Pass');
     await expect(issBtn).toBeVisible({ timeout: 5000 });
@@ -76,6 +79,9 @@ test.describe('StarGazer UI Smoke Tests', () => {
 
   test('Plan My Night section is functional', async ({ page }) => {
     await page.goto(BASE_URL, { waitUntil: 'domcontentloaded', timeout: 15000 });
+
+    // Navigate to Plan My Night tab first
+    await page.locator('button:has-text("Plan My Night")').first().click();
 
     // The ISS Pass quick-add button should be present
     const issBtn = page.getByText('+ ISS Pass');

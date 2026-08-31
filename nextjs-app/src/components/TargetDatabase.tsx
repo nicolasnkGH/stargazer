@@ -4,6 +4,7 @@ import { useState, useEffect, useMemo } from "react";
 import useSWR from "swr";
 import { useTranslations } from "next-intl";
 import Icon from "./Icon";
+import SourceTooltip from "./SourceTooltip";
 import type { CatalogTarget, GalleryCounts } from "@/types";
 import { API_BASE, CONSTELLATION_FILTERS, BORTLE_CLASSES, BORTLE_STORAGE_KEY } from "@/lib/constants";
 import { addToPlan } from "@/hooks/useNightPlan";
@@ -224,9 +225,16 @@ export default function TargetDatabase() {
               : `✨ ${filter} Must-See Targets`}
           </h2>
         </div>
-        <span className="text-xs text-slate-400 font-mono">
-          Showing {visibleSubset.length} of {filteredTargets.length} targets
-        </span>
+        <div className="flex items-center gap-3">
+          <SourceTooltip
+            source="OpenNGC, Messier & Caldwell"
+            description="Comprehensive astronomical deep-sky target database combining OpenNGC, Messier, and Caldwell catalogs with real-time topocentric altitude, azimuth, Bortle visibility limits, and transit times."
+            attribution="OpenNGC / SEDS Messier / Skyfield"
+          />
+          <span className="text-xs text-slate-400 font-mono">
+            Showing {visibleSubset.length} of {filteredTargets.length} targets
+          </span>
+        </div>
       </div>
 
       <div className="card-body p-6">

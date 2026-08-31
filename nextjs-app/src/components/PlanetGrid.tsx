@@ -4,6 +4,7 @@ import { useEffect, useRef } from "react";
 import * as THREE from "three";
 import { OrbitControls } from "three/examples/jsm/controls/OrbitControls.js";
 import Icon from "./Icon";
+import SourceTooltip from "./SourceTooltip";
 import type { PlanetData } from "@/types";
 
 const PLANET_CONFIGS: Record<
@@ -387,12 +388,11 @@ export default function PlanetGrid({ planets = [] }: { planets?: PlanetData[] })
             Planets Tonight
           </h2>
         </div>
-        <span
-          className="flex cursor-pointer items-center text-xs text-slate-400 hover:text-sky-300"
-          title="Calculated locally via Skyfield Ephemeris"
-        >
-          <Icon name="info" className="h-4 w-4 stroke-slate-400" />
-        </span>
+        <SourceTooltip
+          source="NASA JPL & Skyfield"
+          description="True planetary geocentric and topocentric ephemerides, apparent visual magnitudes, illumination percentages, and rise/set culmination times calculated using NASA JPL DE421 ephemeris engine."
+          attribution="NASA JPL / Skyfield"
+        />
       </div>
 
       {/* Grid */}

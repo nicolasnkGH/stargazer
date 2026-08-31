@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react";
 import Icon from "./Icon";
+import SourceTooltip from "./SourceTooltip";
 import { parseLocationCookie } from "@/lib/location-cookie";
 import { LOCATION_COOKIE } from "@/lib/constants";
 import type { LocationCoords } from "@/types";
@@ -53,12 +54,19 @@ export default function ClearOutsideEmbed({ coords: initialCoords }: { coords?: 
           <Icon name="cloud-sun" className="h-5 w-5 text-sky-400" />
           <h2>Clear Outside — Astronomical Weather Forecast</h2>
         </div>
-        <a href={forecastUrl} target="_blank" rel="noopener noreferrer" className="text-xs text-sky-400 hover:underline">
-          Open Full Forecast ↗
-        </a>
+        <div className="flex items-center gap-3">
+          <SourceTooltip
+            source="Clear Outside (First Light Optics)"
+            description="Hourly astronomical weather forecast specifically calibrated for astronomers: total/low/mid/high cloud cover, relative humidity, dew risk, wind, and transparency."
+            attribution="First Light Optics / clearoutside.com"
+          />
+          <a href={forecastUrl} target="_blank" rel="noopener noreferrer" className="text-xs text-sky-400 hover:underline">
+            Open Full Forecast ↗
+          </a>
+        </div>
       </div>
-      <div className="card-body grid grid-cols-1 lg:grid-cols-[1.4fr_1fr] gap-5">
-        <div className="rounded-xl overflow-hidden border border-white/5 bg-black/20 p-3 text-center flex flex-col items-center justify-center min-h-[300px] w-full">
+      <div className="card-body p-6 flex flex-col gap-6">
+        <div className="rounded-xl overflow-hidden border border-white/10 bg-black/40 p-3 text-center flex flex-col items-center justify-center min-h-[300px] w-full">
           {!imgError ? (
             <a href={forecastUrl} target="_blank" rel="noopener noreferrer" className="block w-full transition hover:opacity-90">
               {/* eslint-disable-next-line @next/next/no-img-element */}
@@ -88,32 +96,48 @@ export default function ClearOutsideEmbed({ coords: initialCoords }: { coords?: 
             </div>
           )}
         </div>
-        <div className="text-sm">
-          <h3 className="text-white font-semibold mb-3">How to read this chart</h3>
 
-          <div className="mb-3.5">
-            <strong className="block text-sky-400 mb-1">🚦 The Traffic Light System</strong>
-            <span className="text-xs text-zinc-400 leading-relaxed">
-              <strong>SUMMARY Row:</strong> Red means clouded over. Green means perfectly clear. Orange means mixed conditions.<br />
-              <strong>CLOUD Rows:</strong> Pure white squares mean 0% clouds. Dark blue squares mean 100% cloud cover.
-            </span>
+        {/* Spread out "How to read this chart" in a balanced 3-column grid */}
+        <div className="border-t border-white/10 pt-5">
+          <div className="flex items-center justify-between mb-4">
+            <h3 className="text-xs font-bold text-slate-300 uppercase tracking-wider flex items-center gap-2">
+              <span className="text-base">📊</span> How to Read This Forecast Chart
+            </h3>
+            <span className="text-[0.7rem] text-slate-500 font-mono">Calibrated for ground-based observation</span>
           </div>
 
-          <div className="mb-3.5">
-            <strong className="block text-sky-400 mb-1">🌫️ How to Spot the Haze</strong>
-            <span className="text-xs text-zinc-400 leading-relaxed">
-              Look at the <strong>REL. HUMIDITY &amp; DEW RISK</strong> rows. When humidity is high, moisture creates a thick,
-              milky haze that scatters light and washes out faint stars. If these rows turn Red/Orange, expect poor
-              transparency even if cloud cover is 0%.
-            </span>
-          </div>
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+            <div className="rounded-xl border border-sky-500/20 bg-slate-950/60 p-4 shadow-sm">
+              <strong className="block text-sky-400 text-xs font-bold mb-2 flex items-center gap-1.5">
+                <span>🚦</span> The Traffic Light System
+              </strong>
+              <div className="text-xs text-zinc-300 space-y-1.5 leading-relaxed">
+                <p>
+                  <strong className="text-white font-semibold">SUMMARY Row:</strong> Red = overcast, Orange = mixed conditions, Green = perfectly clear sky.
+                </p>
+                <p>
+                  <strong className="text-white font-semibold">CLOUD Rows:</strong> Pure white = 0% cloud. Dark blue = 100% cloud cover.
+                </p>
+              </div>
+            </div>
 
-          <div>
-            <strong className="block text-red-400 mb-1">💧 Telescope Dew Warning</strong>
-            <span className="text-xs text-zinc-400 leading-relaxed">
-              If the Dew Risk row is glowing red, water vapor will condense quickly. Glass lenses and mirrors will fog up
-              and end your session if you don&apos;t use a dew heater or dew shield!
-            </span>
+            <div className="rounded-xl border border-sky-500/20 bg-slate-950/60 p-4 shadow-sm">
+              <strong className="block text-sky-400 text-xs font-bold mb-2 flex items-center gap-1.5">
+                <span>🌫️</span> How to Spot the Haze
+              </strong>
+              <p className="text-xs text-zinc-300 leading-relaxed">
+                Check the <strong className="text-white font-semibold">REL. HUMIDITY &amp; DEW RISK</strong> rows. High humidity scatters light and washes out deep-sky targets. If red or orange, expect poor transparency even if cloud cover shows 0%.
+              </p>
+            </div>
+
+            <div className="rounded-xl border border-red-500/30 bg-red-950/20 p-4 shadow-sm">
+              <strong className="block text-red-400 text-xs font-bold mb-2 flex items-center gap-1.5">
+                <span>💧</span> Telescope Dew Warning
+              </strong>
+              <p className="text-xs text-zinc-300 leading-relaxed">
+                When the Dew Risk row turns glowing red, moisture rapidly condenses on cold optics. Ensure dew heaters, shields, and passive heating bands are activated before observing.
+              </p>
+            </div>
           </div>
         </div>
       </div>

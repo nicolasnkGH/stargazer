@@ -4,6 +4,7 @@ import { useState } from "react";
 import useSWR from "swr";
 import Icon from "./Icon";
 import MotionFactCard from "./MotionFactCard";
+import SourceTooltip from "./SourceTooltip";
 import type { IssPass, MeteorShower, CometData, NeoObject } from "@/types";
 import { API_BASE } from "@/lib/constants";
 
@@ -18,11 +19,18 @@ const TABS = [
 
 type TabKey = (typeof TABS)[number]["key"];
 
-function formatTime(iso: string): string {
+function formatTime(str: string | undefined): string {
+  if (!str) return "--:--";
+  const trimmed = str.trim();
+  if (/^\d{1,2}:\d{2}\s*(?:AM|PM)?$/i.test(trimmed)) {
+    return trimmed;
+  }
   try {
-    return new Date(iso).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" });
+    const d = new Date(trimmed);
+    if (isNaN(d.getTime())) return trimmed;
+    return d.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" });
   } catch {
-    return iso;
+    return trimmed;
   }
 }
 
@@ -66,6 +74,11 @@ export default function SkyMotion() {
           <Icon name="orbit" className="h-5 w-5 text-cyan-400" />
           <h2 className="text-base font-bold text-slate-100 tracking-wide">Objects in Motion</h2>
         </div>
+        <SourceTooltip
+          source="NORAD & NASA CNEOS"
+          description="Live satellite orbital calculations from CelesTrak NORAD two-line elements (TLE), annual meteor activity from International Meteor Organization (IMO), and Near-Earth Objects from NASA JPL CNEOS."
+          attribution="CelesTrak / NASA JPL / IMO"
+        />
       </div>
 
       <div className="card-body p-6">

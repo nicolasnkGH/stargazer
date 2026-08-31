@@ -2,6 +2,7 @@
 
 import React from "react";
 import Icon from "./Icon";
+import SourceTooltip from "./SourceTooltip";
 import type { ApodData } from "@/types";
 
 interface ApodCardProps {
@@ -31,6 +32,11 @@ export default function ApodCard({ apod }: ApodCardProps) {
           <h2 className="text-base font-bold text-slate-100 tracking-wide">🌌 NASA Astronomy Picture of the Day</h2>
         </div>
         <div className="flex items-center gap-2.5">
+          <SourceTooltip
+            source="NASA APOD"
+            description="Daily featured astronomical imagery, professional astrophotography, and deep-space telescope captures provided directly by the NASA Astronomy Picture of the Day API."
+            attribution="NASA / apod.nasa.gov"
+          />
           <span className="text-xs font-mono text-slate-400">{data.date}</span>
           <span className="rounded-full border border-sky-400/40 bg-sky-950/40 px-3 py-1 text-xs font-bold text-sky-300 shadow-sm">
             Powered by NASA
