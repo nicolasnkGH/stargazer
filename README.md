@@ -1,7 +1,7 @@
-# 🌌 StarGazer v3.0.0 — Next.js 16 Observatory Portal
+# 🌌 StarGazer v3.1.0 — Next.js 16 Observatory Portal
 
 [![CI/CD Pipeline](https://github.com/nicolasnkGH/stargazer/actions/workflows/pipeline.yml/badge.svg)](https://github.com/nicolasnkGH/stargazer/actions/workflows/pipeline.yml)
-[![Version](https://img.shields.io/badge/version-v3.0.0-blue.svg)](https://github.com/nicolasnkGH/stargazer/releases/tag/v3.0.0)
+[![Version](https://img.shields.io/badge/version-v3.1.0-blue.svg)](https://github.com/nicolasnkGH/stargazer/releases/tag/v3.1.0)
 [![Next.js](https://img.shields.io/badge/Next.js-16.3-black.svg?logo=next.js)](https://nextjs.org/)
 [![Cloudflare](https://img.shields.io/badge/Cloudflare-CDN%20%26%20Worker-orange.svg?logo=cloudflare)](https://stargazer.nick-t.net)
 [![Google Cloud Run](https://img.shields.io/badge/Google%20Cloud%20Run-Serverless-4285F4.svg?logo=googlecloud)](https://cloud.google.com/run)
@@ -11,9 +11,29 @@
 
 ---
 
+## 🌟 What's New in v3.1.0 (Mobile Responsiveness & WebGL Simulator Update)
+
+**StarGazer v3.1.0** introduces deep mobile layout enhancements, full Spanish/Portuguese localization coverage, onboarding flow fixes, and upgrades the interactive sky simulator to the modern WebGL-based Aladin Lite v3.
+
+### 🚀 Key v3.1.0 Major Features & Improvements:
+- **📱 Responsive Layout & Navigation Overhaul:**
+  - Added visual scroll indicators, left/right scroll chevrons, and edge gradient masks to all scrollable sliders (observatory tabs, planet jump bar, constellations carousel, target database filters).
+  - Telemetry strip condensed onto a dedicated mobile header, providing real-time conditions (seeing, cloud cover, moon phase, temperature, dew spread, local clock/date).
+  - Integrated collapsible guide section for the Clear Outside weather widget to fit mobile viewports.
+- **🔭 Upgrade to Aladin Lite v3 & WebGL Sky Simulator:**
+  - Upgraded the Interactive Sky Simulator to use the modern, WebGL2-powered **Aladin Lite v3** library.
+  - Removed old jQuery dependencies, fixing library initialization runtime crashes.
+  - Simplified the simulator modal layout to present a clean, distraction-free astronomical database viewport.
+- **🌐 Multilingual Translation System Coverage:**
+  - Full translations for all newly added UI elements (onboarding tour dialogs, dashboard tabs, tooltips, weather conditions guides) across English, Spanish, and Portuguese.
+- **🚀 Onboarding Tour Alignment:**
+  - Aligned onboarding selectors (`#card-motion` and `#card-ai-targets`) with the guided driver.js steps, preventing runtime JS failures during the initial tutorial walk.
+
+---
+
 ## 🌟 What's New in v3.0.0 (Next.js 16 Major Release)
 
-**StarGazer v3.0.0** is a major architectural evolution migrating the codebase to **Next.js 16 (App Router)** while restoring 1:1 visual fidelity from the original prototype.
+**StarGazer v3.0.0** was a major architectural evolution migrating the codebase to **Next.js 16 (App Router)** while restoring 1:1 visual fidelity from the original prototype.
 
 ### 🚀 Key v3.0.0 Major Features & Improvements:
 - **🪐 3D Solar System Orrery Hero Console:** Integrated 3D Three.js solar system model with D-Pad camera controls, quick planet jump deck, viewport-aware rendering pause, and smooth mouse/touch scroll passthrough.
