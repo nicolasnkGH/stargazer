@@ -114,7 +114,7 @@ export default function SolarSystemHero({ twilight, bortle }: SolarSystemHeroPro
   const bortleValue = bortle ? `B${bortle}` : "B6";
 
   const handleZoomIn = () => {
-    setZoomLevel((prev) => Math.min(prev + 1, 5));
+    setZoomLevel((prev) => Math.min(prev + 1, 10));
   };
 
   const handleZoomOut = () => {

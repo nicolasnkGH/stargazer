@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import Icon from "./Icon";
+import SourceTooltip from "./SourceTooltip";
 import { BORTLE_CLASSES, BORTLE_STORAGE_KEY } from "@/lib/constants";
 import type { BortleInfo } from "@/types";
 
@@ -37,6 +38,11 @@ export default function LightPollutionCard({ bortle }: LightPollutionCardProps) 
             </p>
           </div>
         </div>
+        <SourceTooltip
+          source="VIIRS Satellite & Falchi Atlas"
+          description="Bortle Dark-Sky Scale and zenith artificial sky brightness calculated using NOAA VIIRS Day/Night Band satellite radiometry and the New World Atlas of Artificial Night Sky Brightness."
+          attribution="World Atlas 2022 / Falchi et al."
+        />
       </div>
 
       {/* Card Body with 1:1 Vanilla Bortle Background Image */}

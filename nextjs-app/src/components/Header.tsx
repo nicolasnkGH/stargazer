@@ -11,8 +11,6 @@ import {
   LANG_OPTIONS,
   LOCALE_COOKIE,
   UNITS_STORAGE_KEY,
-  STARGAZER_REPO_URL,
-  RESOURCES,
 } from "@/lib/constants";
 import type { Locale, TonightReport } from "@/types";
 import Modal from "./Modal";
@@ -20,13 +18,16 @@ import LocationControl from "./LocationControl";
 import DataSettingsModal from "./DataSettingsModal";
 import { startOnboardingTour } from "./OnboardingTour";
 
+const TOUR_PROMPT_KEY = "stargazer_tour_prompt_dismissed";
+
 const healthFetcher = (url: string) => fetch(url).then((r) => {
   if (!r.ok) throw new Error(`HTTP ${r.status}`);
   return r.json();
 });
 
 function setLocale(locale: Locale) {
-  document.cookie = `${LOCALE_COOKIE}=${locale}; path=/; max-age=31536000`;
+  document.cookie = `${LOCALE_COOKIE}=${locale}; path=/; max-age=31536000; SameSite=Lax`;
+  document.cookie = `NEXT_LOCALE=${locale}; path=/; max-age=31536000; SameSite=Lax`;
   window.location.reload();
 }
 
@@ -34,6 +35,7 @@ export default function Header() {
   const t = useTranslations();
   const locale = useLocale();
   const [menuOpen, setMenuOpen] = useState(false);
+  const [showTourPrompt, setShowTourPrompt] = useState(false);
   const { data: health, error: healthError } = useSWR<{ status: string }>("/api/health", healthFetcher, {
     refreshInterval: HEALTH_POLL_INTERVAL_MS,
     revalidateOnFocus: false,
@@ -49,33 +51,38 @@ export default function Header() {
   const [isMetric, setIsMetric] = useState(true);
   const [aboutOpen, setAboutOpen] = useState(false);
   const [dataSettingsOpen, setDataSettingsOpen] = useState(false);
-  const [resourcesExpanded, setResourcesExpanded] = useState(false);
-  const [resourcesFlyoutStyle, setResourcesFlyoutStyle] = useState<{ top: number; right: number; maxHeight: number } | null>(null);
   const menuRef = useRef<HTMLDivElement>(null);
-  const resourcesBtnRef = useRef<HTMLButtonElement>(null);
 
-  function openResourcesFlyout() {
-    const rect = resourcesBtnRef.current?.getBoundingClientRect();
-    if (!rect) return;
-    const margin = 8;
-    const flyoutWidth = 200;
-    const top = Math.min(rect.top, window.innerHeight - margin);
-    const rawRight = window.innerWidth - rect.left + margin;
-    const maxRight = Math.max(margin, window.innerWidth - flyoutWidth - margin);
-    setResourcesFlyoutStyle({
-      top,
-      right: Math.min(rawRight, maxRight),
-      maxHeight: window.innerHeight - top - margin,
-    });
-    setResourcesExpanded(true);
-  }
+  useEffect(() => {
+    try {
+      const dismissed = localStorage.getItem(TOUR_PROMPT_KEY);
+      if (!dismissed) {
+        const timer = setTimeout(() => setShowTourPrompt(true), 1500);
+        return () => clearTimeout(timer);
+      }
+    } catch {
+      // ignore
+    }
+  }, []);
+
+  const dismissTourPrompt = () => {
+    setShowTourPrompt(false);
+    try {
+      localStorage.setItem(TOUR_PROMPT_KEY, "1");
+    } catch {
+      // ignore
+    }
+  };
 
   const moon = tonight?.moon;
   const hudMoon = moon
     ? (() => {
-        const icon = moon.phase_name ? moon.phase_name.split(" ")[0] : "🌙";
         const pct = moon.illumination_pct != null ? `${moon.illumination_pct}%` : "";
-        return `${icon} ${moon.phase_name || "Moon"} ${pct}`.trim();
+        const rawName = (moon.phase_name || "Moon").trim();
+        // Check if rawName already starts with an emoji (e.g. 🌔 Waxing Gibbous)
+        const hasEmoji = /\p{Extended_Pictographic}/u.test(rawName.slice(0, 2));
+        const icon = hasEmoji ? "" : `${moon.emoji || "🌙"} `;
+        return `${icon}${rawName} ${pct}`.trim();
       })()
     : "🌙 Moon --%";
 
@@ -86,7 +93,17 @@ export default function Header() {
         const tempStr = tVal != null ? (isMetric ? `${tVal}°C` : `${Math.round((tVal * 9) / 5 + 32)}°F`) : "--";
         const wVal = seeing.tonight_wind_kmh;
         const windStr = wVal != null ? (isMetric ? `${wVal} km/h` : `${Math.round(wVal * 0.621371)} mph`) : "--";
-        return `🌡️ ${tempStr} | 💨 ${windStr}`;
+        const parts = [`🌡️ ${tempStr}`, `💨 ${windStr}`];
+        if (seeing.tonight_cloud_pct != null) {
+          parts.push(`☁️ ${Math.round(seeing.tonight_cloud_pct)}%`);
+        }
+        if (seeing.seeing_score != null) {
+          parts.push(`👁️ Seeing ${seeing.seeing_score}/5`);
+        }
+        if (seeing.tonight_dew_spread != null) {
+          parts.push(`💧 Dew Δ ${seeing.tonight_dew_spread}°C`);
+        }
+        return parts.join(" | ");
       })()
     : "🌡️ -- | 💨 --";
 
@@ -135,8 +152,8 @@ export default function Header() {
   }, []);
 
   return (
-    <header className="sticky top-0 z-[100] border-b border-cyan-500/10 bg-slate-950/90 py-2 px-2 sm:px-6 backdrop-blur-2xl shadow-[0_4px_30px_rgba(0,0,0,0.5)] overflow-x-hidden w-full">
-      <div className="mx-auto flex max-w-full flex-nowrap items-center justify-between gap-1.5 sm:gap-4 overflow-x-hidden">
+    <header className="fixed top-0 left-0 right-0 z-[100] border-b border-cyan-500/15 bg-slate-950/95 py-2 px-2 sm:px-6 backdrop-blur-2xl shadow-[0_4px_30px_rgba(0,0,0,0.6)] w-full">
+      <div className="mx-auto flex max-w-full flex-nowrap items-center justify-between gap-1.5 sm:gap-4">
         {/* Logo */}
         <a href="#hero-section" className="flex flex-shrink-0 items-center gap-1.5 sm:gap-2.5 no-underline">
           <Icon name="telescope" className="h-5 w-5 sm:h-6 sm:w-6 animate-float text-sky-400 drop-shadow-[0_0_12px_rgba(74,158,255,0.5)]" />
@@ -154,7 +171,7 @@ export default function Header() {
         </div>
 
         {/* Telemetry pill */}
-        <div className="hidden sm:flex min-w-0 flex-1 items-center gap-2 sm:gap-3 overflow-hidden rounded-full border border-white/10 bg-white/5 px-3 py-1.5 text-xs text-slate-200">
+        <div id="desktop-telemetry-strip" className="hidden sm:flex min-w-0 flex-1 items-center gap-2 sm:gap-3 overflow-x-auto scrollbar-none rounded-full border border-white/10 bg-white/5 px-3 py-1.5 text-xs text-slate-200">
           <div className="flex flex-shrink-0 items-center gap-1.5 text-[0.7rem] font-bold tracking-[0.12em]">
             <span
               className={`inline-block h-1.5 w-1.5 rounded-full ${
@@ -166,9 +183,9 @@ export default function Header() {
             </span>
           </div>
           <span className="h-4 w-px flex-shrink-0 bg-white/10" />
-          <span id="hud-moon" className="flex-shrink-0 truncate font-mono text-[0.75rem] text-slate-400">{hudMoon}</span>
+          <span id="hud-moon" className="flex-shrink-0 font-mono text-[0.75rem] text-slate-300">{hudMoon}</span>
           <span className="h-4 w-px flex-shrink-0 bg-white/10" />
-          <span id="hud-weather" className="flex-shrink-0 truncate font-mono text-[0.75rem] text-slate-400">{hudWeather}</span>
+          <span id="hud-weather" className="flex-shrink-0 font-mono text-[0.75rem] text-slate-300 whitespace-nowrap">{hudWeather}</span>
         </div>
 
         {/* Right side controls */}
@@ -188,24 +205,77 @@ export default function Header() {
           </button>
 
           <select
-            className="hidden rounded-lg border border-white/10 bg-slate-900/50 py-1 pl-3 pr-8 text-sm text-zinc-200 outline-none hover:border-white/30 md:block"
+            className="rounded-lg border border-white/10 bg-slate-900/60 py-1 px-1 sm:px-2 text-xs text-zinc-200 outline-none hover:border-white/30 cursor-pointer"
             style={{ fontFamily: "'Space Grotesk', system-ui, sans-serif" }}
             value={locale}
             onChange={(e) => setLocale(e.target.value as Locale)}
+            title="Select Language"
           >
             {LANG_OPTIONS.map((opt) => (
               <option key={opt.value} value={opt.value}>{opt.label}</option>
             ))}
           </select>
 
-          <button
-            id="btn-about"
-            onClick={() => startOnboardingTour()}
-            className="flex h-8 w-8 sm:h-9 sm:w-9 items-center justify-center rounded-lg border border-white/10 bg-white/5 text-zinc-200 transition hover:bg-purple-600/20 hover:border-purple-500/50"
-            title="Dashboard Tour"
-          >
-            <Icon name="info" className="h-4 w-4" />
-          </button>
+          <div className="relative">
+            <button
+              id="btn-about"
+              onClick={() => {
+                dismissTourPrompt();
+                startOnboardingTour();
+              }}
+              className="flex h-8 w-8 sm:h-9 sm:w-9 items-center justify-center rounded-lg border border-white/10 bg-white/5 text-zinc-200 transition hover:bg-purple-600/20 hover:border-purple-500/50 relative"
+              title="Dashboard Tour"
+            >
+              <Icon name="info" className="h-4 w-4" />
+              {showTourPrompt && (
+                <span className="absolute -top-1 -right-1 flex h-2.5 w-2.5">
+                  <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-sky-400 opacity-75"></span>
+                  <span className="relative inline-flex rounded-full h-2.5 w-2.5 bg-sky-500"></span>
+                </span>
+              )}
+            </button>
+
+            {showTourPrompt && (
+              <div
+                className="absolute right-0 top-full mt-2 w-64 sm:w-72 rounded-2xl border border-sky-500/30 bg-slate-950/95 p-3.5 shadow-2xl backdrop-blur-2xl z-[160] ring-1 ring-white/10"
+                style={{ fontFamily: "'Space Grotesk', system-ui, sans-serif" }}
+              >
+                <div className="flex items-start justify-between gap-2 mb-1.5">
+                  <div className="flex items-center gap-1.5 text-sky-400 font-semibold text-xs">
+                    <Icon name="sparkles" className="h-3.5 w-3.5 text-amber-400" />
+                    <span>{t("tour_prompt_title")}</span>
+                  </div>
+                  <button
+                    onClick={dismissTourPrompt}
+                    className="text-zinc-500 hover:text-zinc-300 transition-colors p-0.5"
+                    title="Dismiss tour suggestion"
+                  >
+                    <Icon name="x" className="h-3.5 w-3.5" />
+                  </button>
+                </div>
+                <p className="text-[0.72rem] text-zinc-300 leading-relaxed mb-3">
+                  {t("tour_prompt_desc")}
+                </p>
+                <div className="flex items-center gap-2">
+                  <button
+                    onClick={() => {
+                      dismissTourPrompt();
+                      startOnboardingTour();
+                    }}
+                    className="flex-1 rounded-lg bg-gradient-to-r from-sky-500/20 to-blue-600/20 border border-sky-500/40 px-2.5 py-1.5 text-xs font-semibold text-sky-300 hover:bg-sky-500/30 transition-all text-center shadow-lg"
+                  >
+                    {t("tour_prompt_start")}
+                  </button>
+                  <button
+                    onClick={dismissTourPrompt}
+                    className="rounded-lg bg-white/5 border border-white/10 px-2.5 py-1.5 text-xs text-zinc-400 hover:text-zinc-200 transition-colors"
+                  >
+                    {t("tour_prompt_close")}
+                  </button>
+                </div>
+              </div>
+            )}
+          </div>
 
           {/* Menu button + dropdown */}
           <div className="relative" ref={menuRef}>
@@ -228,7 +298,33 @@ export default function Header() {
                     <a
                       key={link.href}
                       href={link.href}
-                      onClick={() => setMenuOpen(false)}
+                      onClick={() => {
+                        setMenuOpen(false);
+                        const id = link.href.replace("#", "");
+                        const TAB_MAP: Record<string, string> = {
+                          "card-active-const": "sky",
+                          "card-constellations": "sky",
+                          "card-targets": "sky",
+                          "card-ai-targets": "ai",
+                          "card-planets": "planets",
+                          "card-solar-system-scope": "planets",
+                          "card-plan-my-night": "plan",
+                          "card-preflight": "plan",
+                          "card-log": "plan",
+                          "card-weekly": "tools",
+                          "card-light-pollution": "tools",
+                          "card-space-weather": "tools",
+                          "card-optics": "tools",
+                          "card-resources": "tools",
+                        };
+                        if (TAB_MAP[id]) {
+                          window.dispatchEvent(new CustomEvent("sg-navigate-tab", { detail: { tab: TAB_MAP[id] } }));
+                        }
+                        setTimeout(() => {
+                          const target = document.getElementById(id);
+                          if (target) target.scrollIntoView({ behavior: "smooth" });
+                        }, 60);
+                      }}
                       className="flex items-center gap-2.5 rounded-lg px-3 py-2 text-xs text-zinc-300 transition hover:bg-white/10 hover:text-white"
                     >
                       <Icon name="star" className="h-4 w-4 text-sky-400" />
@@ -253,10 +349,45 @@ export default function Header() {
                     <span>Data &amp; Offline Settings</span>
                   </button>
                 </div>
+
+                <div className="border-t border-white/10 pt-2 my-1 px-3">
+                  <div className="text-[0.68rem] font-bold uppercase tracking-wider text-zinc-400 mb-1.5">Language / Idioma</div>
+                  <div className="flex items-center gap-1.5">
+                    {LANG_OPTIONS.map((opt) => (
+                      <button
+                        key={opt.value}
+                        onClick={() => setLocale(opt.value)}
+                        className={`flex-1 py-1 rounded-md text-xs font-semibold transition-all ${
+                          locale === opt.value
+                            ? "bg-cyan-500/20 text-cyan-300 border border-cyan-400/40 shadow-sm"
+                            : "bg-white/5 text-zinc-400 hover:text-white hover:bg-white/10"
+                        }`}
+                      >
+                        {opt.label}
+                      </button>
+                    ))}
+                  </div>
+                </div>
               </div>
             )}
           </div>
         </div>
+      </div>
+
+      {/* Mobile Telemetry Sub-strip (Visible on mobile screens < 640px) */}
+      <div id="mobile-telemetry-strip" className="flex sm:hidden w-full items-center justify-between gap-2.5 border-t border-cyan-500/15 pt-1 mt-1 text-[0.68rem] font-mono text-zinc-300 overflow-x-auto scrollbar-none px-1">
+        <div className="flex items-center gap-1 flex-shrink-0">
+          <span className={`inline-block h-1.5 w-1.5 rounded-full ${isChecking ? "bg-zinc-500" : isLive ? "animate-pulse bg-green-500" : "bg-red-500"}`} />
+          <span className={`font-bold tracking-wider ${isChecking ? "text-zinc-400" : isLive ? "text-green-400" : "text-red-400"}`}>
+            {isChecking ? "..." : isLive ? "LIVE" : "OFFLINE"}
+          </span>
+        </div>
+        <span className="h-3 w-px bg-white/15 flex-shrink-0" />
+        <span className="truncate flex-shrink-0 text-slate-200">{hudMoon}</span>
+        <span className="h-3 w-px bg-white/15 flex-shrink-0" />
+        <span className="truncate flex-shrink-0 text-cyan-300">{hudWeather}</span>
+        <span className="h-3 w-px bg-white/15 flex-shrink-0" />
+        <span className="flex-shrink-0 text-zinc-400 font-sans whitespace-nowrap">{currentTime} • {currentDate}</span>
       </div>
 
       {aboutOpen && <Modal open={aboutOpen} title="About StarGazer v3.0.0" onClose={() => setAboutOpen(false)}><div>Dashboard built for amateur astronomers.</div></Modal>}

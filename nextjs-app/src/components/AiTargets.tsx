@@ -14,7 +14,7 @@ export default function AiTargets({
   mustSee = [],
 }: AiTargetsProps) {
   return (
-    <section id="card-must-see" className="card w-full mb-8 border border-cyan-500/30 bg-slate-950/95 shadow-2xl overflow-hidden relative">
+    <section id="card-ai-targets" className="card w-full mb-8 border border-cyan-500/30 bg-slate-950/95 shadow-2xl overflow-hidden relative">
       {/* Header */}
       <div className="card-header justify-between border-b border-cyan-500/20 px-6 py-4 bg-slate-900/80 relative z-20">
         <div className="flex items-center gap-2">

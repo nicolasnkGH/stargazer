@@ -1,6 +1,7 @@
 import type { IconType } from "react-icons";
 import {
   FiAlertTriangle,
+  FiArrowUp,
   FiArrowUpRight,
   FiBarChart2,
   FiCalendar,
@@ -9,11 +10,14 @@ import {
   FiCheckSquare,
   FiChevronRight,
   FiClock,
+  FiCompass,
   FiCopy,
   FiCrosshair,
+  FiDatabase,
   FiDownload,
   FiEdit2,
   FiExternalLink,
+  FiEye,
   FiFileText,
   FiFlag,
   FiImage,
@@ -61,6 +65,7 @@ import {
  */
 const ICONS: Record<string, IconType> = {
   "alert-triangle": FiAlertTriangle,
+  "arrow-up": FiArrowUp,
   "arrow-up-right": FiArrowUpRight,
   "bar-chart-2": FiBarChart2,
   binoculars: LuBinoculars, // no legacy data-lucide equivalent (Target Database card icon)
@@ -73,10 +78,13 @@ const ICONS: Record<string, IconType> = {
   clock: FiClock,
   "clock-3": LuClock3, // no legacy equivalent (Plan My Night card icon)
   "cloud-sun": LuCloudSun,
+  compass: FiCompass,
   copy: FiCopy,
   crosshair: FiCrosshair,
+  database: FiDatabase,
   download: FiDownload,
   "external-link": FiExternalLink,
+  eye: FiEye,
   "file-text": FiFileText,
   flag: FiFlag, // no legacy equivalent (GalleryModal report state)
   flame: LuFlame, // no legacy equivalent (Meteor Showers tab)

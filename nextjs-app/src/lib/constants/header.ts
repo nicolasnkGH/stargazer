@@ -5,17 +5,20 @@ import type { Locale } from "@/types";
 // follows card order in app/page.tsx so the menu reads top-to-bottom like the page.
 export const NAV_LINKS = [
   { href: "#card-tonight", key: "nav_tonight" },
+  { href: "#card-weather", label: "Clear Outside Weather Forecast" },
   { href: "#card-active-const", key: "nav_active_const" },
   { href: "#card-constellations", label: "Constellations Tonight" },
   { href: "#card-targets", key: "nav_target_db" },
-  { href: "#card-plan-my-night", label: "Plan My Night Scheduler" },
-  { href: "#card-motion", key: "card_motion" },
-  { href: "#card-weekly", key: "nav_weekly" },
-  { href: "#card-optics", label: "Telescope Optics & Eyepiece Guide" },
+  { href: "#card-ai-targets", label: "AI Picks & Observer Briefing" },
+  { href: "#card-planets", label: "Planets Tonight" },
   { href: "#card-solar-system-scope", label: "Interactive 3D Solar System" },
+  { href: "#card-preflight", label: "Observing Pre-Flight Checklist" },
+  { href: "#card-plan-my-night", label: "Plan My Night Scheduler" },
+  { href: "#card-log", label: "Observation Log" },
+  { href: "#card-weekly", key: "nav_weekly" },
   { href: "#card-light-pollution", label: "Light Pollution Map" },
-  { href: "#card-weather", label: "Astronomical Weather Forecast" },
   { href: "#card-space-weather", label: "Aurora & Space Weather" },
+  { href: "#card-optics", label: "Telescope Optics Calculator" },
   { href: "#apod-card", label: "NASA Astronomy Picture of the Day" },
 ] as const;
 

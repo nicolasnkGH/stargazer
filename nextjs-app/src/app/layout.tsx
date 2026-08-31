@@ -6,7 +6,7 @@ import { SerwistProvider } from "@serwist/turbopack/react";
 import "./globals.css";
 import Header from "@/components/Header";
 import InstallPrompt from "@/components/InstallPrompt";
-import NightVisionButton from "@/components/NightVisionButton";
+import QuickNavDock from "@/components/QuickNavDock";
 import LocationGate from "@/components/LocationGate";
 import Toast from "@/components/Toast";
 
@@ -67,9 +67,9 @@ export default async function RootLayout({
         <SerwistProvider swUrl="/serwist/sw.js">
           <NextIntlClientProvider locale={locale} messages={messages}>
             <Header />
-            <main className="flex flex-1 w-full flex-col items-center overflow-x-hidden">{children}</main>
+            <main className="flex flex-1 w-full flex-col items-center pt-20 sm:pt-16 pb-28 sm:pb-16 overflow-x-hidden">{children}</main>
             <InstallPrompt />
-            <NightVisionButton />
+            <QuickNavDock />
             <LocationGate />
             <Toast />
           </NextIntlClientProvider>

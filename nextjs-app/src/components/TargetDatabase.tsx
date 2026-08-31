@@ -1,9 +1,10 @@
 "use client";
 
-import { useState, useEffect, useMemo } from "react";
+import { useState, useEffect, useMemo, useRef } from "react";
 import useSWR from "swr";
 import { useTranslations } from "next-intl";
 import Icon from "./Icon";
+import SourceTooltip from "./SourceTooltip";
 import type { CatalogTarget, GalleryCounts } from "@/types";
 import { API_BASE, CONSTELLATION_FILTERS, BORTLE_CLASSES, BORTLE_STORAGE_KEY } from "@/lib/constants";
 import { addToPlan } from "@/hooks/useNightPlan";
@@ -78,7 +79,14 @@ export default function TargetDatabase() {
   const [sortVal, setSortVal] = useState("default");
   const [activeBortle, setActiveBortle] = useState<number | null>(null);
   const [fovTarget, setFovTarget] = useState<CatalogTarget | null>(null);
-  const [displayedCount, setDisplayedCount] = useState<number>(12);
+  const [displayedCount, setDisplayedCount] = useState<number>(6);
+  const constPillsRef = useRef<HTMLDivElement>(null);
+
+  const scrollPills = (dir: "left" | "right") => {
+    if (constPillsRef.current) {
+      constPillsRef.current.scrollBy({ left: dir === "left" ? -260 : 260, behavior: "smooth" });
+    }
+  };
 
   const { data: galleryCounts } = useSWR<GalleryCounts>(`${API_BASE}/gallery/counts`, galleryFetcher, {
     revalidateOnFocus: false,
@@ -86,10 +94,10 @@ export default function TargetDatabase() {
 
   // Reset pagination count on filter change
   useEffect(() => {
-    setTimeout(() => setDisplayedCount(12), 0);
+    setTimeout(() => setDisplayedCount(6), 0);
   }, [filter, typeFilter, equipFilter, nameQuery, sortVal]);
 
-  // Listen for sg-select-constellation custom event from ConstellationsTonight cards
+  // Listen for sg-select-constellation custom event from ConstellationsTonight cards & Interactive Constellation Map
   useEffect(() => {
     const handleSelect = (e: Event) => {
       const detail = (e as CustomEvent).detail;
@@ -97,7 +105,7 @@ export default function TargetDatabase() {
         const constName = detail.name || detail.abbr;
         if (constName) {
           setFilter(constName);
-          setTimeout(() => setDisplayedCount(12), 0);
+          setTimeout(() => setDisplayedCount(6), 0);
         }
       }
     };
@@ -224,9 +232,16 @@ export default function TargetDatabase() {
               : `✨ ${filter} Must-See Targets`}
           </h2>
         </div>
-        <span className="text-xs text-slate-400 font-mono">
-          Showing {visibleSubset.length} of {filteredTargets.length} targets
-        </span>
+        <div className="flex items-center gap-3">
+          <SourceTooltip
+            source="OpenNGC, Messier & Caldwell"
+            description="Comprehensive astronomical deep-sky target database combining OpenNGC, Messier, and Caldwell catalogs with real-time topocentric altitude, azimuth, Bortle visibility limits, and transit times."
+            attribution="OpenNGC / SEDS Messier / Skyfield"
+          />
+          <span className="text-xs text-slate-400 font-mono">
+            Showing {visibleSubset.length} of {filteredTargets.length} targets
+          </span>
+        </div>
       </div>
 
       <div className="card-body p-6">
@@ -306,43 +321,78 @@ export default function TargetDatabase() {
           </div>
         </div>
 
-        {/* 1:1 Vanilla Constellation Tabs Row */}
-        <div className="flex items-center gap-1.5 overflow-x-auto py-2 scrollbar-none mb-5 border-b border-white/10 pb-4">
-          <button
-            onClick={() => setFilter("Visible Now (My Sky)")}
-            className={`px-3.5 py-1.5 rounded-xl text-xs font-bold whitespace-nowrap transition-all border ${
-              filter === "Visible Now (My Sky)"
-                ? "border-green-500 bg-green-950/70 text-green-300 shadow-[0_0_12px_rgba(34,197,94,0.3)]"
-                : "border-white/10 bg-white/5 text-slate-400 hover:text-slate-200"
-            }`}
-          >
-            🌟 Visible Now (My Sky)
-          </button>
+        {/* Constellation Filters Carousel with Scroll Controls and Edge Mask */}
+        <div className="relative mb-5 border-b border-white/10 pb-4">
+          <div className="flex items-center justify-between mb-2">
+            <span className="text-xs text-slate-400 font-semibold flex items-center gap-1.5">
+              <span>🌌</span> Constellation Filter:
+            </span>
+            {/* Scroll Navigation Arrows */}
+            <div className="flex items-center gap-1">
+              <button
+                onClick={() => scrollPills("left")}
+                className="h-6 w-6 rounded-md bg-white/5 border border-white/10 text-zinc-400 hover:text-white hover:bg-white/10 flex items-center justify-center text-xs font-bold transition-all active:scale-95 cursor-pointer"
+                title="Scroll left"
+                aria-label="Scroll constellations left"
+              >
+                ‹
+              </button>
+              <span className="text-[0.62rem] font-mono text-zinc-500 px-1 select-none">Swipe / Scroll</span>
+              <button
+                onClick={() => scrollPills("right")}
+                className="h-6 w-6 rounded-md bg-white/5 border border-white/10 text-zinc-400 hover:text-white hover:bg-white/10 flex items-center justify-center text-xs font-bold transition-all active:scale-95 cursor-pointer"
+                title="Scroll right"
+                aria-label="Scroll constellations right"
+              >
+                ›
+              </button>
+            </div>
+          </div>
 
-          <button
-            onClick={() => setFilter("All Constellations (Full DB)")}
-            className={`px-3.5 py-1.5 rounded-xl text-xs font-bold whitespace-nowrap transition-all border ${
-              filter === "All Constellations (Full DB)"
-                ? "border-purple-500 bg-purple-950/70 text-purple-300 shadow-[0_0_12px_rgba(168,85,247,0.3)]"
-                : "border-white/10 bg-white/5 text-slate-400 hover:text-slate-200"
-            }`}
+          <div
+            ref={constPillsRef}
+            style={{
+              maskImage: "linear-gradient(to right, black 88%, transparent 100%)",
+              WebkitMaskImage: "linear-gradient(to right, black 88%, transparent 100%)",
+            }}
+            className="flex items-center gap-1.5 overflow-x-auto py-1 scrollbar-none"
           >
-            🌌 All Constellations (Full DB)
-          </button>
-
-          {CONSTELLATION_FILTERS.slice(2).map((c) => (
             <button
-              key={c}
-              onClick={() => setFilter(c)}
-              className={`px-3.5 py-1.5 rounded-xl text-xs font-semibold whitespace-nowrap transition-all border ${
-                filter === c
-                  ? "border-cyan-400 bg-cyan-950/70 text-cyan-300 shadow-[0_0_10px_rgba(6,182,212,0.3)]"
+              onClick={() => setFilter("Visible Now (My Sky)")}
+              className={`px-3.5 py-1.5 rounded-xl text-xs font-bold whitespace-nowrap transition-all border flex-shrink-0 cursor-pointer ${
+                filter === "Visible Now (My Sky)"
+                  ? "border-green-500 bg-green-950/70 text-green-300 shadow-[0_0_12px_rgba(34,197,94,0.3)]"
                   : "border-white/10 bg-white/5 text-slate-400 hover:text-slate-200"
               }`}
             >
-              {c}
+              🌟 Visible Now (My Sky)
             </button>
-          ))}
+
+            <button
+              onClick={() => setFilter("All Constellations (Full DB)")}
+              className={`px-3.5 py-1.5 rounded-xl text-xs font-bold whitespace-nowrap transition-all border flex-shrink-0 cursor-pointer ${
+                filter === "All Constellations (Full DB)"
+                  ? "border-purple-500 bg-purple-950/70 text-purple-300 shadow-[0_0_12px_rgba(168,85,247,0.3)]"
+                  : "border-white/10 bg-white/5 text-slate-400 hover:text-slate-200"
+              }`}
+            >
+              🌌 All Constellations (Full DB)
+            </button>
+
+            {CONSTELLATION_FILTERS.slice(2).map((c) => (
+              <button
+                key={c}
+                onClick={() => setFilter(c)}
+                className={`px-3 py-1.5 rounded-xl text-xs font-semibold whitespace-nowrap transition-all border flex-shrink-0 cursor-pointer ${
+                  filter === c
+                    ? "border-cyan-400 bg-cyan-950/70 text-cyan-300 shadow-[0_0_10px_rgba(6,182,212,0.3)]"
+                    : "border-white/10 bg-white/5 text-slate-400 hover:text-slate-200"
+                }`}
+              >
+                {c}
+              </button>
+            ))}
+          </div>
         </div>
 
         <p className="text-xs text-slate-400 mb-5 italic flex items-center gap-1.5">
@@ -466,11 +516,11 @@ export default function TargetDatabase() {
               ))}
             </div>
 
-            {/* Load More Targets Button matching Screenshot 4 */}
+            {/* Load More Targets Button */}
             {filteredTargets.length > displayedCount && (
               <div className="flex justify-center pt-2 pb-4">
                 <button
-                  onClick={() => setDisplayedCount((prev) => prev + 12)}
+                  onClick={() => setDisplayedCount((prev) => prev + 6)}
                   className="flex items-center gap-2 rounded-xl border border-purple-400/50 bg-gradient-to-r from-purple-600 to-indigo-600 px-8 py-3 text-sm font-bold text-white shadow-[0_0_20px_rgba(168,85,247,0.4)] hover:scale-105 transition-all cursor-pointer active:scale-95"
                 >
                   <span>Load More Targets 🔭</span>

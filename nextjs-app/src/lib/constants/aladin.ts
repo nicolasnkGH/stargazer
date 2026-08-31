@@ -1,6 +1,5 @@
-/** Same CDN URLs pinned by the legacy web/index.html — proven working in production. */
-export const ALADIN_JS_URL = "https://aladin.u-strasbg.fr/AladinLite/api/v2/latest/aladin.min.js";
-export const ALADIN_CSS_URL = "https://aladin.u-strasbg.fr/AladinLite/api/v2/latest/aladin.min.css";
+export const ALADIN_JS_URL = "https://aladin.cds.unistra.fr/AladinLite/api/v3/latest/aladin.js";
+export const ALADIN_CSS_URL = "";
 
 export const ALADIN_CONTAINER_ID = "aladin-lite-div";
 

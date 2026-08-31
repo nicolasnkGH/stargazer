@@ -2,6 +2,7 @@
 
 import React from "react";
 import Icon from "./Icon";
+import SourceTooltip from "./SourceTooltip";
 import type { AuroraForecast, SpaceWeatherReport } from "@/types";
 
 interface AuroraCardProps {
@@ -48,6 +49,11 @@ export default function AuroraCard({ aurora, spaceWeather }: AuroraCardProps) {
             </p>
           </div>
         </div>
+        <SourceTooltip
+          source="NOAA SWPC & NASA DONKI"
+          description="Real-time planetary geomagnetic activity (Kp-index), solar wind speed, interplanetary magnetic field (Bt/Bz), coronal mass ejections (CMEs), and geomagnetic storm alerts directly from NOAA and NASA."
+          attribution="NOAA SWPC / NASA DONKI"
+        />
       </div>
 
       {/* Body Grid with 1:1 Vanilla Glowing Aurora Curtain Effect */}
