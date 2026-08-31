@@ -23,6 +23,7 @@ function getClientCoords(): LocationCoords | null {
 export default function ClearOutsideEmbed({ coords: initialCoords }: { coords?: LocationCoords | null }) {
   const [coords, setCoords] = useState<LocationCoords | null>(initialCoords ?? null);
   const [imgError, setImgError] = useState(false);
+  const [showGuideMobile, setShowGuideMobile] = useState(false);
 
   useEffect(() => {
     const active = getClientCoords();
@@ -97,23 +98,47 @@ export default function ClearOutsideEmbed({ coords: initialCoords }: { coords?: 
           )}
         </div>
 
-        {/* Spread out "How to read this chart" in a balanced 3-column grid */}
-        <div className="border-t border-white/10 pt-5">
-          <div className="flex items-center justify-between mb-4">
-            <h3 className="text-xs font-bold text-slate-300 uppercase tracking-wider flex items-center gap-2">
-              <span className="text-base">📊</span> How to Read This Forecast Chart
+        {/* "How to read this chart" - condensed & collapsible on mobile, 3-column on desktop */}
+        <div className="border-t border-white/10 pt-4">
+          <div
+            onClick={() => setShowGuideMobile(!showGuideMobile)}
+            className="flex items-center justify-between mb-3 cursor-pointer select-none group"
+          >
+            <h3 className="text-xs font-bold text-slate-300 uppercase tracking-wider flex items-center gap-2 group-hover:text-sky-300 transition-colors">
+              <span className="text-sm">📊</span> How to Read This Forecast Chart
+              <span className="sm:hidden text-[0.65rem] px-2 py-0.5 rounded-full bg-white/10 text-zinc-400 font-normal">
+                {showGuideMobile ? "Hide ▲" : "Show Guide ▼"}
+              </span>
             </h3>
-            <span className="text-[0.7rem] text-slate-500 font-mono">Calibrated for ground-based observation</span>
+            <span className="hidden sm:inline-block text-[0.7rem] text-slate-500 font-mono">
+              Calibrated for ground-based observation
+            </span>
           </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-            <div className="rounded-xl border border-sky-500/20 bg-slate-950/60 p-4 shadow-sm">
-              <strong className="block text-sky-400 text-xs font-bold mb-2 flex items-center gap-1.5">
+          {/* Mobile Collapsed Hint */}
+          {!showGuideMobile && (
+            <div
+              onClick={() => setShowGuideMobile(true)}
+              className="sm:hidden flex items-center justify-between text-[0.7rem] text-zinc-400 bg-slate-900/60 border border-white/5 rounded-lg px-3 py-2 cursor-pointer hover:border-sky-500/30"
+            >
+              <div className="flex items-center gap-2 truncate">
+                <span>🚦 Green=Clear</span>
+                <span>•</span>
+                <span>🌫️ Check Dew/Haze</span>
+              </div>
+              <span className="text-sky-400 text-xs font-bold">Details ▾</span>
+            </div>
+          )}
+
+          {/* Grid: Always visible on tablet/desktop (sm:grid), toggleable on mobile */}
+          <div className={`${showGuideMobile ? "grid" : "hidden sm:grid"} grid-cols-1 md:grid-cols-3 gap-3 pt-1`}>
+            <div className="rounded-xl border border-sky-500/20 bg-slate-950/60 p-3 sm:p-4 shadow-sm">
+              <strong className="block text-sky-400 text-xs font-bold mb-1.5 flex items-center gap-1.5">
                 <span>🚦</span> The Traffic Light System
               </strong>
-              <div className="text-xs text-zinc-300 space-y-1.5 leading-relaxed">
+              <div className="text-xs text-zinc-300 space-y-1 leading-relaxed">
                 <p>
-                  <strong className="text-white font-semibold">SUMMARY Row:</strong> Red = overcast, Orange = mixed conditions, Green = perfectly clear sky.
+                  <strong className="text-white font-semibold">SUMMARY Row:</strong> Red = overcast, Orange = mixed, Green = clear sky.
                 </p>
                 <p>
                   <strong className="text-white font-semibold">CLOUD Rows:</strong> Pure white = 0% cloud. Dark blue = 100% cloud cover.
@@ -121,21 +146,21 @@ export default function ClearOutsideEmbed({ coords: initialCoords }: { coords?: 
               </div>
             </div>
 
-            <div className="rounded-xl border border-sky-500/20 bg-slate-950/60 p-4 shadow-sm">
-              <strong className="block text-sky-400 text-xs font-bold mb-2 flex items-center gap-1.5">
+            <div className="rounded-xl border border-sky-500/20 bg-slate-950/60 p-3 sm:p-4 shadow-sm">
+              <strong className="block text-sky-400 text-xs font-bold mb-1.5 flex items-center gap-1.5">
                 <span>🌫️</span> How to Spot the Haze
               </strong>
               <p className="text-xs text-zinc-300 leading-relaxed">
-                Check the <strong className="text-white font-semibold">REL. HUMIDITY &amp; DEW RISK</strong> rows. High humidity scatters light and washes out deep-sky targets. If red or orange, expect poor transparency even if cloud cover shows 0%.
+                Check the <strong className="text-white font-semibold">REL. HUMIDITY &amp; DEW RISK</strong> rows. High humidity scatters light and washes out deep-sky targets.
               </p>
             </div>
 
-            <div className="rounded-xl border border-red-500/30 bg-red-950/20 p-4 shadow-sm">
-              <strong className="block text-red-400 text-xs font-bold mb-2 flex items-center gap-1.5">
+            <div className="rounded-xl border border-red-500/30 bg-red-950/20 p-3 sm:p-4 shadow-sm">
+              <strong className="block text-red-400 text-xs font-bold mb-1.5 flex items-center gap-1.5">
                 <span>💧</span> Telescope Dew Warning
               </strong>
               <p className="text-xs text-zinc-300 leading-relaxed">
-                When the Dew Risk row turns glowing red, moisture rapidly condenses on cold optics. Ensure dew heaters, shields, and passive heating bands are activated before observing.
+                When the Dew Risk row turns red, moisture condenses on cold optics. Ensure dew heaters and shields are active before observing.
               </p>
             </div>
           </div>

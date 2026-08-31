@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useRef } from "react";
+import { useState, useRef, useEffect } from "react";
 import { useTranslations } from "next-intl";
 import {
   SAVED_LOCATIONS_STORAGE_KEY,
@@ -32,6 +32,23 @@ function persistLocations(locations: SavedLocation[]) {
 export default function LocationModal({ open, onClose, locations, activeId }: LocationModalProps) {
   const t = useTranslations();
   const [savedLocations, setSavedLocations] = useState(locations);
+
+  useEffect(() => {
+    if (open) {
+      try {
+        const raw = localStorage.getItem(SAVED_LOCATIONS_STORAGE_KEY);
+        const parsed = raw ? JSON.parse(raw) : null;
+        if (Array.isArray(parsed) && parsed.length > 0) {
+          // eslint-disable-next-line react-hooks/set-state-in-effect
+          setSavedLocations(parsed);
+          return;
+        }
+      } catch {
+        // ignore
+      }
+      setSavedLocations(locations);
+    }
+  }, [open, locations]);
 
   const [citySearch, setCitySearch] = useState("");
   const [suggestions, setSuggestions] = useState<GeocodeSuggestion[]>([]);

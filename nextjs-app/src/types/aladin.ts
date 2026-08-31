@@ -11,6 +11,7 @@ export interface AladinInstance {
 }
 
 export interface AladinGlobal {
+  init?: Promise<unknown>;
   aladin: (selector: string, options: Record<string, unknown>) => AladinInstance;
   graphicOverlay: (options: { color: string; lineWidth: number }) => AladinOverlay;
   polygon: (points: [number, number][]) => unknown;

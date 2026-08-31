@@ -41,8 +41,8 @@ export const DashboardControls: React.FC<DashboardControlsProps> = ({
 }) => {
   return (
     <>
-      {/* Right Side Zoom Slider Control */}
-      <div className="absolute right-4 sm:right-6 top-1/2 -translate-y-1/2 z-20 flex flex-col items-center space-y-3 bg-slate-900/80 backdrop-blur-xl border border-white/10 p-2.5 rounded-full shadow-[0_8px_32px_rgba(0,0,0,0.5)]">
+      {/* Left Side Zoom Slider Control */}
+      <div className="absolute left-4 sm:left-6 top-1/2 -translate-y-1/2 z-20 flex flex-col items-center space-y-3 bg-slate-900/80 backdrop-blur-xl border border-white/10 p-2.5 rounded-full shadow-[0_8px_32px_rgba(0,0,0,0.5)]">
         <button
           onClick={onZoomIn}
           className="p-2 rounded-full bg-white/5 hover:bg-cyan-500/20 text-slate-200 hover:text-cyan-300 transition-all active:scale-95"
@@ -55,7 +55,7 @@ export const DashboardControls: React.FC<DashboardControlsProps> = ({
         <div className="w-1 h-20 bg-slate-800 rounded-full relative overflow-hidden my-1">
           <div
             className="w-full bg-cyan-400 rounded-full transition-all duration-300"
-            style={{ height: `${Math.min(100, Math.max(10, zoomLevel * 20))}%` }}
+            style={{ height: `${Math.min(100, Math.max(5, zoomLevel * 10))}%` }}
           />
         </div>
 
@@ -145,16 +145,22 @@ export const DashboardControls: React.FC<DashboardControlsProps> = ({
         </div>
 
         {/* Right Side: Planet Quick Jump Toolbar */}
-        <div className="pointer-events-auto flex items-center space-x-2 bg-slate-900/80 backdrop-blur-2xl border border-white/10 p-2 rounded-2xl shadow-2xl text-slate-300 min-w-0 max-w-full overflow-hidden">
-          <div className="flex items-center space-x-1 overflow-x-auto max-w-[50vw] lg:max-w-none pr-1 scrollbar-none">
+        <div className="pointer-events-auto flex items-center space-x-1.5 sm:space-x-2 bg-slate-900/90 backdrop-blur-2xl border border-white/10 p-1.5 sm:p-2 rounded-2xl shadow-2xl text-slate-300 min-w-0 w-full sm:w-auto max-w-full overflow-hidden">
+          <div
+            className="flex items-center space-x-1 overflow-x-auto w-full pr-2 scrollbar-none"
+            style={{
+              maskImage: "linear-gradient(to right, black 85%, transparent 100%)",
+              WebkitMaskImage: "linear-gradient(to right, black 85%, transparent 100%)",
+            }}
+          >
             {CELESTIAL_BODIES.slice(0, 9).map((b) => (
               <button
                 key={b.id}
                 onClick={() => onSelectBody(b)}
-                className={`px-2 sm:px-2.5 py-1 rounded-xl text-[10px] sm:text-[11px] font-bold uppercase whitespace-nowrap transition-all ${
+                className={`px-2.5 sm:px-3 py-1.5 rounded-xl text-[10px] sm:text-[11px] font-bold uppercase whitespace-nowrap transition-all flex-shrink-0 ${
                   selectedBody?.id === b.id
                     ? "bg-cyan-500 text-slate-950 shadow-[0_0_12px_rgba(6,182,212,0.6)]"
-                    : "hover:bg-white/10 text-slate-300"
+                    : "hover:bg-white/10 text-slate-300 bg-white/5"
                 }`}
               >
                 {b.name}
@@ -167,7 +173,7 @@ export const DashboardControls: React.FC<DashboardControlsProps> = ({
               onSelectBody(null);
               if (onPan) onPan("reset");
             }}
-            className="p-2 rounded-xl hover:bg-cyan-500/20 text-slate-300 hover:text-cyan-300 transition-colors flex-shrink-0 border-l border-white/10 pl-2"
+            className="p-2 rounded-xl hover:bg-cyan-500/20 text-slate-300 hover:text-cyan-300 transition-colors flex-shrink-0 border-l border-white/10 pl-2 cursor-pointer"
             title="Reset to Full System View"
           >
             <Sliders className="w-4 h-4" />

@@ -1,17 +1,10 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useState } from "react";
 import Icon from "./Icon";
 import { useAladinReady } from "@/hooks/useAladinReady";
-import {
-  ALADIN_CONTAINER_ID,
-  FOV_PRESETS,
-  FOV_CUSTOM_VISUAL_DEFAULTS,
-  FOV_CUSTOM_SENSOR_DEFAULTS,
-  computeFovFrame,
-  type FovPreset,
-} from "@/lib/constants";
-import type { AladinInstance, AladinOverlay } from "@/types";
+import { ALADIN_CONTAINER_ID } from "@/lib/constants";
+import type { AladinInstance } from "@/types";
 
 interface FovModalProps {
   open: boolean;
@@ -23,16 +16,7 @@ interface FovModalProps {
 
 export default function FovModal({ open, onClose, raDeg, decDeg, targetName }: FovModalProps) {
   const ready = useAladinReady(open);
-  const aladinRef = useRef<AladinInstance | null>(null);
-  const overlayRef = useRef<AladinOverlay | null>(null);
-
-  const [preset, setPreset] = useState<FovPreset>("visual_25");
-  const [scopeFl, setScopeFl] = useState(FOV_CUSTOM_VISUAL_DEFAULTS.scopeFl);
-  const [epFl, setEpFl] = useState(FOV_CUSTOM_VISUAL_DEFAULTS.epFl);
-  const [epAfov, setEpAfov] = useState(FOV_CUSTOM_VISUAL_DEFAULTS.epAfov);
-  const [camScopeFl, setCamScopeFl] = useState(FOV_CUSTOM_SENSOR_DEFAULTS.scopeFl);
-  const [sensorW, setSensorW] = useState(FOV_CUSTOM_SENSOR_DEFAULTS.sensorW);
-  const [sensorH, setSensorH] = useState(FOV_CUSTOM_SENSOR_DEFAULTS.sensorH);
+  const [aladin, setAladin] = useState<AladinInstance | null>(null);
 
   // Init Aladin once the CDN script is ready, or re-center it on a new target.
   useEffect(() => {
@@ -40,61 +24,39 @@ export default function FovModal({ open, onClose, raDeg, decDeg, targetName }: F
     const A = window.A;
     if (!A) return;
 
-    if (!aladinRef.current) {
-      aladinRef.current = A.aladin(`#${ALADIN_CONTAINER_ID}`, {
-        survey: "P/DSS2/color",
-        fov: 1.5,
-        target: `${raDeg} ${decDeg}`,
-        showReticle: false,
-        showZoomControl: true,
-        showFullscreenControl: false,
-        showLayersControl: false,
-      });
+    const initAladin = () => {
+      try {
+        if (!aladin) {
+          const inst = A.aladin(`#${ALADIN_CONTAINER_ID}`, {
+            survey: "P/DSS2/color",
+            fov: 1.5,
+            target: `${raDeg} ${decDeg}`,
+            showReticle: false,
+            showZoomControl: true,
+            showFullscreenControl: false,
+            showLayersControl: false,
+          });
+          setAladin(inst);
+        } else {
+          aladin.gotoRaDec(raDeg, decDeg);
+        }
+      } catch (err) {
+        console.error("Failed to initialize Aladin:", err);
+      }
+    };
+
+    if (A.init && typeof A.init.then === "function") {
+      A.init.then(initAladin);
     } else {
-      aladinRef.current.gotoRaDec(raDeg, decDeg);
+      initAladin();
     }
-  }, [open, ready, raDeg, decDeg]);
-
-  // Draw/update the FOV frame overlay whenever the equipment or target changes.
-  useEffect(() => {
-    if (!open || !ready) return;
-    const A = window.A;
-    const aladin = aladinRef.current;
-    if (!A || !aladin) return;
-
-    const frame = computeFovFrame(preset, { scopeFl, epFl, epAfov, camScopeFl, sensorW, sensorH });
-    aladin.setFoV(frame.fovDegrees * 1.6);
-
-    if (overlayRef.current) {
-      aladin.removeCatalog(overlayRef.current);
-    }
-    const overlay = A.graphicOverlay({ color: "#ef4444", lineWidth: 2 });
-    overlayRef.current = overlay;
-    aladin.addCatalog(overlay);
-
-    if (frame.isRectangular) {
-      const cosDec = Math.cos((decDeg * Math.PI) / 180);
-      const dW = frame.rectWidthDeg / 2 / (cosDec || 1);
-      const dH = frame.rectHeightDeg / 2;
-      overlay.add(
-        A.polygon([
-          [raDeg - dW, decDeg - dH],
-          [raDeg + dW, decDeg - dH],
-          [raDeg + dW, decDeg + dH],
-          [raDeg - dW, decDeg + dH],
-        ])
-      );
-    } else {
-      overlay.add(A.circle(raDeg, decDeg, frame.fovDegrees / 2));
-    }
-  }, [open, ready, preset, scopeFl, epFl, epAfov, camScopeFl, sensorW, sensorH, raDeg, decDeg]);
+  }, [open, ready, raDeg, decDeg, aladin]);
 
   function handleClose() {
     // Aladin throws resize errors if its container goes display:none while alive — tear it down.
     const div = document.getElementById(ALADIN_CONTAINER_ID);
     if (div) div.innerHTML = "";
-    aladinRef.current = null;
-    overlayRef.current = null;
+    setAladin(null);
     onClose();
   }
 
@@ -108,49 +70,16 @@ export default function FovModal({ open, onClose, raDeg, decDeg, targetName }: F
       }}
     >
       <div className="w-full max-w-[650px] max-h-[90vh] overflow-y-auto rounded-xl border border-white/10 bg-[#0f172a] p-5">
-        <h2 className="mb-1 flex items-center gap-2 text-lg font-semibold text-white">
+        <h2 className="mb-4 flex items-center gap-2 text-lg font-semibold text-white">
           <Icon name="scan" className="h-5 w-5 text-purple-400" />
-          FOV Simulator: {targetName}
+          Interactive Sky Simulator: {targetName}
         </h2>
-
-        <div className="mb-4 flex flex-col gap-3 rounded-lg border border-white/5 bg-white/[0.02] p-3">
-          <div className="flex flex-wrap items-center gap-2.5">
-            <label className="min-w-20 text-xs text-zinc-400">Equipment:</label>
-            <select
-              value={preset}
-              onChange={(e) => setPreset(e.target.value as FovPreset)}
-              className="min-w-[200px] flex-1 rounded-md border border-white/15 bg-slate-800 px-2.5 py-1.5 text-sm text-white outline-none"
-            >
-              {FOV_PRESETS.map((p) => (
-                <option key={p.value} value={p.value}>
-                  {p.label}
-                </option>
-              ))}
-            </select>
-          </div>
-
-          {preset === "custom_visual" && (
-            <div className="flex flex-wrap gap-4 border-t border-white/5 pt-2.5">
-              <NumberField label="Scope Focal Length (mm)" value={scopeFl} onChange={setScopeFl} />
-              <NumberField label="Eyepiece Focal Length (mm)" value={epFl} onChange={setEpFl} />
-              <NumberField label="Eyepiece AFOV (degrees)" value={epAfov} onChange={setEpAfov} />
-            </div>
-          )}
-
-          {preset === "custom_sensor" && (
-            <div className="flex flex-wrap gap-4 border-t border-white/5 pt-2.5">
-              <NumberField label="Scope Focal Length (mm)" value={camScopeFl} onChange={setCamScopeFl} />
-              <NumberField label="Sensor Width (mm)" value={sensorW} onChange={setSensorW} step="0.1" />
-              <NumberField label="Sensor Height (mm)" value={sensorH} onChange={setSensorH} step="0.1" />
-            </div>
-          )}
-        </div>
 
         <div
           id={ALADIN_CONTAINER_ID}
           className="h-[400px] w-full rounded-lg border border-white/10 bg-[#020617] relative overflow-hidden"
         >
-          {(!ready || (typeof window !== "undefined" && !("A" in window))) && (
+          {(!ready || !aladin || (typeof window !== "undefined" && !("A" in window))) && (
             <div className="absolute inset-0 flex flex-col items-center justify-center p-4">
               <svg className="absolute inset-0 w-full h-full pointer-events-none select-none">
                 <defs>
@@ -176,17 +105,17 @@ export default function FovModal({ open, onClose, raDeg, decDeg, targetName }: F
                 <circle cx="35%" cy="15%" r="1" fill="#f43f5e" opacity="0.6" />
                 <circle cx="80%" cy="80%" r="1.2" fill="#fff" opacity="0.5" />
 
-                {/* Target Illustration */}
+                {/* Target Illustration (assuming standard fov of 1.5 degrees) */}
                 <g transform="translate(300, 200)">
                   {targetName.toLowerCase().includes("galaxy") || targetName.toLowerCase().includes("triplet") ? (
                     <>
-                      <ellipse rx={70 * (0.8 / Math.max(0.01, computeFovFrame(preset, { scopeFl, epFl, epAfov, camScopeFl, sensorW, sensorH }).fovDegrees))} ry={24 * (0.8 / Math.max(0.01, computeFovFrame(preset, { scopeFl, epFl, epAfov, camScopeFl, sensorW, sensorH }).fovDegrees))} fill="url(#galaxyGlow)" transform="rotate(-30)" />
-                      <circle r={8 * (0.8 / Math.max(0.01, computeFovFrame(preset, { scopeFl, epFl, epAfov, camScopeFl, sensorW, sensorH }).fovDegrees))} fill="#e0f2fe" opacity="0.9" />
+                      <ellipse rx={70 * (0.8 / 1.5)} ry={24 * (0.8 / 1.5)} fill="url(#galaxyGlow)" transform="rotate(-30)" />
+                      <circle r={8 * (0.8 / 1.5)} fill="#e0f2fe" opacity="0.9" />
                     </>
                   ) : targetName.toLowerCase().includes("nebula") || targetName.toLowerCase().includes("gas") ? (
                     <>
-                      <circle r={85 * (0.8 / Math.max(0.01, computeFovFrame(preset, { scopeFl, epFl, epAfov, camScopeFl, sensorW, sensorH }).fovDegrees))} fill="url(#nebulaGlow)" />
-                      <circle r={6 * (0.8 / Math.max(0.01, computeFovFrame(preset, { scopeFl, epFl, epAfov, camScopeFl, sensorW, sensorH }).fovDegrees))} fill="#fae8ff" opacity="0.8" />
+                      <circle r={85 * (0.8 / 1.5)} fill="url(#nebulaGlow)" />
+                      <circle r={6 * (0.8 / 1.5)} fill="#fae8ff" opacity="0.8" />
                     </>
                   ) : targetName.toLowerCase().includes("cluster") ? (
                     <g opacity="0.85">
@@ -213,35 +142,22 @@ export default function FovModal({ open, onClose, raDeg, decDeg, targetName }: F
                 <line x1="50%" y1="10%" x2="50%" y2="90%" stroke="rgba(255,255,255,0.04)" />
                 <line x1="10%" y1="50%" x2="90%" y2="50%" stroke="rgba(255,255,255,0.04)" />
 
-                {/* Eyepiece / Sensor FOV Indicator Frame */}
-                {computeFovFrame(preset, { scopeFl, epFl, epAfov, camScopeFl, sensorW, sensorH }).isRectangular ? (
-                  <rect
-                    x={`${50 - (computeFovFrame(preset, { scopeFl, epFl, epAfov, camScopeFl, sensorW, sensorH }).rectWidthDeg / 2) * 2}%`}
-                    y={`${50 - (computeFovFrame(preset, { scopeFl, epFl, epAfov, camScopeFl, sensorW, sensorH }).rectHeightDeg / 2) * 2}%`}
-                    width={`${computeFovFrame(preset, { scopeFl, epFl, epAfov, camScopeFl, sensorW, sensorH }).rectWidthDeg * 2}%`}
-                    height={`${computeFovFrame(preset, { scopeFl, epFl, epAfov, camScopeFl, sensorW, sensorH }).rectHeightDeg * 2}%`}
-                    fill="none"
-                    stroke="#10b981"
-                    strokeWidth="1.5"
-                    opacity="0.8"
-                  />
-                ) : (
-                  <circle
-                    cx="50%"
-                    cy="50%"
-                    r={`${Math.min(180, Math.max(10, computeFovFrame(preset, { scopeFl, epFl, epAfov, camScopeFl, sensorW, sensorH }).fovDegrees * 120))}`}
-                    fill="none"
-                    stroke="#a855f7"
-                    strokeWidth="1.5"
-                    opacity="0.8"
-                  />
-                )}
+                {/* Eyepiece FOV Indicator Frame */}
+                <circle
+                  cx="50%"
+                  cy="50%"
+                  r={Math.min(180, Math.max(10, 1.5 * 100))}
+                  fill="none"
+                  stroke="#a855f7"
+                  strokeWidth="1.5"
+                  opacity="0.8"
+                />
               </svg>
 
               <div className="absolute bottom-3 left-3 bg-slate-950/80 border border-white/10 px-3 py-1.5 rounded-lg text-[0.7rem] text-zinc-400 font-mono flex flex-col gap-0.5 pointer-events-auto">
-                <span className="text-sky-300 font-bold">FOV Simulator Fallback (Offline)</span>
+                <span className="text-sky-300 font-bold">Simulator Loading...</span>
                 <span>Coordinates: {raDeg.toFixed(2)}° RA / {decDeg.toFixed(2)}° Dec</span>
-                <span>Apparent FOV: {computeFovFrame(preset, { scopeFl, epFl, epAfov, camScopeFl, sensorW, sensorH }).fovDegrees.toFixed(2)}°</span>
+                <span>FOV: 1.50°</span>
               </div>
             </div>
           )}
@@ -254,31 +170,6 @@ export default function FovModal({ open, onClose, raDeg, decDeg, targetName }: F
           Close Simulator
         </button>
       </div>
-    </div>
-  );
-}
-
-function NumberField({
-  label,
-  value,
-  onChange,
-  step,
-}: {
-  label: string;
-  value: number;
-  onChange: (v: number) => void;
-  step?: string;
-}) {
-  return (
-    <div className="flex min-w-[100px] flex-1 flex-col gap-1">
-      <label className="text-[0.7rem] text-zinc-500">{label}</label>
-      <input
-        type="number"
-        step={step}
-        value={value}
-        onChange={(e) => onChange(Number(e.target.value) || 0)}
-        className="rounded border border-white/15 bg-slate-800 px-2 py-1 text-sm text-white outline-none"
-      />
     </div>
   );
 }

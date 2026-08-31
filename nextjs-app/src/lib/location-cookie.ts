@@ -16,5 +16,5 @@ export function parseLocationCookie(raw: string | undefined): LocationCoords | n
 
 /** Client-side write, mirrors Header.tsx's setLocale() cookie pattern. */
 export function writeLocationCookie(lat: number, lon: number) {
-  document.cookie = `${LOCATION_COOKIE}=${encodeURIComponent(JSON.stringify({ lat, lon }))}; path=/; max-age=31536000`;
+  document.cookie = `${LOCATION_COOKIE}=${encodeURIComponent(JSON.stringify({ lat, lon }))}; path=/; max-age=31536000; SameSite=Lax`;
 }

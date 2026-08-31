@@ -49,3 +49,4 @@ api/data/ai_cache.json
 # Local dev artifacts
 .worktrees/
 test-results/
+playwright-report/

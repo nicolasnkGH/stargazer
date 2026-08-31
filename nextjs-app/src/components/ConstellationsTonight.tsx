@@ -75,34 +75,58 @@ export default function ConstellationsTonight({
         </div>
       </div>
 
-      <div className="card-body p-5">
+      <div className="card-body p-3 sm:p-5 relative group/const">
         {visibleConst.length === 0 ? (
           <p className="text-sm text-slate-400 py-4 text-center">No constellations visible tonight.</p>
         ) : (
-          <div
-            ref={carouselRef}
-            style={{ scrollSnapType: "x mandatory" }}
-            className="grid grid-rows-2 grid-flow-col auto-cols-[220px] sm:auto-cols-[250px] gap-3.5 overflow-x-auto pb-3 pt-1 px-0.5 snap-x snap-mandatory scroll-smooth scrollbar-thin"
-          >
-            {visibleConst.map((c) => {
-              const alt = c.altitude_deg;
-              const az = c.azimuth_deg;
-              const azStr = az != null && !isNaN(az) ? ` (${Math.round(az)}°)` : "";
-              const color = alt > 30 ? "#22c55e" : alt > 10 ? "#f59e0b" : "#ef4444";
-              const barPct = Math.min(100, Math.max(0, Math.round((alt / 90) * 100)));
-              const barColor = alt > 30 ? "#22c55e" : alt > 10 ? "#f59e0b" : "#ef4444";
+          <>
+            {/* Side Floating Scroll Arrows on mobile and desktop */}
+            <button
+              onClick={() => scroll("left")}
+              className="absolute left-1 top-1/2 -translate-y-1/2 z-20 flex h-8 w-8 items-center justify-center rounded-full bg-slate-950/90 border border-cyan-500/50 text-cyan-300 shadow-xl hover:bg-cyan-500/20 active:scale-95 transition-all cursor-pointer select-none"
+              title="Scroll constellations left"
+              aria-label="Previous constellations"
+            >
+              ‹
+            </button>
 
-              const qualityLabel = alt > 30 ? "High in sky" : alt > 10 ? "Low in sky" : "Near horizon";
-              const qualityIcon = alt > 30 ? "🟢" : alt > 10 ? "🟡" : "🔴";
+            <button
+              onClick={() => scroll("right")}
+              className="absolute right-1 top-1/2 -translate-y-1/2 z-20 flex h-8 w-8 items-center justify-center rounded-full bg-slate-950/90 border border-cyan-500/50 text-cyan-300 shadow-xl hover:bg-cyan-500/20 active:scale-95 transition-all cursor-pointer select-none"
+              title="Scroll constellations right"
+              aria-label="Next constellations"
+            >
+              ›
+            </button>
 
-              return (
-                <div
-                  key={c.name}
-                  onClick={() => handleCardClick(c)}
-                  style={{ scrollSnapAlign: "start" }}
-                  className="snap-start rounded-xl border border-white/10 bg-slate-950/80 p-3.5 flex flex-col justify-between transition-all hover:border-cyan-400/60 hover:bg-slate-900 shadow-md cursor-pointer group hover:scale-[1.02] active:scale-95 select-none"
-                  title={`Click to view ${c.name} targets`}
-                >
+            <div
+              ref={carouselRef}
+              style={{
+                scrollSnapType: "x mandatory",
+                maskImage: "linear-gradient(to right, transparent, black 16px, black calc(100% - 16px), transparent)",
+                WebkitMaskImage: "linear-gradient(to right, transparent, black 16px, black calc(100% - 16px), transparent)",
+              }}
+              className="grid grid-rows-2 grid-flow-col auto-cols-[calc(50%-6px)] sm:auto-cols-[240px] gap-2 sm:gap-3.5 overflow-x-auto pb-3 pt-1 px-4 snap-x snap-mandatory scroll-smooth scrollbar-thin"
+            >
+              {visibleConst.map((c) => {
+                const alt = c.altitude_deg;
+                const az = c.azimuth_deg;
+                const azStr = az != null && !isNaN(az) ? ` (${Math.round(az)}°)` : "";
+                const color = alt > 30 ? "#22c55e" : alt > 10 ? "#f59e0b" : "#ef4444";
+                const barPct = Math.min(100, Math.max(0, Math.round((alt / 90) * 100)));
+                const barColor = alt > 30 ? "#22c55e" : alt > 10 ? "#f59e0b" : "#ef4444";
+
+                const qualityLabel = alt > 30 ? "High in sky" : alt > 10 ? "Low in sky" : "Near horizon";
+                const qualityIcon = alt > 30 ? "🟢" : alt > 10 ? "🟡" : "🔴";
+
+                return (
+                  <div
+                    key={c.name}
+                    onClick={() => handleCardClick(c)}
+                    style={{ scrollSnapAlign: "start" }}
+                    className="snap-start rounded-xl border border-white/10 bg-slate-950/80 p-2.5 sm:p-3.5 flex flex-col justify-between transition-all hover:border-cyan-400/60 hover:bg-slate-900 shadow-md cursor-pointer group hover:scale-[1.02] active:scale-95 select-none min-h-[110px]"
+                    title={`Click to view ${c.name} targets`}
+                  >
                   {/* Name & Abbreviation */}
                   <div className="flex items-center justify-between font-bold text-slate-100 text-xs sm:text-sm mb-2">
                     <span className="flex items-center gap-1.5 truncate">
@@ -144,6 +168,7 @@ export default function ConstellationsTonight({
               );
             })}
           </div>
+          </>
         )}
       </div>
     </section>

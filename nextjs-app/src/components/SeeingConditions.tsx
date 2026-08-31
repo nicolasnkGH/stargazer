@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import useSWR from "swr";
+import { useTranslations } from "next-intl";
 import Icon from "./Icon";
 import SourceTooltip from "./SourceTooltip";
 import PreflightChecklistModal, { usePreflightChecked } from "./PreflightChecklistModal";
@@ -37,16 +38,17 @@ function SeeingBadge({ score }: { score: number }) {
 }
 
 function TwilightTimelineStrip({ twilight }: { twilight: TwilightTimeline }) {
+  const t = useTranslations();
   const items = [
-    { icon: "sunset", color: "text-orange-400", value: twilight.sunset, label: "Sunset" },
-    { icon: "moon", color: "text-sky-400", value: twilight.astro_start, label: "Astro Start" },
-    { icon: "sun", color: "text-sky-400", value: twilight.astro_end, label: "Astro End" },
-    { icon: "sunrise", color: "text-orange-400", value: twilight.sunrise, label: "Sunrise" },
+    { icon: "sunset", color: "text-orange-400", value: twilight.sunset, label: t("lbl_sunset") || "Sunset" },
+    { icon: "moon", color: "text-sky-400", value: twilight.astro_start, label: t("lbl_astro_start") || "Astro Start" },
+    { icon: "sun", color: "text-sky-400", value: twilight.astro_end, label: t("lbl_astro_end") || "Astro End" },
+    { icon: "sunrise", color: "text-orange-400", value: twilight.sunrise, label: t("lbl_sunrise") || "Sunrise" },
   ] as const;
   return (
     <div className="mt-3 pt-2.5 border-t border-white/10">
       <div className="flex items-center gap-1.5 text-xs text-white mb-2 font-semibold">
-        <Icon name="clock" className="h-3.5 w-3.5 text-sky-400" /> Twilight Timeline
+        <Icon name="clock" className="h-3.5 w-3.5 text-sky-400" /> {t("lbl_twilight_timeline") || "Twilight Timeline"}
       </div>
       <div className="flex justify-between text-center text-xs text-zinc-400">
         {items.map((it, i) => (
@@ -68,6 +70,7 @@ export default function SeeingConditions({
   seeing: SeeingData | null;
   twilight?: TwilightTimeline;
 }) {
+  const t = useTranslations();
   const seeing = useAiSeeing(initialSeeing);
   const [checklistOpen, setChecklistOpen] = useState(false);
   const { completedCount, totalCount, isAllDone } = usePreflightChecked();
@@ -93,7 +96,9 @@ export default function SeeingConditions({
         <div className="flex items-center justify-between gap-2 mb-3">
           <div className="flex items-center gap-2">
             <Icon name="cloud-sun" className="h-5 w-5 text-sky-400" />
-            <h3 className="text-[0.92rem] font-semibold text-zinc-100 tracking-wide">Conditions</h3>
+            <h3 className="text-[0.92rem] font-semibold text-zinc-100 tracking-wide">
+              {t("tonight_title") || "Conditions"}
+            </h3>
             {seeing.ai_powered && (
               <span className="rounded border border-purple-500/30 bg-purple-500/15 px-2 py-0.5 text-[0.65rem] font-medium text-purple-400">
                 AI
@@ -139,34 +144,34 @@ export default function SeeingConditions({
         )}
 
         {seeing.best_window && (
-          <p className="text-xs text-sky-300 mb-2">🔭 Best window: {seeing.best_window}</p>
+          <p className="text-xs text-sky-300 mb-2">🔭 {t("lbl_best_window") || "Best window"}: {seeing.best_window}</p>
         )}
 
         <div className="grid grid-cols-2 sm:grid-cols-3 gap-2 mt-2 pt-2.5 border-t border-white/5">
           <div>
-            <span className="text-[0.65rem] text-zinc-500 uppercase tracking-wider">Clouds</span>
+            <span className="text-[0.65rem] text-zinc-500 uppercase tracking-wider">{t("lbl_clouds") || "Clouds"}</span>
             <p className="text-sm text-zinc-200 font-mono">{seeing.tonight_cloud_pct ?? "—"}%</p>
           </div>
           <div>
-            <span className="text-[0.65rem] text-zinc-500 uppercase tracking-wider">Wind</span>
+            <span className="text-[0.65rem] text-zinc-500 uppercase tracking-wider">{t("lbl_wind") || "Wind"}</span>
             <p className="text-sm text-zinc-200 font-mono">{seeing.tonight_wind_kmh ?? "—"} km/h</p>
           </div>
           <div>
-            <span className="text-[0.65rem] text-zinc-500 uppercase tracking-wider">Rain</span>
+            <span className="text-[0.65rem] text-zinc-500 uppercase tracking-wider">{t("lbl_rain") || "Rain"}</span>
             <p className="text-sm text-zinc-200 font-mono">{seeing.tonight_precip_prob ?? "—"}%</p>
           </div>
           <div>
-            <span className="text-[0.65rem] text-zinc-500 uppercase tracking-wider">Humidity</span>
+            <span className="text-[0.65rem] text-zinc-500 uppercase tracking-wider">{t("lbl_humidity") || "Humidity"}</span>
             <p className="text-sm text-zinc-200 font-mono">{seeing.tonight_humidity ?? "—"}%</p>
           </div>
           <div>
-            <span className="text-[0.65rem] text-zinc-500 uppercase tracking-wider">Dew Spread</span>
+            <span className="text-[0.65rem] text-zinc-500 uppercase tracking-wider">{t("lbl_dew_spread") || "Dew Spread"}</span>
             <p className={`text-sm font-mono ${(seeing.tonight_dew_spread ?? 99) < 3 ? "text-red-400" : "text-zinc-200"}`}>
               {seeing.tonight_dew_spread != null ? `${seeing.tonight_dew_spread}°C` : "—"}
             </p>
           </div>
           <div>
-            <span className="text-[0.65rem] text-zinc-500 uppercase tracking-wider">Visibility</span>
+            <span className="text-[0.65rem] text-zinc-500 uppercase tracking-wider">{t("lbl_visibility") || "Visibility"}</span>
             <p className="text-sm text-zinc-200 font-mono">{seeing.tonight_visibility_km ?? "—"} km</p>
           </div>
         </div>

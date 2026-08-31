@@ -6,6 +6,7 @@ import { ALADIN_JS_URL, ALADIN_CSS_URL } from "@/lib/constants";
 
 function useAladinCss() {
   useEffect(() => {
+    if (!ALADIN_CSS_URL) return;
     if (document.querySelector(`link[href="${ALADIN_CSS_URL}"]`)) return;
     const link = document.createElement("link");
     link.rel = "stylesheet";
