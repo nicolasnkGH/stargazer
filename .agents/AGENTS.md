@@ -7,6 +7,7 @@ These rules apply to ALL AI agents working in this repository. There are no exce
 - Push directly to `main` or any protected branch
 - Merge Pull Requests automatically or without explicit human owner approval
 - Add any bot suffixes or custom tags (such as "via AI Watchdog") to PR titles, commit messages, or merge messages
+- Auto-merge using GitHub's auto-merge feature or any automation
 - Delete branches without permission
 - Create GitHub releases or tags without explicit instruction
 
@@ -21,3 +22,55 @@ These rules apply to ALL AI agents working in this repository. There are no exce
 
 ## 🔒 Scope Constraint
 Only touch files directly relevant to the task. Do not refactor unrelated code or alter PR title formats.
+
+## 🛡️ Branch Protection Enforcement
+
+The `main` branch is protected with the following rules:
+- ✅ Require pull request reviews before merging (minimum 1 approval)
+- ✅ Require status checks to pass before merging
+- ✅ Require branches to be up to date before merging
+- ✅ Require code owners review (when applicable)
+- ✅ Dismiss stale pull request reviews when new commits are pushed
+
+**These protections FORCE all merges to be manual. No automation can bypass them.**
+
+## ✅ What Agents CAN Do
+- Create focused feature branches with clear naming
+- Make targeted code changes that solve the specific problem
+- Run local tests and verification
+- Push to feature branches only (never `main`)
+- Open PRs with clear, descriptive titles and descriptions
+- Ask clarifying questions before proceeding
+- Suggest improvements and best practices
+- Provide detailed, conventional commit messages
+
+## 📝 Commit Message Format (Conventional Commits)
+All commits MUST follow this format:
+```
+feat: add new feature
+fix: resolve bug
+docs: update documentation
+refactor: improve code structure
+test: add or update tests
+style: format code (no logic changes)
+chore: update dependencies or tooling
+```
+
+**NEVER include:**
+- "via AI Watchdog"
+- "[bot]" or "[automated]"
+- "automated by" or "by bot"
+- Any tool or bot identifiers
+
+## 🚫 If a Violation Occurs
+If any agent violates these rules (auto-merges, adds bot tags, pushes to `main`, etc.):
+1. The violation will be blocked by branch protection rules
+2. The commit will be rejected by pre-commit hooks
+3. Report to the repository owner immediately
+4. Do not attempt to bypass protections
+
+---
+
+**Last Updated:** 2026-08-31  
+**Owner:** nicolasnkGH  
+**Status:** ✅ Enforced via Branch Protection + Pre-Commit Hooks
