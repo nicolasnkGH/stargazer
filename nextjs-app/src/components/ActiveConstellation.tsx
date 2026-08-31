@@ -65,16 +65,6 @@ export default function ActiveConstellation() {
     };
   }, [selectedAbbr]);
 
-  useEffect(() => {
-    if (!selectedAbbr) return;
-    const found = ALL_CONSTELLATIONS.find((c) => c.abbr.toLowerCase() === selectedAbbr.toLowerCase());
-    window.dispatchEvent(
-      new CustomEvent("sg-select-constellation", {
-        detail: { abbr: selectedAbbr, name: found?.name || selectedAbbr },
-      })
-    );
-  }, [selectedAbbr]);
-
   if (loading) {
     return (
       <section id="card-active-const" className="w-full">
@@ -106,16 +96,13 @@ export default function ActiveConstellation() {
     <section id="card-active-const" className="card w-full">
       <div className="card-header justify-between">
         <div className="flex items-center gap-2">
-          <Icon name="sparkles" className="h-5 w-5 text-sky-400 animate-pulse" />
-          <div>
-            <h2 className="text-base font-bold text-slate-100">Interactive Constellation Map</h2>
-            <p className="text-[0.65rem] text-sky-400/80 font-mono">3D Sky Projection &amp; SIMBAD Hub</p>
-          </div>
+          <Icon name="star" className="h-5 w-5 text-amber-400" />
+          <h2>Active Constellations</h2>
         </div>
         <select
           value={selectedAbbr ?? ""}
           onChange={(e) => setSelectedAbbr(e.target.value)}
-          className="rounded-lg border border-white/10 bg-slate-900/50 py-1.5 px-2.5 text-xs text-zinc-200 outline-none hover:border-white/30 cursor-pointer"
+          className="rounded-lg border border-white/10 bg-slate-900/50 py-1 px-2 text-xs text-zinc-200 outline-none hover:border-white/30"
         >
           {ALL_CONSTELLATIONS.map((c) => {
             const live = visible.find((v) => v.abbr === c.abbr);

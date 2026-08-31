@@ -78,7 +78,7 @@ export default function TargetDatabase() {
   const [sortVal, setSortVal] = useState("default");
   const [activeBortle, setActiveBortle] = useState<number | null>(null);
   const [fovTarget, setFovTarget] = useState<CatalogTarget | null>(null);
-  const [displayedCount, setDisplayedCount] = useState<number>(6);
+  const [displayedCount, setDisplayedCount] = useState<number>(12);
 
   const { data: galleryCounts } = useSWR<GalleryCounts>(`${API_BASE}/gallery/counts`, galleryFetcher, {
     revalidateOnFocus: false,
@@ -86,10 +86,10 @@ export default function TargetDatabase() {
 
   // Reset pagination count on filter change
   useEffect(() => {
-    setTimeout(() => setDisplayedCount(6), 0);
+    setTimeout(() => setDisplayedCount(12), 0);
   }, [filter, typeFilter, equipFilter, nameQuery, sortVal]);
 
-  // Listen for sg-select-constellation custom event from ConstellationsTonight cards & Interactive Constellation Map
+  // Listen for sg-select-constellation custom event from ConstellationsTonight cards
   useEffect(() => {
     const handleSelect = (e: Event) => {
       const detail = (e as CustomEvent).detail;
@@ -97,7 +97,7 @@ export default function TargetDatabase() {
         const constName = detail.name || detail.abbr;
         if (constName) {
           setFilter(constName);
-          setTimeout(() => setDisplayedCount(6), 0);
+          setTimeout(() => setDisplayedCount(12), 0);
         }
       }
     };
@@ -466,11 +466,11 @@ export default function TargetDatabase() {
               ))}
             </div>
 
-            {/* Load More Targets Button */}
+            {/* Load More Targets Button matching Screenshot 4 */}
             {filteredTargets.length > displayedCount && (
               <div className="flex justify-center pt-2 pb-4">
                 <button
-                  onClick={() => setDisplayedCount((prev) => prev + 6)}
+                  onClick={() => setDisplayedCount((prev) => prev + 12)}
                   className="flex items-center gap-2 rounded-xl border border-purple-400/50 bg-gradient-to-r from-purple-600 to-indigo-600 px-8 py-3 text-sm font-bold text-white shadow-[0_0_20px_rgba(168,85,247,0.4)] hover:scale-105 transition-all cursor-pointer active:scale-95"
                 >
                   <span>Load More Targets 🔭</span>
