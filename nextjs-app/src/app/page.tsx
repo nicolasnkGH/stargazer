@@ -21,6 +21,7 @@ import SolarSystemExplorerCard from "@/components/SolarSystemExplorerCard";
 import LightPollutionCard from "@/components/LightPollutionCard";
 import AuroraCard from "@/components/AuroraCard";
 import ApodCard from "@/components/ApodCard";
+import DashboardTabs from "@/components/DashboardTabs";
 import { fetchBackend } from "@/lib/api-proxy";
 import { REVALIDATE, LOCATION_COOKIE } from "@/lib/constants";
 import { parseLocationCookie } from "@/lib/location-cookie";
@@ -58,43 +59,50 @@ export default async function Home() {
         twilight={tonight?.twilight_timeline}
         bortle={bortle?.bortle}
       />
-      <div className="flex w-full flex-col items-center gap-8 overflow-x-hidden">
-        <div className="w-full max-w-[1600px] px-2 sm:px-8 py-8 space-y-8 overflow-x-hidden">
-          <CardRow id="card-tonight">
-            <SeeingConditions seeing={tonight?.seeing ?? null} twilight={tonight?.twilight_timeline} />
-            <MoonCard moon={tonight?.moon ?? null} moonFact={tonight?.seeing?.moon_fact} />
-            <SkyMotion />
-          </CardRow>
+      <div className="flex w-full flex-col items-center gap-6 overflow-x-hidden">
+        <div className="w-full max-w-[1600px] px-2 sm:px-8 py-6 space-y-6 overflow-x-hidden">
+          {/* Top Dashboard: Pinned "At-a-Glance" Data */}
+          <div className="w-full space-y-6">
+            <CardRow id="card-tonight">
+              <SeeingConditions seeing={tonight?.seeing ?? null} twilight={tonight?.twilight_timeline} />
+              <MoonCard moon={tonight?.moon ?? null} moonFact={tonight?.seeing?.moon_fact} />
+              <SkyMotion />
+            </CardRow>
 
-          {/* 7-Day Astronomical Observing Forecast */}
-          <WeeklyForecast report={weekly} />
+            {/* Pinned Weather Forecast Chart */}
+            <ClearOutsideEmbed coords={coords} />
+          </div>
 
-          {/* Clear Outside Weather Chart */}
-          <ClearOutsideEmbed coords={coords} />
+          {/* Tabbed Navigation Interface */}
+          <DashboardTabs
+            tabSkyMap={
+              <>
+                <ActiveConstellation />
+                <ConstellationsTonight constellations={constellationsData?.constellations} />
+                <AiTargets bestTargets={tonight?.best_targets_tonight} mustSee={tonight?.must_see} />
+                <TargetDatabase />
+                <PlanMyNight />
+              </>
+            }
+            tabPlanets={
+              <>
+                <PlanetGrid planets={planetsData?.planets} />
+                <SolarSystemExplorerCard />
+              </>
+            }
+            tabTools={
+              <>
+                <WeeklyForecast report={weekly} />
+                <LightPollutionCard bortle={bortle} />
+                <AuroraCard aurora={aurora} spaceWeather={spaceWeather} />
+                <ApodCard apod={apod} />
+                <TelescopeCalculator />
+                <ObservationLog />
+                <Resources />
+              </>
+            }
+          />
 
-          {/* Light Pollution Map */}
-          <LightPollutionCard bortle={bortle} />
-
-          {/* NASA APOD */}
-          <ApodCard apod={apod} />
-
-          {/* Aurora & Space Weather Forecast */}
-          <AuroraCard aurora={aurora} spaceWeather={spaceWeather} />
-
-          {/* Must-See & AI Picks */}
-          <AiTargets bestTargets={tonight?.best_targets_tonight} mustSee={tonight?.must_see} />
-
-          {/* Planets Tonight */}
-          <PlanetGrid planets={planetsData?.planets} />
-
-          <ActiveConstellation />
-          <ConstellationsTonight constellations={constellationsData?.constellations} />
-          <TargetDatabase />
-          <PlanMyNight />
-          <TelescopeCalculator />
-          <SolarSystemExplorerCard />
-          <ObservationLog />
-          <Resources />
           <Footer />
         </div>
       </div>

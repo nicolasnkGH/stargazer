@@ -10,6 +10,9 @@ import {
   buildCelestialConfig,
   targetMarkerColor,
 } from "@/lib/constants";
+import { addToPlan } from "@/hooks/useNightPlan";
+import { showToast } from "@/lib/toast";
+import FovModal from "./FovModal";
 import type { MapTarget, StarLookup } from "@/types";
 
 interface CelestialMapProps {
@@ -32,6 +35,7 @@ export default function CelestialMap({ targets, centerRaHours, centerDecDeg }: C
 
   const [selectedTarget, setSelectedTarget] = useState<MapTarget | null>(null);
   const [skyClick, setSkyClick] = useState<SkyClick | null>(null);
+  const [fovModalTarget, setFovModalTarget] = useState<{ name: string; raDeg: number; decDeg: number } | null>(null);
 
   useEffect(() => {
     targetsRef.current = targets;
@@ -173,34 +177,162 @@ export default function CelestialMap({ targets, centerRaHours, centerDecDeg }: C
       )}
 
       {(selectedTarget || skyClick) && (
-        <div className="mt-3 rounded-lg border border-purple-500/30 bg-white/[0.03] p-3 text-sm">
+        <div className="mt-3 rounded-xl border border-purple-500/40 bg-slate-900/95 p-4 shadow-xl text-sm relative animate-fadeIn">
+          <button
+            onClick={() => {
+              setSelectedTarget(null);
+              setSkyClick(null);
+            }}
+            className="absolute top-3 right-3 text-zinc-400 hover:text-zinc-100 transition-colors p-1"
+            title="Dismiss"
+          >
+            ✕
+          </button>
+
           {selectedTarget && (
-            <>
-              <p className="font-semibold text-zinc-100">{selectedTarget.name}</p>
-              <p className="text-xs text-zinc-400">
-                {selectedTarget.type || "Object"} · Mag {selectedTarget.magnitude ?? "?"}
-              </p>
+            <div className="space-y-3">
+              <div className="flex items-center gap-2 flex-wrap pr-6">
+                <span className="text-xl">✨</span>
+                <span className="font-bold text-base text-zinc-100">{selectedTarget.name}</span>
+                <span className="rounded bg-purple-500/20 border border-purple-500/40 px-2 py-0.5 text-xs text-purple-300 font-medium">
+                  {selectedTarget.type || "Deep Sky Object"}
+                </span>
+                {selectedTarget.magnitude != null && (
+                  <span className="rounded bg-sky-500/20 border border-sky-500/40 px-2 py-0.5 text-xs font-mono text-sky-300">
+                    Mag {selectedTarget.magnitude}
+                  </span>
+                )}
+              </div>
+
+              <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 text-xs text-zinc-300 bg-white/[0.03] p-2.5 rounded-lg font-mono">
+                <div>
+                  <span className="text-zinc-500 block text-[0.65rem] uppercase">RA (Hours)</span>
+                  {selectedTarget.ra_hours.toFixed(2)}h
+                </div>
+                <div>
+                  <span className="text-zinc-500 block text-[0.65rem] uppercase">Dec (Degrees)</span>
+                  {selectedTarget.dec_degrees.toFixed(2)}°
+                </div>
+                <div>
+                  <span className="text-zinc-500 block text-[0.65rem] uppercase">Status</span>
+                  <span className="text-emerald-400">In View</span>
+                </div>
+                <div>
+                  <span className="text-zinc-500 block text-[0.65rem] uppercase">Recommended</span>
+                  <span className="text-amber-400">Tonight</span>
+                </div>
+              </div>
+
               {selectedTarget.description && (
-                <p className="mt-1 text-xs text-zinc-500">{selectedTarget.description}</p>
+                <p className="text-xs text-zinc-300 leading-relaxed bg-slate-950/60 p-2.5 rounded-lg border border-white/5">
+                  {selectedTarget.description}
+                </p>
               )}
-            </>
+
+              {/* Action buttons directly beneath the map */}
+              <div className="flex flex-wrap items-center gap-2 pt-1">
+                <button
+                  onClick={() => {
+                    const id = selectedTarget.name.toLowerCase().replace(/[^a-z0-9]/g, "_");
+                    const err = addToPlan(id, `🔭 ${selectedTarget.name}`);
+                    showToast(err || `Added ${selectedTarget.name} to observing plan!`);
+                  }}
+                  className="flex items-center gap-1.5 rounded-lg border border-sky-500/50 bg-sky-500/20 hover:bg-sky-500/30 px-3.5 py-1.5 text-xs font-semibold text-sky-200 transition-all active:scale-95 shadow-sm"
+                >
+                  <span>Add to Plan +</span>
+                </button>
+
+                <button
+                  onClick={() => setFovModalTarget({
+                    name: selectedTarget.name,
+                    raDeg: selectedTarget.ra_hours * 15,
+                    decDeg: selectedTarget.dec_degrees,
+                  })}
+                  className="flex items-center gap-1.5 rounded-lg border border-purple-500/50 bg-purple-500/20 hover:bg-purple-500/30 px-3.5 py-1.5 text-xs font-semibold text-purple-200 transition-all active:scale-95 shadow-sm"
+                >
+                  <span>Simulate View 🔭</span>
+                </button>
+
+                <button
+                  onClick={() => {
+                    const el = document.getElementById("card-targets");
+                    if (el) el.scrollIntoView({ behavior: "smooth" });
+                  }}
+                  className="flex items-center gap-1.5 rounded-lg border border-white/10 bg-white/5 hover:bg-white/10 px-3 py-1.5 text-xs font-medium text-zinc-300 transition-colors"
+                >
+                  <span>View in Target Catalog ↗</span>
+                </button>
+              </div>
+            </div>
           )}
-          {skyClick?.loading && <p className="text-xs text-purple-400">{t("simbad_scanning")}</p>}
-          {skyClick?.error && <p className="text-xs text-red-400">{t("simbad_error")}</p>}
+
+          {skyClick?.loading && (
+            <div className="flex items-center gap-2 text-purple-400 py-2">
+              <span className="animate-spin">🌀</span>
+              <p className="text-xs">{t("simbad_scanning")}</p>
+            </div>
+          )}
+
+          {skyClick?.error && (
+            <div className="flex items-center gap-2 text-red-400 py-2">
+              <span>⚠️</span>
+              <p className="text-xs">{t("simbad_error")}</p>
+            </div>
+          )}
+
           {skyClick?.data && (
-            <>
-              <p className="font-semibold text-zinc-100">{skyClick.data.name.replace("* ", "")}</p>
-              <div className="mt-1 flex justify-between text-xs">
-                <span className="text-zinc-400">{t("simbad_spectral")}</span>
-                <span className="font-mono text-green-400">{skyClick.data.spectral_type ?? t("simbad_unknown")}</span>
+            <div className="space-y-3">
+              <div className="flex items-center gap-2 pr-6">
+                <span className="text-xl">⭐</span>
+                <span className="font-bold text-base text-zinc-100">
+                  {skyClick.data.name.replace("* ", "")}
+                </span>
+                <span className="rounded bg-indigo-500/20 border border-indigo-500/40 px-2 py-0.5 text-xs text-indigo-300">
+                  SIMBAD Star
+                </span>
               </div>
-              <div className="flex justify-between text-xs">
-                <span className="text-zinc-400">{t("simbad_dist")}</span>
-                <span className="font-mono text-sky-400">{skyClick.data.distance_ly ?? t("simbad_unknown")}</span>
+
+              <div className="grid grid-cols-2 sm:grid-cols-3 gap-2 text-xs bg-white/[0.03] p-2.5 rounded-lg font-mono">
+                <div>
+                  <span className="text-zinc-500 block text-[0.65rem] uppercase">{t("simbad_spectral")}</span>
+                  <span className="text-green-400">{skyClick.data.spectral_type ?? t("simbad_unknown")}</span>
+                </div>
+                <div>
+                  <span className="text-zinc-500 block text-[0.65rem] uppercase">{t("simbad_dist")}</span>
+                  <span className="text-sky-400">{skyClick.data.distance_ly ?? t("simbad_unknown")}</span>
+                </div>
+                <div>
+                  <span className="text-zinc-500 block text-[0.65rem] uppercase">Catalog</span>
+                  <span className="text-purple-400">CDS Strasbourg</span>
+                </div>
               </div>
-            </>
+
+              <div className="flex flex-wrap items-center gap-2 pt-1">
+                <button
+                  onClick={() => {
+                    const cleanName = skyClick.data?.name.replace("* ", "") || "Star";
+                    const id = cleanName.toLowerCase().replace(/[^a-z0-9]/g, "_");
+                    const err = addToPlan(id, `⭐ ${cleanName}`);
+                    showToast(err || `Added ${cleanName} to observing plan!`);
+                  }}
+                  className="flex items-center gap-1.5 rounded-lg border border-sky-500/50 bg-sky-500/20 hover:bg-sky-500/30 px-3.5 py-1.5 text-xs font-semibold text-sky-200 transition-all active:scale-95 shadow-sm"
+                >
+                  <span>Add Star to Plan +</span>
+                </button>
+              </div>
+            </div>
           )}
         </div>
+      )}
+
+      {fovModalTarget && (
+        <FovModal
+          open
+          onClose={() => setFovModalTarget(null)}
+          raDeg={fovModalTarget.raDeg}
+          decDeg={fovModalTarget.decDeg}
+          targetName={fovModalTarget.name}
+        />
       )}
     </div>
   );
