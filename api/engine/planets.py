@@ -111,24 +111,26 @@ def get_planet_positions(dt: Optional[datetime] = None, lat=None, lon=None, dusk
             direction = _az_to_direction(az.degrees)
             naked_eye = bool(mag_map.get(name, 5) < 6.5)
 
-            # Planet Rise/Set Calculation over a 36h relative window around now
-            t_start = ts.from_datetime(now - timedelta(hours=12))
-            t_end = ts.from_datetime(now + timedelta(hours=24))
+            # Planet Rise/Set Calculation over a 72h relative window around now
+            t_start = ts.from_datetime(now - timedelta(hours=24))
+            t_end = ts.from_datetime(now + timedelta(hours=48))
             f_rs = almanac.risings_and_settings(eph, body, observer_location)
 
-            rise_time_dt = None
-            set_time_dt = None
+            rises, sets = [], []
 
             try:
                 times_rs, events_rs = almanac.find_discrete(t_start, t_end, f_rs)
                 for t_ev, ev in zip(times_rs, events_rs):
                     dt_ev = t_ev.utc_datetime().replace(tzinfo=ZoneInfo("UTC")).astimezone(tz)
-                    if ev == 1 and rise_time_dt is None and dt_ev >= now - timedelta(hours=12):
-                        rise_time_dt = dt_ev
-                    elif ev == 0 and set_time_dt is None and dt_ev >= now - timedelta(hours=12):
-                        set_time_dt = dt_ev
+                    if ev == 1:
+                        rises.append(dt_ev)
+                    elif ev == 0:
+                        sets.append(dt_ev)
             except Exception as e_rs:
                 logging.error("Error computing planet rise/set for %s: %s", name, e_rs)
+
+            rise_time_dt = min(rises, key=lambda d: abs((d - now).total_seconds())) if rises else None
+            set_time_dt = min(sets, key=lambda d: abs((d - now).total_seconds())) if sets else None
 
             rise_time = rise_time_dt.strftime("%I:%M %p") if rise_time_dt else "N/A"
             set_time = set_time_dt.strftime("%I:%M %p") if set_time_dt else "N/A"

@@ -11,19 +11,23 @@
 
 ---
 
-## 🌟 What's New in v3.2.0 (Full i18n Localization & Translation Audit Suite)
+## 🌟 What's New in v3.2.0 (Full i18n Localization, 3D Orrery Upgrades & Translation Audit Suite)
 
-**StarGazer v3.2.0** brings complete multi-language parity across English, Spanish, and Portuguese, localizing astronomical facts, ISS/Comet trivia, dynamic UI components, and introducing automated translation audit tooling.
+**StarGazer v3.2.0** brings complete multi-language parity across English, Spanish, and Portuguese, localizing astronomical facts, ISS/Comet trivia, dynamic UI components, upgrading the 3D Solar System Orrery with expanded zoom and reset capabilities, and introducing automated translation audit tooling.
 
 ### 🚀 Key v3.2.0 Major Features & Improvements:
 - **🌐 1:1 Dynamic Multilingual Localization (EN / ES / PT):**
-  - Expanded all translation dictionaries (`en.json`, `es.json`, `pt.json`) to 826+ synchronized keys across all 3 supported languages.
+  - Expanded all translation dictionaries (`en.json`, `es.json`, `pt.json`) to 846 synchronized keys across all 3 supported languages.
   - Localized all dynamic ISS and comet astronomy fun facts for full internationalization.
+- **🔭 3D Solar System Orrery Camera & Control Upgrades:**
+  - Widened viewport zoom range (1.5 units extreme macro to 350 units wide panorama) with 20 granular D-Pad control steps.
+  - Enabled direct mouse wheel scrolling & dual-touch pinch-to-zoom over the 3D canvas.
+  - Added smooth reset animation on the center D-Pad button, returning target focus, tilt, pan, and zoom to initial home overview.
 - **🛡️ Direct Message Fallback & Turbopack Cache Protection:**
   - Introduced client-side `IntlProvider` wrapper and direct locale dictionary lookup to eliminate missing message warnings and prevent raw key leakage during Turbopack dynamic code generation.
   - Safe translation guards added for Aurora risk levels, planetary facts, and observation checklist items.
 - **🧪 Translation Integrity CLI & Git Hook Automation:**
-  - Added CLI check tool `npm run check:i18n` (`scripts/check-translations.js`) that diffs locale dictionary files against `en.json` and flags missing keys.
+  - Added CLI check tool `npm run check:i18n` (`scripts/check-translations.mjs`) that diffs locale dictionary files against `en.json` and flags missing keys.
   - Integrated Git pre-commit hooks to block commits if locale files become desynchronized.
 
 ---

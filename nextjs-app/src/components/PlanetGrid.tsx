@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
+import useSWR from "swr";
 import * as THREE from "three";
 import { OrbitControls } from "three/examples/jsm/controls/OrbitControls.js";
 import { useTranslations, useLocale, useMessages } from "next-intl";
@@ -568,10 +569,19 @@ function PlanetCard({
   );
 }
 
-export default function PlanetGrid({ planets = [] }: { planets?: PlanetData[] }) {
+const swrFetcher = (url: string) => fetch(url).then((r) => r.json());
+
+export default function PlanetGrid({ planets: initialPlanets = [] }: { planets?: PlanetData[] }) {
   const locale = useLocale();
   const messages = (useMessages() as Record<string, string>) || {};
   const t = useTranslations();
+
+  const { data: swrData } = useSWR<{ planets: PlanetData[] }>(`/api/planets?lang=${locale}`, swrFetcher, {
+    revalidateOnFocus: false,
+    dedupingInterval: 60000,
+  });
+
+  const displayPlanets = swrData?.planets && swrData.planets.length > 0 ? swrData.planets : initialPlanets;
 
   const getTxt = (key: string, fallback: string) => {
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -641,13 +651,13 @@ export default function PlanetGrid({ planets = [] }: { planets?: PlanetData[] })
       </div>
 
       <div className="p-6">
-        {planets.length === 0 ? (
+        {displayPlanets.length === 0 ? (
           <div className="rounded-2xl border border-red-500/30 bg-red-500/10 p-5 text-sm text-red-400">
             {t("planet_data_unavailable")}
           </div>
         ) : (
           <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
-            {planets.map((p) => (
+            {displayPlanets.map((p) => (
               <PlanetCard
                 key={p.name}
                 planet={p}

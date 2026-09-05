@@ -70,7 +70,7 @@ export const DashboardControls: React.FC<DashboardControlsProps> = ({
         <div className="w-1 h-20 bg-slate-800 rounded-full relative overflow-hidden my-1">
           <div
             className="w-full bg-cyan-400 rounded-full transition-all duration-300"
-            style={{ height: `${Math.min(100, Math.max(5, zoomLevel * 10))}%` }}
+            style={{ height: `${Math.min(100, Math.max(5, (zoomLevel / 20) * 100))}%` }}
           />
         </div>
 
