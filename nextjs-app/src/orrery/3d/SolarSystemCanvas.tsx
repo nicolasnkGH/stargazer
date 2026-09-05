@@ -67,6 +67,7 @@ const CameraController: React.FC<CameraControllerProps> = ({ selectedBody, zoomL
       enablePan
       enableZoom={false}
       enableRotate
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       touches={isMobile ? { ONE: undefined as any, TWO: THREE.TOUCH.DOLLY_ROTATE } : { ONE: THREE.TOUCH.ROTATE, TWO: THREE.TOUCH.DOLLY_PAN }}
       maxDistance={140}
       minDistance={4}

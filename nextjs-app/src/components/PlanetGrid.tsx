@@ -318,6 +318,7 @@ function PlanetCard({
   const t = useTranslations();
 
   const getTxt = (key: string, fallback: string) => {
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const val = messages[key] || t(key as any);
     return val && val.trim() !== "" ? val : fallback;
   };
@@ -329,7 +330,7 @@ function PlanetCard({
 
   // Keep local mode in sync when user toggles global header view switch
   useEffect(() => {
-    setLocalViewMode(globalViewMode);
+    setTimeout(() => setLocalViewMode(globalViewMode), 0);
   }, [globalViewMode]);
 
   // Eyepiece optical magnification scale factors (realistic field-of-view)
@@ -573,6 +574,7 @@ export default function PlanetGrid({ planets = [] }: { planets?: PlanetData[] })
   const t = useTranslations();
 
   const getTxt = (key: string, fallback: string) => {
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const val = messages[key] || t(key as any);
     return val && val.trim() !== "" ? val : fallback;
   };

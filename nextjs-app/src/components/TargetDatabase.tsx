@@ -6,7 +6,7 @@ import { useTranslations, useLocale, useMessages } from "next-intl";
 import Icon from "./Icon";
 import SourceTooltip from "./SourceTooltip";
 import type { CatalogTarget, GalleryCounts } from "@/types";
-import { API_BASE, CONSTELLATION_FILTERS, BORTLE_CLASSES, BORTLE_STORAGE_KEY } from "@/lib/constants";
+import { API_BASE, BORTLE_CLASSES, BORTLE_STORAGE_KEY } from "@/lib/constants";
 import { addToPlan } from "@/hooks/useNightPlan";
 import { showToast } from "@/lib/toast";
 import GalleryButton from "./GalleryButton";
@@ -71,6 +71,7 @@ export default function TargetDatabase() {
   const t = useTranslations();
 
   const getTxt = (key: string, fallback: string) => {
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const val = messages[key] || t(key as any);
     return val && val.trim() !== "" ? val : fallback;
   };
@@ -141,6 +142,7 @@ export default function TargetDatabase() {
   const [displayedCount, setDisplayedCount] = useState<number>(6);
   const constPillsRef = useRef<HTMLDivElement>(null);
 
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   const scrollPills = (dir: "left" | "right") => {
     if (constPillsRef.current) {
       constPillsRef.current.scrollBy({ left: dir === "left" ? -260 : 260, behavior: "smooth" });

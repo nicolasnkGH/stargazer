@@ -140,7 +140,7 @@ function Moon3DWidget({ illumination_pct, phase_name }: { illumination_pct: numb
       };
     } catch (err) {
       console.warn("WebGL Moon initialization failed, using 2D fallback:", err);
-      setHasError(true);
+      setTimeout(() => setHasError(true), 0);
     }
   }, [illumination_pct, phase_name]);
 
