@@ -6,6 +6,7 @@ import Icon from "./Icon";
 import { useAladinReady } from "@/hooks/useAladinReady";
 import { ALADIN_CONTAINER_ID } from "@/lib/constants";
 import type { AladinInstance } from "@/types";
+import EyepieceSimulation from "./EyepieceSimulation";
 
 interface FovModalProps {
   open: boolean;
@@ -21,6 +22,10 @@ export default function FovModal({ open, onClose, raDeg, decDeg, targetName }: F
   const messages = (useMessages() as Record<string, string>) || {};
   const ready = useAladinReady(open);
   const [aladin, setAladin] = useState<AladinInstance | null>(null);
+  const [eyepieceMode, setEyepieceMode] = useState(true);
+  const [seeingSim, setSeeingSim] = useState(true);
+  const [magnification, setMagnification] = useState(150);
+  const [eyepieceFov, setEyepieceFov] = useState<52 | 68 | 82>(68);
 
   const getTxt = (key: string, fallback: string) => messages[key] || fallback;
 
@@ -32,9 +37,12 @@ export default function FovModal({ open, onClose, raDeg, decDeg, targetName }: F
 
     const initAladin = () => {
       try {
+        const container = document.getElementById(ALADIN_CONTAINER_ID);
+        if (!container) return;
+
         if (!aladin) {
           const inst = A.aladin(`#${ALADIN_CONTAINER_ID}`, {
-            survey: "P/DSS2/color",
+            survey: "https://alasky.cds.unistra.fr/DSS/DSSColor",
             fov: 1.5,
             target: `${raDeg} ${decDeg}`,
             showReticle: false,
@@ -69,140 +77,157 @@ export default function FovModal({ open, onClose, raDeg, decDeg, targetName }: F
   if (!open) return null;
 
   const isPlanet = ["mercury", "venus", "mars", "jupiter", "saturn", "uranus", "neptune", "sun", "moon"].includes(targetName.toLowerCase());
-  const planetKey = targetName.toLowerCase();
 
   return (
     <div
-      className="fixed inset-0 z-[9999] flex items-center justify-center bg-black/60 backdrop-blur-sm p-4"
+      className="fixed inset-0 z-[9999] flex items-center justify-center bg-black/75 backdrop-blur-md p-4"
       onClick={(e) => {
         if (e.target === e.currentTarget) handleClose();
       }}
     >
-      <div className="w-full max-w-[650px] max-h-[90vh] overflow-y-auto rounded-xl border border-white/10 bg-[#0f172a] p-5 shadow-2xl">
-        <h2 className="mb-4 flex items-center gap-2 text-lg font-semibold text-white">
-          <Icon name="scan" className="h-5 w-5 text-purple-400" />
-          {t("fov_simulator_title", { targetName })}
-        </h2>
-
-        <div
-          id={ALADIN_CONTAINER_ID}
-          className="h-[400px] w-full rounded-lg border border-white/10 bg-[#020617] relative overflow-hidden"
-        >
-          {/* Target Reticle Overlay (always visible over live WebGL sky view) */}
-          <div className="absolute inset-0 pointer-events-none z-20 flex items-center justify-center">
-            {/* Fine crosshair lines */}
-            <div className="absolute w-full h-[1px] bg-cyan-400/30" />
-            <div className="absolute h-full w-[1px] bg-cyan-400/30" />
-
-            {/* Glowing Reticle Frame */}
-            <div className="relative flex items-center justify-center">
-              <div className="w-20 h-20 rounded-full border border-dashed border-cyan-400/60 animate-spin-slow" />
-
-              {/* Planet 3D Sphere Texture OR Deep-Sky Target Dot */}
-              {isPlanet ? (
-                <div
-                  className="absolute w-11 h-11 rounded-full border-2 border-cyan-300 shadow-[0_0_20px_rgba(6,182,212,0.9)] bg-cover bg-center bg-no-repeat transition-transform duration-300"
-                  style={{
-                    backgroundImage: `url(/textures/${planetKey}.jpg)`,
-                  }}
-                />
-              ) : (
-                <div className="absolute w-5 h-5 rounded-full border-2 border-cyan-300 bg-cyan-400/20 shadow-[0_0_15px_rgba(6,182,212,0.8)]" />
-              )}
-
-              {/* Target Location Tag */}
-              <div className="absolute -top-9 whitespace-nowrap px-2.5 py-0.5 rounded-md bg-slate-950/90 border border-cyan-400/50 text-[0.7rem] font-mono font-bold text-cyan-200 shadow-lg backdrop-blur-sm">
-                🎯 {locale === "pt" ? "Alvo Ao Vivo:" : locale === "es" ? "Objetivo En Vivo:" : "Live Target:"} {targetName}
-              </div>
+      <div className="w-full max-w-[720px] max-h-[92vh] overflow-y-auto rounded-3xl border border-cyan-500/30 bg-[#070a12] p-6 shadow-[0_0_60px_rgba(0,0,0,0.95)]">
+        {/* Header with Title & Mode Switcher */}
+        <div className="mb-5 flex items-center justify-between flex-wrap gap-3 pb-4 border-b border-white/10">
+          <div className="flex items-center gap-2.5">
+            <div className="p-2 rounded-xl bg-cyan-500/10 border border-cyan-400/30 text-cyan-400">
+              <Icon name="scan" className="h-5 w-5" />
             </div>
-
-            {/* Coordinates telemetry overlay */}
-            <div className="absolute bottom-3 left-3 bg-slate-950/85 border border-white/15 px-3 py-1.5 rounded-lg text-[0.68rem] text-zinc-300 font-mono flex flex-col gap-0.5 backdrop-blur-sm pointer-events-auto">
-              <span className="text-cyan-300 font-bold">🎯 {locale === "pt" ? "Centro do Alvo:" : locale === "es" ? "Centro del Objetivo:" : "Target Center:"} {targetName}</span>
-              <span>RA: {(raDeg / 15).toFixed(2)}h ({raDeg.toFixed(2)}°) · Dec: {decDeg.toFixed(2)}°</span>
+            <div>
+              <h2 className="text-lg font-bold text-white tracking-wide">
+                {t("fov_simulator_title", { targetName })}
+              </h2>
+              <p className="text-xs text-zinc-400 font-mono">
+                RA: {(raDeg / 15).toFixed(2)}h ({raDeg.toFixed(2)}°) · Dec: {decDeg.toFixed(2)}°
+              </p>
             </div>
           </div>
 
-          {(!ready || !aladin || (typeof window !== "undefined" && !("A" in window))) && (
-            <div className="absolute inset-0 flex flex-col items-center justify-center p-4">
-              <svg className="absolute inset-0 w-full h-full pointer-events-none select-none">
-                <defs>
-                  <radialGradient id="nebulaGlow" cx="50%" cy="50%" r="50%">
-                    <stop offset="0%" stopColor="#c084fc" stopOpacity="0.45" />
-                    <stop offset="50%" stopColor="#818cf8" stopOpacity="0.2" />
-                    <stop offset="100%" stopColor="#000" stopOpacity="0" />
-                  </radialGradient>
-                  <radialGradient id="galaxyGlow" cx="50%" cy="50%" r="50%">
-                    <stop offset="0%" stopColor="#38bdf8" stopOpacity="0.5" />
-                    <stop offset="60%" stopColor="#818cf8" stopOpacity="0.15" />
-                    <stop offset="100%" stopColor="#000" stopOpacity="0" />
-                  </radialGradient>
-                </defs>
+          {/* Mode Switcher: Telescope Eyepiece vs Wide Sky Survey */}
+          <div className="flex items-center gap-1.5 bg-slate-950 border border-white/15 p-1 rounded-2xl text-xs">
+            <button
+              type="button"
+              onClick={() => setEyepieceMode(true)}
+              className={`px-3.5 py-1.5 font-bold rounded-xl transition-all cursor-pointer flex items-center gap-1.5 ${
+                eyepieceMode
+                  ? "bg-gradient-to-r from-cyan-500 to-blue-600 text-white shadow-[0_0_15px_rgba(6,182,212,0.4)]"
+                  : "text-zinc-400 hover:text-zinc-200"
+              }`}
+            >
+              <span>🔭</span> {locale === "pt" ? "Simulador de Ocular" : locale === "es" ? "Simulador de Ocular" : "Telescope Eyepiece"}
+            </button>
+            <button
+              type="button"
+              onClick={() => setEyepieceMode(false)}
+              className={`px-3.5 py-1.5 font-bold rounded-xl transition-all cursor-pointer flex items-center gap-1.5 ${
+                !eyepieceMode
+                  ? "bg-gradient-to-r from-purple-500 to-indigo-600 text-white shadow-[0_0_15px_rgba(168,85,247,0.4)]"
+                  : "text-zinc-400 hover:text-zinc-200"
+              }`}
+            >
+              <span>🌌</span> {locale === "pt" ? "Carta Celeste" : locale === "es" ? "Carta Celeste" : "Wide Sky Survey"}
+            </button>
+          </div>
+        </div>
 
-                {/* Stars Background */}
-                <circle cx="25%" cy="30%" r="1.5" fill="#fff" opacity="0.6" />
-                <circle cx="70%" cy="20%" r="1" fill="#fff" opacity="0.4" />
-                <circle cx="85%" cy="65%" r="2" fill="#fff" opacity="0.8" />
-                <circle cx="15%" cy="75%" r="1" fill="#fff" opacity="0.5" />
-                <circle cx="45%" cy="85%" r="1.5" fill="#fff" opacity="0.7" />
-                <circle cx="60%" cy="40%" r="2" fill="#38bdf8" opacity="0.9" />
-                <circle cx="35%" cy="15%" r="1" fill="#f43f5e" opacity="0.6" />
-                <circle cx="80%" cy="80%" r="1.2" fill="#fff" opacity="0.5" />
+        {/* Viewport Container */}
+        <div className="relative w-full rounded-2xl border border-white/15 bg-[#02040a] overflow-hidden shadow-2xl">
+          {/* Eyepiece Mode: Stelvision-Style Realistic Optical Eyepiece View */}
+          {eyepieceMode && (
+            <div className="relative w-full h-[450px] bg-[#02040a] flex flex-col items-center justify-center p-4 select-none">
+              {/* Outer Metallic / Rubber Eyepiece Barrel Housing (Stelvision Style) */}
+              <div className="relative w-[360px] h-[360px] sm:w-[380px] sm:h-[380px] rounded-full border-[14px] border-zinc-800 bg-black shadow-[inset_0_0_60px_#000,0_0_40px_rgba(0,0,0,0.9)] flex items-center justify-center overflow-hidden">
+                {/* Eyepiece Engraved Specifications */}
+                <div className="absolute top-2 text-[0.6rem] font-mono font-bold text-amber-500/70 tracking-widest uppercase pointer-events-none z-30">
+                  STELVISION OPTICS • {eyepieceFov}° APPARENT FOV
+                </div>
 
-                {/* Target Illustration */}
-                <g transform="translate(300, 200)">
-                  {targetName.toLowerCase().includes("galaxy") || targetName.toLowerCase().includes("triplet") ? (
-                    <>
-                      <ellipse rx={70 * (0.8 / 1.5)} ry={24 * (0.8 / 1.5)} fill="url(#galaxyGlow)" transform="rotate(-30)" />
-                      <circle r={8 * (0.8 / 1.5)} fill="#e0f2fe" opacity="0.9" />
-                    </>
-                  ) : targetName.toLowerCase().includes("nebula") || targetName.toLowerCase().includes("gas") ? (
-                    <>
-                      <circle r={85 * (0.8 / 1.5)} fill="url(#nebulaGlow)" />
-                      <circle r={6 * (0.8 / 1.5)} fill="#fae8ff" opacity="0.8" />
-                    </>
-                  ) : targetName.toLowerCase().includes("cluster") ? (
-                    <g opacity="0.85">
-                      <circle cx="0" cy="0" r="3" fill="#38bdf8" />
-                      <circle cx="-12" cy="8" r="2" fill="#e0f2fe" />
-                      <circle cx="15" cy="-6" r="2.5" fill="#38bdf8" />
-                      <circle cx="-8" cy="-14" r="2" fill="#fff" />
-                      <circle cx="10" cy="12" r="1.5" fill="#e0f2fe" />
-                      <circle cx="22" cy="4" r="2" fill="#38bdf8" />
-                      <circle cx="-20" cy="-4" r="2.5" fill="#fff" />
-                      <circle cx="5" cy="-18" r="1.5" fill="#38bdf8" />
-                    </g>
-                  ) : (
-                    <>
-                      <circle r={18} fill="#f59e0b" opacity="0.25" />
-                      <circle r={4} fill="#fff" />
-                    </>
-                  )}
-                </g>
+                {/* 3D WebGL Live Optical Eyepiece Simulation */}
+                <div className="absolute inset-0 bg-black rounded-full overflow-hidden flex items-center justify-center">
+                  <EyepieceSimulation
+                    targetName={targetName}
+                    magnification={magnification}
+                    seeingSim={seeingSim}
+                    eyepieceFov={eyepieceFov}
+                  />
+                </div>
 
-                {/* Reticle Overlay */}
-                <circle cx="50%" cy="50%" r="180" fill="none" stroke="rgba(255,255,255,0.06)" strokeDasharray="3,3" />
-                <circle cx="50%" cy="50%" r="90" fill="none" stroke="rgba(255,255,255,0.06)" />
-                <line x1="50%" y1="10%" x2="50%" y2="90%" stroke="rgba(255,255,255,0.04)" />
-                <line x1="10%" y1="50%" x2="90%" y2="50%" stroke="rgba(255,255,255,0.04)" />
-
-                {/* Eyepiece FOV Indicator Frame */}
-                <circle
-                  cx="50%"
-                  cy="50%"
-                  r={Math.min(180, Math.max(10, 1.5 * 100))}
-                  fill="none"
-                  stroke="#a855f7"
-                  strokeWidth="1.5"
-                  opacity="0.8"
-                />
-              </svg>
-
-              <div className="absolute bottom-3 left-3 bg-slate-950/80 border border-white/10 px-3 py-1.5 rounded-lg text-[0.7rem] text-zinc-400 font-mono flex flex-col gap-0.5 pointer-events-auto">
-                <span className="text-sky-300 font-bold">{t("fov_simulator_loading")}</span>
-                <span>{t("fov_coordinates", { ra: raDeg.toFixed(2), dec: decDeg.toFixed(2) })}</span>
-                <span>{t("fov_label", { fov: "1.50" })}</span>
+                {/* Bezel Aperture Ring Shadow */}
+                <div className="absolute inset-0 rounded-full shadow-[inset_0_0_35px_rgba(0,0,0,0.95)] pointer-events-none z-20" />
               </div>
+
+              {/* Eyepiece Telemetry & Magnification Controls (Stelvision Style) */}
+              <div className="mt-4 flex items-center gap-4 flex-wrap justify-center bg-slate-950/90 border border-white/10 px-4 py-2 rounded-2xl text-xs backdrop-blur-md z-30">
+                <div className="flex items-center gap-2">
+                  <span className="text-zinc-400 font-mono">Magnification:</span>
+                  <div className="flex items-center gap-1 bg-white/5 border border-white/10 rounded-xl p-0.5">
+                    {[50, 120, 150, 220, 300].map((m) => (
+                      <button
+                        key={m}
+                        type="button"
+                        onClick={() => setMagnification(m)}
+                        className={`px-2.5 py-1 rounded-lg font-mono text-[0.7rem] font-bold transition-all cursor-pointer ${
+                          magnification === m
+                            ? "bg-amber-500 text-slate-950 shadow-[0_0_10px_rgba(245,158,11,0.6)]"
+                            : "text-zinc-400 hover:text-zinc-200"
+                        }`}
+                      >
+                        {m}x
+                      </button>
+                    ))}
+                  </div>
+                </div>
+
+                <div className="flex items-center gap-2">
+                  <span className="text-zinc-400 font-mono">Apparent FOV:</span>
+                  <div className="flex items-center gap-1 bg-white/5 border border-white/10 rounded-xl p-0.5">
+                    {([52, 68, 82] as const).map((fovVal) => (
+                      <button
+                        key={fovVal}
+                        type="button"
+                        onClick={() => setEyepieceFov(fovVal)}
+                        className={`px-2 py-1 rounded-lg font-mono text-[0.7rem] font-bold transition-all cursor-pointer ${
+                          eyepieceFov === fovVal
+                            ? "bg-cyan-500 text-slate-950 shadow-[0_0_10px_rgba(6,182,212,0.6)]"
+                            : "text-zinc-400 hover:text-zinc-200"
+                        }`}
+                      >
+                        {fovVal}°
+                      </button>
+                    ))}
+                  </div>
+                </div>
+
+                <button
+                  type="button"
+                  onClick={() => setSeeingSim(!seeingSim)}
+                  className={`px-3 py-1 rounded-xl font-mono text-[0.7rem] font-bold border transition-colors cursor-pointer ${
+                    seeingSim
+                      ? "bg-cyan-950 border-cyan-400/40 text-cyan-300"
+                      : "bg-white/5 border-white/10 text-zinc-400"
+                  }`}
+                >
+                  {seeingSim ? "✨ Seeing: Active (Shimmer)" : "✨ Seeing: Off"}
+                </button>
+              </div>
+            </div>
+          )}
+
+          {/* Wide Sky Survey Mode (Aladin Container - Always present in DOM) */}
+          <div
+            id={ALADIN_CONTAINER_ID}
+            className={`w-full h-[420px] relative overflow-hidden ${eyepieceMode ? "hidden" : "block"}`}
+          >
+            {/* Reticle Overlay for Wide Sky Survey */}
+            <div className="absolute inset-0 pointer-events-none z-20 flex items-center justify-center">
+              <div className="absolute w-full h-[1px] bg-cyan-400/30" />
+              <div className="absolute h-full w-[1px] bg-cyan-400/30" />
+              <div className="w-16 h-16 rounded-full border border-dashed border-cyan-400/60 animate-spin-slow" />
+            </div>
+          </div>
+          {!eyepieceMode && (!ready || !aladin || (typeof window !== "undefined" && !("A" in window))) && (
+            <div className="absolute inset-0 flex flex-col items-center justify-center p-4 bg-slate-950">
+              <div className="text-cyan-300 font-bold text-xs mb-1 font-mono">{t("fov_simulator_loading")}</div>
+              <div className="text-zinc-400 text-[0.7rem] font-mono">{t("fov_coordinates", { ra: raDeg.toFixed(2), dec: decDeg.toFixed(2) })}</div>
             </div>
           )}
         </div>

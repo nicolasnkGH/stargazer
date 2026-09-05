@@ -9,6 +9,8 @@ import Icon from "./Icon";
 import SourceTooltip from "./SourceTooltip";
 import FovModal from "./FovModal";
 import type { PlanetData } from "@/types";
+import { normalizePlanetKey } from "@/lib/constants/planet-grid";
+import EyepieceSimulation from "./EyepieceSimulation";
 
 const PLANET_CONFIGS: Record<
   string,
@@ -156,143 +158,184 @@ function makePlanetBump(name: string): HTMLCanvasElement {
 
 function Planet3DCanvas({ name }: { name: string }) {
   const containerRef = useRef<HTMLDivElement>(null);
-  const key = name.toLowerCase();
+  const key = normalizePlanetKey(name);
   const cfg = PLANET_CONFIGS[key] || {};
+  const [hasError, setHasError] = useState(false);
 
   useEffect(() => {
     const container = containerRef.current;
     if (!container) return;
 
-    const w = container.clientWidth || 180;
-    const h = container.clientHeight || 180;
+    try {
+      const w = container.clientWidth || 180;
+      const h = container.clientHeight || 180;
 
-    const scene = new THREE.Scene();
-    const camera = new THREE.PerspectiveCamera(45, w / h, 0.1, 100);
-    camera.position.z = 3.2;
+      const scene = new THREE.Scene();
+      const camera = new THREE.PerspectiveCamera(45, w / h, 0.1, 100);
+      camera.position.z = 3.2;
 
-    const renderer = new THREE.WebGLRenderer({ alpha: true, antialias: true });
-    renderer.setSize(w, h);
-    renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
-    renderer.domElement.style.pointerEvents = "auto";
+      const renderer = new THREE.WebGLRenderer({ alpha: true, antialias: true });
+      renderer.setSize(w, h);
+      renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+      renderer.domElement.style.pointerEvents = "auto";
 
-    while (container.firstChild) {
-      container.removeChild(container.firstChild);
-    }
-    container.appendChild(renderer.domElement);
+      while (container.firstChild) {
+        container.removeChild(container.firstChild);
+      }
+      container.appendChild(renderer.domElement);
 
-    scene.add(new THREE.AmbientLight(0xffffff, key === "sun" ? 2.5 : 0.4));
-    const dirLight = new THREE.DirectionalLight(0xfff5e6, key === "sun" ? 0 : 1.8);
-    dirLight.position.set(4, 2, 3);
-    scene.add(dirLight);
+      scene.add(new THREE.AmbientLight(0xffffff, key === "sun" ? 2.5 : 0.4));
+      const dirLight = new THREE.DirectionalLight(0xfff5e6, key === "sun" ? 0 : 1.8);
+      dirLight.position.set(4, 2, 3);
+      scene.add(dirLight);
 
-    const fillLight = new THREE.DirectionalLight(0x406090, 0.3);
-    fillLight.position.set(-4, -1, -2);
-    scene.add(fillLight);
+      const fillLight = new THREE.DirectionalLight(0x406090, 0.3);
+      fillLight.position.set(-4, -1, -2);
+      scene.add(fillLight);
 
-    const planetGroup = new THREE.Group();
-    if (cfg.tilt) {
-      planetGroup.rotation.z = THREE.MathUtils.degToRad(cfg.tilt);
-    }
-    scene.add(planetGroup);
+      const planetGroup = new THREE.Group();
+      if (cfg.tilt) {
+        planetGroup.rotation.z = THREE.MathUtils.degToRad(cfg.tilt);
+      }
+      scene.add(planetGroup);
 
-    const geo = new THREE.SphereGeometry(1, 48, 48);
-    const texLoader = new THREE.TextureLoader();
+      const geo = new THREE.SphereGeometry(1, 48, 48);
+      const texLoader = new THREE.TextureLoader();
 
-    let mat: THREE.Material;
-    if (key === "sun") {
-      mat = new THREE.MeshBasicMaterial({
-        map: cfg.texUrl ? texLoader.load(cfg.texUrl) : null,
-      });
-    } else {
-      mat = new THREE.MeshStandardMaterial({
-        map: cfg.texUrl ? texLoader.load(cfg.texUrl) : null,
-        bumpMap: new THREE.CanvasTexture(makePlanetBump(key)),
-        bumpScale: cfg.bumpScale ?? 0.01,
-        roughness: key === "venus" ? 0.9 : 0.7,
-        metalness: 0.1,
-      });
-    }
-
-    const mesh = new THREE.Mesh(geo, mat);
-    planetGroup.add(mesh);
-
-    let ringMesh: THREE.Mesh | null = null;
-    if (cfg.hasRing) {
-      const ringGeo = new THREE.RingGeometry(1.3, 2.2, 64);
-      const pos = ringGeo.attributes.position;
-      const uv = ringGeo.attributes.uv;
-      for (let i = 0; i < pos.count; i++) {
-        const vx = pos.getX(i);
-        const vy = pos.getY(i);
-        const len = Math.sqrt(vx * vx + vy * vy);
-        const norm = (len - 1.3) / (2.2 - 1.3);
-        uv.setXY(i, norm, 0.5);
+      const texUrl = cfg.texUrl || `/textures/${key}.jpg`;
+      let mat: THREE.Material;
+      if (key === "sun") {
+        mat = new THREE.MeshBasicMaterial({
+          map: texLoader.load(texUrl, undefined, undefined, () => setHasError(true)),
+        });
+      } else {
+        mat = new THREE.MeshStandardMaterial({
+          map: texLoader.load(texUrl, undefined, undefined, () => setHasError(true)),
+          bumpMap: new THREE.CanvasTexture(makePlanetBump(key)),
+          bumpScale: cfg.bumpScale ?? 0.01,
+          roughness: key === "venus" ? 0.9 : 0.7,
+          metalness: 0.1,
+        });
       }
 
-      const ringMat = new THREE.MeshStandardMaterial({
-        map: cfg.ringTex ? texLoader.load(cfg.ringTex) : null,
-        side: THREE.DoubleSide,
-        transparent: true,
-        opacity: 0.85,
-        roughness: 0.5,
-      });
-      ringMesh = new THREE.Mesh(ringGeo, ringMat);
-      ringMesh.rotation.x = Math.PI / 2;
-      planetGroup.add(ringMesh);
-    }
+      const mesh = new THREE.Mesh(geo, mat);
+      planetGroup.add(mesh);
 
-    const controls = new OrbitControls(camera, renderer.domElement);
-    controls.enablePan = false;
-    controls.enableZoom = false; 
-    controls.autoRotate = false;
+      let ringMesh: THREE.Mesh | null = null;
+      if (cfg.hasRing) {
+        const ringGeo = new THREE.RingGeometry(1.3, 2.2, 64);
+        const pos = ringGeo.attributes.position;
+        const uv = ringGeo.attributes.uv;
+        for (let i = 0; i < pos.count; i++) {
+          const vx = pos.getX(i);
+          const vy = pos.getY(i);
+          const len = Math.sqrt(vx * vx + vy * vy);
+          const norm = (len - 1.3) / (2.2 - 1.3);
+          uv.setXY(i, norm, 0.5);
+        }
 
-    let visible = true;
-    const io = new IntersectionObserver(([e]) => { visible = e.isIntersecting; }, { threshold: 0.05 });
-    io.observe(container);
-    let pageVisible = !document.hidden;
-    const onVisibilityChange = () => { pageVisible = !document.hidden; };
-    document.addEventListener("visibilitychange", onVisibilityChange);
-
-    const FPS_INTERVAL = 1000 / 30;
-    let rafId = 0;
-    let lastT = 0;
-    const speed = cfg.rotSpeed ?? 0.003;
-    const animate = (t: number) => {
-      rafId = requestAnimationFrame(animate);
-      if (!visible || !pageVisible) return;
-      if (t - lastT < FPS_INTERVAL) return;
-      lastT = t;
-      mesh.rotation.y += speed;
-      renderer.render(scene, camera);
-    };
-    animate(performance.now());
-
-    const resizeObserver = new ResizeObserver((entries) => {
-      for (const entry of entries) {
-        const { width, height } = entry.contentRect;
-        if (!width || !height) continue;
-        camera.aspect = width / height;
-        camera.updateProjectionMatrix();
-        renderer.setSize(width, height);
+        const ringMat = new THREE.MeshStandardMaterial({
+          map: cfg.ringTex ? texLoader.load(cfg.ringTex) : null,
+          side: THREE.DoubleSide,
+          transparent: true,
+          opacity: 0.85,
+          roughness: 0.5,
+        });
+        ringMesh = new THREE.Mesh(ringGeo, ringMat);
+        ringMesh.rotation.x = Math.PI / 2;
+        planetGroup.add(ringMesh);
       }
-    });
-    resizeObserver.observe(container);
 
-    return () => {
-      cancelAnimationFrame(rafId);
-      io.disconnect();
-      resizeObserver.disconnect();
-      document.removeEventListener("visibilitychange", onVisibilityChange);
-      controls.dispose();
-      renderer.dispose();
-      mat.dispose();
-      geo.dispose();
-    };
-  }, [key, cfg]);
+      const controls = new OrbitControls(camera, renderer.domElement);
+      controls.enablePan = false;
+      controls.enableZoom = false; 
+      controls.autoRotate = false;
+
+      let visible = true;
+      const io = new IntersectionObserver(([e]) => { visible = e.isIntersecting; }, { threshold: 0.05 });
+      io.observe(container);
+      let pageVisible = !document.hidden;
+      const onVisibilityChange = () => { pageVisible = !document.hidden; };
+      document.addEventListener("visibilitychange", onVisibilityChange);
+
+      const handleContextLost = (event: Event) => {
+        event.preventDefault();
+        try {
+          renderer.dispose();
+          if (container && renderer.domElement && container.contains(renderer.domElement)) {
+            container.removeChild(renderer.domElement);
+          }
+        } catch {
+          // ignore cleanup error
+        }
+        setHasError(true);
+      };
+      renderer.domElement.addEventListener("webglcontextlost", handleContextLost);
+
+      const FPS_INTERVAL = 1000 / 30;
+      let rafId = 0;
+      let lastT = 0;
+      const speed = cfg.rotSpeed ?? 0.003;
+      const animate = (t: number) => {
+        rafId = requestAnimationFrame(animate);
+        if (!visible || !pageVisible) return;
+        if (t - lastT < FPS_INTERVAL) return;
+        lastT = t;
+        mesh.rotation.y += speed;
+        renderer.render(scene, camera);
+      };
+      animate(performance.now());
+
+      const resizeObserver = new ResizeObserver((entries) => {
+        for (const entry of entries) {
+          const { width, height } = entry.contentRect;
+          if (!width || !height) continue;
+          camera.aspect = width / height;
+          camera.updateProjectionMatrix();
+          renderer.setSize(width, height);
+        }
+      });
+      resizeObserver.observe(container);
+
+      return () => {
+        cancelAnimationFrame(rafId);
+        renderer.domElement.removeEventListener("webglcontextlost", handleContextLost);
+        io.disconnect();
+        resizeObserver.disconnect();
+        document.removeEventListener("visibilitychange", onVisibilityChange);
+        controls.dispose();
+        renderer.dispose();
+        mat.dispose();
+        geo.dispose();
+      };
+    } catch (err) {
+      console.warn("Planet WebGL setup failed, fallback to 2D disc:", err);
+      setTimeout(() => setHasError(true), 0);
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [key]);
 
   const bgStyle = cfg.radialGlow
     ? { background: cfg.radialGlow }
     : { background: "radial-gradient(circle at center, rgba(56,189,248,0.2) 0%, transparent 70%)" };
+
+  if (hasError) {
+    const tex = cfg.texUrl || `/textures/${key}.jpg`;
+    return (
+      <div className="w-full h-44 flex items-center justify-center relative touch-pan-y" style={bgStyle}>
+        <div
+          className="w-24 h-24 rounded-full bg-cover bg-center border border-white/20 shadow-[0_0_25px_rgba(255,255,255,0.2)] relative overflow-hidden"
+          style={{ backgroundImage: `url(${tex})` }}
+        >
+          {cfg.hasRing && (
+            <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
+              <div className="w-36 h-8 rounded-full border border-amber-300/70 bg-amber-500/20 transform -rotate-12 shadow-[0_0_10px_rgba(245,158,11,0.4)]" />
+            </div>
+          )}
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="w-full h-44 flex items-center justify-center relative touch-pan-y">
@@ -324,7 +367,7 @@ function PlanetCard({
     return val && val.trim() !== "" ? val : fallback;
   };
 
-  const key = planet.name.toLowerCase();
+  const key = normalizePlanetKey(planet.name);
   const simData = PLANET_SIM_DATA[key];
   const [localViewMode, setLocalViewMode] = useState<"3d" | "sim">(globalViewMode);
   const [eyepiece, setEyepiece] = useState<"25mm" | "10mm" | "6mm">("10mm");
@@ -333,14 +376,6 @@ function PlanetCard({
   useEffect(() => {
     setTimeout(() => setLocalViewMode(globalViewMode), 0);
   }, [globalViewMode]);
-
-  // Eyepiece optical magnification scale factors (realistic field-of-view)
-  const eyepieceScale =
-    eyepiece === "25mm"
-      ? "scale-[0.45]"
-      : eyepiece === "6mm"
-      ? "scale-[1.35]"
-      : "scale-[0.85]";
 
   const eyepieceHudDefault =
     eyepiece === "25mm"
@@ -465,19 +500,19 @@ function PlanetCard({
           </div>
         )}
 
-        {/* Viewport Display: 3D Globe OR Real Telescope Simulator Image */}
+        {/* Viewport Display: 3D Globe OR Live Procedural Optical Telescope Eyepiece */}
         {localViewMode === "sim" && simData ? (
           <div className="w-full h-44 rounded-xl overflow-hidden relative border border-purple-500/30 bg-[#020617] group/sim shadow-inner flex items-center justify-center">
-            {/* Eyepiece Circular Field Frame Reticle Overlay */}
-            <div className="absolute inset-0 border-[16px] border-[#020617] rounded-xl z-20 pointer-events-none" />
-            <div className="absolute w-40 h-40 rounded-full border border-purple-500/40 z-20 pointer-events-none shadow-[0_0_15px_rgba(168,85,247,0.3)]" />
-
-            {/* Real Telescope Eyepiece Photo with Eyepiece Zoom Scaling */}
-            <img
-              src={simData.simImg}
-              alt={`Telescope simulator view of ${planet.name}`}
-              className={`w-full h-full object-contain transition-transform duration-500 z-10 ${eyepieceScale}`}
-            />
+            {/* Stelvision-Style Metallic Eyepiece Barrel Frame */}
+            <div className="relative w-36 h-36 rounded-full border-[5px] border-zinc-800 bg-black shadow-[inset_0_0_25px_#000,0_0_20px_rgba(0,0,0,0.95)] flex items-center justify-center overflow-hidden z-10">
+              <EyepieceSimulation
+                targetName={planet.name}
+                magnification={eyepiece === "25mm" ? 48 : eyepiece === "6mm" ? 200 : 120}
+                seeingSim={true}
+                eyepieceFov={68}
+              />
+              <div className="absolute inset-0 rounded-full shadow-[inset_0_0_15px_rgba(0,0,0,0.95)] pointer-events-none z-20" />
+            </div>
 
             {/* Eyepiece Reticle HUD Badge */}
             <div className="absolute top-2 left-2 bg-slate-950/90 border border-purple-400/40 px-2 py-0.5 rounded text-[0.6rem] font-mono text-purple-300 font-bold backdrop-blur-sm shadow-md z-30">

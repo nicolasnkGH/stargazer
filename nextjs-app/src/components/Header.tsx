@@ -299,8 +299,6 @@ export default function Header() {
         : `Bortle Dark Sky Scale (Class ${bVal} - ${bortleData?.name || "Light Pollution"}). Class 1 = Pristine, 9 = Inner-city`,
   });
 
-  const hudWeather = weatherItems.map((item) => item.text).join(" | ");
-
   useEffect(() => {
     // eslint-disable-next-line react-hooks/set-state-in-effect
     setIsMetric(localStorage.getItem(UNITS_STORAGE_KEY) !== "imperial");
