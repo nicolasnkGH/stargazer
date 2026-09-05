@@ -35,7 +35,7 @@ export default function PreflightChecklistCard() {
         <div className="flex items-center gap-3">
           <SourceTooltip
             source="Astronomy Field Standards"
-            description={t.has("source_desc_preflight") ? t("source_desc_preflight") : "Established amateur and professional astronomical field checklist based on thermal equilibrium, seeing degra..."}
+            description={t.has("source_desc_preflight") ? t("source_desc_preflight") : "Established amateur and professional astronomical field checklist based on thermal equilibrium, seeing degradation thresholds, and dew prevention protocols."}
             attribution="StarGazer Field Optics Protocol"
           />
           <button

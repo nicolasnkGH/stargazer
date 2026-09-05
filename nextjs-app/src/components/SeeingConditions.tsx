@@ -109,7 +109,7 @@ export default function SeeingConditions({
           <div className="flex items-center gap-2">
             <SourceTooltip
               source="Open-Meteo & ECMWF"
-              description={t.has("source_desc_seeing") ? t("source_desc_seeing") : "Atmospheric seeing score, transparency, cloud coverage, humidity, wind, and dew point calculated via Open-Meteo..."}
+              description={t.has("source_desc_seeing") ? t("source_desc_seeing") : "Atmospheric seeing score, transparency, cloud coverage, humidity, wind, and dew point calculated via Open-Meteo and European Centre for Medium-Range Weather Forecasts (ECMWF) data."}
               attribution="Open-Meteo / ECMWF"
             />
             <button
