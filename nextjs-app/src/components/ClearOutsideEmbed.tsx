@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { useTranslations } from "next-intl";
 import Icon from "./Icon";
 import SourceTooltip from "./SourceTooltip";
 import { parseLocationCookie } from "@/lib/location-cookie";
@@ -21,6 +22,7 @@ function getClientCoords(): LocationCoords | null {
 }
 
 export default function ClearOutsideEmbed({ coords: initialCoords }: { coords?: LocationCoords | null }) {
+  const t = useTranslations();
   const [coords, setCoords] = useState<LocationCoords | null>(initialCoords ?? null);
   const [imgError, setImgError] = useState(false);
   const [showGuideMobile, setShowGuideMobile] = useState(false);
@@ -53,16 +55,16 @@ export default function ClearOutsideEmbed({ coords: initialCoords }: { coords?: 
       <div className="card-header justify-between flex-wrap gap-2">
         <div className="flex items-center gap-2">
           <Icon name="cloud-sun" className="h-5 w-5 text-sky-400" />
-          <h2>Clear Outside — Astronomical Weather Forecast</h2>
+          <h2>{t("clear_outside_title")}</h2>
         </div>
         <div className="flex items-center gap-3">
           <SourceTooltip
             source="Clear Outside (First Light Optics)"
-            description="Hourly astronomical weather forecast specifically calibrated for astronomers: total/low/mid/high cloud cover, relative humidity, dew risk, wind, and transparency."
-            attribution="First Light Optics / clearoutside.com"
+            description={t("source_clearoutside_desc")}
+            attribution={t("source_clearoutside_attr")}
           />
           <a href={forecastUrl} target="_blank" rel="noopener noreferrer" className="text-xs text-sky-400 hover:underline">
-            Open Full Forecast ↗
+            {t("open_full_forecast")}
           </a>
         </div>
       </div>
@@ -82,7 +84,7 @@ export default function ClearOutsideEmbed({ coords: initialCoords }: { coords?: 
           ) : (
             <div className="p-8 text-center flex flex-col items-center justify-center">
               <span className="text-3xl mb-2">🌤️</span>
-              <p className="text-sm font-semibold text-white mb-1">Clear Outside Astronomical Forecast</p>
+              <p className="text-sm font-semibold text-white mb-1">{t("clear_outside_title")}</p>
               <p className="text-xs text-zinc-400 mb-4 max-w-sm">
                 Coordinates ({lat}, {lon})
               </p>
@@ -92,7 +94,7 @@ export default function ClearOutsideEmbed({ coords: initialCoords }: { coords?: 
                 rel="noopener noreferrer"
                 className="flex items-center gap-2 rounded-full border border-sky-500/40 bg-sky-500/10 px-4 py-2 text-xs font-semibold text-sky-300 hover:bg-sky-500/20 transition-all"
               >
-                View Live Forecast on ClearOutside.com ↗
+                {t("open_full_forecast")}
               </a>
             </div>
           )}
@@ -105,13 +107,13 @@ export default function ClearOutsideEmbed({ coords: initialCoords }: { coords?: 
             className="flex items-center justify-between mb-3 cursor-pointer select-none group"
           >
             <h3 className="text-xs font-bold text-slate-300 uppercase tracking-wider flex items-center gap-2 group-hover:text-sky-300 transition-colors">
-              <span className="text-sm">📊</span> How to Read This Forecast Chart
+              <span className="text-sm">📊</span> {t("how_to_read_chart")}
               <span className="sm:hidden text-[0.65rem] px-2 py-0.5 rounded-full bg-white/10 text-zinc-400 font-normal">
                 {showGuideMobile ? "Hide ▲" : "Show Guide ▼"}
               </span>
             </h3>
             <span className="hidden sm:inline-block text-[0.7rem] text-slate-500 font-mono">
-              Calibrated for ground-based observation
+              {t("calibrated_ground")}
             </span>
           </div>
 
@@ -134,33 +136,33 @@ export default function ClearOutsideEmbed({ coords: initialCoords }: { coords?: 
           <div className={`${showGuideMobile ? "grid" : "hidden sm:grid"} grid-cols-1 md:grid-cols-3 gap-3 pt-1`}>
             <div className="rounded-xl border border-sky-500/20 bg-slate-950/60 p-3 sm:p-4 shadow-sm">
               <strong className="block text-sky-400 text-xs font-bold mb-1.5 flex items-center gap-1.5">
-                <span>🚦</span> The Traffic Light System
+                <span>🚦</span> {t("traffic_light_system")}
               </strong>
               <div className="text-xs text-zinc-300 space-y-1 leading-relaxed">
                 <p>
-                  <strong className="text-white font-semibold">SUMMARY Row:</strong> Red = overcast, Orange = mixed, Green = clear sky.
+                  <strong className="text-white font-semibold">{t("summary_row")}</strong> {t("summary_row_desc")}
                 </p>
                 <p>
-                  <strong className="text-white font-semibold">CLOUD Rows:</strong> Pure white = 0% cloud. Dark blue = 100% cloud cover.
+                  <strong className="text-white font-semibold">{t("cloud_rows")}</strong> {t("cloud_rows_desc")}
                 </p>
               </div>
             </div>
 
             <div className="rounded-xl border border-sky-500/20 bg-slate-950/60 p-3 sm:p-4 shadow-sm">
               <strong className="block text-sky-400 text-xs font-bold mb-1.5 flex items-center gap-1.5">
-                <span>🌫️</span> How to Spot the Haze
+                <span>🌫️</span> {t("spot_haze")}
               </strong>
               <p className="text-xs text-zinc-300 leading-relaxed">
-                Check the <strong className="text-white font-semibold">REL. HUMIDITY &amp; DEW RISK</strong> rows. High humidity scatters light and washes out deep-sky targets.
+                {t("spot_haze_desc")}
               </p>
             </div>
 
             <div className="rounded-xl border border-red-500/30 bg-red-950/20 p-3 sm:p-4 shadow-sm">
               <strong className="block text-red-400 text-xs font-bold mb-1.5 flex items-center gap-1.5">
-                <span>💧</span> Telescope Dew Warning
+                <span>💧</span> {t("dew_warning")}
               </strong>
               <p className="text-xs text-zinc-300 leading-relaxed">
-                When the Dew Risk row turns red, moisture condenses on cold optics. Ensure dew heaters and shields are active before observing.
+                {t("dew_warning_desc")}
               </p>
             </div>
           </div>

@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import useSWR from "swr";
+import { useTranslations } from "next-intl";
 import Icon from "./Icon";
 import MotionFactCard from "./MotionFactCard";
 import SourceTooltip from "./SourceTooltip";
@@ -11,10 +12,10 @@ import { API_BASE } from "@/lib/constants";
 const fetcher = (url: string) => fetch(url).then((r) => r.json());
 
 const TABS = [
-  { key: "iss", label: "ISS Passes", icon: "orbit" },
-  { key: "meteors", label: "Meteor Showers", icon: "sparkles" },
-  { key: "comets", label: "Comets", icon: "sparkles" },
-  { key: "neo", label: "Asteroids (NEOs)", icon: "circle-dot" },
+  { key: "iss", labelKey: "tab_iss_passes", icon: "orbit" },
+  { key: "meteors", labelKey: "tab_meteor_showers", icon: "sparkles" },
+  { key: "comets", labelKey: "tab_comets", icon: "sparkles" },
+  { key: "neo", labelKey: "tab_asteroids", icon: "circle-dot" },
 ] as const;
 
 type TabKey = (typeof TABS)[number]["key"];
@@ -35,6 +36,7 @@ function formatTime(str: string | undefined): string {
 }
 
 export default function SkyMotion() {
+  const t = useTranslations();
   const [tab, setTab] = useState<TabKey>("iss");
 
   const { data: issData } = useSWR<{ passes?: IssPass[] }>(
@@ -72,30 +74,30 @@ export default function SkyMotion() {
       <div className="card-header border-b border-cyan-500/20 px-6 py-4 bg-slate-900/80 justify-between">
         <div className="flex items-center gap-2">
           <Icon name="orbit" className="h-5 w-5 text-cyan-400" />
-          <h2 className="text-base font-bold text-slate-100 tracking-wide">Objects in Motion</h2>
+          <h2 className="text-base font-bold text-slate-100 tracking-wide">{t("objects_in_motion")}</h2>
         </div>
         <SourceTooltip
           source="NORAD & NASA CNEOS"
-          description="Live satellite orbital calculations from CelesTrak NORAD two-line elements (TLE), annual meteor activity from International Meteor Organization (IMO), and Near-Earth Objects from NASA JPL CNEOS."
-          attribution="CelesTrak / NASA JPL / IMO"
+          description={t("source_skymotion_desc")}
+          attribution={t("source_skymotion_attr")}
         />
       </div>
 
       <div className="card-body p-6">
         {/* Navigation Tabs */}
         <div className="flex flex-wrap gap-1.5 mb-5 pb-3 border-b border-white/10">
-          {TABS.map((t) => (
+          {TABS.map((tb) => (
             <button
-              key={t.key}
-              onClick={() => setTab(t.key)}
+              key={tb.key}
+              onClick={() => setTab(tb.key)}
               className={`flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-bold transition-all border ${
-                tab === t.key
+                tab === tb.key
                   ? "bg-cyan-950/80 text-cyan-300 border-cyan-400/50 shadow-[0_0_12px_rgba(6,182,212,0.3)]"
                   : "bg-white/5 text-slate-400 border-white/5 hover:bg-white/10 hover:text-slate-200"
               }`}
             >
-              <Icon name={t.icon} className="h-3.5 w-3.5 text-cyan-400" />
-              <span>{t.label}</span>
+              <Icon name={tb.icon} className="h-3.5 w-3.5 text-cyan-400" />
+              <span>{t(tb.labelKey)}</span>
             </button>
           ))}
         </div>
@@ -108,7 +110,7 @@ export default function SkyMotion() {
               <MotionFactCard type="iss" />
               {visiblePasses.length === 0 ? (
                 <div className="py-6 text-center text-xs text-slate-400 italic">
-                  No ISS passes visible right now. Check back later!
+                  {t("iss_no_passes")}
                 </div>
               ) : (
                 <div className="space-y-3">
@@ -125,17 +127,17 @@ export default function SkyMotion() {
                         <span className="text-2xl">🛰️</span>
                         <div className="flex-1 min-w-0">
                           <div className="flex items-center justify-between mb-1">
-                            <p className="text-xs sm:text-sm font-bold text-slate-100">ISS Pass #{i + 1}</p>
+                            <p className="text-xs sm:text-sm font-bold text-slate-100">{t("iss_pass_num", { num: i + 1 })}</p>
                             {p.visible && (
                               <span className="rounded bg-emerald-950/80 border border-emerald-500/40 px-2 py-0.5 text-[0.65rem] font-bold text-emerald-300">
-                                Visible
+                                {t("badge_visible")}
                               </span>
                             )}
                           </div>
                           <div className="flex flex-wrap gap-x-4 gap-y-1 text-xs text-slate-300">
-                            <span>Rise: <span className="font-mono text-cyan-300 font-bold">{formatTime(p.rise)}</span></span>
-                            <span>Set: <span className="font-mono text-cyan-300 font-bold">{formatTime(p.set)}</span></span>
-                            <span>Peak: <span className="font-mono text-amber-300 font-bold">{p.peak_alt}° {p.peak_az}</span></span>
+                            <span>{t("lbl_rise")} <span className="font-mono text-cyan-300 font-bold">{formatTime(p.rise)}</span></span>
+                            <span>{t("lbl_set")} <span className="font-mono text-cyan-300 font-bold">{formatTime(p.set)}</span></span>
+                            <span>{t("lbl_peak")} <span className="font-mono text-amber-300 font-bold">{p.peak_alt}° {p.peak_az}</span></span>
                           </div>
                         </div>
                       </div>
@@ -150,7 +152,7 @@ export default function SkyMotion() {
           {tab === "neo" && (
             neos.length === 0 ? (
               <div className="py-6 text-center text-xs text-slate-400 italic">
-                No Near-Earth Objects currently tracked.
+                {t("neo_none_tracked")}
               </div>
             ) : (
               <div className="space-y-3">
@@ -167,25 +169,25 @@ export default function SkyMotion() {
                       <p className="text-xs sm:text-sm font-bold text-slate-100">{n.name}</p>
                       {n.hazardous && (
                         <span className="rounded bg-red-950/80 border border-red-500/40 px-2 py-0.5 text-[0.65rem] font-bold text-red-300">
-                          Potentially Hazardous
+                          {t("neo_hazardous")}
                         </span>
                       )}
                     </div>
                     <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 text-xs text-slate-300 mt-2">
                       <div>
-                        <span className="text-[0.65rem] text-slate-400 block uppercase font-semibold">Diameter</span>
+                        <span className="text-[0.65rem] text-slate-400 block uppercase font-semibold">{t("lbl_diameter")}</span>
                         <span className="font-mono text-cyan-300 font-bold">{n.diameter_m}m</span>
                       </div>
                       <div>
-                        <span className="text-[0.65rem] text-slate-400 block uppercase font-semibold">Closest</span>
+                        <span className="text-[0.65rem] text-slate-400 block uppercase font-semibold">{t("lbl_closest")}</span>
                         <span className="font-mono text-amber-300 font-bold">{n.closest_approach_au} AU</span>
                       </div>
                       <div>
-                        <span className="text-[0.65rem] text-slate-400 block uppercase font-semibold">Velocity</span>
+                        <span className="text-[0.65rem] text-slate-400 block uppercase font-semibold">{t("lbl_velocity")}</span>
                         <span className="font-mono text-purple-300 font-bold">{n.velocity_kms} km/s</span>
                       </div>
                       <div>
-                        <span className="text-[0.65rem] text-slate-400 block uppercase font-semibold">Date</span>
+                        <span className="text-[0.65rem] text-slate-400 block uppercase font-semibold">{t("lbl_date")}</span>
                         <span className="font-mono text-slate-200 font-semibold">{n.date}</span>
                       </div>
                     </div>
@@ -201,7 +203,7 @@ export default function SkyMotion() {
               <MotionFactCard type="comet" />
               {comets.length === 0 ? (
                 <div className="py-6 text-center text-xs text-slate-400 italic">
-                  No Comets currently visible in the sky.
+                  {t("comets_none_visible")}
                 </div>
               ) : (
                 <div className="space-y-3">
@@ -218,14 +220,14 @@ export default function SkyMotion() {
                         <p className="text-xs sm:text-sm font-bold text-slate-100">{c.name}</p>
                         {c.visible && (
                           <span className="rounded bg-emerald-950/80 border border-emerald-500/40 px-2 py-0.5 text-[0.65rem] font-bold text-emerald-300">
-                            Visible
+                            {t("badge_visible")}
                           </span>
                         )}
                       </div>
                       <div className="flex flex-wrap gap-x-4 gap-y-1 text-xs text-slate-300 mt-2">
-                        <span>Mag <span className="font-mono text-amber-300 font-bold">{c.magnitude}</span></span>
-                        <span>In <span className="font-mono text-cyan-300 font-bold">{c.constellation}</span></span>
-                        <span>Perihelion: <span className="font-mono text-slate-300">{c.perihelion_date}</span></span>
+                        <span>{t("lbl_mag")} <span className="font-mono text-amber-300 font-bold">{c.magnitude}</span></span>
+                        <span>{t("lbl_in")} <span className="font-mono text-cyan-300 font-bold">{c.constellation}</span></span>
+                        <span>{t("lbl_perihelion")} <span className="font-mono text-slate-300">{c.perihelion_date}</span></span>
                       </div>
                       {c.description && (
                         <p className="text-xs text-slate-300 mt-2 italic leading-relaxed">{c.description}</p>
@@ -246,7 +248,7 @@ export default function SkyMotion() {
             ) : (
               <div className="space-y-3">
                 {meteors.map((s, i) => {
-                  const countdown = s.days_until_peak === 0 ? "Peaks tonight" : s.days_until_peak === 1 ? "Peaks tomorrow" : `Peaks in ${s.days_until_peak} days`;
+                  const countdown = s.days_until_peak === 0 ? t("peaks_tonight") : s.days_until_peak === 1 ? t("peaks_tomorrow") : t("peaks_in_days", { days: s.days_until_peak });
                   return (
                     <div
                       key={s.code}
@@ -260,7 +262,7 @@ export default function SkyMotion() {
                           <span>{s.name}</span>
                           {i === 0 && (
                             <span className="rounded bg-cyan-950/80 border border-cyan-400/40 px-2 py-0.5 text-[0.65rem] uppercase tracking-wide font-bold text-cyan-300">
-                              NEXT UP
+                              {t("badge_next_up")}
                             </span>
                           )}
                         </p>
@@ -274,7 +276,7 @@ export default function SkyMotion() {
                         <span className="text-amber-300 font-semibold">{countdown}</span>
                       </div>
                       <div className="text-xs text-slate-400 mt-1">
-                        Active: {s.activity_period} · Best: {s.hemisphere} Hem. · Parent: {s.parent_body}
+                        {t("lbl_active")} {s.activity_period} · {t("lbl_best")} {s.hemisphere} Hem. · {t("lbl_parent")} {s.parent_body}
                       </div>
                       {s.notes && <p className="text-xs text-slate-300 mt-2 italic leading-relaxed">{s.notes}</p>}
                     </div>

@@ -2,11 +2,13 @@
 
 import { useEffect, useRef, useState } from "react";
 import { createPortal } from "react-dom";
+import { useTranslations } from "next-intl";
 import { NIGHT_MODE_STORAGE_KEY } from "@/lib/constants";
 
 const POS_KEY = "stargazer_floating-night_pos";
 
 export default function NightVisionButton() {
+  const t = useTranslations();
   const [mounted, setMounted] = useState(false);
   const [nightMode, setNightMode] = useState(false);
   const [pos, setPos] = useState<{ left: number; top: number } | null>(null);
@@ -140,7 +142,7 @@ export default function NightVisionButton() {
           type="button"
           id="btn-night-mode"
           className={`nv-fab${nightMode ? " is-active" : ""}`}
-          title="Night Vision Mode"
+          title={t("night_vision_mode")}
           aria-pressed={nightMode}
           onClick={onFabClick}
         >

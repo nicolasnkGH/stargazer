@@ -1,13 +1,30 @@
-# 🌌 StarGazer v3.1.0 — Next.js 16 Observatory Portal
+# 🌌 StarGazer v3.2.0 — Next.js 16 Observatory Portal
 
 [![CI/CD Pipeline](https://github.com/nicolasnkGH/stargazer/actions/workflows/pipeline.yml/badge.svg)](https://github.com/nicolasnkGH/stargazer/actions/workflows/pipeline.yml)
-[![Version](https://img.shields.io/badge/version-v3.1.0-blue.svg)](https://github.com/nicolasnkGH/stargazer/releases/tag/v3.1.0)
+[![Version](https://img.shields.io/badge/version-v3.2.0-blue.svg)](https://github.com/nicolasnkGH/stargazer/releases/tag/v3.2.0)
 [![Next.js](https://img.shields.io/badge/Next.js-16.3-black.svg?logo=next.js)](https://nextjs.org/)
 [![Cloudflare](https://img.shields.io/badge/Cloudflare-CDN%20%26%20Worker-orange.svg?logo=cloudflare)](https://stargazer.nick-t.net)
 [![Google Cloud Run](https://img.shields.io/badge/Google%20Cloud%20Run-Serverless-4285F4.svg?logo=googlecloud)](https://cloud.google.com/run)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
 
 > A personal, distraction-free stargazing dashboard and astronomy portal powered by Next.js 16, React 19, Skyfield astrometrics, Cloudflare Edge Routing, and AI observer briefings.
+
+---
+
+## 🌟 What's New in v3.2.0 (Full i18n Localization & Translation Audit Suite)
+
+**StarGazer v3.2.0** brings complete multi-language parity across English, Spanish, and Portuguese, localizing astronomical facts, ISS/Comet trivia, dynamic UI components, and introducing automated translation audit tooling.
+
+### 🚀 Key v3.2.0 Major Features & Improvements:
+- **🌐 1:1 Dynamic Multilingual Localization (EN / ES / PT):**
+  - Expanded all translation dictionaries (`en.json`, `es.json`, `pt.json`) to 826+ synchronized keys across all 3 supported languages.
+  - Localized all dynamic ISS and comet astronomy fun facts for full internationalization.
+- **🛡️ Direct Message Fallback & Turbopack Cache Protection:**
+  - Introduced client-side `IntlProvider` wrapper and direct locale dictionary lookup to eliminate missing message warnings and prevent raw key leakage during Turbopack dynamic code generation.
+  - Safe translation guards added for Aurora risk levels, planetary facts, and observation checklist items.
+- **🧪 Translation Integrity CLI & Git Hook Automation:**
+  - Added CLI check tool `npm run check:i18n` (`scripts/check-translations.js`) that diffs locale dictionary files against `en.json` and flags missing keys.
+  - Integrated Git pre-commit hooks to block commits if locale files become desynchronized.
 
 ---
 

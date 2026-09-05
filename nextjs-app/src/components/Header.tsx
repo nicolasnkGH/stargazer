@@ -84,7 +84,10 @@ export default function Header() {
         const icon = hasEmoji ? "" : `${moon.emoji || "🌙"} `;
         return `${icon}${rawName} ${pct}`.trim();
       })()
-    : "🌙 Moon --%";
+    : locale === "pt" ? "🌙 Lua --%" : locale === "es" ? "🌙 Luna --%" : "🌙 Moon --%";
+
+  const seeingLabel = locale === "pt" ? "Seeing" : locale === "es" ? "Seeing" : "Seeing";
+  const dewLabel = locale === "pt" ? "Orvalho Δ" : locale === "es" ? "Rocío Δ" : "Dew Δ";
 
   const seeing = tonight?.seeing;
   const hudWeather = seeing
@@ -98,10 +101,10 @@ export default function Header() {
           parts.push(`☁️ ${Math.round(seeing.tonight_cloud_pct)}%`);
         }
         if (seeing.seeing_score != null) {
-          parts.push(`👁️ Seeing ${seeing.seeing_score}/5`);
+          parts.push(`👁️ ${seeingLabel} ${seeing.seeing_score}/5`);
         }
         if (seeing.tonight_dew_spread != null) {
-          parts.push(`💧 Dew Δ ${seeing.tonight_dew_spread}°C`);
+          parts.push(`💧 ${dewLabel} ${seeing.tonight_dew_spread}°C`);
         }
         return parts.join(" | ");
       })()
@@ -129,17 +132,18 @@ export default function Header() {
   }, []);
 
   useEffect(() => {
+    const dateLocale = locale === "pt" ? "pt-BR" : locale === "es" ? "es-ES" : "en-US";
     const tick = () => {
       const now = new Date();
       setCurrentTime(
-        now.toLocaleTimeString("en-US", {
+        now.toLocaleTimeString(dateLocale, {
           hour: "2-digit",
           minute: "2-digit",
           second: "2-digit",
         })
       );
       setCurrentDate(
-        now.toLocaleDateString("en-US", {
+        now.toLocaleDateString(dateLocale, {
           weekday: "short",
           month: "short",
           day: "numeric",
@@ -149,7 +153,7 @@ export default function Header() {
     tick();
     const id = setInterval(tick, 1000);
     return () => clearInterval(id);
-  }, []);
+  }, [locale]);
 
   return (
     <header className="fixed top-0 left-0 right-0 z-[100] border-b border-cyan-500/15 bg-slate-950/95 py-2 px-2 sm:px-6 backdrop-blur-2xl shadow-[0_4px_30px_rgba(0,0,0,0.6)] w-full">
@@ -179,7 +183,7 @@ export default function Header() {
               }`}
             />
             <span className={isChecking ? "text-zinc-400" : isLive ? "text-green-500" : "text-red-500"}>
-              {isChecking ? "..." : isLive ? "LIVE" : "OFFLINE"}
+              {isChecking ? "..." : isLive ? t("telemetry_live") : t("telemetry_offline")}
             </span>
           </div>
           <span className="h-4 w-px flex-shrink-0 bg-white/10" />
@@ -199,7 +203,7 @@ export default function Header() {
           <button
             onClick={toggleUnits}
             className="flex h-8 sm:h-9 items-center justify-center rounded-lg border border-white/10 bg-white/5 px-1.5 sm:px-2.5 text-[0.7rem] sm:text-xs text-zinc-200 transition hover:bg-purple-600/20 hover:border-purple-500/50"
-            title="Toggle Units"
+            title={t("title_toggle_units")}
           >
             {isMetric ? "°C/km" : "°F/mi"}
           </button>
@@ -209,7 +213,7 @@ export default function Header() {
             style={{ fontFamily: "'Space Grotesk', system-ui, sans-serif" }}
             value={locale}
             onChange={(e) => setLocale(e.target.value as Locale)}
-            title="Select Language"
+            title={t("title_select_language")}
           >
             {LANG_OPTIONS.map((opt) => (
               <option key={opt.value} value={opt.value}>{opt.label}</option>
@@ -221,10 +225,10 @@ export default function Header() {
               id="btn-about"
               onClick={() => {
                 dismissTourPrompt();
-                startOnboardingTour();
+                startOnboardingTour(t);
               }}
               className="flex h-8 w-8 sm:h-9 sm:w-9 items-center justify-center rounded-lg border border-white/10 bg-white/5 text-zinc-200 transition hover:bg-purple-600/20 hover:border-purple-500/50 relative"
-              title="Dashboard Tour"
+              title={t("title_dashboard_tour")}
             >
               <Icon name="info" className="h-4 w-4" />
               {showTourPrompt && (
@@ -248,7 +252,7 @@ export default function Header() {
                   <button
                     onClick={dismissTourPrompt}
                     className="text-zinc-500 hover:text-zinc-300 transition-colors p-0.5"
-                    title="Dismiss tour suggestion"
+                    title={t("title_dismiss_tour_suggestion")}
                   >
                     <Icon name="x" className="h-3.5 w-3.5" />
                   </button>
@@ -260,7 +264,7 @@ export default function Header() {
                   <button
                     onClick={() => {
                       dismissTourPrompt();
-                      startOnboardingTour();
+                      startOnboardingTour(t);
                     }}
                     className="flex-1 rounded-lg bg-gradient-to-r from-sky-500/20 to-blue-600/20 border border-sky-500/40 px-2.5 py-1.5 text-xs font-semibold text-sky-300 hover:bg-sky-500/30 transition-all text-center shadow-lg"
                   >
@@ -283,7 +287,7 @@ export default function Header() {
               id="btn-menu"
               className="flex h-8 w-8 sm:h-9 sm:w-9 items-center justify-center rounded-lg border border-white/10 bg-white/5 text-zinc-200 transition hover:bg-purple-600/20 hover:border-purple-500/50"
               onClick={() => setMenuOpen(!menuOpen)}
-              title="Navigation"
+              title={t("title_navigation")}
             >
               <Icon name="menu" className="h-4 w-4" />
             </button>
@@ -328,7 +332,7 @@ export default function Header() {
                       className="flex items-center gap-2.5 rounded-lg px-3 py-2 text-xs text-zinc-300 transition hover:bg-white/10 hover:text-white"
                     >
                       <Icon name="star" className="h-4 w-4 text-sky-400" />
-                      <span>{"label" in link ? link.label : t(link.key)}</span>
+                      <span>{t(link.key, { defaultValue: link.key })}</span>
                     </a>
                   ))}
                 </div>
@@ -339,19 +343,19 @@ export default function Header() {
                     className="flex w-full items-center gap-2.5 rounded-lg px-3 py-2 text-xs text-zinc-300 transition hover:bg-white/10 hover:text-white"
                   >
                     <Icon name="info" className="h-4 w-4 text-purple-400" />
-                    <span>About StarGazer</span>
+                    <span>{t("about_stargazer")}</span>
                   </button>
                   <button
                     onClick={() => { setMenuOpen(false); setDataSettingsOpen(true); }}
                     className="flex w-full items-center gap-2.5 rounded-lg px-3 py-2 text-xs text-zinc-300 transition hover:bg-white/10 hover:text-white"
                   >
                     <Icon name="database" className="h-4 w-4 text-amber-400" />
-                    <span>Data &amp; Offline Settings</span>
+                    <span>{t("data_offline_settings")}</span>
                   </button>
                 </div>
 
                 <div className="border-t border-white/10 pt-2 my-1 px-3">
-                  <div className="text-[0.68rem] font-bold uppercase tracking-wider text-zinc-400 mb-1.5">Language / Idioma</div>
+                  <div className="text-[0.68rem] font-bold uppercase tracking-wider text-zinc-400 mb-1.5">{t("label_language_idioma")}</div>
                   <div className="flex items-center gap-1.5">
                     {LANG_OPTIONS.map((opt) => (
                       <button
@@ -379,7 +383,7 @@ export default function Header() {
         <div className="flex items-center gap-1 flex-shrink-0">
           <span className={`inline-block h-1.5 w-1.5 rounded-full ${isChecking ? "bg-zinc-500" : isLive ? "animate-pulse bg-green-500" : "bg-red-500"}`} />
           <span className={`font-bold tracking-wider ${isChecking ? "text-zinc-400" : isLive ? "text-green-400" : "text-red-400"}`}>
-            {isChecking ? "..." : isLive ? "LIVE" : "OFFLINE"}
+            {isChecking ? "..." : isLive ? t("telemetry_live") : t("telemetry_offline")}
           </span>
         </div>
         <span className="h-3 w-px bg-white/15 flex-shrink-0" />
@@ -390,7 +394,7 @@ export default function Header() {
         <span className="flex-shrink-0 text-zinc-400 font-sans whitespace-nowrap">{currentTime} • {currentDate}</span>
       </div>
 
-      {aboutOpen && <Modal open={aboutOpen} title="About StarGazer v3.0.0" onClose={() => setAboutOpen(false)}><div>Dashboard built for amateur astronomers.</div></Modal>}
+      {aboutOpen && <Modal open={aboutOpen} title={t("about_stargazer_v3")} onClose={() => setAboutOpen(false)}><div>{t("dashboard_built_desc")}</div></Modal>}
       {dataSettingsOpen && <DataSettingsModal open={dataSettingsOpen} onClose={() => setDataSettingsOpen(false)} />}
     </header>
   );

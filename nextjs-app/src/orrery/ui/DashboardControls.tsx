@@ -1,4 +1,5 @@
 import React from "react";
+import { useTranslations, useLocale } from "next-intl";
 import {
   Plus,
   Minus,
@@ -13,6 +14,17 @@ import {
 } from "lucide-react";
 import { PlanetData } from "../types";
 import { CELESTIAL_BODIES } from "../data/planetsData";
+
+const LOCALIZED_BODIES: Record<string, Record<string, string>> = {
+  pt: {
+    sun: "SOL", mercury: "MERCÚRIO", venus: "VÊNUS", earth: "TERRA", moon: "LUA",
+    mars: "MARTE", jupiter: "JÚPITER", saturn: "SATURNO", uranus: "URANO", neptune: "NETUNO"
+  },
+  es: {
+    sun: "SOL", mercury: "MERCURIO", venus: "VENUS", earth: "TIERRA", moon: "LUNA",
+    mars: "MARTE", jupiter: "JÚPITER", saturn: "SATURNO", uranus: "URANO", neptune: "NEPTUNO"
+  }
+};
 
 interface DashboardControlsProps {
   zoomLevel: number;
@@ -39,6 +51,9 @@ export const DashboardControls: React.FC<DashboardControlsProps> = ({
   selectedBody,
   onPan,
 }) => {
+  const t = useTranslations();
+  const locale = useLocale();
+
   return (
     <>
       {/* Left Side Zoom Slider Control */}
@@ -46,7 +61,7 @@ export const DashboardControls: React.FC<DashboardControlsProps> = ({
         <button
           onClick={onZoomIn}
           className="p-2 rounded-full bg-white/5 hover:bg-cyan-500/20 text-slate-200 hover:text-cyan-300 transition-all active:scale-95"
-          title="Zoom In"
+          title={t("orrery_title_zoom_in")}
         >
           <Plus className="w-4 h-4" />
         </button>
@@ -62,7 +77,7 @@ export const DashboardControls: React.FC<DashboardControlsProps> = ({
         <button
           onClick={onZoomOut}
           className="p-2 rounded-full bg-white/5 hover:bg-cyan-500/20 text-slate-200 hover:text-cyan-300 transition-all active:scale-95"
-          title="Zoom Out"
+          title={t("orrery_title_zoom_out")}
         >
           <Minus className="w-4 h-4" />
         </button>
@@ -77,28 +92,28 @@ export const DashboardControls: React.FC<DashboardControlsProps> = ({
             <button
               onClick={() => onPan && onPan("up")}
               className="absolute top-1 text-slate-400 hover:text-cyan-300 p-1 transition-transform active:scale-90"
-              title="Pan Up"
+              title={t("orrery_title_pan_up")}
             >
               <ChevronUp className="w-4 h-4" />
             </button>
             <button
               onClick={() => onPan && onPan("down")}
               className="absolute bottom-1 text-slate-400 hover:text-cyan-300 p-1 transition-transform active:scale-90"
-              title="Pan Down"
+              title={t("orrery_title_pan_down")}
             >
               <ChevronDown className="w-4 h-4" />
             </button>
             <button
               onClick={() => onPan && onPan("left")}
               className="absolute left-1 text-slate-400 hover:text-cyan-300 p-1 transition-transform active:scale-90"
-              title="Pan Left"
+              title={t("orrery_title_pan_left")}
             >
               <ChevronLeft className="w-4 h-4" />
             </button>
             <button
               onClick={() => onPan && onPan("right")}
               className="absolute right-1 text-slate-400 hover:text-cyan-300 p-1 transition-transform active:scale-90"
-              title="Pan Right"
+              title={t("orrery_title_pan_right")}
             >
               <ChevronRight className="w-4 h-4" />
             </button>
@@ -110,7 +125,7 @@ export const DashboardControls: React.FC<DashboardControlsProps> = ({
                 if (onPan) onPan("reset");
               }}
               className="w-8 h-8 sm:w-10 sm:h-10 rounded-full bg-gradient-to-tr from-cyan-500/30 to-blue-600/30 border border-cyan-400/40 shadow-[0_0_15px_rgba(6,182,212,0.4)] flex items-center justify-center text-cyan-300 hover:scale-105 active:scale-95 transition-all"
-              title="Reset System View"
+              title={t("orrery_title_reset_view")}
             >
               <Crosshair className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
             </button>
@@ -121,7 +136,7 @@ export const DashboardControls: React.FC<DashboardControlsProps> = ({
             <button
               onClick={onTogglePause}
               className="p-1.5 sm:p-2 rounded-xl bg-cyan-500/20 hover:bg-cyan-500/30 border border-cyan-400/40 text-cyan-300 transition-all active:scale-95"
-              title={isPaused ? "Resume Orbit" : "Pause Orbit"}
+              title={isPaused ? t("orrery_title_resume") : t("orrery_title_pause")}
             >
               {isPaused ? <Play className="w-3.5 h-3.5 sm:w-4 sm:h-4" /> : <Pause className="w-3.5 h-3.5 sm:w-4 sm:h-4" />}
             </button>
@@ -163,7 +178,7 @@ export const DashboardControls: React.FC<DashboardControlsProps> = ({
                     : "hover:bg-white/10 text-slate-300 bg-white/5"
                 }`}
               >
-                {b.name}
+                {LOCALIZED_BODIES[locale]?.[b.id] || b.name}
               </button>
             ))}
           </div>
@@ -174,7 +189,7 @@ export const DashboardControls: React.FC<DashboardControlsProps> = ({
               if (onPan) onPan("reset");
             }}
             className="p-2 rounded-xl hover:bg-cyan-500/20 text-slate-300 hover:text-cyan-300 transition-colors flex-shrink-0 border-l border-white/10 pl-2 cursor-pointer"
-            title="Reset to Full System View"
+            title={t("orrery_title_reset_view")}
           >
             <Sliders className="w-4 h-4" />
           </button>

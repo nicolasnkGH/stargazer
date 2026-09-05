@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
+import { useTranslations } from "next-intl";
 import Icon from "./Icon";
 import type { ConstellationData, ConstellationWindow, MapTarget } from "@/types";
 import { API_BASE, ALL_CONSTELLATIONS } from "@/lib/constants";
@@ -8,6 +9,7 @@ import SourceTooltip from "./SourceTooltip";
 import CelestialMap from "./CelestialMap";
 
 export default function ActiveConstellation() {
+  const t = useTranslations();
   const [fullscreen, setFullscreen] = useState(false);
   const [constellations, setConstellations] = useState<ConstellationData[]>([]);
   const [loading, setLoading] = useState(true);
@@ -74,6 +76,98 @@ export default function ActiveConstellation() {
     );
   }, [selectedAbbr]);
 
+  const [isMobileControlsOpen, setIsMobileControlsOpen] = useState(true);
+
+  // Mobile control panel - collapsible icon bar for mobile devices only
+  // When collapsed: shows just the toggle button floating on the right edge
+  // When expanded: shows a vertical column of action icons with collapse chevron at bottom
+  const renderMobileControlPanel = () => {
+    return isMobileControlsOpen ? (
+      // Expanded state - show full panel
+      <div className="md:hidden fixed top-1/2 -translate-y-1/2 right-4 z-50 flex flex-col gap-2 bg-slate-900/95 backdrop-blur-sm border-l border-white/10 shadow-2xl rounded-bl-xl w-16 overflow-y-auto max-h-[380px] p-1">
+        {/* Eye icon - toggle constellation visibility */}
+        <button
+          onClick={() => {
+            // Toggle all constellations visible/invisible
+            const newState = !constellations.some((c) => c.visible);
+            setConstellations(prev => prev.map(c => ({ ...c, visible: !newState })));
+          }}
+          className="p-2.5 rounded-lg bg-slate-800/80 hover:bg-sky-600/50 text-yellow-300 transition-colors active:scale-95 touch-manipulation flex items-center justify-center"
+        >
+          <Icon name="eye" className="h-5 w-5" />
+        </button>
+
+        {/* Arrow up - scroll to top */}
+        <button
+          onClick={() => window.scrollTo({ top: 0, behavior: "smooth" })}
+          className="p-2.5 rounded-lg bg-sky-600/80 hover:bg-sky-500 text-white transition-colors active:scale-95 touch-manipulation flex items-center justify-center"
+        >
+          <Icon name="arrow-up" className="h-5 w-5" />
+        </button>
+
+        {/* Calendar icon - scroll to Plan My Night */}
+        <button
+          onClick={() => {
+            const el = document.getElementById("card-plan-my-night");
+            if (el) el.scrollIntoView({ behavior: "smooth", block: "start" });
+          }}
+          className="p-2.5 rounded-lg bg-slate-800/80 hover:bg-purple-600/50 text-blue-300 transition-colors active:scale-95 touch-manipulation flex items-center justify-center"
+        >
+          <Icon name="calendar" className="h-5 w-5" />
+        </button>
+
+        {/* Check-square icon - scroll to Preflight Checklist */}
+        <button
+          onClick={() => {
+            const el = document.getElementById("card-preflight");
+            if (el) el.scrollIntoView({ behavior: "smooth", block: "start" });
+          }}
+          className="p-2.5 rounded-lg bg-slate-800/80 hover:bg-green-600/50 text-emerald-300 transition-colors active:scale-95 touch-manipulation flex items-center justify-center"
+        >
+          <Icon name="check-square" className="h-5 w-5" />
+        </button>
+
+        {/* Star icon - scroll to Constellations */}
+        <button
+          onClick={() => {
+            const el = document.getElementById("card-constellations");
+            if (el) el.scrollIntoView({ behavior: "smooth", block: "start" });
+          }}
+          className="p-2.5 rounded-lg bg-slate-800/80 hover:bg-pink-600/50 text-pink-300 transition-colors active:scale-95 touch-manipulation flex items-center justify-center"
+        >
+          <Icon name="star" className="h-5 w-5" />
+        </button>
+
+        {/* Compass icon - scroll to Solar System Scope (orientation) */}
+        <button
+          onClick={() => {
+            const el = document.getElementById("card-solar-system-scope");
+            if (el) el.scrollIntoView({ behavior: "smooth", block: "start" });
+          }}
+          className="p-2.5 rounded-lg bg-slate-800/80 hover:bg-orange-600/50 text-orange-300 transition-colors active:scale-95 touch-manipulation flex items-center justify-center"
+        >
+          <Icon name="compass" className="h-5 w-5" />
+        </button>
+
+        {/* Collapse chevron at bottom - points UP to indicate collapse/close */}
+        <button
+          onClick={() => setIsMobileControlsOpen(false)}
+          className="p-2.5 rounded-lg bg-white/10 hover:bg-white/20 text-sky-400 transition-colors active:scale-95 touch-manipulation flex items-center justify-center shadow-inner"
+        >
+          <Icon name="chevron-right" className="h-5 w-5 -rotate-90" />
+        </button>
+      </div>
+    ) : (
+      // Collapsed state - show only toggle button on right edge
+      <button
+        onClick={() => setIsMobileControlsOpen(true)}
+        className="md:hidden fixed top-1/2 -translate-y-1/2 right-0 z-50 w-10 h-10 rounded-full bg-slate-700 border-2 border-sky-400 text-white flex items-center justify-center shadow-xl active:scale-90 transition-transform"
+      >
+        <Icon name="menu" className="h-5 w-5" />
+      </button>
+    );
+  };
+
   if (loading) {
     return (
       <section id="card-active-const" className="w-full">
@@ -110,15 +204,15 @@ export default function ActiveConstellation() {
         <div className="flex items-center gap-2">
           <Icon name="sparkles" className="h-5 w-5 text-sky-400 animate-pulse" />
           <div>
-            <h2 className="text-base font-bold text-slate-100">Interactive Constellation Map</h2>
-            <p className="text-[0.65rem] text-sky-400/80 font-mono">3D Sky Projection &amp; SIMBAD Hub</p>
+            <h2 className="text-base font-bold text-slate-100">{t("interactive_const_map")}</h2>
+            <p className="text-[0.65rem] text-sky-400/80 font-mono">{t("const_map_subtitle")}</p>
           </div>
         </div>
         <div className="flex items-center gap-2">
           <SourceTooltip
             source="CDS SIMBAD & IAU 88"
-            description="3D stereographic celestial sphere mapping all 88 International Astronomical Union (IAU) constellations with live CDS Strasbourg SIMBAD astronomical database queries."
-            attribution="CDS Strasbourg / IAU"
+            description={t("source_simbad_desc")}
+            attribution={t("source_simbad_attr")}
           />
           <select
             value={selectedAbbr ?? ""}
@@ -154,52 +248,55 @@ export default function ActiveConstellation() {
 
             {constInfo && (
               <div className="flex items-center gap-3 text-[0.75rem] text-slate-300 font-mono">
-                <span>Rise: <strong className="text-white">{constInfo.rise_time || "—"}</strong></span>
-                <span>Culm: <strong className="text-white">{constInfo.culmination_time || "—"}</strong></span>
-                <span>Set: <strong className="text-white">{constInfo.set_time || "—"}</strong></span>
+                <span>{t("lbl_rise")} <strong className="text-white">{constInfo.rise_time || "—"}</strong></span>
+                <span>{t("lbl_culm")} <strong className="text-white">{constInfo.culmination_time || "—"}</strong></span>
+                <span>{t("lbl_set")} <strong className="text-white">{constInfo.set_time || "—"}</strong></span>
               </div>
             )}
 
             <div className="flex items-center gap-2">
-              <span className="text-[0.7rem] text-purple-300 hidden md:inline">✨ Click any star to scan via SIMBAD</span>
+              <span className="text-[0.7rem] text-purple-300 hidden md:inline">{t("click_star_simbad")}</span>
               <button
                 onClick={() => setFullscreen((v) => !v)}
                 title="Toggle Fullscreen"
                 className="rounded border border-white/10 bg-slate-900/60 px-2 py-0.5 text-xs text-zinc-300 hover:text-white hover:bg-slate-800 transition-colors cursor-pointer"
               >
-                {fullscreen ? "✕ Exit" : "⤢ Fullscreen"}
+                {fullscreen ? t("btn_exit_fullscreen") : t("btn_fullscreen")}
               </button>
             </div>
           </div>
         )}
 
         {/* 3D Celestial Map with Responsive Screen Height */}
-        <div className={fullscreen ? "fixed inset-3 z-[9999] rounded-2xl border border-purple-500/40 bg-slate-950 p-4 shadow-2xl flex flex-col justify-between" : "w-full"}>
+        <div className={fullscreen ? "fixed inset-0 z-[9999] rounded-none border-purple-500/40 bg-slate-950 shadow-2xl flex flex-col justify-between" : "w-full"}>
           {fullscreen && (
-            <div className="flex items-center justify-between pb-2 mb-2 border-b border-white/10">
-              <span className="text-sm font-bold text-sky-300">Interactive 3D Constellation Map — Fullscreen</span>
+            <div className="flex items-center justify-between px-2 md:px-3 py-1 border-b border-white/10">
+              <span className="text-xs md:text-base font-bold text-sky-300 truncate">{t("interactive_const_map")} — {t("btn_fullscreen")}</span>
               <button
                 onClick={() => setFullscreen(false)}
-                className="rounded bg-white/10 px-3 py-1 text-xs text-white hover:bg-white/20"
+                className="rounded bg-white/10 px-2 py-1 md:px-4 md:py-2 text-xs md:text-sm text-white hover:bg-white/20 touch-manipulation active:scale-95 transition-transform"
               >
-                ✕ Close Fullscreen
+                {t("btn_exit_fullscreen")}
               </button>
             </div>
           )}
           {centerRaHours != null && centerDecDeg != null ? (
-            <CelestialMap targets={mapTargets} centerRaHours={centerRaHours} centerDecDeg={centerDecDeg} />
+            <CelestialMap targets={mapTargets} centerRaHours={centerRaHours} centerDecDeg={centerDecDeg} fullscreen={fullscreen} />
           ) : (
             <div className="h-[360px] flex items-center justify-center text-sm text-zinc-500">
-              Selecting constellation coordinates...
+              {t("loading_constellation_coords")}
             </div>
           )}
         </div>
+
+        {/* Mobile Control Panel - Collapsible icon bar for mobile devices only */}
+        {renderMobileControlPanel()}
 
         {/* Sleek Horizontal Quick-Jump Chips (replaces bulky 3-column vertical grid) */}
         {visible.length > 0 && (
           <div className="flex items-center gap-1.5 overflow-x-auto pt-1 pb-1 no-scrollbar">
             <span className="text-[0.65rem] font-bold text-slate-500 uppercase tracking-wider whitespace-nowrap mr-1">
-              Visible Now:
+              {t("visible_now")}
             </span>
             {visible.map((c) => (
               <button

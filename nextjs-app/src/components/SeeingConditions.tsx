@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import useSWR from "swr";
 import { useTranslations } from "next-intl";
 import Icon from "./Icon";
@@ -73,6 +73,10 @@ export default function SeeingConditions({
   const t = useTranslations();
   const seeing = useAiSeeing(initialSeeing);
   const [checklistOpen, setChecklistOpen] = useState(false);
+  const [mounted, setMounted] = useState(false);
+  useEffect(() => {
+    setMounted(true);
+  }, []);
   const { completedCount, totalCount, isAllDone } = usePreflightChecked();
 
   if (!seeing) {
@@ -109,7 +113,7 @@ export default function SeeingConditions({
           <div className="flex items-center gap-2">
             <SourceTooltip
               source="Open-Meteo & ECMWF"
-              description="Atmospheric seeing score, transparency, cloud coverage, humidity, wind, and dew point calculated via Open-Meteo and European Centre for Medium-Range Weather Forecasts (ECMWF) data."
+              description={t.has("source_desc_seeing") ? t("source_desc_seeing") : "Atmospheric seeing score, transparency, cloud coverage, humidity, wind, and dew point calculated via Open-Meteo and European Centre for Medium-Range Weather Forecasts (ECMWF) data."}
               attribution="Open-Meteo / ECMWF"
             />
             <button
@@ -123,7 +127,7 @@ export default function SeeingConditions({
               title="Open Pre-Flight Checklist"
             >
               <Icon name="check-square" className={`h-3.5 w-3.5 ${isAllDone ? "text-green-400" : "text-zinc-400"}`} />
-              <span className="text-[0.68rem]">{completedCount}/{totalCount}</span>
+              {mounted && <span className="text-[0.68rem]">{completedCount}/{totalCount}</span>}
             </button>
           </div>
         </div>
@@ -176,9 +180,9 @@ export default function SeeingConditions({
           </div>
         </div>
 
-        {seeing.warnings.length > 0 && (
+        {(seeing.warnings?.length ?? 0) > 0 && (
           <div className="mt-2.5 flex flex-col gap-1">
-            {seeing.warnings.map((w, i) => (
+            {seeing.warnings?.map((w, i) => (
               <span key={i} className="flex items-start gap-1.5 text-xs text-amber-300/80">
                 <span className="mt-1 h-1.5 w-1.5 flex-shrink-0 rounded-full bg-amber-400" />
                 {w}

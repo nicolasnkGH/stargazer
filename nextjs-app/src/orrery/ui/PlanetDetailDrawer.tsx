@@ -1,4 +1,5 @@
 import React from 'react';
+import { useTranslations, useLocale } from 'next-intl';
 import { ArrowLeft, Thermometer, Orbit, RotateCw, Moon, Sparkles, Compass } from 'lucide-react';
 import { PlanetData } from '../types';
 const TEXTURE_MAP: Record<string, string> = {
@@ -14,6 +15,65 @@ const TEXTURE_MAP: Record<string, string> = {
   neptune: '/assets/neptune.jpg',
 };
 
+const LOCALIZED_BODIES: Record<string, Record<string, string>> = {
+  pt: {
+    sun: "SOL", mercury: "MERCÚRIO", venus: "VÊNUS", earth: "TERRA", moon: "LUA",
+    mars: "MARTE", jupiter: "JÚPITER", saturn: "SATURNO", uranus: "URANO", neptune: "NETUNO"
+  },
+  es: {
+    sun: "SOL", mercury: "MERCURIO", venus: "VENUS", earth: "TIERRA", moon: "LUNA",
+    mars: "MARTE", jupiter: "JÚPITER", saturn: "SATURNO", uranus: "URANO", neptune: "NEPTUNO"
+  }
+};
+
+const LOCALIZED_TIPS: Record<string, Record<string, string>> = {
+  pt: {
+    saturn: "A divisão de Cassini nos anéis de Saturno e sua maior lua, Titã, são alvos deslumbrantes com qualquer telescópio moderado.",
+    jupiter: "Observe a Grande Mancha Vermelha e a dança diária das 4 luas Galileanas.",
+    mars: "Exibe calotas polares de gelo e marcas escuras na superfície perto da oposição.",
+    venus: "Apresenta fases impressionantes semelhantes às da Lua quando observada ao telescópio.",
+    mercury: "Melhor observado no crepúsculo perto da elongação máxima.",
+    moon: "Crateras, mares lunares e cadeias de montanhas revelam detalhes incríveis no exterminador.",
+    sun: "Nunca observe diretamente sem filtros solares ISO 12312-2 dedicados.",
+    uranus: "Pequeno disco azul-esverdeado visível com binóculos ou pequenos telescópios.",
+    neptune: "Ponto azul fraco no céu profundo; requer telescópio e cartas de busca."
+  },
+  es: {
+    saturn: "La división de Cassini en los anillos de Saturno y su luna más grande, Titán, son objetivos impresionantes a través de cualquier telescopio modesto.",
+    jupiter: "Observa la Gran Mancha Roja y el baile diario de las 4 lunas Galileanas.",
+    mars: "Muestra casquetes polares de hielo y marcas oscuras en la superficie cerca de la oposición.",
+    venus: "Muestra fases impresionantes similares a las de la Luna al observarlo por telescopio.",
+    mercury: "Mejor observado durante el crepúsculo cerca de la máxima elongación.",
+    moon: "Cráteres, mares lunares y cadenas montañosas revelan detalles increíbles en el terminador.",
+    sun: "Nunca lo observes directamente sin filtros solares ISO 12312-2 dedicados.",
+    uranus: "Pequeño disco azul verdoso visible con prismáticos o pequeños telescopios.",
+    neptune: "Tenue punto azul en el cielo profundo; requiere telescopio y cartas de búsqueda."
+  }
+};
+
+function formatLocalizedUnit(text: string, locale: string): string {
+  if (!text) return text;
+  if (locale === "pt") {
+    return text
+      .replace("Million km", "Milhões de km")
+      .replace("Billion km", "Bilhões de km")
+      .replace("Million Years", "Milhões de Anos")
+      .replace("Billion Years", "Bilhões de Anos")
+      .replace("Years", "Anos")
+      .replace("Days", "Dias")
+      .replace("Hours", "Horas");
+  } else if (locale === "es") {
+    return text
+      .replace("Million km", "Millones de km")
+      .replace("Billion km", "Billones de km")
+      .replace("Million Years", "Millones de Años")
+      .replace("Billion Years", "Billones de Años")
+      .replace("Years", "Años")
+      .replace("Days", "Días")
+      .replace("Hours", "Horas");
+  }
+  return text;
+}
 
 interface PlanetDetailDrawerProps {
   planet: PlanetData | null;
@@ -24,7 +84,13 @@ export const PlanetDetailDrawer: React.FC<PlanetDetailDrawerProps> = ({
   planet,
   onReturnToSystem,
 }) => {
+  const t = useTranslations();
+  const locale = useLocale();
+
   if (!planet) return null;
+
+  const displayName = LOCALIZED_BODIES[locale]?.[planet.id] || planet.name;
+  const obsTip = LOCALIZED_TIPS[locale]?.[planet.id] || planet.observationTip;
 
   return (
     <aside className="absolute top-20 right-4 bottom-20 z-30 w-80 sm:w-96 bg-slate-900/70 backdrop-blur-2xl border border-cyan-500/30 rounded-3xl p-6 shadow-[0_16px_48px_rgba(0,0,0,0.8)] text-white overflow-y-auto space-y-6 animate-slide-left">
@@ -34,13 +100,13 @@ export const PlanetDetailDrawer: React.FC<PlanetDetailDrawerProps> = ({
         className="w-full py-3 px-4 rounded-xl bg-cyan-950/40 hover:bg-cyan-500/20 border border-cyan-400/50 hover:border-cyan-300 text-cyan-300 font-bold text-xs uppercase tracking-widest flex items-center justify-center space-x-2 transition-all shadow-[0_0_20px_rgba(6,182,212,0.25)] hover:shadow-[0_0_25px_rgba(6,182,212,0.5)] active:scale-95"
       >
         <ArrowLeft className="w-4 h-4" />
-        <span>RETURN TO SYSTEM</span>
+        <span>{t("orrery_btn_return_system")}</span>
       </button>
 
       {/* Selected Planet Title */}
       <div className="text-center pt-2">
         <h2 className="text-3xl sm:text-4xl font-black uppercase tracking-wider text-white drop-shadow-[0_0_15px_rgba(255,255,255,0.3)]">
-          {planet.name}
+          {displayName}
         </h2>
         <p className="text-xs text-cyan-300/80 font-medium tracking-wide mt-1">
           {planet.tagline}
@@ -53,7 +119,7 @@ export const PlanetDetailDrawer: React.FC<PlanetDetailDrawerProps> = ({
           {TEXTURE_MAP[planet.textureType] ? (
             <img
               src={TEXTURE_MAP[planet.textureType]}
-              alt={planet.name}
+              alt={displayName}
               className="w-full h-full object-cover rounded-full transition-transform duration-700 group-hover:scale-110 border border-cyan-400/30"
             />
           ) : (
@@ -71,7 +137,7 @@ export const PlanetDetailDrawer: React.FC<PlanetDetailDrawerProps> = ({
       {/* Atmospheric Composition Section */}
       <div className="space-y-3 bg-slate-950/50 p-4 rounded-2xl border border-white/5">
         <h3 className="text-[11px] font-bold uppercase tracking-widest text-slate-400 flex items-center space-x-2">
-          <span>ATMOSPHERIC COMPOSITION</span>
+          <span>{t("orrery_label_atmosphere")}</span>
         </h3>
         <div className="space-y-2.5">
           {planet.atmosphere.map((comp) => (
@@ -101,19 +167,19 @@ export const PlanetDetailDrawer: React.FC<PlanetDetailDrawerProps> = ({
       <div className="space-y-3 bg-slate-950/50 p-4 rounded-2xl border border-white/5">
         <h3 className="text-[11px] font-bold uppercase tracking-widest text-slate-400 flex items-center space-x-2">
           <Thermometer className="w-3.5 h-3.5 text-cyan-400" />
-          <span>SURFACE TEMPERATURE</span>
+          <span>{t("orrery_label_temp")}</span>
         </h3>
         <div className="grid grid-cols-3 gap-2 text-center">
           <div className="bg-slate-900/60 p-2 rounded-xl border border-white/5">
-            <span className="block text-[10px] text-slate-400 uppercase">Average</span>
+            <span className="block text-[10px] text-slate-400 uppercase">{t("orrery_label_temp_avg")}</span>
             <span className="font-bold text-sm text-cyan-300">{planet.temperature.average}</span>
           </div>
           <div className="bg-slate-900/60 p-2 rounded-xl border border-white/5">
-            <span className="block text-[10px] text-slate-400 uppercase">High</span>
+            <span className="block text-[10px] text-slate-400 uppercase">{t("orrery_label_temp_high")}</span>
             <span className="font-bold text-sm text-amber-400">{planet.temperature.high}</span>
           </div>
           <div className="bg-slate-900/60 p-2 rounded-xl border border-white/5">
-            <span className="block text-[10px] text-slate-400 uppercase">Low</span>
+            <span className="block text-[10px] text-slate-400 uppercase">{t("orrery_label_temp_low")}</span>
             <span className="font-bold text-sm text-blue-400">{planet.temperature.low}</span>
           </div>
         </div>
@@ -122,10 +188,10 @@ export const PlanetDetailDrawer: React.FC<PlanetDetailDrawerProps> = ({
       {/* Distance from Earth Section */}
       <div className="bg-slate-950/50 p-4 rounded-2xl border border-white/5 space-y-1">
         <h3 className="text-[11px] font-bold uppercase tracking-widest text-slate-400">
-          DISTANCE FROM EARTH
+          {t("orrery_label_distance_earth")}
         </h3>
         <p className="text-2xl font-extrabold text-cyan-300 tracking-tight">
-          {planet.distanceFromEarth}
+          {formatLocalizedUnit(planet.distanceFromEarth, locale)}
         </p>
       </div>
 
@@ -134,23 +200,23 @@ export const PlanetDetailDrawer: React.FC<PlanetDetailDrawerProps> = ({
         <div className="bg-slate-950/50 p-3 rounded-2xl border border-white/5 space-y-1">
           <div className="flex items-center space-x-1.5 text-slate-400 text-[10px] uppercase font-bold">
             <Orbit className="w-3 h-3 text-cyan-400" />
-            <span>ORBITAL PERIOD</span>
+            <span>{t("orrery_label_orbital_period")}</span>
           </div>
-          <span className="font-bold text-white text-sm">{planet.orbitalPeriod}</span>
+          <span className="font-bold text-white text-sm">{formatLocalizedUnit(planet.orbitalPeriod, locale)}</span>
         </div>
 
         <div className="bg-slate-950/50 p-3 rounded-2xl border border-white/5 space-y-1">
           <div className="flex items-center space-x-1.5 text-slate-400 text-[10px] uppercase font-bold">
             <RotateCw className="w-3 h-3 text-cyan-400" />
-            <span>ROTATION PERIOD</span>
+            <span>{t("orrery_label_rotation_period")}</span>
           </div>
-          <span className="font-bold text-white text-sm">{planet.rotationPeriod}</span>
+          <span className="font-bold text-white text-sm">{formatLocalizedUnit(planet.rotationPeriod, locale)}</span>
         </div>
 
         <div className="bg-slate-950/50 p-3 rounded-2xl border border-white/5 space-y-1">
           <div className="flex items-center space-x-1.5 text-slate-400 text-[10px] uppercase font-bold">
             <Moon className="w-3 h-3 text-cyan-400" />
-            <span>MOONS</span>
+            <span>{t("orrery_label_moons")}</span>
           </div>
           <span className="font-bold text-white text-sm">{planet.moonsCount}</span>
         </div>
@@ -158,7 +224,7 @@ export const PlanetDetailDrawer: React.FC<PlanetDetailDrawerProps> = ({
         <div className="bg-slate-950/50 p-3 rounded-2xl border border-white/5 space-y-1">
           <div className="flex items-center space-x-1.5 text-slate-400 text-[10px] uppercase font-bold">
             <Compass className="w-3 h-3 text-cyan-400" />
-            <span>GRAVITY</span>
+            <span>{t("orrery_label_gravity")}</span>
           </div>
           <span className="font-bold text-white text-sm">{planet.gravity}</span>
         </div>
@@ -168,13 +234,13 @@ export const PlanetDetailDrawer: React.FC<PlanetDetailDrawerProps> = ({
       <div className="bg-cyan-950/30 p-4 rounded-2xl border border-cyan-500/20 text-xs space-y-1">
         <span className="flex items-center space-x-1.5 font-bold text-cyan-300 text-[11px] uppercase tracking-wider">
           <Sparkles className="w-3.5 h-3.5 text-cyan-400" />
-          <span>OBSERVATION GUIDE</span>
+          <span>{t("orrery_label_obs_guide")}</span>
         </span>
         <p className="text-slate-300 text-[11px] leading-relaxed">
-          {planet.observationTip}
+          {obsTip}
         </p>
         <span className="block text-[10px] text-slate-400 pt-1">
-          Recommended: <span className="text-cyan-300 font-semibold">{planet.bortleRecommended}</span>
+          {t("orrery_label_recommended")} <span className="text-cyan-300 font-semibold">{planet.bortleRecommended}</span>
         </span>
       </div>
     </aside>

@@ -1,3 +1,5 @@
+import { cookies } from "next/headers";
+
 const API_BACKEND = process.env.API_BACKEND || "http://localhost:8181";
 
 interface BackendRequestInit {
@@ -5,8 +7,31 @@ interface BackendRequestInit {
   body?: string;
 }
 
+async function getLocaleLang(search: string): Promise<string> {
+  if (search.includes("lang=")) {
+    const match = search.match(/[?&]lang=([^&]+)/);
+    if (match) return match[1];
+  }
+  try {
+    const cookieStore = await cookies();
+    const locale = cookieStore.get("NEXT_LOCALE")?.value;
+    if (locale && ["pt", "es", "en"].includes(locale)) {
+      return locale;
+    }
+  } catch {
+    // context without headers/cookies
+  }
+  return "en";
+}
+
 async function backendFetch(path: string, search: string, revalidate: number | false, init?: BackendRequestInit) {
-  const url = `${API_BACKEND}${path}${search}`;
+  const lang = await getLocaleLang(search);
+  let finalSearch = search;
+  if (!search.includes("lang=")) {
+    const sep = search ? (search.includes("?") ? "&" : "?") : "?";
+    finalSearch = `${search}${sep}lang=${lang}`;
+  }
+  const url = `${API_BACKEND}${path}${finalSearch}`;
   return fetch(url, {
     method: init?.method ?? "GET",
     headers: {

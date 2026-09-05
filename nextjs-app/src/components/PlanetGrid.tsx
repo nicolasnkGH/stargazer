@@ -3,6 +3,7 @@
 import { useEffect, useRef } from "react";
 import * as THREE from "three";
 import { OrbitControls } from "three/examples/jsm/controls/OrbitControls.js";
+import { useTranslations } from "next-intl";
 import Icon from "./Icon";
 import SourceTooltip from "./SourceTooltip";
 import type { PlanetData } from "@/types";
@@ -103,273 +104,199 @@ function makePlanetBump(name: string): HTMLCanvasElement {
   return canvas;
 }
 
-function makeSaturnRingGeo(innerR = 1.25, outerR = 2.2): THREE.BufferGeometry {
-  const geo = new THREE.BufferGeometry();
-  const segs = 64;
-  const pos: number[] = [];
-  const uvs: number[] = [];
-  const indices: number[] = [];
-
-  for (let i = 0; i <= segs; i++) {
-    const a = (i / segs) * Math.PI * 2;
-    const cos = Math.cos(a);
-    const sin = Math.sin(a);
-
-    pos.push(cos * innerR, sin * innerR, 0);
-    uvs.push(0, i / segs);
-
-    pos.push(cos * outerR, sin * outerR, 0);
-    uvs.push(1, i / segs);
-  }
-
-  for (let i = 0; i < segs; i++) {
-    const vi = i * 2;
-    indices.push(vi, vi + 1, vi + 2);
-    indices.push(vi + 1, vi + 3, vi + 2);
-  }
-
-  geo.setAttribute("position", new THREE.Float32BufferAttribute(pos, 3));
-  geo.setAttribute("uv", new THREE.Float32BufferAttribute(uvs, 2));
-  geo.setIndex(indices);
-  geo.computeVertexNormals();
-  return geo;
-}
-
-function Planet3DWidget({ name }: { name: string }) {
+function Planet3DCanvas({ name }: { name: string }) {
   const containerRef = useRef<HTMLDivElement>(null);
+  const key = name.toLowerCase();
+  const cfg = PLANET_CONFIGS[key] || {};
 
   useEffect(() => {
     const container = containerRef.current;
     if (!container) return;
 
-    let disposed = false;
-    let scene: THREE.Scene | null = null;
-    let camera: THREE.PerspectiveCamera | null = null;
-    let renderer: THREE.WebGLRenderer | null = null;
-    let controls: OrbitControls | null = null;
-    let mesh: THREE.Mesh | null = null;
-    let rafId = 0;
-    let io: IntersectionObserver | null = null;
-    let resizeObserver: ResizeObserver | null = null;
+    const w = container.clientWidth || 180;
+    const h = container.clientHeight || 180;
 
-    const lower = name.toLowerCase();
-    const cfg = PLANET_CONFIGS[lower] || {};
-    const ROT_SPEED = cfg.rotSpeed ?? 0.005;
-    const texUrl = cfg.texUrl;
+    const scene = new THREE.Scene();
+    const camera = new THREE.PerspectiveCamera(45, w / h, 0.1, 100);
+    camera.position.z = 3.2;
+
+    const renderer = new THREE.WebGLRenderer({ alpha: true, antialias: true });
+    renderer.setSize(w, h);
+    renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+    renderer.domElement.style.pointerEvents = "auto";
+
+    while (container.firstChild) {
+      container.removeChild(container.firstChild);
+    }
+    container.appendChild(renderer.domElement);
+
+    scene.add(new THREE.AmbientLight(0xffffff, key === "sun" ? 2.5 : 0.4));
+    const dirLight = new THREE.DirectionalLight(0xfff5e6, key === "sun" ? 0 : 1.8);
+    dirLight.position.set(4, 2, 3);
+    scene.add(dirLight);
+
+    const fillLight = new THREE.DirectionalLight(0x406090, 0.3);
+    fillLight.position.set(-4, -1, -2);
+    scene.add(fillLight);
+
+    const planetGroup = new THREE.Group();
+    if (cfg.tilt) {
+      planetGroup.rotation.z = THREE.MathUtils.degToRad(cfg.tilt);
+    }
+    scene.add(planetGroup);
+
+    const geo = new THREE.SphereGeometry(1, 48, 48);
+    const texLoader = new THREE.TextureLoader();
+
+    let mat: THREE.Material;
+    if (key === "sun") {
+      mat = new THREE.MeshBasicMaterial({
+        map: cfg.texUrl ? texLoader.load(cfg.texUrl) : null,
+      });
+    } else {
+      mat = new THREE.MeshStandardMaterial({
+        map: cfg.texUrl ? texLoader.load(cfg.texUrl) : null,
+        bumpMap: new THREE.CanvasTexture(makePlanetBump(key)),
+        bumpScale: cfg.bumpScale ?? 0.01,
+        roughness: key === "venus" ? 0.9 : 0.7,
+        metalness: 0.1,
+      });
+    }
+
+    const mesh = new THREE.Mesh(geo, mat);
+    planetGroup.add(mesh);
+
+    let ringMesh: THREE.Mesh | null = null;
+    if (cfg.hasRing) {
+      const ringGeo = new THREE.RingGeometry(1.3, 2.2, 64);
+      const pos = ringGeo.attributes.position;
+      const uv = ringGeo.attributes.uv;
+      for (let i = 0; i < pos.count; i++) {
+        const vx = pos.getX(i);
+        const vy = pos.getY(i);
+        const len = Math.sqrt(vx * vx + vy * vy);
+        const norm = (len - 1.3) / (2.2 - 1.3);
+        uv.setXY(i, norm, 0.5);
+      }
+
+      const ringMat = new THREE.MeshStandardMaterial({
+        map: cfg.ringTex ? texLoader.load(cfg.ringTex) : null,
+        side: THREE.DoubleSide,
+        transparent: true,
+        opacity: 0.85,
+        roughness: 0.5,
+      });
+      ringMesh = new THREE.Mesh(ringGeo, ringMat);
+      ringMesh.rotation.x = Math.PI / 2;
+      planetGroup.add(ringMesh);
+    }
+
+    const controls = new OrbitControls(camera, renderer.domElement);
+    controls.enablePan = false;
+    controls.enableZoom = false; 
+    controls.autoRotate = false;
 
     let visible = true;
+    const io = new IntersectionObserver(([e]) => { visible = e.isIntersecting; }, { threshold: 0.05 });
+    io.observe(container);
     let pageVisible = !document.hidden;
     const onVisibilityChange = () => { pageVisible = !document.hidden; };
     document.addEventListener("visibilitychange", onVisibilityChange);
 
     const FPS_INTERVAL = 1000 / 30;
+    let rafId = 0;
     let lastT = 0;
+    const speed = cfg.rotSpeed ?? 0.003;
+    const animate = (t: number) => {
+      rafId = requestAnimationFrame(animate);
+      if (!visible || !pageVisible) return;
+      if (t - lastT < FPS_INTERVAL) return;
+      lastT = t;
+      mesh.rotation.y += speed;
+      renderer.render(scene, camera);
+    };
+    animate(performance.now());
 
-    function build(texture: THREE.Texture) {
-      if (disposed || !container) return;
-      const w = container.clientWidth || 220;
-      const h = container.clientHeight || 200;
-
-      scene = new THREE.Scene();
-      camera = new THREE.PerspectiveCamera(45, w / h, 0.1, 100);
-      camera.position.z = cfg.hasRing ? 4.2 : 3.2;
-
-      renderer = new THREE.WebGLRenderer({ alpha: true, antialias: true });
-      renderer.setSize(w, h);
-      renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
-      renderer.domElement.style.pointerEvents = "auto";
-
-      while (container.firstChild) {
-        container.removeChild(container.firstChild);
+    const resizeObserver = new ResizeObserver((entries) => {
+      for (const entry of entries) {
+        const { width, height } = entry.contentRect;
+        if (!width || !height) continue;
+        camera.aspect = width / height;
+        camera.updateProjectionMatrix();
+        renderer.setSize(width, height);
       }
-      container.appendChild(renderer.domElement);
-
-      const amb = new THREE.AmbientLight(0xffffff, lower === "sun" ? 2.5 : 0.4);
-      scene.add(amb);
-      if (lower !== "sun") {
-        const sunLight = new THREE.DirectionalLight(0xfff5e6, 1.8);
-        sunLight.position.set(5, 3, 5);
-        scene.add(sunLight);
-        const fill = new THREE.DirectionalLight(0x8090b0, 0.2);
-        fill.position.set(-5, -2, -3);
-        scene.add(fill);
-      }
-
-      controls = new OrbitControls(camera, renderer.domElement);
-      controls.enablePan = false;
-      controls.enableZoom = false; // Disabled wheel zoom capture to allow smooth page scrolling
-      controls.autoRotate = false;
-
-      const geo = new THREE.SphereGeometry(1, 48, 48);
-      const bumpTexture = new THREE.CanvasTexture(makePlanetBump(name));
-      const mat = new THREE.MeshStandardMaterial({
-        map: texture,
-        bumpMap: bumpTexture,
-        bumpScale: cfg.bumpScale || 0.01,
-        roughness: 0.95,
-        metalness: 0.0,
-      });
-      mesh = new THREE.Mesh(geo, mat);
-      mesh.rotation.x = THREE.MathUtils.degToRad(cfg.tilt || 0);
-      scene.add(mesh);
-
-      const loader = new THREE.TextureLoader();
-      if (cfg.hasRing && cfg.ringTex) {
-        loader.load(cfg.ringTex, (ringTex) => {
-          if (!scene) return;
-          const ringMat = new THREE.MeshBasicMaterial({
-            map: ringTex, side: THREE.DoubleSide, transparent: true, opacity: 0.92,
-          });
-          const ring = new THREE.Mesh(makeSaturnRingGeo(1.26, 2.22), ringMat);
-          ring.rotation.x = Math.PI / 2;
-          scene.add(ring);
-        });
-      }
-
-      io = new IntersectionObserver(([e]) => { visible = e.isIntersecting; }, { threshold: 0.05 });
-      io.observe(container);
-
-      resizeObserver = new ResizeObserver((entries) => {
-        for (const e of entries) {
-          const { width: rw, height: rh } = e.contentRect;
-          if (!rw || !rh || !camera || !renderer) continue;
-          camera.aspect = rw / rh;
-          camera.updateProjectionMatrix();
-          renderer.setSize(rw, rh);
-        }
-      });
-      resizeObserver.observe(container);
-
-      const loop = (t: number) => {
-        rafId = requestAnimationFrame(loop);
-        if (disposed || !visible || !pageVisible) return;
-        if (t - lastT < FPS_INTERVAL) return;
-        lastT = t;
-        if (mesh) {
-          mesh.rotation.y += ROT_SPEED;
-        }
-        if (scene && camera && renderer) renderer.render(scene, camera);
-      };
-      rafId = requestAnimationFrame(loop);
-    }
-
-    const loadObserver = new IntersectionObserver(
-      (entries, obs) => {
-        entries.forEach((entry) => {
-          if (entry.isIntersecting) {
-            obs.unobserve(entry.target);
-            if (texUrl) {
-              const loader = new THREE.TextureLoader();
-              loader.load(
-                texUrl,
-                (tex) => build(tex),
-                undefined,
-                () => {
-                  build(new THREE.TextureLoader().load("/textures/jupiter.jpg"));
-                }
-              );
-            } else {
-              build(new THREE.TextureLoader().load("/textures/jupiter.jpg"));
-            }
-          }
-        });
-      },
-      { threshold: 0.05 }
-    );
-    loadObserver.observe(container);
+    });
+    resizeObserver.observe(container);
 
     return () => {
-      disposed = true;
       cancelAnimationFrame(rafId);
-      loadObserver.disconnect();
-      io?.disconnect();
-      resizeObserver?.disconnect();
+      io.disconnect();
+      resizeObserver.disconnect();
       document.removeEventListener("visibilitychange", onVisibilityChange);
-      controls?.dispose();
-      if (renderer) {
-        try { renderer.dispose(); } catch {}
-        renderer.domElement.remove();
-      }
-      scene?.traverse((obj) => {
-        if (obj instanceof THREE.Mesh) {
-          obj.geometry?.dispose();
-          if (Array.isArray(obj.material)) {
-            obj.material.forEach((m) => m.dispose());
-          } else {
-            obj.material?.dispose();
-          }
-        }
-      });
+      controls.dispose();
+      renderer.dispose();
+      mat.dispose();
+      geo.dispose();
     };
-  }, [name]);
+  }, [key, cfg]);
 
-  return <div ref={containerRef} className="h-full w-full touch-pan-y" />;
+  const bgStyle = cfg.radialGlow
+    ? { background: cfg.radialGlow }
+    : { background: "radial-gradient(circle at center, rgba(56,189,248,0.2) 0%, transparent 70%)" };
+
+  return (
+    <div className="w-full h-44 flex items-center justify-center relative touch-pan-y">
+      <div
+        ref={containerRef}
+        className="w-full h-full rounded-xl overflow-hidden relative z-10 touch-pan-y"
+        style={bgStyle}
+      />
+    </div>
+  );
 }
 
 function PlanetCard({ planet }: { planet: PlanetData }) {
-  const altStr = `${planet.altitude_deg}° ${planet.direction}`;
-  const magStr = `Mag ${planet.magnitude_approx}`;
-  const distStr = `${planet.distance_mkm}M km (${planet.light_time_minutes} min light)`;
-  const lower = planet.name.toLowerCase();
-  const cfg = PLANET_CONFIGS[lower] || {};
-  const glowStyle = cfg.radialGlow || "radial-gradient(circle at center, rgba(59,130,246,0.25) 0%, transparent 70%)";
+  const t = useTranslations();
 
   return (
-    <div className={`flex flex-col card transition-all duration-300 hover:border-sky-400/40 border border-slate-800 bg-slate-900/90 shadow-xl overflow-hidden touch-pan-y ${planet.visible_tonight ? "" : "opacity-60"}`}>
-      {/* 3D Planet Header Box with Astronomical Radial Color Glow */}
-      <div
-        className="relative h-[210px] w-full flex-shrink-0 overflow-hidden touch-pan-y"
-        style={{ background: glowStyle }}
-      >
-        <Planet3DWidget name={planet.name} />
-      </div>
+    <div className="hud-card relative rounded-2xl border border-white/10 bg-slate-950/80 p-4 flex flex-col justify-between shadow-lg hover:border-sky-400/40 transition-all overflow-hidden group">
+      <div className="absolute inset-0 bg-[linear-gradient(rgba(255,255,255,0.02)_50%,transparent_50%)] bg-[size:100%_4px] pointer-events-none z-10" />
 
-      {/* Detailed Planet Info Section */}
-      <div className="flex flex-col gap-2 p-5 border-t border-white/10 bg-slate-950/80">
-        {/* Name row with symbol & Naked Eye badge */}
-        <div className="flex items-center justify-between gap-2">
-          <span className="flex items-center gap-2 text-lg font-bold text-slate-100">
-            <span className="text-xl text-cyan-300 font-serif">{planet.emoji}</span>
-            <span>{planet.name}</span>
+      <div className="relative z-20">
+        <div className="flex items-center justify-between mb-2">
+          <div className="flex items-center gap-2">
+            <span className="text-2xl">{planet.emoji}</span>
+            <div>
+              <h3 className="text-base font-bold text-slate-100 leading-tight">
+                {planet.name}
+              </h3>
+            </div>
+          </div>
+          <span className="rounded bg-sky-950/80 border border-sky-400/30 px-2 py-0.5 font-mono text-[0.65rem] font-bold text-sky-300">
+            {planet.direction || "E"}
           </span>
-          {planet.naked_eye && (
-            <span className="rounded-full border border-purple-500/40 bg-purple-950/60 px-2.5 py-0.5 text-[0.65rem] font-bold text-purple-300 shadow-sm">
-              Naked Eye
-            </span>
-          )}
         </div>
 
-        {/* Constellation Pill */}
+        <Planet3DCanvas name={planet.name} />
+      </div>
+
+      <div className="relative z-20 mt-2">
         <div className="flex items-center gap-2">
           <span className="inline-block rounded-md border border-sky-500/30 bg-sky-950/40 px-2 py-0.5 text-[0.7rem] font-mono font-bold text-sky-300">
             {planet.constellation}
           </span>
         </div>
 
-        {/* Telemetry Grid */}
-        <div className="flex flex-col gap-1 font-mono text-xs mt-1">
-          <span className="text-cyan-300 font-bold" title={altStr}>
-            {altStr}
-          </span>
-          <span className="text-amber-300 font-bold" title={magStr}>
-            {magStr}
-          </span>
-          <span className="text-slate-300 font-medium" title={distStr}>
-            {distStr}
-          </span>
-        </div>
-
-        {/* Visibility Status & Finding Instructions */}
         <div className="mt-2 border-t border-white/10 pt-2 text-xs flex flex-col gap-1">
           <span className={`font-bold flex items-center gap-1.5 ${planet.visible_tonight ? "text-emerald-300" : "text-slate-400"}`}>
             <span className={`h-2 w-2 rounded-full ${planet.visible_tonight ? "bg-emerald-400 shadow-[0_0_8px_rgba(52,211,153,0.8)]" : "bg-slate-600"}`} />
-            {planet.visible_tonight ? "Visible tonight" : "Not visible tonight"}
+            {planet.visible_tonight ? t("visible_tonight") : t("not_visible_tonight")}
           </span>
           <p className="text-[0.75rem] text-slate-300 leading-snug line-clamp-2 mt-0.5">
             {planet.how_to_find}
           </p>
           <span className="text-[0.7rem] text-slate-400 font-mono mt-0.5">
-            Rise: {planet.rise_time} · Set: {planet.set_time}
+            {t("lbl_rise")}: {planet.rise_time} · {t("lbl_set")}: {planet.set_time}
           </span>
         </div>
       </div>
@@ -378,28 +305,27 @@ function PlanetCard({ planet }: { planet: PlanetData }) {
 }
 
 export default function PlanetGrid({ planets = [] }: { planets?: PlanetData[] }) {
+  const t = useTranslations();
   return (
     <section id="card-planets" className="card w-full mb-8 border border-sky-500/20 bg-slate-900/90 shadow-xl overflow-hidden">
-      {/* Header */}
       <div className="card-header border-b border-sky-500/20 px-6 py-4 bg-slate-900/80 justify-between">
         <div className="flex items-center gap-2">
           <Icon name="orbit" className="h-5 w-5 text-sky-400" />
           <h2 className="text-base font-bold text-slate-100 tracking-wide">
-            Planets Tonight
+            {t("planets_tonight")}
           </h2>
         </div>
         <SourceTooltip
           source="NASA JPL & Skyfield"
-          description="True planetary geocentric and topocentric ephemerides, apparent visual magnitudes, illumination percentages, and rise/set culmination times calculated using NASA JPL DE421 ephemeris engine."
-          attribution="NASA JPL / Skyfield"
+          description={t("source_planets_desc")}
+          attribution={t("source_planets_attr")}
         />
       </div>
 
-      {/* Grid */}
       <div className="p-6">
         {planets.length === 0 ? (
           <div className="rounded-2xl border border-red-500/30 bg-red-500/10 p-5 text-sm text-red-400">
-            Planet data unavailable.
+            {t("planet_data_unavailable")}
           </div>
         ) : (
           <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">

@@ -1,4 +1,5 @@
 import React from 'react';
+import { useTranslations } from 'next-intl';
 
 interface CenterOverlayProps {
   isVisible: boolean;
@@ -7,6 +8,7 @@ interface CenterOverlayProps {
 }
 
 export const CenterOverlay: React.FC<CenterOverlayProps> = ({ isVisible, darkInValue, bortleValue }) => {
+  const t = useTranslations();
   if (!isVisible) return null;
 
   return (
@@ -17,7 +19,7 @@ export const CenterOverlay: React.FC<CenterOverlayProps> = ({ isVisible, darkInV
           {darkInValue || "12.8h"}
         </span>
         <span className="text-[10px] sm:text-xs font-semibold tracking-widest text-slate-400 uppercase mt-0.5">
-          DARK IN
+          {t("orrery_label_dark_in")}
         </span>
       </div>
 
@@ -29,7 +31,7 @@ export const CenterOverlay: React.FC<CenterOverlayProps> = ({ isVisible, darkInV
           </span>
         </h1>
         <p className="text-xs sm:text-sm text-slate-300 font-medium tracking-wide mt-1 drop-shadow-md">
-          Astronomy made simple.
+          {t("orrery_tagline")}
         </p>
       </div>
 
@@ -39,7 +41,7 @@ export const CenterOverlay: React.FC<CenterOverlayProps> = ({ isVisible, darkInV
           {bortleValue || "B6"}
         </span>
         <span className="text-[10px] sm:text-xs font-semibold tracking-widest text-slate-400 uppercase mt-0.5">
-          BORTLE SCALE
+          {t("orrery_label_bortle_scale")}
         </span>
       </div>
     </div>

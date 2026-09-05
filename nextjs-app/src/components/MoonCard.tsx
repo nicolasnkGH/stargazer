@@ -184,12 +184,12 @@ export default function MoonCard({ moon, moonFact }: { moon: MoonData | null; mo
     <div className="card card-body flex flex-col h-full select-none touch-pan-y">
       <div className="flex items-center gap-2 mb-3">
         <Icon name="moon" className="h-5 w-5 text-amber-400" />
-        <h3 className="text-[0.92rem] font-semibold text-zinc-100 tracking-wide">Moon</h3>
+        <h3 className="text-[0.92rem] font-semibold text-zinc-100 tracking-wide">{t("moon_card_title")}</h3>
         <div className="ml-auto flex items-center gap-2">
           <SourceTooltip
             source="NASA JPL DE421"
-            description="Precise lunar phase geometry, sub-solar coordinates, rise/set times, and illumination percentage calculated using NASA JPL DE421 planetary ephemeris via Skyfield."
-            attribution="NASA JPL / Skyfield"
+            description={t("source_moon_desc")}
+            attribution={t("source_moon_attr")}
           />
           <span className="text-xs text-zinc-400 font-mono font-bold">{moon.illumination_pct}%</span>
         </div>
@@ -225,13 +225,13 @@ export default function MoonCard({ moon, moonFact }: { moon: MoonData | null; mo
       {(moon.moonrise || moon.moonset || moon.altitude_deg != null) && (
         <div className="mt-3 flex flex-wrap gap-x-4 gap-y-1 text-xs text-zinc-300 font-mono">
           {moon.moonrise && (
-            <span>Rise: <span className="text-cyan-300 font-bold">{moon.moonrise}</span></span>
+            <span>{t("lbl_rise")} <span className="text-cyan-300 font-bold">{moon.moonrise}</span></span>
           )}
           {moon.moonset && (
-            <span>Set: <span className="text-cyan-300 font-bold">{moon.moonset}</span></span>
+            <span>{t("lbl_set")} <span className="text-cyan-300 font-bold">{moon.moonset}</span></span>
           )}
           {moon.altitude_deg != null && (
-            <span>Alt: <span className="text-amber-300 font-bold">{moon.altitude_deg}° {moon.direction ?? ""}</span></span>
+            <span>{t("lbl_alt")} <span className="text-amber-300 font-bold">{moon.altitude_deg}° {moon.direction ?? ""}</span></span>
           )}
         </div>
       )}

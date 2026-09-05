@@ -1,6 +1,7 @@
 "use client";
 
 import React from "react";
+import { useTranslations } from "next-intl";
 import Icon from "./Icon";
 import SourceTooltip from "./SourceTooltip";
 import type { ApodData } from "@/types";
@@ -21,6 +22,7 @@ const DEFAULT_APOD: ApodData = {
 };
 
 export default function ApodCard({ apod }: ApodCardProps) {
+  const t = useTranslations();
   const data = apod && apod.url ? apod : DEFAULT_APOD;
 
   return (
@@ -29,17 +31,17 @@ export default function ApodCard({ apod }: ApodCardProps) {
       <div className="card-header justify-between flex-wrap gap-2 border-b border-cyan-500/20 px-6 py-4 bg-slate-900/80">
         <div className="flex items-center gap-2">
           <Icon name="image" className="h-5 w-5 text-sky-400" />
-          <h2 className="text-base font-bold text-slate-100 tracking-wide">🌌 NASA Astronomy Picture of the Day</h2>
+          <h2 className="text-base font-bold text-slate-100 tracking-wide">{t("apod_header_title")}</h2>
         </div>
         <div className="flex items-center gap-2.5">
           <SourceTooltip
             source="NASA APOD"
-            description="Daily featured astronomical imagery, professional astrophotography, and deep-space telescope captures provided directly by the NASA Astronomy Picture of the Day API."
-            attribution="NASA / apod.nasa.gov"
+            description={t("source_apod_desc")}
+            attribution={t("source_apod_attr")}
           />
           <span className="text-xs font-mono text-slate-400">{data.date}</span>
           <span className="rounded-full border border-sky-400/40 bg-sky-950/40 px-3 py-1 text-xs font-bold text-sky-300 shadow-sm">
-            Powered by NASA
+            {t("powered_by_nasa")}
           </span>
         </div>
       </div>
@@ -74,7 +76,7 @@ export default function ApodCard({ apod }: ApodCardProps) {
               rel="noopener noreferrer"
               className="flex items-center gap-1.5 text-xs font-bold text-sky-400 hover:text-sky-300 transition-colors"
             >
-              <span>Full Archive</span>
+              <span>{t("full_archive")}</span>
               <Icon name="external-link" className="h-3.5 w-3.5" />
             </a>
           </div>

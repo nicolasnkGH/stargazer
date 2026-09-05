@@ -2,6 +2,7 @@
 "use client";
 
 import { useEffect, useState, useRef } from "react";
+import { useTranslations } from "next-intl";
 import {
   ACTIVE_LOCATION_STORAGE_KEY,
   SAVED_LOCATIONS_STORAGE_KEY,
@@ -14,6 +15,7 @@ import type { SavedLocation, GeocodeSuggestion } from "@/types";
 import Icon from "./Icon";
 
 export default function LocationGate() {
+  const t = useTranslations();
   const [isOpen, setIsOpen] = useState(false);
   const [loading, setLoading] = useState(false);
   const [searching, setSearching] = useState(false);
@@ -130,9 +132,9 @@ export default function LocationGate() {
     <div className="fixed inset-0 z-[10000] flex items-center justify-center bg-black/80 backdrop-blur-md p-4">
       <div className="w-full max-w-md rounded-xl border border-purple-500/30 bg-[rgba(10,10,18,0.98)] p-6 shadow-[0_20px_50px_rgba(0,0,0,0.8)] text-center">
         <span className="text-4xl block mb-3 animate-pulse">🌌</span>
-        <h2 className="text-xl font-bold text-zinc-100 mb-2">Welcome to StarGazer</h2>
+        <h2 className="text-xl font-bold text-zinc-100 mb-2">{t("welcome_stargazer")}</h2>
         <p className="text-sm text-zinc-400 mb-6 leading-relaxed">
-          To calculate custom stargazing forecasts, celestial targets, and satellite passes, please select your observing site location.
+          {t("location_gate_desc")}
         </p>
 
         <div className="flex flex-col gap-3">
@@ -142,7 +144,7 @@ export default function LocationGate() {
             className="flex items-center justify-center gap-2 rounded-lg bg-sky-500/20 border border-sky-500/30 px-4 py-3 text-sm font-semibold text-sky-300 hover:bg-sky-500/30 transition-all disabled:opacity-50"
           >
             <Icon name="map-pin" className="h-4 w-4" />
-            {loading ? "📡 Detecting Location..." : "📍 Use My Current Location"}
+            {loading ? t("detecting_location") : t("use_current_location")}
           </button>
 
           <button
@@ -150,17 +152,17 @@ export default function LocationGate() {
             disabled={loading}
             className="flex items-center justify-center gap-2 rounded-lg bg-white/5 border border-white/10 px-4 py-2.5 text-xs text-zinc-300 hover:bg-white/10 transition-colors disabled:opacity-50"
           >
-            🌋 Default to Mauna Kea Observatory
+            {t("default_mauna_kea_btn")}
           </button>
 
           <div className="relative my-2 text-left">
-            <label className="block text-xs text-zinc-500 mb-1.5 text-center">— OR Search Custom City —</label>
+            <label className="block text-xs text-zinc-500 mb-1.5 text-center">{t("or_search_custom_city")}</label>
             <div className="flex gap-2">
               <input
                 type="text"
                 value={citySearch}
                 onChange={(e) => onCitySearchChange(e.target.value)}
-                placeholder="e.g. London, Tokyo, Paris"
+                placeholder={t("ph_city_world_example")}
                 className="flex-1 rounded-lg bg-white/5 border border-white/10 px-3 py-2 text-sm text-zinc-200 placeholder:text-zinc-600 focus:outline-none focus:border-sky-500/40"
               />
               <button
@@ -168,7 +170,7 @@ export default function LocationGate() {
                 disabled={searching}
                 className="whitespace-nowrap rounded-lg bg-white/5 border border-white/10 px-3 py-2 text-xs text-zinc-300 hover:bg-white/10 transition-colors"
               >
-                {searching ? "⏳" : "🔍 Search"}
+                {searching ? "⏳" : t("btn_search")}
               </button>
             </div>
             {suggestions.length > 0 && (

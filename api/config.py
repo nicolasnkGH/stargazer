@@ -6,6 +6,15 @@ Values can be overridden using environment variables.
 
 import os
 import json
+from dotenv import load_dotenv
+
+# Find and load .env from parent root or current directory
+env_path = os.path.join(os.path.dirname(os.path.dirname(__file__)), ".env")
+if os.path.exists(env_path):
+    load_dotenv(env_path)
+else:
+    load_dotenv()
+
 
 # --- StarGazer Configuration ---
 LATITUDE = float(os.getenv("LATITUDE", "19.8207"))
@@ -19,16 +28,7 @@ TELESCOPE_FOCAL_MM = int(os.getenv("TELESCOPE_FOCAL_MM", "650"))
 LIMITING_MAG = float(os.getenv("LIMITING_MAG", "12.5"))  # visual limiting magnitude
 
 # Horizon constraints
-# Objects below this altitude are generally blocked by local obstacles or atmosphere
 MIN_ALTITUDE_DEG = int(os.getenv("MIN_ALTITUDE_DEG", "15"))
-
-_BORTLE_OVERRIDE = os.getenv("BORTLE_CLASS")
-if _BORTLE_OVERRIDE is not None:
-    BORTLE_CLASS = int(_BORTLE_OVERRIDE)
-else:
-    # Lazy import to avoid circular dependency with engine/__init__.py
-    from engine.bortle import get_bortle_class
-    BORTLE_CLASS = get_bortle_class(float(LATITUDE), float(LONGITUDE))
 
 # Network
 FRONTEND_URL = os.getenv("FRONTEND_URL", "http://localhost:8181")
@@ -42,101 +42,24 @@ CF_ACCESS_CLIENT_SECRET = os.getenv("CF_ACCESS_CLIENT_SECRET", "")
 FALLBACK_AI_API_URL = os.getenv("FALLBACK_AI_API_URL", "")
 FALLBACK_AI_API_KEY = os.getenv("FALLBACK_AI_API_KEY", "")
 FALLBACK_AI_MODEL   = os.getenv("FALLBACK_AI_MODEL", "")
-LOCAL_AI_URL        = os.getenv("LOCAL_AI_URL", "")   # e.g. http://10.27.27.145:8083/v1/chat/completions
-LOCAL_AI_MODEL      = os.getenv("LOCAL_AI_MODEL", "") # e.g. /models/Qwen3.5-9B-Q5_K_M.gguf
+LOCAL_AI_URL        = os.getenv("LOCAL_AI_URL", "")   
+LOCAL_AI_MODEL      = os.getenv("LOCAL_AI_MODEL", "") 
 AI_TIMEOUT          = int(os.getenv("AI_TIMEOUT", "60"))     # seconds — per-API timeout, fall back to rule-based on timeout
 
+# API Keys
+NASA_APOD_KEY = os.getenv("NASA_APOD_KEY") or os.getenv("NASA_API_KEY", "DEMO_KEY")
 
-# Target Database
-# Example curated targets for amateur telescopes
-SCORPIUS_TARGETS = [
-    {
-        "id": "antares",
-        "name": "Antares (α Scorpii)",
-        "type": "Star — Red Supergiant",
-        "ra_h": 16, "ra_m": 29, "ra_s": 24.4,
-        "dec_d": -26, "dec_m": 25, "dec_s": 55,
-        "magnitude": 1.06,
-        "difficulty": "naked_eye",
-        "bortle_min": 1,
-        "eyepiece_rec": "Any — try 10mm for color contrast",
-        "description": "The 'heart of the scorpion' — brilliant red-orange supergiant 700× the Sun's diameter. Gorgeous orange-red color, sometimes shows a slight disc at high power.",
-        "emoji": "🔴",
-        "season_peak": "July",
-    },
-    {
-        "id": "m4",
-        "name": "M4 (NGC 6121)",
-        "type": "Globular Cluster",
-        "ra_h": 16, "ra_m": 23, "ra_s": 35.2,
-        "dec_d": -26, "dec_m": 31, "dec_s": 32,
-        "magnitude": 5.6,
-        "difficulty": "easy",
-        "bortle_min": 4,
-        "eyepiece_rec": "25mm (wide) → 10mm for resolution",
-        "description": "One of the nearest globular clusters to Earth (~7,200 ly). Located just 1.3° west of Antares. Large, loose, and easily resolved into individual stars with your 5-inch. A bar of stars across the core is a unique feature.",
-        "emoji": "✨",
-        "season_peak": "July",
-    },
-    {
-        "id": "m7",
-        "name": "M7 — Ptolemy Cluster",
-        "type": "Open Cluster",
-        "ra_h": 17, "ra_m": 53, "ra_s": 51,
-        "dec_d": -34, "dec_m": 47, "dec_s": 34,
-        "magnitude": 3.3,
-        "difficulty": "naked_eye",
-        "bortle_min": 2,
-        "eyepiece_rec": "25mm wide-field — or even binoculars",
-        "description": "Ptolemy's Cluster — visible to the naked eye even from suburban Columbus on good nights. Huge, sprawling cluster of ~80 bright stars. Use your widest field eyepiece. Known since antiquity (~130 AD).",
-        "emoji": "⭐",
-        "season_peak": "August",
-    },
-    {
-        "id": "graffias",
-        "name": "Graffias (β Scorpii)",
-        "type": "Double Star",
-        "ra_h": 16, "ra_m": 5, "ra_s": 26.2,
-        "dec_d": -19, "dec_m": 48, "dec_s": 20,
-        "magnitude": 2.62,
-        "difficulty": "easy",
-        "bortle_min": 1,
-        "eyepiece_rec": "10mm at ~65× — easy clean split",
-        "description": "Beautiful double star at the scorpion's head. Easily split even at low magnification — blue-white primary with a companion. Actually a 6-star system! One of the finest doubles in the summer sky.",
-        "emoji": "🔵",
-        "season_peak": "July",
-    }
-]
-
-# Nearby region — excellent Scorpius-area targets
-NEARBY_TARGETS = [
-    {
-        "id": "m19",
-        "name": "M19 (NGC 6273)",
-        "type": "Globular Cluster",
-        "ra_h": 17, "ra_m": 2, "ra_s": 37.7,
-        "dec_d": -26, "dec_m": 16, "dec_s": 5,
-        "magnitude": 6.8,
-        "difficulty": "easy",
-        "bortle_min": 5,
-        "eyepiece_rec": "10mm",
-        "description": "Ophiuchus globular just north of Scorpius border. One of the most oblate (flattened) globulars in the sky. Bright and rewarding through a 5-inch.",
-        "emoji": "🌀",
-    },
-]
-
-# Other major deep-sky targets for dynamic constellation tabs
-# Loaded from data/targets.json
+# Target Database — loaded dynamically from data/targets.json
 def _load_targets_json():
     path = os.path.join(os.path.dirname(__file__), "data", "targets.json")
     with open(path, "r", encoding="utf-8") as f:
         return json.load(f)
 
 OTHER_TARGETS = _load_targets_json()
+SCORPIUS_TARGETS = [t for t in OTHER_TARGETS if t.get("constellation") == "Sco"]
+NEARBY_TARGETS = []
 
-
-# API Keys (all optional / free)
-NASA_APOD_KEY = os.getenv("NASA_APOD_KEY", "DEMO_KEY")  # free tier
+BORTLE_CLASS = int(os.getenv("BORTLE_CLASS", "4"))
 
 # Scheduling preferences
 DAILY_ALERT_HOUR = 19    # 7pm local — before dark

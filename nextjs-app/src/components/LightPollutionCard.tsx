@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { useTranslations } from "next-intl";
 import Icon from "./Icon";
 import SourceTooltip from "./SourceTooltip";
 import { BORTLE_CLASSES, BORTLE_STORAGE_KEY } from "@/lib/constants";
@@ -11,6 +12,7 @@ interface LightPollutionCardProps {
 }
 
 export default function LightPollutionCard({ bortle }: LightPollutionCardProps) {
+  const t = useTranslations();
   const [explorerClass, setExplorerClass] = useState(String(bortle?.bortle ?? 6));
   const info = BORTLE_CLASSES[explorerClass] ?? BORTLE_CLASSES["6"];
 
@@ -29,9 +31,9 @@ export default function LightPollutionCard({ bortle }: LightPollutionCardProps) 
         <div className="flex items-center gap-2">
           <Icon name="map" className="h-5 w-5 text-sky-400" />
           <div>
-            <h2 className="text-base font-bold text-slate-100 tracking-wide">Light Pollution Map</h2>
+            <h2 className="text-base font-bold text-slate-100 tracking-wide">{t("light_pollution_map_title")}</h2>
             <p className="text-[0.7rem] text-slate-400 mt-0.5">
-              Map by{" "}
+              {t("map_by")}{" "}
               <a href="https://lightpollutionmap.app/" target="_blank" rel="noopener" className="text-sky-400 hover:underline">
                 Light Pollution Map
               </a>
@@ -40,8 +42,8 @@ export default function LightPollutionCard({ bortle }: LightPollutionCardProps) 
         </div>
         <SourceTooltip
           source="VIIRS Satellite & Falchi Atlas"
-          description="Bortle Dark-Sky Scale and zenith artificial sky brightness calculated using NOAA VIIRS Day/Night Band satellite radiometry and the New World Atlas of Artificial Night Sky Brightness."
-          attribution="World Atlas 2022 / Falchi et al."
+          description={t("source_bortle_desc")}
+          attribution={t("source_bortle_attr")}
         />
       </div>
 
@@ -60,15 +62,15 @@ export default function LightPollutionCard({ bortle }: LightPollutionCardProps) 
 
         {/* Top Status Pill */}
         <div className="z-10 rounded-full border border-sky-400/50 bg-slate-900/90 px-5 py-1.5 text-xs font-bold text-sky-300 shadow-[0_0_15px_rgba(56,189,248,0.3)]">
-          {bortle ? `Your sky: Class ${bortle.bortle} — ${bortle.name}` : "Your sky: Class 6 — Bright Suburban Sky"}
+          {bortle ? t("your_sky", { class: bortle.bortle, name: bortle.name }) : t("your_sky_default")}
         </div>
 
         <Icon name="map" className="h-10 w-10 text-sky-400 z-10" />
 
         <div className="z-10 max-w-md">
-          <h3 className="text-lg font-bold text-white mb-2">Explore Light Pollution Near You</h3>
+          <h3 className="text-lg font-bold text-white mb-2">{t("explore_light_pollution")}</h3>
           <p className="text-xs sm:text-sm text-slate-200 leading-relaxed">
-            Open the interactive light pollution map centered on your selected coordinates to analyze local Bortle scale class and sky glow.
+            {t("explore_light_pollution_desc")}
           </p>
         </div>
 
@@ -78,7 +80,7 @@ export default function LightPollutionCard({ bortle }: LightPollutionCardProps) 
           rel="noopener noreferrer"
           className="z-10 inline-flex items-center gap-2 rounded-xl bg-sky-500 hover:bg-sky-400 px-5 py-2.5 text-xs font-bold text-white transition-all shadow-[0_0_20px_rgba(56,189,248,0.4)] active:scale-95"
         >
-          <span>Open Interactive Map</span>
+          <span>{t("btn_open_interactive_map")}</span>
           <Icon name="external-link" className="h-3.5 w-3.5" />
         </a>
 
@@ -87,7 +89,7 @@ export default function LightPollutionCard({ bortle }: LightPollutionCardProps) 
           <div className="flex items-center justify-between gap-2 mb-3 flex-wrap">
             <span className="text-xs sm:text-sm font-bold text-white flex items-center gap-1.5">
               <span>✨</span>
-              <span>Bortle Sky Capability Guide</span>
+              <span>{t("bortle_capability_guide")}</span>
             </span>
             <select
               value={explorerClass}
@@ -108,7 +110,7 @@ export default function LightPollutionCard({ bortle }: LightPollutionCardProps) 
 
           <div className="flex items-center justify-between text-xs text-slate-300 mb-3">
             <span>
-              🔭 <strong className="text-white">Amateur Equipment:</strong> {info.equip}
+              🔭 <strong className="text-white">{t("lbl_amateur_equip")}</strong> {info.equip}
             </span>
           </div>
 
@@ -116,7 +118,7 @@ export default function LightPollutionCard({ bortle }: LightPollutionCardProps) 
             onClick={filterDatabase}
             className="w-full rounded-xl bg-gradient-to-r from-sky-500 to-indigo-600 px-4 py-2.5 text-xs font-bold text-white hover:brightness-110 transition-all shadow-md active:scale-95 cursor-pointer"
           >
-            🔭 Filter Target Database By This Bortle Scale
+            {t("btn_filter_bortle")}
           </button>
         </div>
       </div>
