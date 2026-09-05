@@ -1,5 +1,11 @@
 import { NextRequest } from "next/server";
 
+const ALLOWED_HIPS_HOSTS = new Set([
+  "alasky.cds.unistra.fr",
+  "hips2fits.strasbg.fr",
+  "skies.esac.esa.int",
+]);
+
 export async function GET(req: NextRequest) {
   const urlParam = req.nextUrl.searchParams.get("url");
   if (!urlParam) {
@@ -7,8 +13,22 @@ export async function GET(req: NextRequest) {
   }
 
   try {
-    const targetUrl = decodeURIComponent(urlParam);
-    const res = await fetch(targetUrl, {
+    let parsedUrl: URL;
+    try {
+      parsedUrl = new URL(urlParam);
+    } catch {
+      return Response.json({ error: "Invalid url parameter" }, { status: 400 });
+    }
+
+    if (!["http:", "https:"].includes(parsedUrl.protocol)) {
+      return Response.json({ error: "Unsupported URL protocol" }, { status: 400 });
+    }
+
+    if (!ALLOWED_HIPS_HOSTS.has(parsedUrl.hostname)) {
+      return Response.json({ error: "URL host is not allowed" }, { status: 400 });
+    }
+
+    const res = await fetch(parsedUrl.toString(), {
       headers: {
         "User-Agent": "StarGazer-Astronomy-Portal/3.2.0",
         Accept: "*/*",
