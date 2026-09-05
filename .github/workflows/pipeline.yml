@@ -1,29 +1,36 @@
 name: CI/CD Pipeline
 
-# Shared trigger paths — defined once so push/PR filters cannot drift apart.
-# NOTE: '**/Dockerfile' matches api/Dockerfile and nextjs-app/Dockerfile (the
-# images Cloud Run actually builds). A bare 'Dockerfile' would match nothing here.
-x-paths: &stargazer_paths
-  - 'api/**'
-  - 'nextjs-app/**'
-  - 'tests/**'
-  - '**/Dockerfile'
-  - 'docker-compose.yml'
-  - '.github/workflows/**'
-  - 'package.json'
-  - 'package-lock.json'
-  - 'nextjs-app/package-lock.json'
-  - 'requirements*.txt'
-  - 'worker.js'
-  - 'wrangler.toml'
-
 on:
   push:
     branches: [main]
-    paths: *stargazer_paths
+    paths:
+      - 'api/**'
+      - 'nextjs-app/**'
+      - 'tests/**'
+      - '**/Dockerfile'
+      - 'docker-compose.yml'
+      - '.github/workflows/**'
+      - 'package.json'
+      - 'package-lock.json'
+      - 'nextjs-app/package-lock.json'
+      - 'requirements*.txt'
+      - 'worker.js'
+      - 'wrangler.toml'
   pull_request:
     branches: [main]
-    paths: *stargazer_paths
+    paths:
+      - 'api/**'
+      - 'nextjs-app/**'
+      - 'tests/**'
+      - '**/Dockerfile'
+      - 'docker-compose.yml'
+      - '.github/workflows/**'
+      - 'package.json'
+      - 'package-lock.json'
+      - 'nextjs-app/package-lock.json'
+      - 'requirements*.txt'
+      - 'worker.js'
+      - 'wrangler.toml'
   workflow_dispatch:
     inputs:
       action:
