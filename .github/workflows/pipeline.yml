@@ -310,15 +310,14 @@ jobs:
 
           HEALTH_URL="${BASE_URL%/}/api/health"
           echo "Checking $HEALTH_URL"
-          ID_TOKEN="$(gcloud auth print-identity-token --audiences="$BASE_URL")"
-          if [ -z "$ID_TOKEN" ]; then
-            echo "Unable to mint identity token for Cloud Run health check."
-            exit 1
+          ID_TOKEN="$(gcloud auth print-identity-token --audiences="$BASE_URL" 2>/dev/null || echo "")"
+          AUTH_HEADER=()
+          if [ -n "$ID_TOKEN" ]; then
+            AUTH_HEADER=(-H "Authorization: Bearer $ID_TOKEN")
           fi
 
           for attempt in 1 2 3 4 5; do
-            if curl --fail --silent --show-error --max-time 10 \
-              -H "Authorization: Bearer $ID_TOKEN" \
+            if curl --fail --silent --show-error --max-time 10 ${AUTH_HEADER:+"${AUTH_HEADER[@]}"} \
               "$HEALTH_URL" >/tmp/health_frontend.json; then
               echo "Frontend health check passed on attempt $attempt"
               cat /tmp/health_frontend.json
@@ -505,15 +504,14 @@ jobs:
 
           HEALTH_URL="${BASE_URL%/}/health"
           echo "Checking $HEALTH_URL"
-          ID_TOKEN="$(gcloud auth print-identity-token --audiences="$BASE_URL")"
-          if [ -z "$ID_TOKEN" ]; then
-            echo "Unable to mint identity token for Cloud Run health check."
-            exit 1
+          ID_TOKEN="$(gcloud auth print-identity-token --audiences="$BASE_URL" 2>/dev/null || echo "")"
+          AUTH_HEADER=()
+          if [ -n "$ID_TOKEN" ]; then
+            AUTH_HEADER=(-H "Authorization: Bearer $ID_TOKEN")
           fi
 
           for attempt in 1 2 3 4 5; do
-            if curl --fail --silent --show-error --max-time 10 \
-              -H "Authorization: Bearer $ID_TOKEN" \
+            if curl --fail --silent --show-error --max-time 10 ${AUTH_HEADER:+"${AUTH_HEADER[@]}"} \
               "$HEALTH_URL" >/tmp/health.json; then
               echo "Health check passed on attempt $attempt"
               cat /tmp/health.json
