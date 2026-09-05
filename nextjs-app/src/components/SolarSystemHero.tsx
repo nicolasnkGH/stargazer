@@ -43,8 +43,22 @@ export default function SolarSystemHero({ }: SolarSystemHeroProps) {
     setZoomLevel((prev) => Math.max(prev - 1, 1));
   };
 
+  const handleWheel = (e: React.WheelEvent<HTMLDivElement>) => {
+    if (e.ctrlKey || e.metaKey) {
+      if (e.deltaY < 0) {
+        handleZoomIn();
+      } else if (e.deltaY > 0) {
+        handleZoomOut();
+      }
+    }
+  };
+
   return (
-    <section id="hero-section" className="relative w-full h-[85vh] min-h-[600px] overflow-hidden bg-slate-950 font-sans select-none">
+    <section
+      id="hero-section"
+      className="relative w-full h-[85vh] min-h-[600px] overflow-hidden bg-slate-950 font-sans select-none touch-pan-y"
+      onWheel={handleWheel}
+    >
       {/* 3D Three.js Solar System Canvas */}
       <SolarSystemCanvas
         selectedBody={selectedBody}

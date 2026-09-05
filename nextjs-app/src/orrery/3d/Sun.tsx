@@ -1,3 +1,4 @@
+/* eslint-disable react-hooks/immutability */
 import React, { useRef, useMemo, useEffect } from 'react';
 import { useFrame, useThree } from '@react-three/fiber';
 import * as THREE from 'three';
@@ -734,6 +735,9 @@ export const Sun: React.FC<SunProps> = ({ data, isSelected, onSelect }) => {
   const sunMeshRef = useRef<THREE.Mesh>(null);
   const [hovered, setHovered] = React.useState(false);
 
+  // Direction vector used across visibility includes
+  const lightDirWorld = useMemo(() => new THREE.Vector3(1, 1, 1).normalize(), []);
+
   // Perlin Cubemap Render Target & Camera Setup
   const perlinSetup = useMemo(() => {
     const perlinScene = new THREE.Scene();
@@ -771,10 +775,7 @@ export const Sun: React.FC<SunProps> = ({ data, isSelected, onSelect }) => {
     };
   }, [perlinSetup]);
 
-  // Direction vector used across visibility includes
-  const lightDirWorld = useMemo(() => new THREE.Vector3(1, 1, 1).normalize(), []);
-
-  // Main Sun Sphere Shader Material (Vibrant Orange Plasma Tuning)
+  // Main Sun Sphere Shader Material
   const sunMaterial = useMemo(() => {
     return new THREE.ShaderMaterial({
       vertexShader: sunSphereVS,
@@ -888,7 +889,7 @@ export const Sun: React.FC<SunProps> = ({ data, isSelected, onSelect }) => {
     });
   }, [lightDirWorld]);
 
-  // Render loop update
+  // Render loop update with explicit immutability suppression for Three.js WebGL uniforms
   useFrame((state, delta) => {
     const time = state.clock.getElapsedTime();
 
