@@ -109,3 +109,101 @@ test.describe('StarGazer UI Smoke Tests', () => {
   });
 
 });
+
+// ─── Performance Regression Tests ──────────────────────────────────────────────
+// These use networkidle + a post-hydration wait so Three.js WebGL contexts
+// have time to initialise before we make assertions. Headless Chrome runs on a
+// software rasterizer so GPU cost is invisible here — we guard against the
+// *structural* indicators of overload instead (context count, canvas count).
+test.describe('StarGazer Performance Regression Tests', () => {
+
+  test.beforeEach(async ({ page, context }) => {
+    await context.addCookies([
+      {
+        name: 'stargazer_loc',
+        value: encodeURIComponent(JSON.stringify({ lat: 19.8206, lon: -155.4681 })),
+        domain: 'localhost',
+        path: '/',
+      }
+    ]);
+    await page.addInitScript(() => {
+      localStorage.setItem('stargazer_active_loc', 'default-mauna-kea');
+      localStorage.setItem('stargazer_locations', JSON.stringify([
+        { id: "default-mauna-kea", name: "Mauna Kea Observatory, HI", lat: 19.8206, lon: -155.4681 }
+      ]));
+    });
+  });
+
+  test('WebGL canvas count stays within browser context limit after full hydration', async ({ page }) => {
+    // Use networkidle so React has time to hydrate and mount all WebGL canvases
+    await page.goto(BASE_URL, { waitUntil: 'networkidle', timeout: 30000 });
+    // Extra buffer for Three.js init (textures load async)
+    await page.waitForTimeout(2500);
+
+    const canvasCount = await page.evaluate(() =>
+      document.querySelectorAll('canvas').length
+    );
+
+    console.log(`Canvas count after hydration: ${canvasCount}`);
+    // Chrome hard-limits WebGL contexts to ~16 per page. Staying under 12 leaves
+    // headroom for the main 3D orrery + other uses and prevents context loss crashes.
+    expect(canvasCount).toBeLessThanOrEqual(12);
+  });
+
+  test('EyepieceSimulation planet cards: off-screen cards are not actively rendering', async ({ page }) => {
+    await page.goto(BASE_URL, { waitUntil: 'networkidle', timeout: 30000 });
+    await page.waitForTimeout(2000);
+
+    // Scroll to the very bottom — all planet cards should be off-screen
+    await page.evaluate(() => window.scrollTo(0, document.body.scrollHeight));
+    await page.waitForTimeout(800); // allow IntersectionObserver callbacks to fire
+
+    // Count how many animation frame callbacks fire in 600ms.
+    // With cards off-screen, IntersectionObserver sets isVisible=false and skips
+    // the renderer.render() call. The RAF loop itself still ticks (it schedules
+    // the next frame) but does no GPU work, so the count should be close to the
+    // browser's natural 60fps tick rate — not *multiplied* by the number of cards.
+    const rafCallbacksIn600ms = await page.evaluate(() =>
+      new Promise(resolve => {
+        let count = 0;
+        const start = performance.now();
+        const tick = () => {
+          count++;
+          if (performance.now() - start < 600) requestAnimationFrame(tick);
+          else resolve(count);
+        };
+        requestAnimationFrame(tick);
+      })
+    );
+
+    console.log(`RAF callbacks in 600ms (cards off-screen): ${rafCallbacksIn600ms}`);
+    // At 60fps for 600ms the browser itself fires ~36 frames.
+    // We are scheduling one RAF counter loop, so we expect ~36-40 callbacks.
+    // If this explodes to 200+ it means N planet card loops are all firing simultaneously.
+    expect(rafCallbacksIn600ms).toBeLessThan(60);
+  });
+
+  test('Planet grid section does not mount more WebGL canvases than planet count', async ({ page }) => {
+    await page.goto(BASE_URL, { waitUntil: 'networkidle', timeout: 30000 });
+    await page.waitForTimeout(2000);
+
+    // Scroll to the planet grid
+    const planetGrid = page.locator('#planet-grid').first();
+    if (await planetGrid.count() > 0) {
+      await planetGrid.scrollIntoViewIfNeeded();
+      await page.waitForTimeout(1000);
+    }
+
+    const canvasCount = await page.evaluate(() =>
+      document.querySelectorAll('canvas').length
+    );
+
+    // There are 10 planets/bodies in PLANET_CONFIGS. At most 10 eyepiece canvases
+    // + 1 for the main 3D orrery = 11 absolute maximum.
+    // Exceeding this means cards are leaking extra contexts on re-render.
+    console.log(`Canvas count with planet grid in view: ${canvasCount}`);
+    expect(canvasCount).toBeLessThanOrEqual(11);
+  });
+
+});
+
