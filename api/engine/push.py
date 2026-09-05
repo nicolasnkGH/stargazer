@@ -23,9 +23,25 @@ VAPID_ADMIN_EMAIL = os.environ.get("VAPID_ADMIN_EMAIL", "")
 # In-memory fallback when Redis is not available
 _memory_subs: dict = {}
 
-PUSH_AVAILABLE = bool(VAPID_PRIVATE_KEY and VAPID_PUBLIC_KEY and VAPID_ADMIN_EMAIL)
+def _init_vapid():
+    if not (VAPID_PRIVATE_KEY and VAPID_PUBLIC_KEY and VAPID_ADMIN_EMAIL):
+        return None
+    try:
+        from py_vapid import Vapid
+        priv = VAPID_PRIVATE_KEY.replace(r"\n", "\n").replace("\\n", "\n")
+        if "-----BEGIN" in priv:
+            return Vapid.from_pem(priv.encode("utf-8"))
+        else:
+            return Vapid.from_string(priv)
+    except Exception as e:
+        logger.error(f"Failed to parse VAPID private key: {e}")
+        return None
+
+VAPID_OBJ = _init_vapid()
+PUSH_AVAILABLE = bool(VAPID_OBJ and VAPID_PUBLIC_KEY and VAPID_ADMIN_EMAIL)
 if not PUSH_AVAILABLE:
-    logger.warning("Push notifications disabled: VAPID_PRIVATE_KEY / VAPID_PUBLIC_KEY / VAPID_ADMIN_EMAIL not set.")
+    logger.warning("Push notifications disabled: VAPID_PRIVATE_KEY / VAPID_PUBLIC_KEY / VAPID_ADMIN_EMAIL not set or invalid.")
+
 
 
 # ── Subscription storage ──────────────────────────────────────────────────────
@@ -96,7 +112,7 @@ def send_notification(subscription: dict, title: str, body: str, url: str = "/")
         webpush(
             subscription_info=subscription,
             data=payload,
-            vapid_private_key=VAPID_PRIVATE_KEY,
+            vapid_private_key=VAPID_OBJ,
             vapid_claims={
                 "sub": f"mailto:{VAPID_ADMIN_EMAIL}",
             }

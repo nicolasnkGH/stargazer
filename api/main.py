@@ -3,10 +3,16 @@ StarGazer FastAPI — REST API for astronomy data
 Serves tonight, weekly, monthly, and event reports.
 """
 
+import os
+from dotenv import load_dotenv
+
 # Load .env file automatically — works for bare Python AND Docker
 # (Docker's env_file: takes precedence, so this is safe in both cases)
-from dotenv import load_dotenv
-load_dotenv()
+env_path = os.path.join(os.path.dirname(__file__), "..", ".env")
+if os.path.exists(env_path):
+    load_dotenv(env_path)
+else:
+    load_dotenv()
 
 from fastapi import FastAPI, Query, Depends, HTTPException, Header, Request
 from typing import Optional, Annotated

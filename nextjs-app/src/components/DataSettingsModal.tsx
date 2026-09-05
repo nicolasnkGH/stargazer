@@ -53,8 +53,8 @@ export default function DataSettingsModal({ open, onClose }: DataSettingsModalPr
     setPushBusy(true);
     setPushStatus(null);
     try {
-      await sendTestPush();
-      setPushStatus("Test notification sent.");
+      const res = await sendTestPush();
+      setPushStatus(`Test notification dispatched to ${res.sent} active subscription(s).`);
     } catch (e) {
       setPushStatus(e instanceof Error ? e.message : "Test push failed.");
     } finally {
