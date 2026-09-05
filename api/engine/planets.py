@@ -94,6 +94,7 @@ def get_planet_positions(dt: Optional[datetime] = None, lat=None, lon=None, dusk
             astrometric = observer.at(t).observe(body)
             apparent = astrometric.apparent()
             alt, az, dist = apparent.altaz()
+            ra, dec, _ = apparent.radec()
 
             visible = bool(alt.degrees > MIN_ALTITUDE_DEG)
 
@@ -110,33 +111,24 @@ def get_planet_positions(dt: Optional[datetime] = None, lat=None, lon=None, dusk
             direction = _az_to_direction(az.degrees)
             naked_eye = bool(mag_map.get(name, 5) < 6.5)
 
-            # Planet Rise/Set
-            midnight = datetime(d.year, d.month, d.day, 0, 0, tzinfo=tz)
-            t0 = ts.from_datetime(midnight)
-            t1 = ts.from_datetime(midnight + timedelta(hours=36))
-            f = almanac.risings_and_settings(eph, body, observer_location)
+            # Planet Rise/Set Calculation over a 36h relative window around now
+            t_start = ts.from_datetime(now - timedelta(hours=12))
+            t_end = ts.from_datetime(now + timedelta(hours=24))
+            f_rs = almanac.risings_and_settings(eph, body, observer_location)
+
+            rise_time_dt = None
+            set_time_dt = None
 
             try:
-                times, events = almanac.find_discrete(t0, t1, f)
-            except Exception:
-                times, events = [], []
-
-            rise_time_dt = set_time_dt = None
-            for t_ev, ev in zip(times, events):
-                dt_local = t_ev.utc_datetime().replace(tzinfo=ZoneInfo("UTC")).astimezone(tz)
-                if ev == 1 and rise_time_dt is None and dt_local.date() == d:
-                    rise_time_dt = dt_local
-                if ev == 0 and set_time_dt is None:
-                    set_time_dt = dt_local
-
-            if rise_time_dt and sunset_dt and rise_time_dt < sunset_dt:
-                rise_time_dt = sunset_dt
-            if set_time_dt and dawn and set_time_dt > dawn:
-                set_time_dt = dawn
-
-            if rise_time_dt and set_time_dt and set_time_dt <= rise_time_dt:
-                rise_time_dt = None
-                set_time_dt = None
+                times_rs, events_rs = almanac.find_discrete(t_start, t_end, f_rs)
+                for t_ev, ev in zip(times_rs, events_rs):
+                    dt_ev = t_ev.utc_datetime().replace(tzinfo=ZoneInfo("UTC")).astimezone(tz)
+                    if ev == 1 and rise_time_dt is None and dt_ev >= now - timedelta(hours=12):
+                        rise_time_dt = dt_ev
+                    elif ev == 0 and set_time_dt is None and dt_ev >= now - timedelta(hours=12):
+                        set_time_dt = dt_ev
+            except Exception as e_rs:
+                logging.error("Error computing planet rise/set for %s: %s", name, e_rs)
 
             rise_time = rise_time_dt.strftime("%I:%M %p") if rise_time_dt else "N/A"
             set_time = set_time_dt.strftime("%I:%M %p") if set_time_dt else "N/A"
@@ -148,6 +140,8 @@ def get_planet_positions(dt: Optional[datetime] = None, lat=None, lon=None, dusk
                 "name": name,
                 "altitude_deg": round(alt.degrees, 1),
                 "azimuth_deg": round(az.degrees, 1),
+                "ra_hours": round(ra.hours, 4),
+                "dec_degrees": round(dec.degrees, 4),
                 "direction": direction,
                 "distance_au": round(dist.au, 3),
                 "distance_mkm": dist_mkm,

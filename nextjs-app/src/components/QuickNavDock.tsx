@@ -64,11 +64,11 @@ export default function QuickNavDock() {
 
   return (
     <>
-      {/* DESKTOP: Vertical Floating Rail (Right Edge) */}
+      {/* DESKTOP: Vertical Floating Rail (Only on Large Screens >= 1024px) */}
       <nav
         id="quick-nav-dock"
         aria-label="Quick observatory navigation"
-        className="hidden md:flex fixed right-4 top-1/2 -translate-y-1/2 z-40 flex-col items-center gap-2 p-2 rounded-2xl bg-slate-950/40 backdrop-blur-xl border border-cyan-500/20 shadow-[0_4px_30px_rgba(0,0,0,0.8)] ring-1 ring-white/10"
+        className="hidden lg:flex fixed right-4 top-1/2 -translate-y-1/2 z-40 flex-col items-center gap-2 p-2 rounded-2xl bg-slate-950/40 backdrop-blur-xl border border-cyan-500/20 shadow-[0_4px_30px_rgba(0,0,0,0.8)] ring-1 ring-white/10"
       >
         {/* Red Light / Night Mode Button */}
         <div className="relative group">
@@ -172,10 +172,10 @@ export default function QuickNavDock() {
         </div>
       </nav>
 
-      {/* MOBILE: Sleek Floating Bottom Navigation Pill (Thumb-Friendly) */}
+      {/* MOBILE: Sleek Floating Horizontal Bottom Navigation Bar */}
       <nav
         aria-label="Quick mobile navigation"
-        className="md:hidden fixed bottom-3 left-1/2 -translate-x-1/2 z-40 flex items-center justify-around gap-3 px-4 py-2 rounded-full bg-slate-950/40 backdrop-blur-xl border border-cyan-500/30 shadow-[0_8px_32px_rgba(0,0,0,0.85)] ring-1 ring-white/10 max-w-[92vw]"
+        className="lg:hidden fixed bottom-3 left-1/2 -translate-x-1/2 z-40 flex flex-row items-center justify-around gap-2.5 px-4 py-2 rounded-full bg-slate-950/80 backdrop-blur-2xl border border-cyan-500/30 shadow-[0_8px_32px_rgba(0,0,0,0.85)] ring-1 ring-white/10 max-w-[95vw]"
       >
         <button
           onClick={toggleNightMode}

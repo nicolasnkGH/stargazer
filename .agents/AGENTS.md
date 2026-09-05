@@ -20,6 +20,10 @@ These rules apply to ALL AI agents working in this repository. There are no exce
 6. Open a standard Pull Request using `gh pr create` with clean title and description.
 7. **STOP and wait for the owner to manually review, approve, and merge the PR.**
 
+## 🌐 Automatic Translation Requirement (Mandatory)
+- **ALL UI changes, new components, badges, tooltips, or feature additions in StarGazer MUST include complete translations across all 3 supported locale dictionaries (`en.json`, `pt.json`, `es.json`) automatically, unless explicitly requested otherwise.**
+- **All 3 translation files MUST pass `npm run check:i18n` with 100% key symmetry before any work is considered complete.**
+
 ## 🔒 Scope Constraint
 Only touch files directly relevant to the task. Do not refactor unrelated code or alter PR title formats.
 

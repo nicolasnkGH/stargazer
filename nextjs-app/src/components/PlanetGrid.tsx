@@ -1,11 +1,12 @@
 "use client";
 
-import { useEffect, useRef } from "react";
+import { useEffect, useRef, useState } from "react";
 import * as THREE from "three";
 import { OrbitControls } from "three/examples/jsm/controls/OrbitControls.js";
-import { useTranslations } from "next-intl";
+import { useTranslations, useLocale, useMessages } from "next-intl";
 import Icon from "./Icon";
 import SourceTooltip from "./SourceTooltip";
+import FovModal from "./FovModal";
 import type { PlanetData } from "@/types";
 
 const PLANET_CONFIGS: Record<
@@ -76,6 +77,54 @@ const PLANET_CONFIGS: Record<
     tilt: 28.32,
     texUrl: "/textures/neptune.jpg",
     radialGlow: "radial-gradient(circle at center, rgba(59,130,246,0.35) 0%, rgba(29,78,216,0.15) 60%, transparent 80%)",
+  },
+};
+
+const PLANET_SIM_DATA: Record<
+  string,
+  { simImg: string; expectNote: string; minScope: string; approxRaDec: { ra: number; dec: number } }
+> = {
+  jupiter: {
+    simImg: "/textures/planets_sim/jupiter_sim.jpg",
+    expectNote: "Cloud belts & 4 Galilean Moons (Io, Europa, Ganymede, Callisto) clearly visible in 70mm+ scope.",
+    minScope: "70mm Scope / Seestar",
+    approxRaDec: { ra: 105.0, dec: 22.0 },
+  },
+  saturn: {
+    simImg: "/textures/planets_sim/saturn_sim.jpg",
+    expectNote: "Crisp golden rings, Cassini division gap & bright moon Titan visible in small 60mm+ scope.",
+    minScope: "60mm Scope / Binoculars",
+    approxRaDec: { ra: 350.0, dec: -5.0 },
+  },
+  mars: {
+    simImg: "/textures/planets_sim/mars_sim.jpg",
+    expectNote: "Reddish disc with white polar ice caps & Syrtis Major dark markings visible at 150x+ magnification.",
+    minScope: "90mm+ Scope",
+    approxRaDec: { ra: 100.0, dec: 24.0 },
+  },
+  venus: {
+    simImg: "/textures/planets_sim/venus_sim.jpg",
+    expectNote: "Dazzling yellowish crescent or gibbous phase visible clearly through small scope or 10x50 binos.",
+    minScope: "Binoculars / Any Scope",
+    approxRaDec: { ra: 180.0, dec: -2.0 },
+  },
+  mercury: {
+    simImg: "/textures/planets_sim/mercury_sim.jpg",
+    expectNote: "Small cratered crescent disc visible near horizon during evening/morning twilight window.",
+    minScope: "Small Telescope",
+    approxRaDec: { ra: 140.0, dec: 12.0 },
+  },
+  uranus: {
+    simImg: "/textures/planets_sim/uranus_sim.jpg",
+    expectNote: "Distinct pale cyan/turquoise disk visible through 4\"+ telescopes in dark sky.",
+    minScope: "100mm (4\") Scope",
+    approxRaDec: { ra: 52.0, dec: 18.0 },
+  },
+  neptune: {
+    simImg: "/textures/planets_sim/neptune_sim.jpg",
+    expectNote: "Tiny deep azure-blue star-like disc visible through 6\"+ astronomical telescope.",
+    minScope: "150mm (6\") Scope",
+    approxRaDec: { ra: 358.0, dec: -2.0 },
   },
 };
 
@@ -255,14 +304,123 @@ function Planet3DCanvas({ name }: { name: string }) {
   );
 }
 
-function PlanetCard({ planet }: { planet: PlanetData }) {
+function PlanetCard({
+  planet,
+  globalViewMode,
+  onSimulate,
+}: {
+  planet: PlanetData;
+  globalViewMode: "3d" | "sim";
+  onSimulate: (planet: PlanetData) => void;
+}) {
+  const locale = useLocale();
+  const messages = (useMessages() as Record<string, string>) || {};
   const t = useTranslations();
+
+  const getTxt = (key: string, fallback: string) => {
+    const val = messages[key] || t(key as any);
+    return val && val.trim() !== "" ? val : fallback;
+  };
+
+  const key = planet.name.toLowerCase();
+  const simData = PLANET_SIM_DATA[key];
+  const [localViewMode, setLocalViewMode] = useState<"3d" | "sim">(globalViewMode);
+  const [eyepiece, setEyepiece] = useState<"25mm" | "10mm" | "6mm">("10mm");
+
+  // Keep local mode in sync when user toggles global header view switch
+  useEffect(() => {
+    setLocalViewMode(globalViewMode);
+  }, [globalViewMode]);
+
+  // Eyepiece optical magnification scale factors (realistic field-of-view)
+  const eyepieceScale =
+    eyepiece === "25mm"
+      ? "scale-[0.45]"
+      : eyepiece === "6mm"
+      ? "scale-[1.35]"
+      : "scale-[0.85]";
+
+  const eyepieceHudDefault =
+    eyepiece === "25mm"
+      ? locale === "pt"
+        ? "25mm Plössl (48x Campo Largo)"
+        : locale === "es"
+        ? "25mm Plössl (48x Campo Ancho)"
+        : "25mm Plössl (48x Wide)"
+      : eyepiece === "6mm"
+      ? locale === "pt"
+        ? "6mm Planetária (200x Alta)"
+        : locale === "es"
+        ? "6mm Planetaria (200x Alta)"
+        : "6mm Planetary (200x High)"
+      : locale === "pt"
+      ? "Ocular 10mm (120x Médio)"
+      : locale === "es"
+      ? "Ocular 10mm (120x Medio)"
+      : "10mm Eyepiece (120x Mid)";
+
+  const eyepieceHudKey =
+    eyepiece === "25mm"
+      ? "eyepiece_hud_25mm"
+      : eyepiece === "6mm"
+      ? "eyepiece_hud_6mm"
+      : "eyepiece_hud_10mm";
+
+  const SCOPE_EXPECT_DICT: Record<string, { pt: string; es: string; en: string }> = {
+    jupiter: {
+      pt: "Faixas de nuvens e 4 luas galileanas (Io, Europa, Ganímedes, Calisto) claramente visíveis em telescópios de 70mm+.",
+      es: "Franjas nubladas y 4 lunas galileanas (Ío, Europa, Ganimedes, Calisto) claramente visibles en telescopios de 70mm+.",
+      en: "Cloud belts & 4 Galilean Moons (Io, Europa, Ganymede, Callisto) clearly visible in 70mm+ scope.",
+    },
+    saturn: {
+      pt: "Nítidos anéis dourados, divisão de Cassini e a brilhante lua Titã visíveis em pequenos telescópios de 60mm+.",
+      es: "Nítidos anillos dorados, división de Cassini y la brillante luna Titán visibles en pequeños telescopios de 60mm+.",
+      en: "Crisp golden rings, Cassini division gap & bright moon Titan visible in small 60mm+ scope.",
+    },
+    mars: {
+      pt: "Disco avermelhado com calotas polares de gelo e marcas escuras de Syrtis Major visíveis a 150x+ de ampliação.",
+      es: "Disco rojizo con casquetes polares de hielo y marcas oscuras de Syrtis Major visibles a 150x+ de aumento.",
+      en: "Reddish disc with white polar ice caps & Syrtis Major dark markings visible at 150x+ magnification.",
+    },
+    venus: {
+      pt: "Fase crescente ou gibosa amarelada deslumbrante claramente visível através de pequeno telescópio ou binóculos 10x50.",
+      es: "Deslumbrante fase creciente o gibosa amarillenta claramente visible a través de un pequeño telescopio o binoculares 10x50.",
+      en: "Dazzling yellowish crescent or gibbous phase visible clearly through small scope or 10x50 binos.",
+    },
+    mercury: {
+      pt: "Pequeno disco crescente craterado visível perto do horizonte durante o crepúsculo vespertino/matutino.",
+      es: "Pequeño disco creciente craterizado visible cerca del horizonte durante el crepúsculo vespertino/matutino.",
+      en: "Small cratered crescent disc visible near horizon during evening/morning twilight window.",
+    },
+    uranus: {
+      pt: "Disco pálido ciano/turquesa distinto visível através de telescópios de 4\"+ em céu escuro.",
+      es: "Disco pálido cian/turquesa distinto visible a través de telescopios de 4\"+ en cielo oscuro.",
+      en: "Distinct pale cyan/turquoise disk visible through 4\"+ telescopes in dark sky.",
+    },
+    neptune: {
+      pt: "Pequeno disco azul-celeste estrelado visível através de telescópio astronômico de 6\"+.",
+      es: "Pequeño disco azul celeste estelar visible a través de un telescopio astronómico de 6\"+.",
+      en: "Tiny deep azure-blue star-like disc visible through 6\"+ astronomical telescope.",
+    },
+  };
+
+  const expObj = SCOPE_EXPECT_DICT[key];
+  const expDefault = expObj
+    ? locale === "pt"
+      ? expObj.pt
+      : locale === "es"
+      ? expObj.es
+      : expObj.en
+    : simData?.expectNote || "";
+
+  const expectText = getTxt(`scope_expect_${key}`, expDefault);
 
   return (
     <div className="hud-card relative rounded-2xl border border-white/10 bg-slate-950/80 p-4 flex flex-col justify-between shadow-lg hover:border-sky-400/40 transition-all overflow-hidden group">
       <div className="absolute inset-0 bg-[linear-gradient(rgba(255,255,255,0.02)_50%,transparent_50%)] bg-[size:100%_4px] pointer-events-none z-10" />
 
       <div className="relative z-20">
+        {/* Card Header: Emoji + Title + Direction + Mode Toggle */}
         <div className="flex items-center justify-between mb-2">
           <div className="flex items-center gap-2">
             <span className="text-2xl">{planet.emoji}</span>
@@ -277,15 +435,120 @@ function PlanetCard({ planet }: { planet: PlanetData }) {
           </span>
         </div>
 
-        <Planet3DCanvas name={planet.name} />
+        {/* View Mode Toggle Switch (3D Globe vs Telescope Simulator) */}
+        {simData && (
+          <div className="flex items-center justify-between mb-2 bg-slate-900/90 border border-white/10 p-1 rounded-lg">
+            <button
+              type="button"
+              onClick={() => setLocalViewMode("3d")}
+              className={`flex-1 py-1 text-[0.65rem] font-bold rounded-md transition-all cursor-pointer ${
+                localViewMode === "3d"
+                  ? "bg-sky-500/30 text-sky-200 border border-sky-400/50 shadow-sm"
+                  : "text-slate-400 hover:text-slate-200"
+              }`}
+            >
+              {getTxt("planet_btn_3d_globe", locale === "pt" || locale === "es" ? "🌐 Globo 3D" : "🌐 3D Globe")}
+            </button>
+            <button
+              type="button"
+              onClick={() => setLocalViewMode("sim")}
+              className={`flex-1 py-1 text-[0.65rem] font-bold rounded-md transition-all cursor-pointer ${
+                localViewMode === "sim"
+                  ? "bg-purple-500/30 text-purple-200 border border-purple-400/50 shadow-sm"
+                  : "text-slate-400 hover:text-slate-200"
+              }`}
+            >
+              {getTxt("planet_btn_scope_view", locale === "pt" ? "🔭 Visão Telescópio" : locale === "es" ? "🔭 Vista Telescopio" : "🔭 Scope View")}
+            </button>
+          </div>
+        )}
+
+        {/* Viewport Display: 3D Globe OR Real Telescope Simulator Image */}
+        {localViewMode === "sim" && simData ? (
+          <div className="w-full h-44 rounded-xl overflow-hidden relative border border-purple-500/30 bg-[#020617] group/sim shadow-inner flex items-center justify-center">
+            {/* Eyepiece Circular Field Frame Reticle Overlay */}
+            <div className="absolute inset-0 border-[16px] border-[#020617] rounded-xl z-20 pointer-events-none" />
+            <div className="absolute w-40 h-40 rounded-full border border-purple-500/40 z-20 pointer-events-none shadow-[0_0_15px_rgba(168,85,247,0.3)]" />
+
+            {/* Real Telescope Eyepiece Photo with Eyepiece Zoom Scaling */}
+            <img
+              src={simData.simImg}
+              alt={`Telescope simulator view of ${planet.name}`}
+              className={`w-full h-full object-contain transition-transform duration-500 z-10 ${eyepieceScale}`}
+            />
+
+            {/* Eyepiece Reticle HUD Badge */}
+            <div className="absolute top-2 left-2 bg-slate-950/90 border border-purple-400/40 px-2 py-0.5 rounded text-[0.6rem] font-mono text-purple-300 font-bold backdrop-blur-sm shadow-md z-30">
+              🔭 {getTxt(eyepieceHudKey, eyepieceHudDefault)}
+            </div>
+
+            {/* Eyepiece Selector Controls (25mm / 10mm / 6mm) */}
+            <div className="absolute bottom-2 left-2 right-2 flex items-center justify-center gap-1 bg-slate-950/90 border border-white/15 p-1 rounded-lg backdrop-blur-sm z-30">
+              <span className="text-[0.58rem] font-mono text-zinc-400 mr-1 select-none">{getTxt("eyepiece_selector_lbl", "Ocular:")}</span>
+              <button
+                type="button"
+                onClick={() => setEyepiece("25mm")}
+                className={`px-2 py-0.5 text-[0.6rem] font-mono font-bold rounded transition-all cursor-pointer ${
+                  eyepiece === "25mm"
+                    ? "bg-purple-500/40 text-purple-200 border border-purple-400/60 shadow-sm"
+                    : "bg-white/5 text-zinc-400 hover:text-zinc-200"
+                }`}
+              >
+                {getTxt("eyepiece_opt_25mm", "25mm (48x)")}
+              </button>
+              <button
+                type="button"
+                onClick={() => setEyepiece("10mm")}
+                className={`px-2 py-0.5 text-[0.6rem] font-mono font-bold rounded transition-all cursor-pointer ${
+                  eyepiece === "10mm"
+                    ? "bg-purple-500/40 text-purple-200 border border-purple-400/60 shadow-sm"
+                    : "bg-white/5 text-zinc-400 hover:text-zinc-200"
+                }`}
+              >
+                {getTxt("eyepiece_opt_10mm", "10mm (120x)")}
+              </button>
+              <button
+                type="button"
+                onClick={() => setEyepiece("6mm")}
+                className={`px-2 py-0.5 text-[0.6rem] font-mono font-bold rounded transition-all cursor-pointer ${
+                  eyepiece === "6mm"
+                    ? "bg-purple-500/40 text-purple-200 border border-purple-400/60 shadow-sm"
+                    : "bg-white/5 text-zinc-400 hover:text-zinc-200"
+                }`}
+              >
+                {getTxt("eyepiece_opt_6mm", "6mm (200x)")}
+              </button>
+            </div>
+          </div>
+        ) : (
+          <Planet3DCanvas name={planet.name} />
+        )}
       </div>
 
       <div className="relative z-20 mt-2">
-        <div className="flex items-center gap-2">
+        {/* Action Button: Simulate Sky View (Aladin FOV Modal) */}
+        <div className="flex items-center justify-between gap-2 mb-2">
           <span className="inline-block rounded-md border border-sky-500/30 bg-sky-950/40 px-2 py-0.5 text-[0.7rem] font-mono font-bold text-sky-300">
             {planet.constellation}
           </span>
+          <button
+            type="button"
+            onClick={() => onSimulate(planet)}
+            className="rounded-lg border border-purple-500/40 bg-purple-950/60 hover:bg-purple-500/30 px-2.5 py-1 text-[0.68rem] font-bold text-purple-300 transition-all active:scale-95 shadow-sm cursor-pointer"
+          >
+            {getTxt("planet_simulate_btn", locale === "pt" ? "Simular Visão 🔭" : locale === "es" ? "Simular Vista 🔭" : "Simulate View 🔭")}
+          </button>
         </div>
+
+        {/* Telescope Expectation Guide Note */}
+        {simData && (
+          <div className="mb-2 p-2 rounded-lg bg-purple-950/40 border border-purple-500/20 text-[0.68rem] text-purple-200/90 leading-tight">
+            <span className="font-bold text-purple-300 block mb-0.5">
+              {getTxt("scope_expectation_lbl", locale === "pt" ? "✨ Expectativa do Telescópio" : locale === "es" ? "✨ Expectativa del Telescopio" : "✨ Scope Expectation")} ({simData.minScope}):
+            </span>
+            {expectText}
+          </div>
+        )}
 
         <div className="mt-2 border-t border-white/10 pt-2 text-xs flex flex-col gap-1">
           <span className={`font-bold flex items-center gap-1.5 ${planet.visible_tonight ? "text-emerald-300" : "text-slate-400"}`}>
@@ -296,7 +559,7 @@ function PlanetCard({ planet }: { planet: PlanetData }) {
             {planet.how_to_find}
           </p>
           <span className="text-[0.7rem] text-slate-400 font-mono mt-0.5">
-            {t("lbl_rise")}: {planet.rise_time} · {t("lbl_set")}: {planet.set_time}
+            {t("lbl_rise").replace(/:+$/, "")}: {(planet.rise_time || "N/A").replace(/^:\s*/, "")} · {t("lbl_set").replace(/:+$/, "")}: {(planet.set_time || "N/A").replace(/^:\s*/, "")}
           </span>
         </div>
       </div>
@@ -305,21 +568,74 @@ function PlanetCard({ planet }: { planet: PlanetData }) {
 }
 
 export default function PlanetGrid({ planets = [] }: { planets?: PlanetData[] }) {
+  const locale = useLocale();
+  const messages = (useMessages() as Record<string, string>) || {};
   const t = useTranslations();
+
+  const getTxt = (key: string, fallback: string) => {
+    const val = messages[key] || t(key as any);
+    return val && val.trim() !== "" ? val : fallback;
+  };
+
+  const [globalViewMode, setGlobalViewMode] = useState<"3d" | "sim">("3d");
+  const [fovPlanet, setFovPlanet] = useState<PlanetData | null>(null);
+
+  const handleSimulate = (p: PlanetData) => {
+    setFovPlanet(p);
+  };
+
+  const getRaDec = (p: PlanetData) => {
+    if (p.ra_hours != null && p.dec_degrees != null) {
+      return { raDeg: p.ra_hours * 15, decDeg: p.dec_degrees };
+    }
+    const key = p.name.toLowerCase();
+    const fallback = PLANET_SIM_DATA[key]?.approxRaDec || { ra: 100, dec: 20 };
+    return { raDeg: fallback.ra, decDeg: fallback.dec };
+  };
+
   return (
     <section id="card-planets" className="card w-full mb-8 border border-sky-500/20 bg-slate-900/90 shadow-xl overflow-hidden">
-      <div className="card-header border-b border-sky-500/20 px-6 py-4 bg-slate-900/80 justify-between">
+      <div className="card-header border-b border-sky-500/20 px-6 py-4 bg-slate-900/80 justify-between flex-wrap gap-3">
         <div className="flex items-center gap-2">
           <Icon name="orbit" className="h-5 w-5 text-sky-400" />
           <h2 className="text-base font-bold text-slate-100 tracking-wide">
             {t("planets_tonight")}
           </h2>
         </div>
-        <SourceTooltip
-          source="NASA JPL & Skyfield"
-          description={t("source_planets_desc")}
-          attribution={t("source_planets_attr")}
-        />
+
+        {/* Global View Mode Toggle: 3D Globes vs Telescope Simulator Views */}
+        <div className="flex items-center gap-2">
+          <div className="flex items-center bg-slate-950 border border-white/15 p-1 rounded-xl text-xs">
+            <button
+              type="button"
+              onClick={() => setGlobalViewMode("3d")}
+              className={`px-3 py-1 font-semibold rounded-lg transition-all cursor-pointer ${
+                globalViewMode === "3d"
+                  ? "bg-sky-500/30 text-sky-300 border border-sky-400/40 shadow-sm"
+                  : "text-slate-400 hover:text-slate-200"
+              }`}
+            >
+              {getTxt("planets_view_3d_globes", locale === "pt" || locale === "es" ? "Globos 3D" : "3D Globes")}
+            </button>
+            <button
+              type="button"
+              onClick={() => setGlobalViewMode("sim")}
+              className={`px-3 py-1 font-semibold rounded-lg transition-all cursor-pointer ${
+                globalViewMode === "sim"
+                  ? "bg-purple-500/30 text-purple-300 border border-purple-400/40 shadow-sm"
+                  : "text-slate-400 hover:text-slate-200"
+              }`}
+            >
+              {getTxt("planets_view_scope_views", locale === "pt" ? "Vistas de Telescópio" : locale === "es" ? "Vistas de Telescopio" : "Scope Views")}
+            </button>
+          </div>
+
+          <SourceTooltip
+            source="NASA JPL & Skyfield"
+            description={t("source_planets_desc")}
+            attribution={t("source_planets_attr")}
+          />
+        </div>
       </div>
 
       <div className="p-6">
@@ -330,11 +646,27 @@ export default function PlanetGrid({ planets = [] }: { planets?: PlanetData[] })
         ) : (
           <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
             {planets.map((p) => (
-              <PlanetCard key={p.name} planet={p} />
+              <PlanetCard
+                key={p.name}
+                planet={p}
+                globalViewMode={globalViewMode}
+                onSimulate={handleSimulate}
+              />
             ))}
           </div>
         )}
       </div>
+
+      {fovPlanet && (
+        <FovModal
+          open
+          onClose={() => setFovPlanet(null)}
+          raDeg={getRaDec(fovPlanet).raDeg}
+          decDeg={getRaDec(fovPlanet).decDeg}
+          targetName={fovPlanet.name}
+        />
+      )}
     </section>
   );
 }
+

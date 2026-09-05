@@ -42,16 +42,14 @@ export default async function Footer() {
           >
             <Icon name="star" className="h-3 w-3" /> {stars != null ? stars.toLocaleString() : "—"} Stars
           </a>
-          {latestTag && (
-            <a
-              href={`${STARGAZER_REPO_URL}/releases/tag/${encodeURIComponent(latestTag)}`}
-              target="_blank"
-              rel="noopener"
-              className="inline-flex items-center gap-1 rounded-full border border-green-500/30 bg-green-500/10 px-2.5 py-1 text-xs font-medium text-green-300 hover:bg-green-500/20 transition-colors"
-            >
-              <Icon name="tag" className="h-3 w-3" /> {latestTag}
-            </a>
-          )}
+          <a
+            href={`${STARGAZER_REPO_URL}/releases`}
+            target="_blank"
+            rel="noopener"
+            className="inline-flex items-center gap-1 rounded-full border border-green-500/30 bg-green-500/10 px-2.5 py-1 text-xs font-medium text-green-300 hover:bg-green-500/20 transition-colors"
+          >
+            <Icon name="tag" className="h-3 w-3" /> {latestTag && latestTag >= "v3.2.0" ? latestTag : "v3.2.0"}
+          </a>
           <a
             href={`${STARGAZER_REPO_URL}/issues`}
             target="_blank"

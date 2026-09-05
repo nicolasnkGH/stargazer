@@ -38,106 +38,134 @@ function makePlanetBump(name: string): HTMLCanvasElement {
 
 function Moon3DWidget({ illumination_pct, phase_name }: { illumination_pct: number; phase_name: string }) {
   const containerRef = useRef<HTMLDivElement>(null);
+  const [hasError, setHasError] = useState(false);
 
   useEffect(() => {
     const container = containerRef.current;
     if (!container) return;
 
-    const w = container.clientWidth || 200;
-    const h = container.clientHeight || 180;
+    try {
+      const w = container.clientWidth || 200;
+      const h = container.clientHeight || 180;
 
-    const scene = new THREE.Scene();
-    const camera = new THREE.PerspectiveCamera(45, w / h, 0.1, 100);
-    camera.position.z = 3.5;
+      const scene = new THREE.Scene();
+      const camera = new THREE.PerspectiveCamera(45, w / h, 0.1, 100);
+      camera.position.z = 3.5;
 
-    const renderer = new THREE.WebGLRenderer({ alpha: true, antialias: true });
-    renderer.setSize(w, h);
-    renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
-    renderer.domElement.style.pointerEvents = "auto";
+      const renderer = new THREE.WebGLRenderer({ alpha: true, antialias: true });
+      renderer.setSize(w, h);
+      renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+      renderer.domElement.style.pointerEvents = "auto";
 
-    while (container.firstChild) {
-      container.removeChild(container.firstChild);
+      while (container.firstChild) {
+        container.removeChild(container.firstChild);
+      }
+      container.appendChild(renderer.domElement);
+
+      scene.add(new THREE.AmbientLight(0x1a1a2e, 0.4));
+      const dirLight = new THREE.DirectionalLight(0xfff5e6, 1.5);
+      dirLight.position.set(-2, 1, 2);
+      scene.add(dirLight);
+
+      const pName = (phase_name ?? "").toLowerCase();
+      const isWaxing = !(pName.includes("waning") || pName.includes("last") || pName.includes("third") || pName.includes("3q"));
+      const fraction = Math.max(0, Math.min(100, illumination_pct)) / 100;
+      let angle = Math.PI * (1 - fraction);
+      if (!isWaxing) angle = -Math.PI * (1 - fraction);
+      dirLight.position.set(Math.sin(angle) * 3, 0.5, Math.cos(angle) * 3);
+
+      const geo = new THREE.SphereGeometry(1, 48, 48);
+      const texLoader = new THREE.TextureLoader();
+      const mat = new THREE.MeshStandardMaterial({
+        map: texLoader.load(
+          "/assets/moon_texture.jpg",
+          undefined,
+          undefined,
+          () => setHasError(true)
+        ),
+        bumpMap: new THREE.CanvasTexture(makePlanetBump("moon")),
+        bumpScale: 0.01,
+        roughness: 0.95,
+        metalness: 0.0,
+      });
+
+      const mesh = new THREE.Mesh(geo, mat);
+      scene.add(mesh);
+
+      const controls = new OrbitControls(camera, renderer.domElement);
+      controls.enablePan = false;
+      controls.enableZoom = false;
+      controls.autoRotate = false;
+
+      let visible = true;
+      const io = new IntersectionObserver(([e]) => { visible = e.isIntersecting; }, { threshold: 0.05 });
+      io.observe(container);
+      let pageVisible = !document.hidden;
+      const onVisibilityChange = () => { pageVisible = !document.hidden; };
+      document.addEventListener("visibilitychange", onVisibilityChange);
+
+      const FPS_INTERVAL = 1000 / 30;
+      let rafId = 0;
+      let lastT = 0;
+      const animate = (t: number) => {
+        rafId = requestAnimationFrame(animate);
+        if (!visible || !pageVisible) return;
+        if (t - lastT < FPS_INTERVAL) return;
+        lastT = t;
+        mesh.rotation.y += 0.0015;
+        renderer.render(scene, camera);
+      };
+      animate(performance.now());
+
+      const resizeObserver = new ResizeObserver((entries) => {
+        for (const entry of entries) {
+          const { width, height } = entry.contentRect;
+          if (!width || !height) continue;
+          camera.aspect = width / height;
+          camera.updateProjectionMatrix();
+          renderer.setSize(width, height);
+        }
+      });
+      resizeObserver.observe(container);
+
+      return () => {
+        cancelAnimationFrame(rafId);
+        io.disconnect();
+        resizeObserver.disconnect();
+        document.removeEventListener("visibilitychange", onVisibilityChange);
+        controls.dispose();
+        renderer.dispose();
+        mat.dispose();
+        geo.dispose();
+      };
+    } catch (err) {
+      console.warn("WebGL Moon initialization failed, using 2D fallback:", err);
+      setHasError(true);
     }
-    container.appendChild(renderer.domElement);
+  }, [illumination_pct, phase_name]);
 
-    scene.add(new THREE.AmbientLight(0x1a1a2e, 0.4));
-    const dirLight = new THREE.DirectionalLight(0xfff5e6, 1.5);
-    dirLight.position.set(-2, 1, 2);
-    scene.add(dirLight);
-    const fillLight = new THREE.DirectionalLight(0x8090b0, 0.15);
-    fillLight.position.set(2, -0.5, 1);
-    scene.add(fillLight);
-    const rimLight = new THREE.DirectionalLight(0x4040a0, 0.1);
-    rimLight.position.set(5, 0, -5);
-    scene.add(rimLight);
-
+  if (hasError) {
     const pName = (phase_name ?? "").toLowerCase();
     const isWaxing = !(pName.includes("waning") || pName.includes("last") || pName.includes("third") || pName.includes("3q"));
-    const fraction = Math.max(0, Math.min(100, illumination_pct)) / 100;
-    let angle = Math.PI * (1 - fraction);
-    if (!isWaxing) angle = -Math.PI * (1 - fraction);
-    dirLight.position.set(Math.sin(angle) * 3, 0.5, Math.cos(angle) * 3);
-
-    const geo = new THREE.SphereGeometry(1, 48, 48);
-    const texLoader = new THREE.TextureLoader();
-    const mat = new THREE.MeshStandardMaterial({
-      map: texLoader.load("/assets/moon_texture.jpg"),
-      bumpMap: new THREE.CanvasTexture(makePlanetBump("moon")),
-      bumpScale: 0.01,
-      roughness: 0.95,
-      metalness: 0.0,
-    });
-
-    const mesh = new THREE.Mesh(geo, mat);
-    scene.add(mesh);
-
-    const controls = new OrbitControls(camera, renderer.domElement);
-    controls.enablePan = false;
-    controls.enableZoom = false; // Disabled wheel zoom capture to allow smooth page scrolling
-    controls.autoRotate = false;
-
-    let visible = true;
-    const io = new IntersectionObserver(([e]) => { visible = e.isIntersecting; }, { threshold: 0.05 });
-    io.observe(container);
-    let pageVisible = !document.hidden;
-    const onVisibilityChange = () => { pageVisible = !document.hidden; };
-    document.addEventListener("visibilitychange", onVisibilityChange);
-
-    const FPS_INTERVAL = 1000 / 30;
-    let rafId = 0;
-    let lastT = 0;
-    const animate = (t: number) => {
-      rafId = requestAnimationFrame(animate);
-      if (!visible || !pageVisible) return;
-      if (t - lastT < FPS_INTERVAL) return;
-      lastT = t;
-      mesh.rotation.y += 0.0015;
-      renderer.render(scene, camera);
-    };
-    animate(performance.now());
-
-    const resizeObserver = new ResizeObserver((entries) => {
-      for (const entry of entries) {
-        const { width, height } = entry.contentRect;
-        if (!width || !height) continue;
-        camera.aspect = width / height;
-        camera.updateProjectionMatrix();
-        renderer.setSize(width, height);
-      }
-    });
-    resizeObserver.observe(container);
-
-    return () => {
-      cancelAnimationFrame(rafId);
-      io.disconnect();
-      resizeObserver.disconnect();
-      document.removeEventListener("visibilitychange", onVisibilityChange);
-      controls.dispose();
-      renderer.dispose();
-      mat.dispose();
-      geo.dispose();
-    };
-  }, [illumination_pct, phase_name]);
+    const frac = Math.max(0, Math.min(100, illumination_pct)) / 100;
+    return (
+      <div className="w-full h-44 flex items-center justify-center p-4">
+        <div className="relative w-28 h-28 rounded-full bg-slate-900 border-2 border-amber-300/30 shadow-[0_0_25px_rgba(251,191,36,0.2)] flex items-center justify-center overflow-hidden">
+          <svg viewBox="0 0 100 100" className="w-full h-full">
+            <circle cx="50" cy="50" r="48" fill="#0f172a" />
+            <path
+              d={
+                isWaxing
+                  ? `M 50 2 A 48 48 0 0 1 50 98 A ${Math.abs(48 * (1 - 2 * frac))} 48 0 0 ${frac > 0.5 ? "1" : "0"} 50 2`
+                  : `M 50 2 A 48 48 0 0 0 50 98 A ${Math.abs(48 * (1 - 2 * frac))} 48 0 0 ${frac > 0.5 ? "0" : "1"} 50 2`
+              }
+              fill="#fef08a"
+            />
+          </svg>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="w-full h-44 flex items-center justify-center touch-pan-y">

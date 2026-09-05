@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useMemo, useRef } from "react";
 import useSWR from "swr";
-import { useTranslations } from "next-intl";
+import { useTranslations, useLocale, useMessages } from "next-intl";
 import Icon from "./Icon";
 import SourceTooltip from "./SourceTooltip";
 import type { CatalogTarget, GalleryCounts } from "@/types";
@@ -66,7 +66,66 @@ function matchesType(t: CatalogTarget, type: string, counts: GalleryCounts | und
 }
 
 export default function TargetDatabase() {
+  const locale = useLocale();
+  const messages = (useMessages() as Record<string, string>) || {};
   const t = useTranslations();
+
+  const getTxt = (key: string, fallback: string) => {
+    const val = messages[key] || t(key as any);
+    return val && val.trim() !== "" ? val : fallback;
+  };
+
+  const translateType = (typeStr: string | undefined) => {
+    if (!typeStr) return locale === "pt" ? "Alvo Astronômico" : locale === "es" ? "Objetivo Astronómico" : "Astronomical Target";
+    if (locale === "en") return typeStr;
+    const raw = typeStr.trim();
+    const lower = raw.toLowerCase();
+
+    if (lower === "star") return locale === "pt" ? "Estrela" : "Estrella";
+    if (lower.includes("red giant")) return locale === "pt" ? "Gigante Vermelha" : "Gigante Roja";
+    if (lower.includes("blue giant")) return locale === "pt" ? "Gigante Azul" : "Gigante Azul";
+    if (lower.includes("red supergiant")) return locale === "pt" ? "Supergigante Vermelha" : "Supergigante Roja";
+    if (lower.includes("blue supergiant")) return locale === "pt" ? "Supergigante Azul" : "Supergigante Azul";
+    if (lower.includes("double star") || lower.includes("binary")) return locale === "pt" ? "Estrela Dupla" : "Estrella Doble";
+    if (lower.includes("globular")) return locale === "pt" ? "Aglomerado Globular" : "Cúmulo Globular";
+    if (lower.includes("open cluster")) return locale === "pt" ? "Aglomerado Aberto" : "Cúmulo Abierto";
+    if (lower.includes("spiral galaxy")) return locale === "pt" ? "Galáxia Espiral" : "Galaxia Espiral";
+    if (lower.includes("galaxy")) return locale === "pt" ? "Galáxia" : "Galaxia";
+    if (lower.includes("emission nebula")) return locale === "pt" ? "Nebulosa de Emissão" : "Nebulosa de Emisión";
+    if (lower.includes("planetary nebula")) return locale === "pt" ? "Nebulosa Planetária" : "Nebulosa Planetaria";
+    if (lower.includes("nebula")) return locale === "pt" ? "Nebulosa" : "Nebulosa";
+    return raw;
+  };
+
+  const translateDesc = (id: string, desc: string | undefined) => {
+    if (!desc) return "";
+    if (locale === "en") return desc;
+    const key = `target_${id.toLowerCase()}_desc`;
+    if (messages[key]) return messages[key];
+
+    if (desc.includes("One of the brightest stars in")) {
+      const constName = desc.split("in ").pop() || "";
+      return locale === "pt"
+        ? `Uma das estrelas mais brilhantes de ${constName}`
+        : `Una de las estrellas más brillantes de ${constName}`;
+    }
+    if (desc.includes("A rich, loose open cluster")) {
+      return locale === "pt"
+        ? "Um aglomerado aberto amplo e rico que se destaca perfeitamente no fundo da Via Láctea."
+        : "Un cúmulo abierto rico y amplio que destaca perfectamente sobre el fondo de la Vía Láctea.";
+    }
+    if (desc.includes("A very compact and exceptionally bright globular cluster")) {
+      return locale === "pt"
+        ? "Um aglomerado globular muito compacto e brilhante. Parece uma bola de neve densa de estrelas em pequenos telescópios."
+        : "Un cúmulo globular muy compacto y brillante. Parece una bola de nieve densa de estrellas en pequeños telescopios.";
+    }
+    if (desc.includes("The single brightest star in the northern celestial hemisphere")) {
+      return locale === "pt"
+        ? "A estrela individual mais brilhante do hemisfério celestial norte. Uma gigante laranja flamejante facilmente localizada seguindo o arco do Big Dipper."
+        : "La estrella individual más brillante del hemisferio celestial norte. Una gigante naranja deslumbrante fácilmente localizada siguiendo el arco del Gran Carro.";
+    }
+    return desc;
+  };
 
   const [targets, setTargets] = useState<CatalogTarget[]>([]);
   const [loading, setLoading] = useState(true);
@@ -92,12 +151,10 @@ export default function TargetDatabase() {
     revalidateOnFocus: false,
   });
 
-  // Reset pagination count on filter change
   useEffect(() => {
     setTimeout(() => setDisplayedCount(6), 0);
   }, [filter, typeFilter, equipFilter, nameQuery, sortVal]);
 
-  // Listen for sg-select-constellation custom event from ConstellationsTonight cards & Interactive Constellation Map
   useEffect(() => {
     const handleSelect = (e: Event) => {
       const detail = (e as CustomEvent).detail;
@@ -128,13 +185,14 @@ export default function TargetDatabase() {
       setLoading(true);
       setError(null);
       try {
-        let url = `${API_BASE}/targets`;
+        const lang = locale || "en";
+        let url = `${API_BASE}/targets?lang=${lang}`;
         if (filter === "Visible Now (My Sky)") {
-          url = `${API_BASE}/targets?constellation=all&visible_only=true`;
+          url = `${API_BASE}/targets?constellation=all&visible_only=true&lang=${lang}`;
         } else if (filter === "All Constellations (Full DB)") {
-          url = `${API_BASE}/targets?constellation=all`;
+          url = `${API_BASE}/targets?constellation=all&lang=${lang}`;
         } else {
-          url = `${API_BASE}/targets?constellation=${encodeURIComponent(filter)}`;
+          url = `${API_BASE}/targets?constellation=${encodeURIComponent(filter)}&lang=${lang}`;
         }
         const res = await fetch(url);
         if (!res.ok) throw new Error(`HTTP ${res.status}`);
@@ -155,47 +213,51 @@ export default function TargetDatabase() {
     return () => {
       cancelled = true;
     };
-  }, [filter]);
+  }, [filter, locale]);
+
+  const bortleInfo = useMemo(() => {
+    if (activeBortle === null) return null;
+    return BORTLE_CLASSES[String(activeBortle)] || null;
+  }, [activeBortle]);
+
+  const clearBortleFilter = () => {
+    setActiveBortle(null);
+    localStorage.removeItem(BORTLE_STORAGE_KEY);
+  };
 
   const filteredTargets = useMemo(() => {
-    let result = targets;
+    let result = targets.filter((t) => {
+      const matchesEquip = matchesEquipment(t, equipFilter);
+      const matchesT = matchesType(t, typeFilter, galleryCounts);
+      const matchesName =
+        !nameQuery ||
+        t.name.toLowerCase().includes(nameQuery.toLowerCase()) ||
+        t.id.toLowerCase().includes(nameQuery.toLowerCase()) ||
+        (t.type && t.type.toLowerCase().includes(nameQuery.toLowerCase()));
 
-    if (activeBortle != null) {
-      result = result.filter((t) => t.bortle_class == null || t.bortle_class >= activeBortle);
-    }
+      let matchesBortle = true;
+      if (activeBortle !== null) {
+        const minB = t.bortle_min ?? 1;
+        matchesBortle = activeBortle <= minB;
+      }
 
-    result = result.filter((t) => matchesEquipment(t, equipFilter));
-
-    result = result.filter((t) => matchesType(t, typeFilter, galleryCounts));
-
-    if (nameQuery.trim()) {
-      const q = nameQuery.toLowerCase();
-      result = result.filter(
-        (t) =>
-          t.name.toLowerCase().includes(q) ||
-          t.id.toLowerCase().includes(q) ||
-          (t.type && t.type.toLowerCase().includes(q)) ||
-          (t.description && t.description.toLowerCase().includes(q))
-      );
-    }
+      return matchesEquip && matchesT && matchesName && matchesBortle;
+    });
 
     if (sortVal === "visibility") {
       result = [...result].sort((a, b) => (b.altitude_deg ?? -90) - (a.altitude_deg ?? -90));
     } else if (sortVal === "magnitude") {
       result = [...result].sort((a, b) => (a.magnitude ?? 99) - (b.magnitude ?? 99));
     } else if (sortVal === "name") {
-      result = [...result].sort((a, b) => (a.name || a.id).localeCompare(b.name || b.id));
+      result = [...result].sort((a, b) => a.name.localeCompare(b.name));
     }
 
     return result;
-  }, [targets, typeFilter, equipFilter, nameQuery, sortVal, activeBortle, galleryCounts]);
+  }, [targets, equipFilter, typeFilter, nameQuery, sortVal, activeBortle, galleryCounts]);
 
-  const visibleSubset = filteredTargets.slice(0, displayedCount);
-
-  function clearBortleFilter() {
-    localStorage.removeItem(BORTLE_STORAGE_KEY);
-    setActiveBortle(null);
-  }
+  const visibleSubset = useMemo(() => {
+    return filteredTargets.slice(0, displayedCount);
+  }, [filteredTargets, displayedCount]);
 
   if (loading) {
     return (
@@ -208,99 +270,77 @@ export default function TargetDatabase() {
     );
   }
 
-  if (error) {
-    return (
-      <section id="card-targets" className="w-full mb-8">
-        <div className="rounded-xl border border-red-500/30 bg-red-500/10 p-4 text-sm text-red-400">{error}</div>
-      </section>
-    );
-  }
-
-  const bortleInfo = activeBortle ? BORTLE_CLASSES[activeBortle] : null;
-
   return (
-    <section id="card-targets" className="card w-full mb-8 border border-cyan-500/20 bg-slate-900/90 shadow-xl">
-      {/* Dynamic 1:1 Vanilla Section Header */}
-      <div className="card-header flex-wrap gap-2 border-b border-cyan-500/20 px-6 py-4 bg-slate-900/80 justify-between">
+    <section id="card-targets" className="card w-full mb-8 border border-cyan-500/20 bg-slate-900/90 shadow-xl overflow-hidden">
+      <div className="card-header border-b border-cyan-500/20 px-6 py-4 bg-slate-900/80 justify-between flex-wrap gap-3">
         <div className="flex items-center gap-2">
-          <Icon name="binoculars" className="h-5 w-5 text-sky-400" />
+          <Icon name="telescope" className="h-5 w-5 text-cyan-400" />
           <h2 className="text-base font-bold text-slate-100 tracking-wide">
-            {filter === "Visible Now (My Sky)"
-              ? `🌟 ${t("target_visible_now_lbl")}`
-              : filter === "All Constellations (Full DB)"
-              ? `🌌 ${t("target_all_const_lbl")}`
-              : `✨ ${filter} ${t("targets_title_suffix")}`}
+            {t("target_db_title")}
           </h2>
-        </div>
-        <div className="flex items-center gap-3">
-          <SourceTooltip
-            source="OpenNGC, Messier & Caldwell"
-            description={t.has("source_desc_targets") ? t("source_desc_targets") : "Comprehensive astronomical deep-sky target database combining OpenNGC, Messier, and Caldwell catalogs with real-time topocentric altitude, azimuth, Bortle visibility limits, and transit times."}
-            attribution="OpenNGC / SEDS Messier / Skyfield"
-          />
-          <span className="text-xs text-slate-400 font-mono">
-            {t("target_showing_count", { count: visibleSubset.length, total: filteredTargets.length })}
+          <span className="font-mono text-xs text-slate-400 font-semibold bg-white/5 border border-white/10 px-2 py-0.5 rounded-full">
+            {loading ? "..." : `${filteredTargets.length} ${locale === "pt" ? "alvos" : locale === "es" ? "objetivos" : "targets"}`}
           </span>
         </div>
+        <SourceTooltip
+          source="Catalog of Deep Sky Objects (Messier / NGC / IC)"
+          description={t("source_targets_desc")}
+          attribution={t("source_targets_attr")}
+        />
       </div>
 
-      <div className="card-body p-6">
-        {/* Equipment filter */}
-        <div className="flex flex-wrap items-center gap-1.5 mb-3">
-          <span className="text-xs text-slate-400 font-semibold mr-1">{t("target_equipment_lbl")}</span>
-          {EQUIPMENT_OPTIONS.map((o) => (
-            <button
-              key={o.value}
-              onClick={() => setEquipFilter(o.value)}
-              className={`px-3 py-1 rounded-lg text-xs font-semibold transition-all ${
-                equipFilter === o.value
-                  ? "bg-sky-500/20 text-sky-300 border border-sky-400/40 shadow-sm"
-                  : "bg-white/5 text-slate-400 border border-white/5 hover:bg-white/10 hover:text-slate-200"
-              }`}
-            >
-              {o.value === "all" ? t("filter_all") : o.label}
-            </button>
-          ))}
-        </div>
+      <div className="p-6">
+        {error && (
+          <div className="mb-4 rounded-xl border border-red-500/30 bg-red-500/10 p-4 text-xs text-red-300">
+            {t("target_fetch_error")}: {error}
+          </div>
+        )}
 
-        {/* Object Type filter */}
-        <div className="flex flex-wrap items-center gap-1.5 mb-4">
-          <span className="text-xs text-slate-400 font-semibold mr-1">{t("target_object_lbl")}</span>
-          {TYPE_OPTIONS.map((o) => (
-            <button
-              key={o.value}
-              onClick={() => setTypeFilter(o.value)}
-              className={`px-3 py-1 rounded-lg text-xs font-semibold transition-all ${
-                typeFilter === o.value
-                  ? "bg-sky-500/20 text-sky-300 border border-sky-400/40 shadow-sm"
-                  : "bg-white/5 text-slate-400 border border-white/5 hover:bg-white/10 hover:text-slate-200"
-              }`}
-            >
-              {t(o.key)}
-            </button>
-          ))}
-        </div>
-
-        {/* Search & Sort Row */}
-        <div className="flex flex-wrap items-center gap-3 mb-5 p-3 rounded-xl bg-slate-950/60 border border-white/10">
-          <div className="flex items-center gap-2 min-w-[240px]">
-            <span className="text-xs text-slate-400 font-semibold">{t("target_search_const_lbl")}</span>
-            <input
-              type="text"
-              value={nameQuery}
-              onChange={(e) => setNameQuery(e.target.value)}
-              placeholder="..."
-              className="rounded-lg bg-slate-900 border border-white/15 px-3 py-1.5 text-xs text-slate-100 placeholder:text-slate-500 outline-none w-full"
-            />
+        <div className="flex flex-wrap items-center justify-between gap-3 mb-4">
+          <div className="flex flex-wrap items-center gap-2">
+            {TYPE_OPTIONS.map((o) => (
+              <button
+                key={o.value}
+                onClick={() => setTypeFilter(o.value)}
+                className={`px-3 py-1 rounded-lg text-xs font-semibold transition-all border cursor-pointer ${
+                  typeFilter === o.value
+                    ? "bg-cyan-500/25 text-cyan-300 border-cyan-400/50 shadow-sm"
+                    : "bg-white/5 text-slate-400 border-white/10 hover:text-slate-200"
+                }`}
+              >
+                {t(o.key)}
+                {o.value === "has-images" && galleryCounts && (
+                  <span className="ml-1 rounded-full bg-cyan-400/30 px-1.5 py-0.2 text-[0.65rem] text-cyan-200 font-bold">
+                    {Object.values(galleryCounts).reduce((a, b) => a + b, 0)}
+                  </span>
+                )}
+              </button>
+            ))}
           </div>
 
-          <div className="flex items-center gap-2 min-w-[260px]">
-            <span className="text-xs text-slate-400 font-semibold">{t("target_filter_name_lbl")}</span>
+          <div className="flex items-center gap-2">
+            <span className="text-xs text-slate-400 font-semibold">{t("target_equip_lbl")}</span>
+            <select
+              value={equipFilter}
+              onChange={(e) => setEquipFilter(e.target.value)}
+              className="rounded-lg bg-slate-900 border border-white/15 px-3 py-1.5 text-xs text-slate-100 outline-none cursor-pointer"
+            >
+              {EQUIPMENT_OPTIONS.map((o) => (
+                <option key={o.value} value={o.value}>
+                  {o.value === "all" ? t("filter_all") : o.label}
+                </option>
+              ))}
+            </select>
+          </div>
+        </div>
+
+        <div className="flex flex-wrap items-center justify-between gap-3 mb-4">
+          <div className="w-full sm:w-72">
             <input
               type="text"
               value={nameQuery}
               onChange={(e) => setNameQuery(e.target.value)}
-              placeholder="e.g. M31, Mars, Ring..."
+              placeholder={locale === "pt" ? "ex: M31, Marte, Anel..." : locale === "es" ? "ej: M31, Marte, Anillo..." : "e.g. M31, Mars, Ring..."}
               className="rounded-lg bg-slate-900 border border-white/15 px-3 py-1.5 text-xs text-slate-100 placeholder:text-slate-500 outline-none w-full"
             />
           </div>
@@ -321,192 +361,114 @@ export default function TargetDatabase() {
           </div>
         </div>
 
-        {/* Constellation Filters Carousel with Scroll Controls and Edge Mask */}
-        <div className="relative mb-5 border-b border-white/10 pb-4">
-          <div className="flex items-center justify-between mb-2">
-            <span className="text-xs text-slate-400 font-semibold flex items-center gap-1.5">
-              <span>🌌</span> {t("target_const_filter_lbl")}
-            </span>
-            {/* Scroll Navigation Arrows */}
-            <div className="flex items-center gap-1">
-              <button
-                onClick={() => scrollPills("left")}
-                className="h-6 w-6 rounded-md bg-white/5 border border-white/10 text-zinc-400 hover:text-white hover:bg-white/10 flex items-center justify-center text-xs font-bold transition-all active:scale-95 cursor-pointer"
-                title="Scroll left"
-                aria-label="Scroll constellations left"
-              >
-                ‹
-              </button>
-              <span className="text-[0.62rem] font-mono text-zinc-500 px-1 select-none">{t("target_swipe_scroll")}</span>
-              <button
-                onClick={() => scrollPills("right")}
-                className="h-6 w-6 rounded-md bg-white/5 border border-white/10 text-zinc-400 hover:text-white hover:bg-white/10 flex items-center justify-center text-xs font-bold transition-all active:scale-95 cursor-pointer"
-                title="Scroll right"
-                aria-label="Scroll constellations right"
-              >
-                ›
-              </button>
-            </div>
-          </div>
-
-          <div
-            ref={constPillsRef}
-            style={{
-              maskImage: "linear-gradient(to right, black 88%, transparent 100%)",
-              WebkitMaskImage: "linear-gradient(to right, black 88%, transparent 100%)",
-            }}
-            className="flex items-center gap-1.5 overflow-x-auto py-1 scrollbar-none"
-          >
-            <button
-              onClick={() => setFilter("Visible Now (My Sky)")}
-              className={`px-3.5 py-1.5 rounded-xl text-xs font-bold whitespace-nowrap transition-all border flex-shrink-0 cursor-pointer ${
-                filter === "Visible Now (My Sky)"
-                  ? "border-green-500 bg-green-950/70 text-green-300 shadow-[0_0_12px_rgba(34,197,94,0.3)]"
-                  : "border-white/10 bg-white/5 text-slate-400 hover:text-slate-200"
-              }`}
-            >
-              🌟 {t("target_visible_now_lbl")}
-            </button>
-
-            <button
-              onClick={() => setFilter("All Constellations (Full DB)")}
-              className={`px-3.5 py-1.5 rounded-xl text-xs font-bold whitespace-nowrap transition-all border flex-shrink-0 cursor-pointer ${
-                filter === "All Constellations (Full DB)"
-                  ? "border-purple-500 bg-purple-950/70 text-purple-300 shadow-[0_0_12px_rgba(168,85,247,0.3)]"
-                  : "border-white/10 bg-white/5 text-slate-400 hover:text-slate-200"
-              }`}
-            >
-              🌌 {t("target_all_const_lbl")}
-            </button>
-
-            {CONSTELLATION_FILTERS.slice(2).map((c) => (
-              <button
-                key={c}
-                onClick={() => setFilter(c)}
-                className={`px-3 py-1.5 rounded-xl text-xs font-semibold whitespace-nowrap transition-all border flex-shrink-0 cursor-pointer ${
-                  filter === c
-                    ? "border-cyan-400 bg-cyan-950/70 text-cyan-300 shadow-[0_0_10px_rgba(6,182,212,0.3)]"
-                    : "border-white/10 bg-white/5 text-slate-400 hover:text-slate-200"
-                }`}
-              >
-                {c}
-              </button>
-            ))}
-          </div>
-        </div>
-
-        <p className="text-xs text-slate-400 mb-5 italic flex items-center gap-1.5">
-          <Icon name="telescope" className="h-3.5 w-3.5 text-cyan-400 flex-shrink-0" />
-          <span>{t("target_notice")}</span>
-        </p>
-
         {activeBortle && bortleInfo && (
           <div className="flex items-center justify-between gap-2 flex-wrap rounded-xl bg-gradient-to-r from-sky-500/25 to-indigo-500/25 border border-sky-500/40 px-4 py-3 mb-5 text-sm text-white">
             <span>
-              ✨ Filtering by targets observable under <strong>Bortle Class {activeBortle}</strong> ({bortleInfo.shortDesc}).
+              ✨ {locale === 'pt' ? 'Filtrando alvos observáveis sob Bortle' : 'Filtering by targets observable under Bortle'} <strong>Class {activeBortle}</strong> ({bortleInfo.shortDesc}).
             </span>
             <button
               onClick={clearBortleFilter}
               className="flex items-center gap-1.5 rounded-lg bg-red-500/85 border border-red-500 px-3 py-1.5 text-xs font-bold text-white hover:bg-red-500 transition-colors"
             >
-              ✖ Show All Targets
+              ✖ {locale === 'pt' ? 'Limpar Filtro' : 'Clear Filter'}
             </button>
           </div>
         )}
 
         {filteredTargets.length === 0 ? (
           <div className="py-12 text-center text-sm text-slate-400">
-            No targets found for <span className="text-white font-semibold">{filter}</span>.
+            {locale === "pt" ? "Nenhum alvo encontrado" : locale === "es" ? "No se encontraron objetivos" : "No targets found"}.
           </div>
         ) : (
           <>
-            {/* 2-Column Grid Layout (1:1 Vanilla Build Port) */}
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
-              {visibleSubset.map((t) => (
+              {visibleSubset.map((tTarget) => (
                 <div
-                  key={t.id}
+                  key={tTarget.id}
                   className="rounded-2xl border border-white/10 bg-slate-950/70 p-5 flex flex-col justify-between shadow-lg hover:border-cyan-400/40 transition-all group"
                 >
                   <div>
-                    {/* Top Header: Icon + Title + mag badge */}
                     <div className="flex items-start justify-between gap-2 mb-1">
                       <div className="flex items-center gap-3 min-w-0">
                         <span className="text-2xl text-amber-400 font-serif flex-shrink-0">
-                          {t.emoji ?? "🔭"}
+                          {tTarget.emoji ?? "🔭"}
                         </span>
                         <div className="min-w-0">
                           <h3 className="font-bold text-slate-100 text-sm sm:text-base truncate">
-                            {t.name}
+                            {tTarget.name}
                           </h3>
-                          <p className="text-xs text-slate-400">{t.type ?? "Astronomical Target"}</p>
+                          <p className="text-xs text-slate-400">{translateType(tTarget.type)}</p>
                         </div>
                       </div>
-                      {t.magnitude != null && (
+                      {tTarget.magnitude != null && (
                         <span className="font-mono text-xs font-bold text-amber-300 bg-amber-950/60 border border-amber-500/30 px-2.5 py-0.5 rounded-md flex-shrink-0">
-                          mag {t.magnitude}
+                          mag {tTarget.magnitude}
                         </span>
                       )}
                     </div>
 
-                    {/* Description / Notes */}
-                    {(t.description || t.notes) && (
+                    {(tTarget.description || tTarget.notes) && (
                       <p className="text-xs text-slate-300 leading-relaxed mt-2.5 mb-4">
-                        {t.description ?? t.notes}
+                        {translateDesc(tTarget.id, tTarget.description ?? tTarget.notes)}
                       </p>
                     )}
                   </div>
 
                   <div>
-                    {/* Action buttons */}
                     <div className="flex flex-wrap items-center gap-2 mb-3">
-                      {t.ra_hours != null && t.dec_degrees != null && (
+                      {tTarget.ra_hours != null && tTarget.dec_degrees != null && (
                         <button
-                          onClick={() => setFovTarget(t)}
-                          className="rounded-lg border border-purple-500/40 bg-purple-950/50 hover:bg-purple-500/20 px-3 py-1.5 text-xs font-semibold text-purple-300 transition-all active:scale-95 shadow-sm"
+                          onClick={() => setFovTarget(tTarget)}
+                          className="rounded-lg border border-purple-500/40 bg-purple-950/50 hover:bg-purple-500/20 px-3 py-1.5 text-xs font-semibold text-purple-300 transition-all active:scale-95 shadow-sm cursor-pointer"
                         >
-                          Simulate View 🔭
+                          {getTxt("planet_simulate_btn", locale === "pt" ? "Simular Visão 🔭" : locale === "es" ? "Simular Vista 🔭" : "Simulate View 🔭")}
                         </button>
                       )}
                       <button
                         onClick={() => {
-                          const err = addToPlan(t.id, `${t.emoji ?? "🔭"} ${t.name}`);
+                          const err = addToPlan(tTarget.id, `${tTarget.emoji ?? "🔭"} ${tTarget.name}`);
                           if (err) showToast(err);
                         }}
-                        className="rounded-lg border border-sky-500/40 bg-sky-950/50 hover:bg-sky-500/20 px-3 py-1.5 text-xs font-semibold text-sky-300 transition-all active:scale-95 shadow-sm"
+                        className="rounded-lg border border-sky-500/40 bg-sky-950/50 hover:bg-sky-500/20 px-3 py-1.5 text-xs font-semibold text-sky-300 transition-all active:scale-95 shadow-sm cursor-pointer"
                       >
-                        Add to Plan +
+                        {getTxt("btn_add_to_plan", locale === "pt" ? "Adicionar ao Plano +" : locale === "es" ? "Añadir al Plan +" : "Add to Plan +")}
                       </button>
-                      <GalleryButton targetId={t.id} targetName={t.name} />
+                      <GalleryButton targetId={tTarget.id} targetName={tTarget.name} />
                     </div>
 
-                    {/* Badges & Footer Telemetry */}
                     <div className="flex flex-wrap items-center justify-between gap-2 pt-3 border-t border-white/10 text-xs">
                       <div className="flex items-center gap-1.5 flex-wrap">
                         <span className="rounded bg-purple-950/40 border border-purple-500/30 px-2 py-0.5 text-[0.65rem] font-bold text-purple-300 uppercase">
-                          {t.type?.toLowerCase().includes("binocular") ? "BINOCULARS" : "TELESCOPE"}
+                          {tTarget.type?.toLowerCase().includes("binocular")
+                            ? (locale === "pt" ? "BINÓCULOS" : locale === "es" ? "BINOCULARES" : "BINOCULARS")
+                            : (locale === "pt" ? "TELESCÓPIO" : locale === "es" ? "TELESCOPIO" : "TELESCOPE")}
                         </span>
                         <span className="rounded bg-emerald-950/40 border border-emerald-500/30 px-2 py-0.5 text-[0.65rem] font-bold text-emerald-300">
-                          ✨ Bortle 6 Observable
+                          ✨ {locale === "pt" ? `Observável em Bortle ${tTarget.bortle_min ?? 6}` : locale === "es" ? `Observable en Bortle ${tTarget.bortle_min ?? 6}` : `Bortle ${tTarget.bortle_min ?? 6} Observable`}
                         </span>
                         <span className="rounded bg-sky-950/40 border border-sky-500/30 px-2 py-0.5 text-[0.65rem] font-bold text-sky-300 uppercase">
-                          {t.magnitude != null && t.magnitude < 5 ? "EASY" : t.magnitude != null && t.magnitude < 9 ? "MODERATE" : "CHALLENGING"}
+                          {tTarget.magnitude != null && tTarget.magnitude < 5
+                            ? (locale === "pt" ? "FÁCIL" : locale === "es" ? "FÁCIL" : "EASY")
+                            : tTarget.magnitude != null && tTarget.magnitude < 9
+                            ? (locale === "pt" ? "MODERADO" : locale === "es" ? "MODERADO" : "MODERATE")
+                            : (locale === "pt" ? "DESAFIADOR" : locale === "es" ? "DESAFIANTE" : "CHALLENGING")}
                         </span>
                       </div>
                       <div className="flex items-center gap-2">
                         <span className="font-mono text-[0.7rem] text-slate-400">
-                          Alt: {t.altitude_deg != null ? Math.round(t.altitude_deg) + "°" : "60°"} · Az: {t.azimuth_deg != null ? Math.round(t.azimuth_deg) + "°" : "180°"}
+                          Alt: {tTarget.altitude_deg != null ? Math.round(tTarget.altitude_deg) + "°" : "60°"} · Az: {tTarget.azimuth_deg != null ? Math.round(tTarget.azimuth_deg) + "°" : "180°"}
                         </span>
-                        {t.is_daytime ? (
+                        {tTarget.is_daytime ? (
                           <span className="rounded bg-amber-950/60 border border-amber-500/40 px-2 py-0.5 text-[0.65rem] font-bold text-amber-300">
-                            ☀️ Daylight (Sunlit Sky)
+                            ☀️ {locale === "pt" ? "Luz do Dia" : locale === "es" ? "Luz del Día" : "Daylight"}
                           </span>
-                        ) : t.altitude_deg != null && t.altitude_deg < 0 ? (
+                        ) : tTarget.altitude_deg != null && tTarget.altitude_deg < 0 ? (
                           <span className="rounded bg-red-950/60 border border-red-500/40 px-2 py-0.5 text-[0.65rem] font-bold text-red-300">
-                            🔴 Below Horizon
+                            🔴 {locale === "pt" ? "Abaixo do Horizonte" : locale === "es" ? "Bajo el Horizonte" : "Below Horizon"}
                           </span>
                         ) : (
                           <span className="rounded bg-emerald-950/60 border border-emerald-500/40 px-2 py-0.5 text-[0.65rem] font-bold text-emerald-300">
-                            🌙 Dark Sky
+                            🌙 {locale === "pt" ? "Céu Escuro" : locale === "es" ? "Cielo Oscuro" : "Dark Sky"}
                           </span>
                         )}
                       </div>
@@ -516,14 +478,13 @@ export default function TargetDatabase() {
               ))}
             </div>
 
-            {/* Load More Targets Button */}
             {filteredTargets.length > displayedCount && (
               <div className="flex justify-center pt-2 pb-4">
                 <button
                   onClick={() => setDisplayedCount((prev) => prev + 6)}
                   className="flex items-center gap-2 rounded-xl border border-purple-400/50 bg-gradient-to-r from-purple-600 to-indigo-600 px-8 py-3 text-sm font-bold text-white shadow-[0_0_20px_rgba(168,85,247,0.4)] hover:scale-105 transition-all cursor-pointer active:scale-95"
                 >
-                  <span>Load More Targets 🔭</span>
+                  <span>{getTxt("btn_load_more_targets", locale === "pt" ? "Carregar Mais Alvos 🔭" : locale === "es" ? "Cargar Más Objetivos 🔭" : "Load More Targets 🔭")}</span>
                 </button>
               </div>
             )}

@@ -2,6 +2,8 @@ export interface PlanetData {
   name: string;
   altitude_deg: number;
   azimuth_deg: number;
+  ra_hours?: number;
+  dec_degrees?: number;
   direction: string;
   distance_au: number;
   distance_mkm: number;

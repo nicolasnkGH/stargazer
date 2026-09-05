@@ -21,8 +21,17 @@ const CameraController: React.FC<CameraControllerProps> = ({ selectedBody, zoomL
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const controlsRef = useRef<any>(null);
 
+  const [isMobile, setIsMobile] = useState(false);
+
+  useEffect(() => {
+    const checkMobile = () => setIsMobile(window.innerWidth < 768);
+    checkMobile();
+    window.addEventListener("resize", checkMobile);
+    return () => window.removeEventListener("resize", checkMobile);
+  }, []);
+
   const targetPos = useRef(new THREE.Vector3(0, 0, 0));
-  const desiredCamPos = useRef(new THREE.Vector3(0, 32, 55));
+  const desiredCamPos = useRef(new THREE.Vector3(0, 45, 70));
 
   useEffect(() => {
     if (selectedBody) {
@@ -36,9 +45,10 @@ const CameraController: React.FC<CameraControllerProps> = ({ selectedBody, zoomL
       }
     } else {
       targetPos.current.set(0, 0, 0);
-      desiredCamPos.current.set(0, 35 - zoomLevel * 2, 55 - zoomLevel * 3);
+      const mult = isMobile ? 1.4 : 1.0;
+      desiredCamPos.current.set(0, (35 - zoomLevel * 2) * mult, (55 - zoomLevel * 3) * mult);
     }
-  }, [selectedBody, zoomLevel]);
+  }, [selectedBody, zoomLevel, isMobile]);
 
   useFrame((_, delta) => {
     if (controlsRef.current) {
@@ -57,6 +67,7 @@ const CameraController: React.FC<CameraControllerProps> = ({ selectedBody, zoomL
       enablePan
       enableZoom={false}
       enableRotate
+      touches={isMobile ? { ONE: undefined as any, TWO: THREE.TOUCH.DOLLY_ROTATE } : { ONE: THREE.TOUCH.ROTATE, TWO: THREE.TOUCH.DOLLY_PAN }}
       maxDistance={140}
       minDistance={4}
       maxPolarAngle={Math.PI / 1.8}

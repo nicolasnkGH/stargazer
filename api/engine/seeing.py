@@ -315,7 +315,7 @@ Respond ONLY with valid JSON — no markdown, no explanation outside the JSON:
         return None
 
 
-def _rule_based_seeing_score(weather: dict, moon_illum: float, moon_alt: float, moon_distance_km: int = 384400) -> dict:
+def _rule_based_seeing_score(weather: dict, moon_illum: float, moon_alt: float, moon_distance_km: int = 384400, visible_targets: list = None, lang: str = "en") -> dict:
     """
     Improved deterministic fallback scorer on 1–10 scale.
     Used when Qwen is unreachable or times out.
@@ -445,11 +445,37 @@ def _rule_based_seeing_score(weather: dict, moon_illum: float, moon_alt: float, 
     if score < 4:
         fallback_message = "Alternative Idea: Grab a warm drink, watch a space documentary, or catch up on astronomy news!"
 
+    # Dynamic location-based target recommendations
+    recommended_targets = []
+    if visible_targets and score >= 4:
+        good_targets = [t for t in visible_targets if (t.get("altitude_deg") or 0) > 15 and t.get("visible", True)]
+        good_targets.sort(key=lambda x: (-(x.get("altitude_deg") or 0), x.get("magnitude") or 99))
+        for t_item in good_targets[:3]:
+            alt = round(t_item.get("altitude_deg") or 0)
+            direction = t_item.get("direction") or "sky"
+            if lang == "pt":
+                how = f"Olhe para o {direction} a {alt}° de altitude."
+                reason = f"Excelente visibilidade no seu céu local esta noite ({alt}° de altitude)."
+            elif lang == "es":
+                how = f"Mire hacia el {direction} a {alt}° de altitud."
+                reason = f"Excelente visibilidad en su cielo local esta noche ({alt}° de altitud)."
+            else:
+                how = f"Look towards {direction} at {alt}° altitude."
+                reason = f"Prime viewing location in your local sky tonight ({alt}° altitude)."
+
+            recommended_targets.append({
+                "name": t_item.get("name", "Target"),
+                "constellation": t_item.get("constellation", ""),
+                "magnitude": f"mag {t_item.get('magnitude', '?')}" if t_item.get("magnitude") is not None else "N/A",
+                "equipment": t_item.get("equipment", "Telescope"),
+                "how_to_find": how,
+                "reason": reason,
+            })
+
     # Fun rule-based astronomical event of the night
     event_of_the_night = None
     import datetime
     today = datetime.date.today()
-    # Let's add a couple of fun seasonal events based on date
     if today.month == 7:
         event_of_the_night = {
             "name": "Summer Milky Way Season",
@@ -468,7 +494,7 @@ def _rule_based_seeing_score(weather: dict, moon_illum: float, moon_alt: float, 
         "moon_fact": moon_fact,
         "best_window": best_window,
         "warnings": warnings,
-        "recommended_targets": [],
+        "recommended_targets": recommended_targets,
         "fallback_message": fallback_message,
         "event_of_the_night": event_of_the_night,
         "ai_powered": False,
@@ -621,7 +647,7 @@ def get_seeing_forecast(lat=None, lon=None, ai_enabled: bool = False, lang: str 
         analysis = None
 
     if analysis is None:
-        analysis = _rule_based_seeing_score(weather_snapshot, moon_illum, moon_alt, moon_dist)
+        analysis = _rule_based_seeing_score(weather_snapshot, moon_illum, moon_alt, moon_dist, visible_targets=targets, lang=lang)
 
     score = analysis["score"]
 
