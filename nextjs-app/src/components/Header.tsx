@@ -1,8 +1,35 @@
 "use client";
 
-import { useState, useEffect, useRef } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import useSWR from "swr";
 import { useLocale, useTranslations } from "next-intl";
+
+function TelemetryBadge({
+  text,
+  tooltip,
+}: {
+  text: React.ReactNode;
+  tooltip: string;
+}) {
+  const [showTooltip, setShowTooltip] = useState(false);
+  return (
+    <div
+      onMouseEnter={() => setShowTooltip(true)}
+      onMouseLeave={() => setShowTooltip(false)}
+      className="relative flex items-center cursor-help rounded px-1.5 py-0.5 hover:bg-white/10 transition-colors flex-shrink-0"
+    >
+      <span className="whitespace-nowrap font-mono text-[0.75rem] text-slate-300 hover:text-sky-300 transition-colors flex items-center">
+        {text}
+      </span>
+      {showTooltip && (
+        <div className="absolute left-1/2 top-full mt-2 -translate-x-1/2 z-[300] w-max max-w-[260px] sm:max-w-xs rounded-xl border border-sky-400/40 bg-slate-950/95 px-3 py-2 text-[0.72rem] font-medium leading-snug text-slate-100 shadow-2xl backdrop-blur-md text-center whitespace-normal pointer-events-none">
+          {tooltip}
+          <div className="absolute bottom-full left-1/2 -ml-1.5 border-4 border-transparent border-b-slate-950" />
+        </div>
+      )}
+    </div>
+  );
+}
 import Icon from "./Icon";
 import {
   HEALTH_POLL_INTERVAL_MS,
@@ -12,9 +39,10 @@ import {
   LOCALE_COOKIE,
   UNITS_STORAGE_KEY,
 } from "@/lib/constants";
-import type { Locale, TonightReport } from "@/types";
+import type { Locale, TonightReport, BortleInfo } from "@/types";
 import Modal from "./Modal";
 import LocationControl from "./LocationControl";
+import { parseLocationCookie } from "@/lib/location-cookie";
 import DataSettingsModal from "./DataSettingsModal";
 import { startOnboardingTour } from "./OnboardingTour";
 
@@ -24,6 +52,70 @@ const healthFetcher = (url: string) => fetch(url).then((r) => {
   if (!r.ok) throw new Error(`HTTP ${r.status}`);
   return r.json();
 });
+
+function parseTimeToMinutes(tStr: string | null | undefined): number | null {
+  if (!tStr) return null;
+  const str = tStr.trim();
+
+  // Try 12-hour format with AM/PM
+  const match12 = str.match(/^(\d{1,2}):(\d{2})\s*(AM|PM)$/i);
+  if (match12) {
+    let hours = parseInt(match12[1], 10);
+    const minutes = parseInt(match12[2], 10);
+    const ampm = match12[3].toUpperCase();
+    if (ampm === "PM" && hours < 12) hours += 12;
+    if (ampm === "AM" && hours === 12) hours = 0;
+    return hours * 60 + minutes;
+  }
+
+  // Try 24-hour format HH:MM
+  const match24 = str.match(/^(\d{1,2}):(\d{2})$/);
+  if (match24) {
+    const hours = parseInt(match24[1], 10);
+    const minutes = parseInt(match24[2], 10);
+    return hours * 60 + minutes;
+  }
+
+  return null;
+}
+
+function formatDuration(minutes: number): string {
+  const h = Math.floor(minutes / 60);
+  const m = minutes % 60;
+  if (h === 0) return `${m}m`;
+  return `${h}h ${m}m`;
+}
+
+function useDarkInCountdown(astroStart: string | null | undefined): string | null {
+  const [display, setDisplay] = useState<string | null>(null);
+
+  useEffect(() => {
+    const update = () => {
+      const now = new Date();
+      const currentMin = now.getHours() * 60 + now.getMinutes();
+      const startMin = parseTimeToMinutes(astroStart);
+
+      if (startMin === null) {
+        setDisplay(null);
+        return;
+      }
+
+      if (currentMin < startMin) {
+        const remaining = startMin - currentMin;
+        setDisplay(`in ${formatDuration(remaining)}`);
+      } else {
+        // It is already dark (or past dark start) — do NOT show "hours left"
+        setDisplay(null);
+      }
+    };
+
+    update();
+    const timer = setInterval(update, 30000);
+    return () => clearInterval(timer);
+  }, [astroStart]);
+
+  return display;
+}
 
 function setLocale(locale: Locale) {
   document.cookie = `${LOCALE_COOKIE}=${locale}; path=/; max-age=31536000; SameSite=Lax`;
@@ -89,26 +181,125 @@ export default function Header() {
   const seeingLabel = locale === "pt" ? "Seeing" : locale === "es" ? "Seeing" : "Seeing";
   const dewLabel = locale === "pt" ? "Orvalho Δ" : locale === "es" ? "Rocío Δ" : "Dew Δ";
 
+  const [locSearch, setLocSearch] = useState<string>("");
+
+  useEffect(() => {
+    const updateLoc = () => {
+      if (typeof document === "undefined") return;
+      const raw = document.cookie
+        .split("; ")
+        .find((row) => row.startsWith("stargazer_loc="))
+        ?.split("=")[1];
+      const coords = parseLocationCookie(raw);
+      if (coords) {
+        setLocSearch(`?lat=${coords.lat}&lon=${coords.lon}`);
+      }
+    };
+    updateLoc();
+    window.addEventListener("stargazer_location_change", updateLoc);
+    return () => window.removeEventListener("stargazer_location_change", updateLoc);
+  }, []);
+
+  const { data: bortleData } = useSWR<BortleInfo>(
+    `/api/bortle${locSearch}`,
+    healthFetcher,
+    {
+      refreshInterval: 3600000,
+      revalidateOnFocus: false,
+    }
+  );
+
+  const darkInStr = useDarkInCountdown(tonight?.twilight_timeline?.astro_start);
+
   const seeing = tonight?.seeing;
-  const hudWeather = seeing
-    ? (() => {
-        const tVal = seeing.tonight_temp_c;
-        const tempStr = tVal != null ? (isMetric ? `${tVal}°C` : `${Math.round((tVal * 9) / 5 + 32)}°F`) : "--";
-        const wVal = seeing.tonight_wind_kmh;
-        const windStr = wVal != null ? (isMetric ? `${wVal} km/h` : `${Math.round(wVal * 0.621371)} mph`) : "--";
-        const parts = [`🌡️ ${tempStr}`, `💨 ${windStr}`];
-        if (seeing.tonight_cloud_pct != null) {
-          parts.push(`☁️ ${Math.round(seeing.tonight_cloud_pct)}%`);
-        }
-        if (seeing.seeing_score != null) {
-          parts.push(`👁️ ${seeingLabel} ${seeing.seeing_score}/5`);
-        }
-        if (seeing.tonight_dew_spread != null) {
-          parts.push(`💧 ${dewLabel} ${seeing.tonight_dew_spread}°C`);
-        }
-        return parts.join(" | ");
-      })()
-    : "🌡️ -- | 💨 --";
+  const weatherItems: { text: string; tooltip: string }[] = [];
+
+  if (seeing) {
+    const tVal = seeing.tonight_temp_c;
+    const tempStr = tVal != null ? (isMetric ? `${tVal}°C` : `${Math.round((tVal * 9) / 5 + 32)}°F`) : "--";
+    weatherItems.push({
+      text: `🌡️ ${tempStr}`,
+      tooltip:
+        locale === "pt"
+          ? "Temperatura ambiente externa prevista para esta noite"
+          : locale === "es"
+          ? "Temperatura ambiente exterior prevista para esta noche"
+          : "Outdoor ambient temperature forecast for tonight",
+    });
+
+    const wVal = seeing.tonight_wind_kmh;
+    const windStr = wVal != null ? (isMetric ? `${wVal} km/h` : `${Math.round(wVal * 0.621371)} mph`) : "--";
+    weatherItems.push({
+      text: `💨 ${windStr}`,
+      tooltip:
+        locale === "pt"
+          ? "Velocidade do vento (ventos fortes provocam trepidação no telescópio)"
+          : locale === "es"
+          ? "Velocidad del viento (vientos fuertes causan vibración en el telescopio)"
+          : "Wind speed (high winds cause telescope tube vibration)",
+    });
+
+    if (seeing.tonight_cloud_pct != null) {
+      weatherItems.push({
+        text: `☁️ ${Math.round(seeing.tonight_cloud_pct)}%`,
+        tooltip:
+          locale === "pt"
+            ? "Porcentagem total de cobertura de nuvens no céu"
+            : locale === "es"
+            ? "Porcentaje total de cobertura de nubes en el cielo"
+            : "Total sky cloud cover percentage",
+      });
+    }
+
+    if (seeing.seeing_score != null) {
+      weatherItems.push({
+        text: `👁️ ${seeingLabel} ${seeing.seeing_score}/5`,
+        tooltip:
+          locale === "pt"
+            ? "Índice de estabilidade atmosférica / Seeing (5/5 = visão perfeita e estável)"
+            : locale === "es"
+            ? "Índice de estabilidad atmosférica / Seeing (5/5 = visión cristalina)"
+            : "Atmospheric turbulence & astronomical seeing score (5/5 = sharp steady views)",
+      });
+    }
+
+    if (seeing.tonight_dew_spread != null) {
+      weatherItems.push({
+        text: `💧 ${dewLabel} ${seeing.tonight_dew_spread}°C`,
+        tooltip:
+          locale === "pt"
+            ? "Margem de orvalho (diferença temp/orvalho). Valores < 2°C indicam risco de embaçamento"
+            : locale === "es"
+            ? "Margen de rocío (diferencia temp/rocío). Valores < 2°C indican riesgo de empañamiento"
+            : "Dew point spread (temp vs dew point). Values under 2°C risk optics fogging",
+      });
+    }
+  }
+
+  if (darkInStr) {
+    weatherItems.push({
+      text: `🌑 Dark ${darkInStr}`,
+      tooltip:
+        locale === "pt"
+          ? "Tempo até o início do céu totalmente escuro (noite astronômica, Sol < -18°)"
+          : locale === "es"
+          ? "Tiempo hasta el inicio del cielo totalmente oscuro (noche astronómica, Sol < -18°)"
+          : "Countdown until complete astronomical darkness begins (Sun below -18°)",
+    });
+  }
+
+  const bVal = bortleData?.bortle ?? 6;
+  weatherItems.push({
+    text: `🌌 B${bVal}`,
+    tooltip:
+      locale === "pt"
+        ? `Escala Bortle de céu escuro (Classe ${bVal} - ${bortleData?.name || "Poluição Luminosa"}). Classe 1 = intocado, 9 = urbano`
+        : locale === "es"
+        ? `Escala Bortle de cielo oscuro (Clase ${bVal} - ${bortleData?.name || "Contaminación Luminosa"}). Clase 1 = prístino, 9 = urbano`
+        : `Bortle Dark Sky Scale (Class ${bVal} - ${bortleData?.name || "Light Pollution"}). Class 1 = Pristine, 9 = Inner-city`,
+  });
+
+  const hudWeather = weatherItems.map((item) => item.text).join(" | ");
 
   useEffect(() => {
     // eslint-disable-next-line react-hooks/set-state-in-effect
@@ -170,32 +361,65 @@ export default function Header() {
         </a>
 
         {/* Location Pill */}
-        <div className="flex flex-shrink min-w-0 max-w-[140px] xs:max-w-[180px] sm:max-w-none items-center rounded-full border border-sky-500/30 bg-sky-950/40 px-2 py-0.5 sm:px-3 sm:py-1 text-xs text-sky-200 shadow-[0_0_15px_rgba(56,189,248,0.15)] hover:border-sky-400 transition-all truncate">
+        <div className="flex flex-shrink min-w-0 max-w-[130px] xs:max-w-[170px] sm:max-w-[210px] md:max-w-[250px] items-center rounded-full border border-sky-500/30 bg-sky-950/40 px-2 py-0.5 sm:px-3 sm:py-1 text-xs text-sky-200 shadow-[0_0_15px_rgba(56,189,248,0.15)] hover:border-sky-400 transition-all truncate">
           <LocationControl />
         </div>
 
-        {/* Telemetry pill */}
-        <div id="desktop-telemetry-strip" className="hidden sm:flex min-w-0 flex-1 items-center gap-2 sm:gap-3 overflow-x-auto scrollbar-none rounded-full border border-white/10 bg-white/5 px-3 py-1.5 text-xs text-slate-200">
-          <div className="flex flex-shrink-0 items-center gap-1.5 text-[0.7rem] font-bold tracking-[0.12em]">
-            <span
-              className={`inline-block h-1.5 w-1.5 rounded-full ${
-                isChecking ? "bg-zinc-500" : isLive ? "animate-pulse bg-green-500" : "bg-red-500"
-              }`}
-            />
-            <span className={isChecking ? "text-zinc-400" : isLive ? "text-green-500" : "text-red-500"}>
-              {isChecking ? "..." : isLive ? t("telemetry_live") : t("telemetry_offline")}
-            </span>
-          </div>
-          <span className="h-4 w-px flex-shrink-0 bg-white/10" />
-          <span id="hud-moon" className="flex-shrink-0 font-mono text-[0.75rem] text-slate-300">{hudMoon}</span>
-          <span className="h-4 w-px flex-shrink-0 bg-white/10" />
-          <span id="hud-weather" className="flex-shrink-0 font-mono text-[0.75rem] text-slate-300 whitespace-nowrap">{hudWeather}</span>
+        {/* Telemetry pill (Visible on xl screens >= 1280px) */}
+        <div id="desktop-telemetry-strip" className="hidden xl:flex min-w-0 flex-1 items-center gap-1 sm:gap-1.5 overflow-hidden rounded-full border border-white/10 bg-white/5 px-2.5 py-1 text-xs text-slate-200">
+          <TelemetryBadge
+            text={
+              isChecking ? (
+                <span className="flex items-center gap-1.5 text-sky-400">
+                  <span className="h-2 w-2 rounded-full bg-sky-400 animate-ping" />
+                  ... LIVE
+                </span>
+              ) : isLive ? (
+                <span className="flex items-center gap-1.5 text-emerald-400 font-semibold drop-shadow-[0_0_8px_rgba(52,211,153,0.6)]">
+                  <span className="h-2 w-2 rounded-full bg-emerald-400 animate-pulse" />
+                  LIVE
+                </span>
+              ) : (
+                <span className="flex items-center gap-1.5 text-rose-400">
+                  <span className="h-2 w-2 rounded-full bg-rose-500" />
+                  OFFLINE
+                </span>
+              )
+            }
+            tooltip={
+              locale === "pt"
+                ? "Status de conexão em tempo real com a API de telemetria"
+                : locale === "es"
+                ? "Estado de conexión en tiempo real con la API de telemetría"
+                : "Real-time API & astronomical telemetry connection status"
+            }
+          />
+
+          <span className="h-3.5 w-px flex-shrink-0 bg-white/15" />
+
+          <TelemetryBadge
+            text={hudMoon}
+            tooltip={
+              locale === "pt"
+                ? "Fase lunar atual e porcentagem de iluminação visível"
+                : locale === "es"
+                ? "Fase lunar actual y porcentaje de iluminación visible"
+                : "Current lunar phase & visible illumination percentage"
+            }
+          />
+
+          {weatherItems.map((item, idx) => (
+            <React.Fragment key={idx}>
+              <span className="h-3.5 w-px flex-shrink-0 bg-white/15" />
+              <TelemetryBadge text={item.text} tooltip={item.tooltip} />
+            </React.Fragment>
+          ))}
         </div>
 
         {/* Right side controls */}
-        <div className="flex flex-shrink-0 items-center gap-1 sm:gap-3">
-          {/* Clock */}
-          <div className="hidden items-center gap-2 whitespace-nowrap font-mono md:flex">
+        <div className="flex flex-shrink-0 items-center gap-1 sm:gap-2">
+          {/* Clock (Visible on 2xl screens >= 1536px) */}
+          <div className="hidden items-center gap-2 whitespace-nowrap font-mono 2xl:flex">
             <span id="clock" className="text-[0.85rem]">{currentTime}</span>
             <span id="date-display" className="text-[0.75rem] text-zinc-400">{currentDate}</span>
           </div>
@@ -378,20 +602,24 @@ export default function Header() {
         </div>
       </div>
 
-      {/* Mobile Telemetry Sub-strip (Visible on mobile screens < 640px) */}
-      <div id="mobile-telemetry-strip" className="flex sm:hidden w-full items-center justify-between gap-2.5 border-t border-cyan-500/15 pt-1 mt-1 text-[0.68rem] font-mono text-zinc-300 overflow-x-auto scrollbar-none px-1">
+      {/* Telemetry Sub-strip (Visible on screens < 1280px / xl) */}
+      <div id="mobile-telemetry-strip" className="flex xl:hidden w-full items-center gap-2 border-t border-cyan-500/15 pt-1.5 mt-1 text-[0.7rem] font-mono text-zinc-300 overflow-x-auto no-scrollbar px-1">
         <div className="flex items-center gap-1 flex-shrink-0">
-          <span className={`inline-block h-1.5 w-1.5 rounded-full ${isChecking ? "bg-zinc-500" : isLive ? "animate-pulse bg-green-500" : "bg-red-500"}`} />
-          <span className={`font-bold tracking-wider ${isChecking ? "text-zinc-400" : isLive ? "text-green-400" : "text-red-400"}`}>
+          <span className={`inline-block h-2 w-2 rounded-full ${isChecking ? "bg-zinc-500" : isLive ? "animate-pulse bg-emerald-400" : "bg-rose-500"}`} />
+          <span className={`font-bold tracking-wider ${isChecking ? "text-zinc-400" : isLive ? "text-emerald-400" : "text-rose-400"}`}>
             {isChecking ? "..." : isLive ? t("telemetry_live") : t("telemetry_offline")}
           </span>
         </div>
         <span className="h-3 w-px bg-white/15 flex-shrink-0" />
-        <span className="truncate flex-shrink-0 text-slate-200">{hudMoon}</span>
+        <span className="whitespace-nowrap flex-shrink-0 text-slate-200">{hudMoon}</span>
+        {weatherItems.map((item, idx) => (
+          <React.Fragment key={idx}>
+            <span className="h-3 w-px bg-white/15 flex-shrink-0" />
+            <span className="whitespace-nowrap flex-shrink-0 text-sky-200" title={item.tooltip}>{item.text}</span>
+          </React.Fragment>
+        ))}
         <span className="h-3 w-px bg-white/15 flex-shrink-0" />
-        <span className="truncate flex-shrink-0 text-cyan-300">{hudWeather}</span>
-        <span className="h-3 w-px bg-white/15 flex-shrink-0" />
-        <span className="flex-shrink-0 text-zinc-400 font-sans whitespace-nowrap">{currentTime} • {currentDate}</span>
+        <span className="flex-shrink-0 text-zinc-400 font-sans whitespace-nowrap ml-auto">{currentTime} • {currentDate}</span>
       </div>
 
       {aboutOpen && <Modal open={aboutOpen} title={t("about_stargazer_v3")} onClose={() => setAboutOpen(false)}><div>{t("dashboard_built_desc")}</div></Modal>}

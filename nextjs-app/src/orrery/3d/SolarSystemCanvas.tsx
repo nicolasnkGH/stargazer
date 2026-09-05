@@ -14,9 +14,10 @@ interface CameraControllerProps {
   selectedBody: PlanetData | null;
   zoomLevel: number;
   panOffset?: { x: number; y: number };
+  resetCount?: number;
 }
 
-const CameraController: React.FC<CameraControllerProps> = ({ selectedBody, zoomLevel, panOffset }) => {
+const CameraController: React.FC<CameraControllerProps> = ({ selectedBody, zoomLevel, panOffset, resetCount }) => {
   const { camera } = useThree();
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const controlsRef = useRef<any>(null);
@@ -32,9 +33,31 @@ const CameraController: React.FC<CameraControllerProps> = ({ selectedBody, zoomL
 
   const targetPos = useRef(new THREE.Vector3(0, 0, 0));
   const desiredCamPos = useRef(new THREE.Vector3(0, 45, 70));
+  const isAnimating = useRef(true);
+  const prevSelectedBodyRef = useRef<PlanetData | null>(null);
+  const prevZoomRef = useRef<number>(zoomLevel);
+  const prevPanRef = useRef(panOffset);
+  const prevResetCountRef = useRef<number>(resetCount ?? 0);
 
   useEffect(() => {
-    if (selectedBody) {
+    const resetTriggered = resetCount !== undefined && resetCount !== prevResetCountRef.current;
+    const bodyChanged = prevSelectedBodyRef.current?.id !== selectedBody?.id;
+    const zoomChanged = prevZoomRef.current !== zoomLevel;
+    const panChanged = prevPanRef.current?.x !== panOffset?.x || prevPanRef.current?.y !== panOffset?.y;
+
+    prevResetCountRef.current = resetCount ?? 0;
+    prevSelectedBodyRef.current = selectedBody;
+    prevZoomRef.current = zoomLevel;
+    prevPanRef.current = panOffset;
+
+    if (resetTriggered) {
+      targetPos.current.set(0, 0, 0);
+      const mult = isMobile ? 1.4 : 1.0;
+      const baseHeight = Math.max(3, 85 - (6 - 1) * 4);
+      const baseDist = Math.max(5, 130 - (6 - 1) * 6.2);
+      desiredCamPos.current.set(0, baseHeight * mult, baseDist * mult);
+      isAnimating.current = true;
+    } else if (selectedBody) {
       if (selectedBody.id === "sun") {
         targetPos.current.set(0, 0, 0);
         desiredCamPos.current.set(0, 8, 18);
@@ -43,20 +66,34 @@ const CameraController: React.FC<CameraControllerProps> = ({ selectedBody, zoomL
         targetPos.current.set(dist, 0, 0);
         desiredCamPos.current.set(dist + selectedBody.radius * 3.5, selectedBody.radius * 2, selectedBody.radius * 4.5);
       }
-    } else {
+      isAnimating.current = true;
+    } else if (bodyChanged || zoomChanged || panChanged) {
       targetPos.current.set(0, 0, 0);
       const mult = isMobile ? 1.4 : 1.0;
-      desiredCamPos.current.set(0, (35 - zoomLevel * 2) * mult, (55 - zoomLevel * 3) * mult);
+      const baseHeight = Math.max(3, 85 - (zoomLevel - 1) * 4);
+      const baseDist = Math.max(5, 130 - (zoomLevel - 1) * 6.2);
+      desiredCamPos.current.set(0, baseHeight * mult, baseDist * mult);
+      isAnimating.current = true;
     }
-  }, [selectedBody, zoomLevel, isMobile]);
+  }, [selectedBody, zoomLevel, panOffset, resetCount, isMobile]);
 
   useFrame((_, delta) => {
     if (controlsRef.current) {
-      const offsetVec = new THREE.Vector3(panOffset?.x ?? 0, panOffset?.y ?? 0, 0);
-      const finalTarget = targetPos.current.clone().add(offsetVec);
-      const finalCamPos = desiredCamPos.current.clone().add(offsetVec);
-      controlsRef.current.target.lerp(finalTarget, delta * 3);
-      camera.position.lerp(finalCamPos, delta * 3);
+      if (isAnimating.current) {
+        const offsetVec = new THREE.Vector3(panOffset?.x ?? 0, panOffset?.y ?? 0, 0);
+        const finalTarget = targetPos.current.clone().add(offsetVec);
+        const finalCamPos = desiredCamPos.current.clone().add(offsetVec);
+
+        controlsRef.current.target.lerp(finalTarget, delta * 4);
+        camera.position.lerp(finalCamPos, delta * 4);
+
+        if (
+          camera.position.distanceTo(finalCamPos) < 0.05 &&
+          controlsRef.current.target.distanceTo(finalTarget) < 0.05
+        ) {
+          isAnimating.current = false;
+        }
+      }
       controlsRef.current.update();
     }
   });
@@ -67,10 +104,14 @@ const CameraController: React.FC<CameraControllerProps> = ({ selectedBody, zoomL
       enablePan
       enableZoom={false}
       enableRotate
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      touches={isMobile ? { ONE: undefined as any, TWO: THREE.TOUCH.DOLLY_ROTATE } : { ONE: THREE.TOUCH.ROTATE, TWO: THREE.TOUCH.DOLLY_PAN }}
-      maxDistance={140}
-      minDistance={4}
+      enableDamping
+      dampingFactor={0.05}
+      onStart={() => {
+        isAnimating.current = false;
+      }}
+      touches={{ ONE: THREE.TOUCH.ROTATE, TWO: THREE.TOUCH.DOLLY_PAN }}
+      maxDistance={350}
+      minDistance={1.5}
       maxPolarAngle={Math.PI / 1.8}
     />
   );
@@ -83,6 +124,7 @@ interface SolarSystemCanvasProps {
   isPaused: boolean;
   zoomLevel: number;
   panOffset?: { x: number; y: number };
+  resetCount?: number;
 }
 
 export const SolarSystemCanvas: React.FC<SolarSystemCanvasProps> = ({
@@ -92,6 +134,7 @@ export const SolarSystemCanvas: React.FC<SolarSystemCanvasProps> = ({
   isPaused,
   zoomLevel,
   panOffset,
+  resetCount,
 }) => {
   const containerRef = useRef<HTMLDivElement>(null);
   const [isVisible, setIsVisible] = useState(true);
@@ -134,7 +177,7 @@ export const SolarSystemCanvas: React.FC<SolarSystemCanvasProps> = ({
       >
         <color attach="background" args={["#020617"]} />
 
-        <CameraController selectedBody={selectedBody} zoomLevel={zoomLevel} panOffset={panOffset} />
+        <CameraController selectedBody={selectedBody} zoomLevel={zoomLevel} panOffset={panOffset} resetCount={resetCount} />
         <SpaceBackground />
 
         {planetBodies.map((planet) => (
