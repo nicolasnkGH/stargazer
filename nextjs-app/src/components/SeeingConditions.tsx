@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useSyncExternalStore } from "react";
 import useSWR from "swr";
 import { useTranslations } from "next-intl";
 import Icon from "./Icon";
@@ -73,10 +73,11 @@ export default function SeeingConditions({
   const t = useTranslations();
   const seeing = useAiSeeing(initialSeeing);
   const [checklistOpen, setChecklistOpen] = useState(false);
-  const [mounted, setMounted] = useState(false);
-  useEffect(() => {
-    setMounted(true);
-  }, []);
+  const mounted = useSyncExternalStore(
+    () => () => {},
+    () => true,
+    () => false,
+  );
   const { completedCount, totalCount, isAllDone } = usePreflightChecked();
 
   if (!seeing) {

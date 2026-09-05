@@ -42,7 +42,7 @@ export default function CelestialMap({ targets, centerRaHours, centerDecDeg, ful
   useEffect(() => {
     if (initializedRef.current && typeof window !== "undefined" && window.Celestial) {
       window.dispatchEvent(new Event("resize"));
-      (window.Celestial as any).redraw();
+      window.Celestial.redraw();
     }
   }, [fullscreen, ready]);
 

@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useRef } from "react";
+import { useEffect, useMemo, useRef } from "react";
 import * as THREE from "three";
 import { OrbitControls } from "three/examples/jsm/controls/OrbitControls.js";
 import { useTranslations } from "next-intl";
@@ -107,7 +107,7 @@ function makePlanetBump(name: string): HTMLCanvasElement {
 function Planet3DCanvas({ name }: { name: string }) {
   const containerRef = useRef<HTMLDivElement>(null);
   const key = name.toLowerCase();
-  const cfg = PLANET_CONFIGS[key] || {};
+  const cfg = useMemo(() => PLANET_CONFIGS[key] || {}, [key]);
 
   useEffect(() => {
     const container = containerRef.current;

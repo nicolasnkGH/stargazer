@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { useMessages, useLocale } from "next-intl";
+import { useMessages } from "next-intl";
 import { MOTION_FACTS, MOTION_FACT_ROTATE_INTERVAL_MS } from "@/lib/constants";
 import type { MotionFactType } from "@/types";
 
@@ -9,7 +9,6 @@ export default function MotionFactCard({ type }: { type: MotionFactType }) {
   // useMessages() returns the raw message object for the active locale —
   // no TypeScript key inference, works with any dynamic key string.
   const messages = useMessages() as Record<string, string>;
-  const locale = useLocale();
   const facts = MOTION_FACTS[type]; // English fallback (icons + text)
 
   const [index, setIndex] = useState(0);
@@ -27,7 +26,6 @@ export default function MotionFactCard({ type }: { type: MotionFactType }) {
       }, 200);
     }, MOTION_FACT_ROTATE_INTERVAL_MS);
     return () => clearInterval(id);
-  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [count]);
 
   function goTo(i: number) {

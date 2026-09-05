@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useEffect, useState } from "react";
+import React from "react";
 import { useTranslations } from "next-intl";
 import Icon from "./Icon";
 import SourceTooltip from "./SourceTooltip";
@@ -10,11 +10,7 @@ export default function PreflightChecklistCard() {
   const t = useTranslations();
   const { checked, toggle, reset, completedCount, totalCount, isAllDone } = usePreflightChecked();
   
-  // Use useState for pct to prevent hydration mismatch
-  const [pct, setPct] = useState(0);
-  useEffect(() => {
-    setPct(Math.round((completedCount / totalCount) * 100));
-  }, [completedCount, totalCount]);
+  const pct = totalCount > 0 ? Math.round((completedCount / totalCount) * 100) : 0;
 
   const PREFLIGHT_ITEMS = [
     { id: "scope", label: t("preflight_item_scope") },

@@ -1,6 +1,7 @@
 import React from 'react';
 import { useTranslations, useLocale } from 'next-intl';
 import { ArrowLeft, Thermometer, Orbit, RotateCw, Moon, Sparkles, Compass } from 'lucide-react';
+import Image from 'next/image';
 import { PlanetData } from '../types';
 const TEXTURE_MAP: Record<string, string> = {
   sun: '/assets/2k_sun.jpg',
@@ -117,9 +118,11 @@ export const PlanetDetailDrawer: React.FC<PlanetDetailDrawerProps> = ({
       <div className="flex justify-center py-2 relative">
         <div className="relative w-36 h-36 rounded-full flex items-center justify-center shadow-[0_0_40px_rgba(6,182,212,0.3)] overflow-hidden border border-white/10 group">
           {TEXTURE_MAP[planet.textureType] ? (
-            <img
+            <Image
               src={TEXTURE_MAP[planet.textureType]}
               alt={displayName}
+              width={144}
+              height={144}
               className="w-full h-full object-cover rounded-full transition-transform duration-700 group-hover:scale-110 border border-cyan-400/30"
             />
           ) : (

@@ -5,20 +5,22 @@ import { useTranslations } from "next-intl";
 import Icon from "./Icon";
 import { OPTICS_TARGET_TYPES } from "@/lib/constants/telescope";
 
+type OpticsTargetKey = (typeof OPTICS_TARGET_TYPES)[number]["value"];
+
 export default function TelescopeCalculator() {
   const t = useTranslations();
   const [focalLength, setFocalLength] = useState<number>(650);
   const [aperture, setAperture] = useState<number>(130);
   const [eyepieceFocalLength, setEyepieceFocalLength] = useState<number>(25);
   const [eyepieceAfov, setEyepieceAfov] = useState<number>(52);
-  const [selectedTargetKey, setSelectedTargetKey] = useState<string>("planets");
+  const [selectedTargetKey, setSelectedTargetKey] = useState<OpticsTargetKey>("planets");
 
   const magnification = focalLength > 0 && eyepieceFocalLength > 0 ? Math.round(focalLength / eyepieceFocalLength) : 0;
   const exitPupil = aperture > 0 && magnification > 0 ? (aperture / magnification).toFixed(1) : "0.0";
   const trueFov = magnification > 0 && eyepieceAfov > 0 ? (eyepieceAfov / magnification).toFixed(2) : "0.00";
   const maxUsefulMagnification = aperture > 0 ? Math.round(aperture * 2) : 0;
 
-  const recKey = `rec_${selectedTargetKey}`;
+  const recKey: `rec_${OpticsTargetKey}` = `rec_${selectedTargetKey}`;
 
   return (
     <section id="card-optics" className="card w-full mb-8">
@@ -41,19 +43,19 @@ export default function TelescopeCalculator() {
             id="target-preset-select"
             aria-label="Target observation type preset"
             value={selectedTargetKey}
-            onChange={(e) => setSelectedTargetKey(e.target.value)}
+            onChange={(e) => setSelectedTargetKey(e.target.value as OpticsTargetKey)}
             className="w-full rounded-lg bg-black/40 border border-white/20 px-3 py-2 text-sm text-zinc-100 focus:outline-none focus:border-sky-400"
           >
             {OPTICS_TARGET_TYPES.map((opt) => (
               <option key={opt.value} value={opt.value}>
-                {t(`target_${opt.value}` as any)}
+                {t(`target_${opt.value}` as `target_${OpticsTargetKey}`)}
               </option>
             ))}
           </select>
 
           {recKey && (
             <p className="mt-2.5 text-xs text-sky-300/90 italic bg-sky-950/40 border border-sky-500/20 rounded-lg p-2.5">
-              💡 {t(recKey as any)}
+              💡 {t(recKey)}
             </p>
           )}
         </div>
