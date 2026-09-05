@@ -221,7 +221,7 @@ def translate_texts(texts: List[str], target_lang: str = "en") -> List[str]:
             continue
 
         # 2. Disk Cache lookup
-        key = hashlib.md5(f"{lang_code}:{clean_t}".encode("utf-8")).hexdigest()
+        key = hashlib.md5(f"{lang_code}:{clean_t}".encode("utf-8"), usedforsecurity=False).hexdigest()
         if key in _translation_cache:
             results[i] = _translation_cache[key]
         else:
@@ -272,7 +272,7 @@ Texts to translate:
                 clean_trans = trans.strip()
                 results[idx] = clean_trans
                 orig = missing_texts[missing_indices.index(idx)]
-                key = hashlib.md5(f"{lang_code}:{orig}".encode("utf-8")).hexdigest()
+                key = hashlib.md5(f"{lang_code}:{orig}".encode("utf-8"), usedforsecurity=False).hexdigest()
                 _translation_cache[key] = clean_trans
                 cache_updated = True
             else:
