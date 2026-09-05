@@ -170,7 +170,7 @@ jobs:
       - name: Run API unit tests
         run: |
           set -euo pipefail
-          python -m pytest api/ -q
+          PYTHONPATH=api python -m pytest test_*.py -q
 
       # --- UI smoke + performance gate ---------------------------------------
       - name: Install Playwright browser
