@@ -36,7 +36,21 @@ export async function GET(req: NextRequest) {
       return Response.json({ error: "URL port is not allowed" }, { status: 400 });
     }
 
-    const safeUrl = new URL(parsedUrl.pathname + parsedUrl.search, `${parsedUrl.protocol}//${parsedUrl.hostname}`);
+    const normalizedPathname = parsedUrl.pathname;
+    if (!normalizedPathname.startsWith("/")) {
+      return Response.json({ error: "URL path must be absolute" }, { status: 400 });
+    }
+
+    const decodedPathname = decodeURIComponent(normalizedPathname);
+    const pathSegments = decodedPathname.split("/");
+    if (pathSegments.some((segment) => segment === "." || segment === "..")) {
+      return Response.json({ error: "URL path contains disallowed traversal segments" }, { status: 400 });
+    }
+
+    const safeBase = `${parsedUrl.protocol}//${parsedUrl.hostname}`;
+    const safeUrl = new URL(safeBase);
+    safeUrl.pathname = normalizedPathname;
+    safeUrl.search = parsedUrl.search;
 
     const res = await fetch(safeUrl.toString(), {
       redirect: "error",
