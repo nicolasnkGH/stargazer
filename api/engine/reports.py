@@ -15,6 +15,7 @@ from .moon import get_moon_info
 from .planets import get_planet_positions, _az_to_direction
 from .targets import get_visible_targets
 from .seeing import get_seeing_forecast
+from .ai_translate import translate_tonight_report
 from config import BORTLE_CLASS, TELESCOPE_APERTURE_MM, LATITUDE, LONGITUDE, LIMITING_MAG
 
 FAMOUS_CONSTELLATIONS = {
@@ -104,7 +105,7 @@ def get_tonight_report(lat=None, lon=None, lang: str = "en", bortle: Optional[in
     planet_fact_date = now.strftime("%Y-%m-%d")
     idx = int(hashlib.md5(planet_fact_date.encode(), usedforsecurity=False).hexdigest(), 16) % len(PLANET_FACTS)
 
-    return {
+    report = {
         "date": now.strftime("%A, %B %d, %Y"),
         "time_generated": now.strftime("%I:%M %p %Z"),
         "location_timezone": str(_get_tz(lat, lon).key),
@@ -125,6 +126,11 @@ def get_tonight_report(lat=None, lon=None, lang: str = "en", bortle: Optional[in
             "limiting_mag": LIMITING_MAG,
         }
     }
+
+    if lang and lang.lower() != "en":
+        report = translate_tonight_report(report, lang)
+
+    return report
 
 # ── Weekly Report ─────────────────────────────────────────────────────────────
 

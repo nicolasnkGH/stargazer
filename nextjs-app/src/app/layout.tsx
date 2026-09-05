@@ -1,6 +1,5 @@
 import type { Metadata, Viewport } from "next";
 import { Space_Grotesk, Space_Mono } from "next/font/google";
-import { NextIntlClientProvider } from "next-intl";
 import { getLocale, getMessages } from "next-intl/server";
 import { SerwistProvider } from "@serwist/turbopack/react";
 import "./globals.css";
@@ -9,6 +8,7 @@ import InstallPrompt from "@/components/InstallPrompt";
 import QuickNavDock from "@/components/QuickNavDock";
 import LocationGate from "@/components/LocationGate";
 import Toast from "@/components/Toast";
+import IntlProvider from "@/components/IntlProvider";
 
 const spaceGrotesk = Space_Grotesk({
   variable: "--font-space-grotesk",
@@ -65,14 +65,14 @@ export default async function RootLayout({
     >
       <body className="min-h-screen flex flex-col overflow-x-hidden">
         <SerwistProvider swUrl="/serwist/sw.js">
-          <NextIntlClientProvider locale={locale} messages={messages}>
+          <IntlProvider locale={locale} messages={messages}>
             <Header />
             <main className="flex flex-1 w-full flex-col items-center pt-20 sm:pt-16 pb-28 sm:pb-16 overflow-x-hidden">{children}</main>
             <InstallPrompt />
             <QuickNavDock />
             <LocationGate />
             <Toast />
-          </NextIntlClientProvider>
+          </IntlProvider>
         </SerwistProvider>
       </body>
     </html>

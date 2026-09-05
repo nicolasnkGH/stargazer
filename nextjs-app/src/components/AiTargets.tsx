@@ -1,4 +1,5 @@
 import React from "react";
+import { useTranslations } from "next-intl";
 import Icon from "./Icon";
 import type { MustSeeTarget } from "@/types";
 
@@ -13,16 +14,18 @@ export default function AiTargets({
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
   mustSee = [],
 }: AiTargetsProps) {
+  const t = useTranslations();
+
   return (
     <section id="card-ai-targets" className="card w-full mb-8 border border-cyan-500/30 bg-slate-950/95 shadow-2xl overflow-hidden relative">
       {/* Header */}
       <div className="card-header justify-between border-b border-cyan-500/20 px-6 py-4 bg-slate-900/80 relative z-20">
         <div className="flex items-center gap-2">
           <Icon name="compass" className="h-5 w-5 text-cyan-400" />
-          <h2 className="text-base font-bold text-slate-100 tracking-wide">Must-See &amp; AI Picks</h2>
+          <h2 className="text-base font-bold text-slate-100 tracking-wide">{t("must_see_title")}</h2>
         </div>
         <span className="rounded-full border border-cyan-400/40 bg-cyan-950/60 px-3.5 py-1 text-xs font-semibold text-cyan-300 shadow-[0_0_10px_rgba(45,212,191,0.2)]">
-          Curated for tonight
+          {t("curated_for_tonight")}
         </span>
       </div>
 
@@ -38,15 +41,15 @@ export default function AiTargets({
             <div className="space-y-3 pl-2 relative z-20">
               <div className="flex items-center gap-2 text-cyan-300 font-bold text-xs uppercase tracking-wider">
                 <span>🧁</span>
-                <span>AI OBSERVER&#39;S BRIEFING</span>
+                <span>{t("ai_observer_briefing")}</span>
               </div>
               <p className="text-xs sm:text-sm text-cyan-100/90 italic leading-relaxed font-serif">
-                &quot;The extremely high cloud cover (96.4%), low visibility (2.9 km), and significant precipitation probability (63.2%) make astronomical observation impossible tonight. Additionally, the very low dew point spread indicates a high risk of dew formation on optics.&quot;
+                &quot;{t("mock_briefing")}&quot;
               </p>
             </div>
             <div className="pl-2 pt-4 border-t border-cyan-500/20 mt-4 flex items-center gap-2 text-xs font-semibold text-slate-300 relative z-20">
               <Icon name="telescope" className="h-4 w-4 text-cyan-400 flex-shrink-0" />
-              <span>Best window: <span className="text-cyan-300 font-bold font-mono">N/A</span></span>
+              <span>{t("mock_best_window")} <span className="text-cyan-300 font-bold font-mono">N/A</span></span>
             </div>
           </div>
 
@@ -58,16 +61,16 @@ export default function AiTargets({
                 <span className="text-3xl text-slate-200 font-serif">Leo</span>
                 <div>
                   <div className="flex items-center gap-2">
-                    <span className="font-bold text-cyan-300 text-sm">Leo is UP</span>
-                    <span className="rounded bg-cyan-950/80 border border-cyan-400/40 px-2 py-0.5 text-[0.65rem] font-bold text-cyan-300">Excellent</span>
+                    <span className="font-bold text-cyan-300 text-sm">{t("mock_leo_status")}</span>
+                    <span className="rounded bg-cyan-950/80 border border-cyan-400/40 px-2 py-0.5 text-[0.65rem] font-bold text-cyan-300">{t("lbl_excellent")}</span>
                   </div>
-                  <p className="text-xs text-slate-400 mt-1">Excellent conditions</p>
+                  <p className="text-xs text-slate-400 mt-1">{t("mock_conditions_excellent")}</p>
                 </div>
               </div>
             </div>
             <div className="flex justify-end pt-4 relative z-20">
               <button className="rounded-lg border border-sky-500/40 bg-sky-950/50 hover:bg-sky-500/20 px-3.5 py-1.5 text-xs font-semibold text-sky-300 transition-all shadow-sm active:scale-95 cursor-pointer">
-                Add to Plan +
+                {t("btn_add_to_plan")}
               </button>
             </div>
           </div>
@@ -83,13 +86,13 @@ export default function AiTargets({
                     <span className="font-bold text-cyan-300 text-sm">Jupiter</span>
                     <span className="font-mono text-xs text-cyan-300 font-bold bg-cyan-950/60 px-2 py-0.5 rounded border border-cyan-400/30">84.3° ESE (114.9°)</span>
                   </div>
-                  <p className="text-xs text-slate-400 mt-1">spot the 4 Galilean moons!</p>
+                  <p className="text-xs text-slate-400 mt-1">{t("mock_jupiter_tip")}</p>
                 </div>
               </div>
             </div>
             <div className="flex justify-end pt-4 relative z-20">
               <button className="rounded-lg border border-sky-500/40 bg-sky-950/50 hover:bg-sky-500/20 px-3.5 py-1.5 text-xs font-semibold text-sky-300 transition-all shadow-sm active:scale-95 cursor-pointer">
-                Add to Plan +
+                {t("btn_add_to_plan")}
               </button>
             </div>
           </div>
@@ -105,13 +108,13 @@ export default function AiTargets({
                     <span className="font-bold text-cyan-300 text-sm">Mars</span>
                     <span className="font-mono text-xs text-cyan-300 font-bold bg-cyan-950/60 px-2 py-0.5 rounded border border-cyan-400/30">64.4° WNW (283.0°)</span>
                   </div>
-                  <p className="text-xs text-slate-400 mt-1">look for the polar ice caps!</p>
+                  <p className="text-xs text-slate-400 mt-1">{t("mock_mars_tip")}</p>
                 </div>
               </div>
             </div>
             <div className="flex justify-end pt-4 relative z-20">
               <button className="rounded-lg border border-sky-500/40 bg-sky-950/50 hover:bg-sky-500/20 px-3.5 py-1.5 text-xs font-semibold text-sky-300 transition-all shadow-sm active:scale-95 cursor-pointer">
-                Add to Plan +
+                {t("btn_add_to_plan")}
               </button>
             </div>
           </div>
@@ -127,13 +130,13 @@ export default function AiTargets({
                     <span className="font-bold text-cyan-300 text-sm">Mercury</span>
                     <span className="font-mono text-xs text-cyan-300 font-bold bg-cyan-950/60 px-2 py-0.5 rounded border border-cyan-400/30">59.0° ESE (104.2°)</span>
                   </div>
-                  <p className="text-xs text-slate-400 mt-1">catch it quickly before it sets!</p>
+                  <p className="text-xs text-slate-400 mt-1">{t("mock_mercury_tip")}</p>
                 </div>
               </div>
             </div>
             <div className="flex justify-end pt-4 relative z-20">
               <button className="rounded-lg border border-sky-500/40 bg-sky-950/50 hover:bg-sky-500/20 px-3.5 py-1.5 text-xs font-semibold text-sky-300 transition-all shadow-sm active:scale-95 cursor-pointer">
-                Add to Plan +
+                {t("btn_add_to_plan")}
               </button>
             </div>
           </div>
@@ -144,10 +147,10 @@ export default function AiTargets({
             <span className="text-amber-300 text-sm flex-shrink-0 relative z-20">✨</span>
             <div className="relative z-20">
               <span className="font-bold text-purple-300 text-xs uppercase tracking-wider block mb-1">
-                DID YOU KNOW?
+                {t("did_you_know")}
               </span>
               <p className="text-xs text-purple-100/90 leading-relaxed font-medium">
-                Saturn&#39;s rings are mostly made of chunks of ice and rock.
+                {t("mock_saturn_trivia")}
               </p>
             </div>
           </div>

@@ -1,6 +1,7 @@
 "use client";
 
 import React, { useRef } from "react";
+import { useTranslations } from "next-intl";
 import Icon from "./Icon";
 import SourceTooltip from "./SourceTooltip";
 import type { ConstellationData } from "@/types";
@@ -10,6 +11,7 @@ export default function ConstellationsTonight({
 }: {
   constellations?: ConstellationData[];
 }) {
+  const t = useTranslations();
   const carouselRef = useRef<HTMLDivElement>(null);
 
   const visibleConst = constellations
@@ -36,20 +38,20 @@ export default function ConstellationsTonight({
       <div className="card-header justify-between border-b border-cyan-500/20 px-6 py-4 bg-slate-900/80 flex-wrap gap-2">
         <div className="flex items-center gap-2">
           <Icon name="star" className="h-5 w-5 text-amber-400" />
-          <h2 className="text-base font-bold text-slate-100 tracking-wide">Constellations Tonight</h2>
+          <h2 className="text-base font-bold text-slate-100 tracking-wide">{t("constellations_tonight_title")}</h2>
           <span className="text-[0.7rem] text-cyan-400/80 font-mono hidden sm:inline">
-            ({visibleConst.length} visible)
+            {t("const_count_visible", { count: visibleConst.length })}
           </span>
         </div>
 
         <div className="flex items-center gap-3">
           <SourceTooltip
             source="Skyfield & IAU Boundaries"
-            description="Computes apparent topocentric altitude, azimuth, and culmination windows for all 88 constellations based on your latitude, longitude, and current local sidereal time."
-            attribution="IAU / Skyfield"
+            description={t("source_const_desc")}
+            attribution={t("source_const_attr")}
           />
           <span className="rounded-full border border-purple-500/30 bg-purple-950/40 px-3 py-0.5 text-xs font-semibold text-purple-300 shadow-sm hidden md:inline">
-            Sorted by best view
+            {t("sorted_by_best_view")}
           </span>
 
           {/* Horizontal carousel navigation controls */}
@@ -62,7 +64,7 @@ export default function ConstellationsTonight({
             >
               ‹
             </button>
-            <span className="text-[0.65rem] font-mono text-zinc-500 px-1 select-none">↔ Swipe</span>
+            <span className="text-[0.65rem] font-mono text-zinc-500 px-1 select-none">{t("swipe")}</span>
             <button
               onClick={() => scroll("right")}
               className="px-2 py-1 rounded text-zinc-400 hover:text-white hover:bg-white/10 transition-colors text-sm font-bold active:scale-95"
@@ -77,7 +79,7 @@ export default function ConstellationsTonight({
 
       <div className="card-body p-3 sm:p-5 relative group/const">
         {visibleConst.length === 0 ? (
-          <p className="text-sm text-slate-400 py-4 text-center">No constellations visible tonight.</p>
+          <p className="text-sm text-slate-400 py-4 text-center">{t("no_constellations_visible")}</p>
         ) : (
           <>
             {/* Side Floating Scroll Arrows on mobile and desktop */}
@@ -116,7 +118,7 @@ export default function ConstellationsTonight({
                 const barPct = Math.min(100, Math.max(0, Math.round((alt / 90) * 100)));
                 const barColor = alt > 30 ? "#22c55e" : alt > 10 ? "#f59e0b" : "#ef4444";
 
-                const qualityLabel = alt > 30 ? "High in sky" : alt > 10 ? "Low in sky" : "Near horizon";
+                const qualityLabel = alt > 30 ? t("qual_high") : alt > 10 ? t("qual_low") : t("qual_near_horizon");
                 const qualityIcon = alt > 30 ? "🟢" : alt > 10 ? "🟡" : "🔴";
 
                 return (
@@ -140,7 +142,7 @@ export default function ConstellationsTonight({
 
                   {/* Altitude Header */}
                   <div className="flex items-center justify-between text-[0.6rem] uppercase tracking-wider font-semibold text-slate-400 mt-1 mb-1">
-                    <span>ALTITUDE ABOVE HORIZON</span>
+                    <span>{t("altitude_above_horizon")}</span>
                     <span className="font-mono text-xs font-bold" style={{ color }}>
                       {alt}°
                     </span>

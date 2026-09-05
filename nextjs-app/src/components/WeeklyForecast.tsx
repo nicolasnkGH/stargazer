@@ -83,7 +83,7 @@ export default function WeeklyForecast({ report }: { report: WeeklyReport | null
         <div className="flex items-center gap-3">
           <SourceTooltip
             source="Open-Meteo & Ephemeris"
-            description="7-day outlook combining multi-model atmospheric forecasts (ECMWF, GFS, ICON) with lunar illumination and astronomical dark window calculations."
+            description={t.has("source_desc_weekly") ? t("source_desc_weekly") : "7-day outlook combining multi-model atmospheric forecasts (ECMWF, GFS, ICON) with lunar illumination and astronomical dark window calculations."}
             attribution="Open-Meteo / Astronomical Ephemeris"
           />
           <span className="text-xs font-mono text-slate-400 font-semibold">{report.week_start}</span>

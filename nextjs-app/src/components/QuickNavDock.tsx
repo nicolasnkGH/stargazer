@@ -1,12 +1,14 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { useTranslations } from "next-intl";
 import { createPortal } from "react-dom";
 import Icon from "./Icon";
 import PreflightChecklistModal from "./PreflightChecklistModal";
 import { NIGHT_MODE_STORAGE_KEY } from "@/lib/constants";
 
 export default function QuickNavDock() {
+  const t = useTranslations();
   const [nightMode, setNightMode] = useState(false);
   const [checklistOpen, setChecklistOpen] = useState(false);
   const [showTop, setShowTop] = useState(false);
@@ -66,7 +68,7 @@ export default function QuickNavDock() {
       <nav
         id="quick-nav-dock"
         aria-label="Quick observatory navigation"
-        className="hidden md:flex fixed right-4 top-1/2 -translate-y-1/2 z-40 flex-col items-center gap-2 p-2 rounded-2xl bg-slate-950/90 backdrop-blur-2xl border border-cyan-500/20 shadow-[0_4px_30px_rgba(0,0,0,0.8)] ring-1 ring-white/10"
+        className="hidden md:flex fixed right-4 top-1/2 -translate-y-1/2 z-40 flex-col items-center gap-2 p-2 rounded-2xl bg-slate-950/40 backdrop-blur-xl border border-cyan-500/20 shadow-[0_4px_30px_rgba(0,0,0,0.8)] ring-1 ring-white/10"
       >
         {/* Red Light / Night Mode Button */}
         <div className="relative group">
@@ -84,7 +86,7 @@ export default function QuickNavDock() {
             <Icon name="eye" className="h-5 w-5" />
           </button>
           <span className="pointer-events-none absolute right-12 top-1/2 -translate-y-1/2 opacity-0 group-hover:opacity-100 transition-opacity duration-200 whitespace-nowrap rounded-lg bg-slate-900/95 border border-white/10 px-2.5 py-1 text-xs text-red-300 font-mono shadow-xl z-50">
-            {nightMode ? "Exit Red Light" : "Red Light Mode"}
+            {nightMode ? t("nav_exit_red_light") : t("nav_red_light_mode")}
           </span>
         </div>
 
@@ -103,7 +105,7 @@ export default function QuickNavDock() {
             <Icon name="arrow-up" className="h-5 w-5" />
           </button>
           <span className="pointer-events-none absolute right-12 top-1/2 -translate-y-1/2 opacity-0 group-hover:opacity-100 transition-opacity duration-200 whitespace-nowrap rounded-lg bg-slate-900/95 border border-white/10 px-2.5 py-1 text-xs text-sky-300 font-mono shadow-xl z-50">
-            Top of Page
+            {t("nav_back_to_top")}
           </span>
         </div>
 
@@ -120,7 +122,7 @@ export default function QuickNavDock() {
             <Icon name="calendar-days" className="h-5 w-5" />
           </button>
           <span className="pointer-events-none absolute right-12 top-1/2 -translate-y-1/2 opacity-0 group-hover:opacity-100 transition-opacity duration-200 whitespace-nowrap rounded-lg bg-slate-900/95 border border-white/10 px-2.5 py-1 text-xs text-sky-300 font-mono shadow-xl z-50">
-            Plan My Night
+            {t("tab_plan")}
           </span>
         </div>
 
@@ -135,7 +137,7 @@ export default function QuickNavDock() {
             <Icon name="check-square" className="h-5 w-5" />
           </button>
           <span className="pointer-events-none absolute right-12 top-1/2 -translate-y-1/2 opacity-0 group-hover:opacity-100 transition-opacity duration-200 whitespace-nowrap rounded-lg bg-slate-900/95 border border-white/10 px-2.5 py-1 text-xs text-emerald-300 font-mono shadow-xl z-50">
-            Field Checklist
+            {t("field_checklist")}
           </span>
         </div>
 
@@ -150,7 +152,7 @@ export default function QuickNavDock() {
             <Icon name="sparkles" className="h-5 w-5" />
           </button>
           <span className="pointer-events-none absolute right-12 top-1/2 -translate-y-1/2 opacity-0 group-hover:opacity-100 transition-opacity duration-200 whitespace-nowrap rounded-lg bg-slate-900/95 border border-white/10 px-2.5 py-1 text-xs text-amber-300 font-mono shadow-xl z-50">
-            AI Picks
+            {t("tab_ai_badge")}
           </span>
         </div>
 
@@ -165,7 +167,7 @@ export default function QuickNavDock() {
             <Icon name="compass" className="h-5 w-5" />
           </button>
           <span className="pointer-events-none absolute right-12 top-1/2 -translate-y-1/2 opacity-0 group-hover:opacity-100 transition-opacity duration-200 whitespace-nowrap rounded-lg bg-slate-900/95 border border-white/10 px-2.5 py-1 text-xs text-indigo-300 font-mono shadow-xl z-50">
-            3D Sky Map
+            {t("tab_sky_badge")}
           </span>
         </div>
       </nav>
@@ -173,7 +175,7 @@ export default function QuickNavDock() {
       {/* MOBILE: Sleek Floating Bottom Navigation Pill (Thumb-Friendly) */}
       <nav
         aria-label="Quick mobile navigation"
-        className="md:hidden fixed bottom-3 left-1/2 -translate-x-1/2 z-40 flex items-center justify-around gap-3 px-4 py-2 rounded-full bg-slate-950/90 backdrop-blur-2xl border border-cyan-500/30 shadow-[0_8px_32px_rgba(0,0,0,0.85)] ring-1 ring-white/10 max-w-[92vw]"
+        className="md:hidden fixed bottom-3 left-1/2 -translate-x-1/2 z-40 flex items-center justify-around gap-3 px-4 py-2 rounded-full bg-slate-950/40 backdrop-blur-xl border border-cyan-500/30 shadow-[0_8px_32px_rgba(0,0,0,0.85)] ring-1 ring-white/10 max-w-[92vw]"
       >
         <button
           onClick={toggleNightMode}

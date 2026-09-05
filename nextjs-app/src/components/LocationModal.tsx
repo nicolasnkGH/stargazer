@@ -184,8 +184,8 @@ export default function LocationModal({ open, onClose, locations, activeId }: Lo
   }
 
   return (
-    <Modal open={open} onClose={onClose} title="📍 Observatory Locations">
-      <p className="text-sm text-zinc-400 mb-4">Select an active location or create a new custom profile.</p>
+    <Modal open={open} onClose={onClose} title={t("observatory_locations_title")}>
+      <p className="text-sm text-zinc-400 mb-4">{t("select_active_location_desc")}</p>
 
       <div className="flex flex-col gap-2 mb-5">
         {savedLocations.map((l) => (
@@ -219,7 +219,7 @@ export default function LocationModal({ open, onClose, locations, activeId }: Lo
 
       <hr className="border-white/10 my-5" />
 
-      <h3 className="text-sm font-semibold text-zinc-100 mb-3">Add Custom Location</h3>
+      <h3 className="text-sm font-semibold text-zinc-100 mb-3">{t("add_custom_location")}</h3>
 
       <div className="flex flex-col gap-3">
         <div className="relative">
@@ -229,7 +229,7 @@ export default function LocationModal({ open, onClose, locations, activeId }: Lo
               type="text"
               value={citySearch}
               onChange={(e) => onCitySearchChange(e.target.value)}
-              placeholder="e.g. Columbus, Ohio"
+              placeholder={t("ph_city_example")}
               autoComplete="off"
               className="flex-1 rounded-lg bg-white/5 border border-white/10 px-3 py-2 text-sm text-zinc-200 placeholder:text-zinc-600 focus:outline-none focus:border-sky-500/40"
             />
@@ -238,7 +238,7 @@ export default function LocationModal({ open, onClose, locations, activeId }: Lo
               disabled={searching}
               className="whitespace-nowrap rounded-lg bg-white/5 border border-white/10 px-3 py-2 text-xs text-zinc-300 hover:bg-white/10 transition-colors disabled:opacity-50"
             >
-              {searching ? "⏳" : "🔍 Search"}
+              {searching ? "⏳" : t("btn_search")}
             </button>
           </div>
           {suggestions.length > 0 && (
@@ -256,15 +256,15 @@ export default function LocationModal({ open, onClose, locations, activeId }: Lo
           )}
         </div>
 
-        <div className="text-center text-xs text-zinc-500">— OR enter manually —</div>
+        <div className="text-center text-xs text-zinc-500">{t("or_enter_manually")}</div>
 
         <div>
-          <label className="block text-xs text-zinc-400 mb-1">Profile Name (e.g. South Porch)</label>
+          <label className="block text-xs text-zinc-400 mb-1">{t("lbl_profile_name")}</label>
           <input
             type="text"
             value={profileName}
             onChange={(e) => setProfileName(e.target.value)}
-            placeholder="My Backyard"
+            placeholder={t("ph_my_backyard")}
             className="w-full rounded-lg bg-white/5 border border-white/10 px-3 py-2 text-sm text-zinc-200 placeholder:text-zinc-600 focus:outline-none focus:border-sky-500/40"
           />
         </div>
@@ -302,13 +302,13 @@ export default function LocationModal({ open, onClose, locations, activeId }: Lo
               onChange={(e) => setPorchMode(e.target.checked)}
               className="accent-sky-500"
             />
-            <span className="text-sm font-medium text-zinc-100">Enable Porch Mode (Custom Horizon)</span>
+            <span className="text-sm font-medium text-zinc-100">{t("enable_porch_mode")}</span>
           </label>
-          <p className="text-xs text-zinc-500 mb-3">Only show objects visible between specific compass headings.</p>
+          <p className="text-xs text-zinc-500 mb-3">{t("porch_mode_desc")}</p>
           {porchMode && (
             <div className="flex gap-3">
               <div className="flex-1">
-                <label className="block text-xs text-zinc-400 mb-1">Min Azimuth (0-360°)</label>
+                <label className="block text-xs text-zinc-400 mb-1">{t("lbl_min_azimuth")}</label>
                 <input
                   type="number"
                   min={0}
@@ -320,7 +320,7 @@ export default function LocationModal({ open, onClose, locations, activeId }: Lo
                 />
               </div>
               <div className="flex-1">
-                <label className="block text-xs text-zinc-400 mb-1">Max Azimuth (0-360°)</label>
+                <label className="block text-xs text-zinc-400 mb-1">{t("lbl_max_azimuth")}</label>
                 <input
                   type="number"
                   min={0}
@@ -342,7 +342,7 @@ export default function LocationModal({ open, onClose, locations, activeId }: Lo
           disabled={gpsLocating}
           className="w-full rounded-lg bg-white/5 border border-white/10 px-3 py-2 text-xs text-zinc-300 hover:bg-white/10 transition-colors disabled:opacity-50"
         >
-          {gpsLocating ? "📡 Locating..." : "📡 Try Device GPS (Requires HTTPS)"}
+          {gpsLocating ? t("gps_locating") : t("btn_device_gps")}
         </button>
 
         <button

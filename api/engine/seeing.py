@@ -19,6 +19,7 @@ from .moon import get_moon_info
 from .moon_facts import get_moon_fact
 from .targets import get_visible_targets
 from .skyfield import now_local
+from .ai_translate import translate_seeing
 
 
 def _call_ai_api(api_url, api_model, payload, auth_header, timeout_sec):
@@ -657,7 +658,7 @@ def get_seeing_forecast(lat=None, lon=None, ai_enabled: bool = False, lang: str 
             "status":      label,
         })
 
-    return {
+    res = {
         # Core score (1-10) and 5-star display
         "seeing_score":       stars,          # 1-5 for badge/stars UI
         "seeing_score_raw":   score,          # 1-10 for display/tooltip
@@ -688,3 +689,8 @@ def get_seeing_forecast(lat=None, lon=None, ai_enabled: bool = False, lang: str 
         "seeing_arcsec": seeing_arcsec,
         "hourly_clouds": (hourly.get("cloudcover", []) or [])[current_hour:current_hour+24],
     }
+
+    if lang and lang.lower() != "en":
+        res = translate_seeing(res, lang)
+
+    return res

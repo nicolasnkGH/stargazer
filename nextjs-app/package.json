@@ -1,12 +1,13 @@
 {
   "name": "nextjs-app",
-  "version": "3.1.0",
+  "version": "3.2.0",
   "private": true,
   "scripts": {
     "dev": "next dev",
     "build": "next build",
     "start": "next start",
-    "lint": "eslint"
+    "lint": "eslint",
+    "check:i18n": "node scripts/check-translations.mjs"
   },
   "dependencies": {
     "@react-three/drei": "^10.7.8",
@@ -37,5 +38,10 @@
     "eslint-config-next": "^16.3.0",
     "tailwindcss": "^4",
     "typescript": "^5"
+  },
+  "lint-staged": {
+    "messages/**/*.json": [
+      "node scripts/check-translations.mjs"
+    ]
   }
 }

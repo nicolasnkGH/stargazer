@@ -1,6 +1,7 @@
 "use client";
 
 import React, { useState } from "react";
+import { useTranslations } from "next-intl";
 import Icon from "./Icon";
 
 interface SourceTooltipProps {
@@ -17,6 +18,12 @@ export default function SourceTooltip({
   attribution,
 }: SourceTooltipProps) {
   const [open, setOpen] = useState(false);
+  const t = useTranslations();
+
+  const sourceTitle = t.has("source_title") ? t("source_title") : "Source";
+  const verifiedLabel = t.has("source_verified_label") ? t("source_verified_label") : "Verified Data Source";
+  const providerLabel = t.has("source_provider_label") ? t("source_provider_label") : "Provider:";
+  const btnLabel = t.has("source_btn_label") ? t("source_btn_label") : "Source";
 
   return (
     <div
@@ -31,11 +38,11 @@ export default function SourceTooltip({
           setOpen((v) => !v);
         }}
         className="flex items-center gap-1 rounded-full px-1.5 py-0.5 text-[0.65rem] font-mono text-zinc-400 hover:text-sky-300 hover:bg-sky-500/10 border border-white/5 hover:border-sky-400/30 transition-all cursor-pointer select-none"
-        title={`Source: ${source}`}
-        aria-label={`Source information: ${source}`}
+        title={`${sourceTitle}: ${source}`}
+        aria-label={`${sourceTitle}: ${source}`}
       >
         <Icon name="info" className="h-3 w-3 text-sky-400/80" />
-        <span className="hidden sm:inline text-[0.6rem] text-zinc-400 hover:text-sky-300">Source</span>
+        <span className="hidden sm:inline text-[0.6rem] text-zinc-400 hover:text-sky-300">{btnLabel}</span>
       </button>
 
       {open && (
@@ -46,7 +53,7 @@ export default function SourceTooltip({
           <div className="flex items-center justify-between gap-1.5 font-bold text-sky-300 text-xs mb-1.5 border-b border-white/10 pb-1.5">
             <span className="flex items-center gap-1.5">
               <span>🛡️</span>
-              <span>Verified Data Source</span>
+              <span>{verifiedLabel}</span>
             </span>
             <span className="text-[0.65rem] font-mono text-zinc-400 font-normal truncate max-w-[120px]">
               {source}
@@ -59,7 +66,7 @@ export default function SourceTooltip({
 
           {attribution && (
             <div className="mt-2 pt-1.5 border-t border-white/10 flex items-center justify-between text-[0.62rem] text-zinc-400 font-mono">
-              <span>Provider:</span>
+              <span>{providerLabel}</span>
               <span className="text-zinc-300 font-semibold">{attribution}</span>
             </div>
           )}

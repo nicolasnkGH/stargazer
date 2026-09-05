@@ -1,12 +1,14 @@
+import { useTranslations } from "next-intl";
 import Icon from "./Icon";
 import type { SeeingData } from "@/types";
 
 export default function GoNoGoBanner({ seeing }: { seeing: SeeingData | null }) {
+  const t = useTranslations();
   if (!seeing) return null;
 
   const data = {
     go_nogo: seeing.go_nogo || "UNKNOWN",
-    confidence: seeing.ai_powered ? "AI-analyzed" : "Rule-based",
+    confidence: seeing.ai_powered ? t("ai_analyzed") : t("rule_based"),
     factors: seeing.warnings || [],
     recommendation: seeing.seeing_label || "",
   };

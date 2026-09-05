@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
+import { useTranslations } from "next-intl";
 import Icon from "./Icon";
 import SourceTooltip from "./SourceTooltip";
 import type { LogEntry } from "@/types";
@@ -22,6 +23,7 @@ const EQUIPMENT_PRESETS = [
 ];
 
 export default function ObservationLog() {
+  const t = useTranslations();
   const [entries, setEntries] = useState<LogEntry[]>(DEFAULT_ENTRIES);
   const [hydrated, setHydrated] = useState(false);
   const [showForm, setShowForm] = useState(false);
@@ -107,22 +109,22 @@ export default function ObservationLog() {
         <div className="flex items-center gap-2">
           <Icon name="notebook-pen" className="h-5 w-5 text-sky-400" />
           <div>
-            <h2 className="text-base font-bold text-slate-100">Observation Log</h2>
-            <p className="text-[0.65rem] text-sky-400/80 font-mono">Field Sessions &amp; Optics Records</p>
+            <h2 className="text-base font-bold text-slate-100">{t("obs_log_title")}</h2>
+            <p className="text-[0.65rem] text-sky-400/80 font-mono">{t("obs_log_subtitle")}</p>
           </div>
         </div>
         <div className="flex items-center gap-2">
           <SourceTooltip
             source="Local Observer Log"
-            description="Persistent optical field log entries saved in local storage with equipment telemetry, optical conditions, and observational notes."
-            attribution="StarGazer Local Observer"
+            description={t("source_obs_desc")}
+            attribution={t("source_obs_attr")}
           />
           <button
             onClick={() => setShowForm(!showForm)}
             className="flex items-center gap-1 rounded-lg bg-white/5 border border-white/10 px-3 py-1.5 text-xs text-zinc-300 hover:bg-white/10 transition-colors"
           >
             <Icon name="plus" className="h-3.5 w-3.5" />
-            New Entry
+            {t("btn_new_entry")}
           </button>
         </div>
       </div>
@@ -133,14 +135,14 @@ export default function ObservationLog() {
         <form onSubmit={addEntry} className="rounded-lg bg-white/[0.02] border border-white/5 p-4 mb-4 flex flex-col gap-3">
           <input
             type="text"
-            placeholder="Target name (e.g. M31 Andromeda Galaxy, Jupiter)..."
+            placeholder={t("ph_target_name")}
             value={newTarget}
             onChange={(e) => setNewTarget(e.target.value)}
             className="rounded-lg bg-white/5 border border-white/10 px-3 py-2 text-sm text-zinc-200 placeholder:text-zinc-600 focus:outline-none focus:border-sky-500/40"
             required
           />
           <textarea
-            placeholder="Field notes, eyepiece used, filters, sky transparency..."
+            placeholder={t("ph_field_notes")}
             value={newNotes}
             onChange={(e) => setNewNotes(e.target.value)}
             rows={2}
@@ -152,17 +154,17 @@ export default function ObservationLog() {
               onChange={(e) => setNewConditions(e.target.value)}
               className="rounded-lg bg-slate-900 border border-white/10 px-3 py-2 text-sm text-zinc-200 focus:outline-none focus:border-sky-500/40"
             >
-              <option value="Excellent">Seeing: Excellent</option>
-              <option value="Good">Seeing: Good</option>
-              <option value="Fair">Seeing: Fair</option>
-              <option value="Poor">Seeing: Poor</option>
+              <option value="Excellent">{t("seeing_excellent")}</option>
+              <option value="Good">{t("seeing_good")}</option>
+              <option value="Fair">{t("seeing_fair")}</option>
+              <option value="Poor">{t("seeing_poor")}</option>
             </select>
             <select
               value={newEquipment}
               onChange={(e) => setNewEquipment(e.target.value)}
               className="flex-1 min-w-[200px] rounded-lg bg-slate-900 border border-white/10 px-3 py-2 text-sm text-zinc-200 focus:outline-none focus:border-sky-500/40"
             >
-              <optgroup label="Standard Optics &amp; Scopes">
+              <optgroup label={t("optics_group")}>
                 {EQUIPMENT_PRESETS.map((p) => (
                   <option key={p} value={p}>
                     {p}
@@ -170,7 +172,7 @@ export default function ObservationLog() {
                 ))}
               </optgroup>
               {savedCustomGears.length > 0 && (
-                <optgroup label="Your Saved Custom Gear">
+                <optgroup label={t("saved_gear_group")}>
                   {savedCustomGears.map((g) => (
                     <option key={g} value={g}>
                       {g}
@@ -183,14 +185,14 @@ export default function ObservationLog() {
               type="submit"
               className="rounded-lg bg-sky-500/20 border border-sky-500/30 px-5 py-2 text-sm font-medium text-sky-300 hover:bg-sky-500/30 transition-colors cursor-pointer"
             >
-              Save
+              {t("btn_save_entry")}
             </button>
           </div>
 
           {newEquipment === "Custom Gear / Other..." && (
             <input
               type="text"
-              placeholder="Specify your telescope, camera or optics..."
+              placeholder={t("ph_specify_gear")}
               value={customGear}
               onChange={(e) => setCustomGear(e.target.value)}
               className="rounded-lg bg-white/5 border border-sky-500/40 px-3 py-2 text-sm text-zinc-200 placeholder:text-zinc-500 focus:outline-none focus:border-sky-400"
@@ -203,7 +205,7 @@ export default function ObservationLog() {
       {/* Log entries */}
       {entries.length === 0 ? (
         <div className="py-8 text-center text-sm text-zinc-400">
-          No observations logged yet. Add your first entry!
+          {t("no_obs_logged")}
         </div>
       ) : (
         <div className="flex flex-col gap-2">

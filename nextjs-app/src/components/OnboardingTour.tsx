@@ -19,7 +19,9 @@ const STEP_TAB_MAP: Record<string, string> = {
   "#card-optics": "tools",
 };
 
-export function startOnboardingTour() {
+export function startOnboardingTour(t?: (key: string) => string) {
+  const tr = (key: string, fallback: string) => (t ? t(key) : fallback);
+
   const driverObj = driver({
     showProgress: true,
     animate: true,
@@ -33,18 +35,22 @@ export function startOnboardingTour() {
     steps: [
       {
         popover: {
-          title: "Welcome to StarGazer! ✨",
-          description:
-            "Your complete observatory dashboard for amateur astronomy and night sky planning. Let's take a quick 1-minute tour of all the features!",
+          title: tr("tour_step1_title", "Welcome to StarGazer! ✨"),
+          description: tr(
+            "tour_step1_desc",
+            "Your complete observatory dashboard for amateur astronomy and night sky planning. Let's take a quick 1-minute tour of all the features!"
+          ),
           align: "center",
         },
       },
       {
         element: "#btn-location",
         popover: {
-          title: "📍 Location & Horizon Setup",
-          description:
-            "Click here to switch or add custom observing spots, GPS location, and Porch Mode (custom horizon headings to block trees and buildings).",
+          title: tr("tour_step2_title", "📍 Location & Horizon Setup"),
+          description: tr(
+            "tour_step2_desc",
+            "Click here to switch or add custom observing spots, GPS location, and Porch Mode (custom horizon headings to block trees and buildings)."
+          ),
           side: "bottom",
           align: "start",
         },
@@ -52,8 +58,11 @@ export function startOnboardingTour() {
       {
         element: "#card-tonight",
         popover: {
-          title: "🌤 Real-Time Sky Conditions",
-          description: "Live astronomical seeing score, lunar illumination, twilight windows, and atmospheric humidity/dew point alerts.",
+          title: tr("tour_step3_title", "🌤 Real-Time Sky Conditions"),
+          description: tr(
+            "tour_step3_desc",
+            "Live astronomical seeing score, lunar illumination, twilight windows, and atmospheric humidity/dew point alerts."
+          ),
           side: "bottom",
           align: "start",
         },
@@ -61,8 +70,11 @@ export function startOnboardingTour() {
       {
         element: "#card-weather",
         popover: {
-          title: "🔭 Clear Outside Cloud Forecast",
-          description: "Hour-by-hour visual breakdown of high, mid, and low clouds, fog risk, and wind speed tailored for telescope sessions.",
+          title: tr("tour_step4_title", "🔭 Clear Outside Cloud Forecast"),
+          description: tr(
+            "tour_step4_desc",
+            "Hour-by-hour visual breakdown of high, mid, and low clouds, fog risk, and wind speed tailored for telescope sessions."
+          ),
           side: "top",
           align: "start",
         },
@@ -70,9 +82,11 @@ export function startOnboardingTour() {
       {
         element: "#card-active-const",
         popover: {
-          title: "🗺 3D Sky Map & Active Constellations",
-          description:
-            "Interactive 3D celestial sphere and constellations currently above your horizon. Click any star to query the SIMBAD astronomical database!",
+          title: tr("tour_step5_title", "🗺 3D Sky Map & Active Constellations"),
+          description: tr(
+            "tour_step5_desc",
+            "Interactive 3D celestial sphere and constellations currently above your horizon. Click any star to query the SIMBAD astronomical database!"
+          ),
           side: "top",
           align: "start",
         },
@@ -80,9 +94,11 @@ export function startOnboardingTour() {
       {
         element: "#card-targets",
         popover: {
-          title: "🔭 Tonight's Deep-Sky Target Database",
-          description:
-            "Curated galaxies, nebulae, and star clusters visible tonight with altitude curves, eyepiece FOV simulation, and one-click planner queueing.",
+          title: tr("tour_step6_title", "🔭 Tonight's Deep-Sky Target Database"),
+          description: tr(
+            "tour_step6_desc",
+            "Curated galaxies, nebulae, and star clusters visible tonight with altitude curves, eyepiece FOV simulation, and one-click planner queueing."
+          ),
           side: "top",
           align: "start",
         },
@@ -90,9 +106,11 @@ export function startOnboardingTour() {
       {
         element: "#card-ai-targets",
         popover: {
-          title: "✨ AI Observational Briefing & Must-See",
-          description:
-            "AI-synthesized nightly observing advice tailored to current seeing, moon interference, and top celestial highlights of the night.",
+          title: tr("tour_step7_title", "✨ AI Observational Briefing & Must-See"),
+          description: tr(
+            "tour_step7_desc",
+            "AI-synthesized nightly observing advice tailored to current seeing, moon interference, and top celestial highlights of the night."
+          ),
           side: "top",
           align: "start",
         },
@@ -100,8 +118,11 @@ export function startOnboardingTour() {
       {
         element: "#card-planets",
         popover: {
-          title: "🪐 Planet Tracker & 3D Orrery",
-          description: "Real-time planetary positions, rising/setting times, and an interactive 3D solar system simulation with customizable speeds.",
+          title: tr("tour_step8_title", "🪐 Planet Tracker & 3D Orrery"),
+          description: tr(
+            "tour_step8_desc",
+            "Real-time planetary positions, rising/setting times, and an interactive 3D solar system simulation with customizable speeds."
+          ),
           side: "top",
           align: "start",
         },
@@ -109,9 +130,11 @@ export function startOnboardingTour() {
       {
         element: "#card-plan-my-night",
         popover: {
-          title: "📅 Plan My Night, Checklist & Log",
-          description:
-            "Build your nightly observing timetable, run through equipment pre-flight checks, and record your observations in the Observation Log!",
+          title: tr("tour_step9_title", "📅 Plan My Night, Checklist & Log"),
+          description: tr(
+            "tour_step9_desc",
+            "Build your nightly observing timetable, run through equipment pre-flight checks, and record your observations in the Observation Log!"
+          ),
           side: "top",
           align: "start",
         },
@@ -119,8 +142,11 @@ export function startOnboardingTour() {
       {
         element: "#card-motion",
         popover: {
-          title: "🚀 Sky Objects in Motion",
-          description: "Live tracking for ISS passes, near-Earth asteroids, upcoming comets, and active meteor shower radiant peaks.",
+          title: tr("tour_step10_title", "🚀 Sky Objects in Motion"),
+          description: tr(
+            "tour_step10_desc",
+            "Live tracking for ISS passes, near-Earth asteroids, upcoming comets, and active meteor shower radiant peaks."
+          ),
           side: "top",
           align: "start",
         },
@@ -128,9 +154,11 @@ export function startOnboardingTour() {
       {
         element: "#card-weekly",
         popover: {
-          title: "🛠 Astronomy Tools & Light Pollution",
-          description:
-            "7-day astronomical forecast, interactive light pollution maps (Bortle scale), aurora geomagnetic activity, and eyepiece optics calculator.",
+          title: tr("tour_step11_title", "🛠 Astronomy Tools & Light Pollution"),
+          description: tr(
+            "tour_step11_desc",
+            "7-day astronomical forecast, interactive light pollution maps (Bortle scale), aurora geomagnetic activity, and eyepiece optics calculator."
+          ),
           side: "top",
           align: "start",
         },
@@ -138,9 +166,11 @@ export function startOnboardingTour() {
       {
         element: "#quick-nav-dock",
         popover: {
-          title: "⚡ Quick-Nav Dock & Red Light Mode",
-          description:
-            "Fast always-on utility dock! Toggle red-light night vision to preserve dark adaptation, jump to the planner, or open the checklist instantly.",
+          title: tr("tour_step12_title", "⚡ Quick-Nav Dock & Red Light Mode"),
+          description: tr(
+            "tour_step12_desc",
+            "Fast always-on utility dock! Toggle red-light night vision to preserve dark adaptation, jump to the planner, or open the checklist instantly."
+          ),
           side: "left",
           align: "center",
         },
@@ -148,18 +178,22 @@ export function startOnboardingTour() {
       {
         element: "#btn-menu",
         popover: {
-          title: "🔔 Notifications & Offline Settings",
-          description:
-            "Access data settings, export your observation logs, configure push notifications for clear sky windows, and manage offline data.",
+          title: tr("tour_step13_title", "🔔 Notifications & Offline Settings"),
+          description: tr(
+            "tour_step13_desc",
+            "Access data settings, export your observation logs, configure push notifications for clear sky windows, and manage offline data."
+          ),
           side: "left",
           align: "start",
         },
       },
       {
         popover: {
-          title: "📱 Install StarGazer as an App",
-          description:
-            'StarGazer is a full PWA! Install it from your browser for instant offline access in dark fields and push alerts when skies clear. Clear skies and happy observing!',
+          title: tr("tour_step14_title", "📱 Install StarGazer as an App"),
+          description: tr(
+            "tour_step14_desc",
+            "StarGazer is a full PWA! Install it from your browser for instant offline access in dark fields and push alerts when skies clear. Clear skies and happy observing!"
+          ),
           align: "center",
         },
       },

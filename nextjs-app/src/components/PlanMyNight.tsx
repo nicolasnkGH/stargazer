@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { useTranslations } from "next-intl";
 import Icon from "./Icon";
 import { DEFAULT_DUSK_HOUR, DEFAULT_DAWN_HOUR } from "@/lib/constants";
 import { useNightPlan, addToPlan, removeFromPlan, movePlanItem, clearPlan } from "@/hooks/useNightPlan";
@@ -8,6 +9,7 @@ import { exportPlanTxt, exportPlanCsv } from "@/lib/plan-export";
 import { showToast } from "@/lib/toast";
 
 export default function PlanMyNight() {
+  const t = useTranslations();
   const plan = useNightPlan();
   const [showClearConfirm, setShowClearConfirm] = useState(false);
 
@@ -33,36 +35,36 @@ export default function PlanMyNight() {
       <div className="card-header justify-between flex-wrap gap-2">
         <div className="flex items-center gap-2">
           <Icon name="clock-3" className="h-5 w-5 text-purple-400" />
-          <h2>Plan My Night</h2>
+          <h2>{t("plan_my_night_title")}</h2>
         </div>
         <div className="flex items-center gap-2">
           <button onClick={() => exportPlanTxt(plan)} className="flex items-center gap-1 rounded-lg bg-white/5 border border-white/10 px-2.5 py-1.5 text-xs text-zinc-300 hover:bg-white/10 transition-colors">
-            <Icon name="file-text" className="h-3.5 w-3.5" /> Export Text
+            <Icon name="file-text" className="h-3.5 w-3.5" /> {t("export_text")}
           </button>
           <button onClick={() => exportPlanCsv(plan)} className="flex items-center gap-1 rounded-lg bg-white/5 border border-white/10 px-2.5 py-1.5 text-xs text-zinc-300 hover:bg-white/10 transition-colors">
-            <Icon name="download" className="h-3.5 w-3.5" /> Export CSV
+            <Icon name="download" className="h-3.5 w-3.5" /> {t("export_csv")}
           </button>
           <button onClick={onClear} className="flex items-center gap-1 rounded-lg bg-red-500/10 border border-red-500/20 px-2.5 py-1.5 text-xs text-red-400 hover:bg-red-500/20 transition-colors">
-            <Icon name="trash-2" className="h-3.5 w-3.5" /> Clear
+            <Icon name="trash-2" className="h-3.5 w-3.5" /> {t("btn_clear")}
           </button>
         </div>
       </div>
       <div className="card-body">
         {/* Quick-add bar */}
         <div className="mb-4 flex flex-wrap items-center justify-between gap-2.5 rounded-lg border border-sky-500/15 bg-sky-500/[0.05] px-3.5 py-3">
-          <span className="text-xs font-bold text-sky-400">🚀 Quick-Add Sky Objects in Motion:</span>
+          <span className="text-xs font-bold text-sky-400">{t("quick_add_motion")}</span>
           <div className="flex flex-wrap gap-2">
             <button onClick={() => quickAdd("iss_pass", "🛰️ ISS Orbit Pass")} className="rounded-lg border border-sky-500/30 bg-sky-500/10 px-2 py-1 text-xs text-sky-400 hover:bg-sky-500/20 transition-colors">
-              + ISS Pass
+              {t("add_iss_pass")}
             </button>
             <button onClick={() => quickAdd("c2023_a3", "☄️ Comet Tsuchinshan-ATLAS", 14.5, -5.2)} className="rounded-lg border border-purple-500/30 bg-purple-500/10 px-2 py-1 text-xs text-purple-300 hover:bg-purple-500/20 transition-colors">
-              + Bright Comet
+              {t("add_bright_comet")}
             </button>
             <button onClick={() => quickAdd("meteor_shower", "💫 Active Meteor Shower")} className="rounded-lg border border-amber-500/30 bg-amber-500/10 px-2 py-1 text-xs text-amber-300 hover:bg-amber-500/20 transition-colors">
-              + Meteor Shower
+              {t("add_meteor_shower")}
             </button>
             <button onClick={() => quickAdd("neo_asteroid", "🪨 Near-Earth Asteroid")} className="rounded-lg border border-green-500/30 bg-green-500/10 px-2 py-1 text-xs text-green-300 hover:bg-green-500/20 transition-colors">
-              + NEO Asteroid
+              {t("add_neo_asteroid")}
             </button>
           </div>
         </div>
@@ -70,13 +72,13 @@ export default function PlanMyNight() {
         {/* Timeline bar */}
         <div className="mb-6">
           <div className="flex justify-between text-xs text-zinc-500 mb-1.5">
-            <span>Sunset ({DEFAULT_DUSK_HOUR}:00)</span>
-            <span>Midnight</span>
-            <span>Sunrise ({DEFAULT_DAWN_HOUR}:00)</span>
+            <span>{t("lbl_sunset_hour", { hour: DEFAULT_DUSK_HOUR })}</span>
+            <span>{t("lbl_midnight")}</span>
+            <span>{t("lbl_sunrise_hour", { hour: DEFAULT_DAWN_HOUR })}</span>
           </div>
           <div id="scheduler-timeline-bar" className="relative h-6 rounded-xl border border-white/5 bg-white/[0.03] overflow-hidden flex">
             {plan.length === 0 ? (
-              <div className="w-full flex items-center justify-center text-xs text-zinc-500">No targets scheduled</div>
+              <div className="w-full flex items-center justify-center text-xs text-zinc-500">{t("no_targets_scheduled")}</div>
             ) : (
               plan.map((item, i) => {
                 const relativeStart = (item.startHour - DEFAULT_DUSK_HOUR + 24) % 24;
@@ -101,8 +103,8 @@ export default function PlanMyNight() {
         {plan.length === 0 ? (
           <div id="scheduler-empty-state" className="rounded-lg border border-dashed border-white/10 bg-white/[0.01] px-4 py-8 text-center">
             <Icon name="calendar" className="h-9 w-9 text-zinc-600 mx-auto mb-2.5 opacity-50" />
-            <h3 className="text-sm text-white mb-1">Your night schedule is empty</h3>
-            <p className="text-xs text-zinc-500">Click &quot;Add to Plan&quot; on any target card in the database above to plan your night session.</p>
+            <h3 className="text-sm text-white mb-1">{t("empty_schedule_title")}</h3>
+            <p className="text-xs text-zinc-500">{t("empty_schedule_desc")}</p>
           </div>
         ) : (
           <div id="scheduler-list-container" className="flex flex-col gap-2">
@@ -113,7 +115,7 @@ export default function PlanMyNight() {
                   <div className="min-w-0">
                     <p className="text-sm font-semibold text-white truncate">{item.name}</p>
                     <p className="text-xs text-zinc-500 mt-0.5">
-                      Scheduled slot: <strong className="text-zinc-300">{item.startTime} - {item.endTime}</strong>
+                      {t("scheduled_slot")} <strong className="text-zinc-300">{item.startTime} - {item.endTime}</strong>
                     </p>
                   </div>
                 </div>
@@ -137,7 +139,7 @@ export default function PlanMyNight() {
                     className="whitespace-nowrap rounded-lg border border-red-500/20 bg-red-500/10 px-1.5 py-1 text-[0.7rem] sm:px-2.5 sm:text-xs text-red-400 hover:bg-red-500/20 transition-colors"
                     title="Remove from plan"
                   >
-                    Remove
+                    {t("btn_remove")}
                   </button>
                 </div>
               </div>
@@ -153,22 +155,22 @@ export default function PlanMyNight() {
         >
           <div className="w-[90%] max-w-[380px] rounded-2xl border border-purple-500/40 bg-[#1e1b2e] p-7 text-center shadow-2xl">
             <div className="mb-3 text-3xl">🗑️</div>
-            <div className="mb-2 text-base font-bold text-white">Clear Night Plan?</div>
+            <div className="mb-2 text-base font-bold text-white">{t("clear_modal_title")}</div>
             <div className="mb-5 text-sm text-zinc-400">
-              This will remove all {plan.length} item{plan.length !== 1 ? "s" : ""} from your plan. This cannot be undone.
+              {t("clear_modal_desc")}
             </div>
             <div className="flex justify-center gap-3">
               <button
                 onClick={() => setShowClearConfirm(false)}
                 className="rounded-lg border border-white/15 bg-white/[0.07] px-6 py-2 text-sm font-semibold text-zinc-200 hover:bg-white/10 transition-colors"
               >
-                Cancel
+                {t("btn_cancel")}
               </button>
               <button
                 onClick={confirmClear}
                 className="rounded-lg border border-red-500 bg-red-500/15 px-6 py-2 text-sm font-bold text-red-400 hover:bg-red-500/25 transition-colors"
               >
-                Clear All
+                {t("btn_clear_all")}
               </button>
             </div>
           </div>

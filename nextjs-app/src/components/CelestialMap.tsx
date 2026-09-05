@@ -16,6 +16,7 @@ interface CelestialMapProps {
   targets: MapTarget[];
   centerRaHours: number | null;
   centerDecDeg: number | null;
+  fullscreen?: boolean;
 }
 
 interface SkyClick {
@@ -24,7 +25,7 @@ interface SkyClick {
   error: boolean;
 }
 
-export default function CelestialMap({ targets, centerRaHours, centerDecDeg }: CelestialMapProps) {
+export default function CelestialMap({ targets, centerRaHours, centerDecDeg, fullscreen }: CelestialMapProps) {
   const t = useTranslations();
   const initializedRef = useRef(false);
   const targetsRef = useRef<MapTarget[]>(targets);
@@ -36,6 +37,14 @@ export default function CelestialMap({ targets, centerRaHours, centerDecDeg }: C
   useEffect(() => {
     targetsRef.current = targets;
   }, [targets]);
+
+  // Trigger resize when fullscreen changes so d3-celestial adapts to new container size.
+  useEffect(() => {
+    if (initializedRef.current && typeof window !== "undefined" && window.Celestial) {
+      window.dispatchEvent(new Event("resize"));
+      (window.Celestial as { redraw: () => void }).redraw();
+    }
+  }, [fullscreen, ready]);
 
   // Init (once) or smoothly rotate to the new center (subsequent constellation switches).
   useEffect(() => {
@@ -140,10 +149,10 @@ export default function CelestialMap({ targets, centerRaHours, centerDecDeg }: C
   const [interactive, setInteractive] = useState(false);
 
   return (
-    <div className="relative w-full">
+    <div className={`relative w-full ${fullscreen ? "h-full min-h-0" : ""}`}>
       <div
         id={CELESTIAL_MAP_CONTAINER_ID}
-        className={`relative h-[340px] sm:h-[380px] lg:h-[400px] max-h-[46vh] w-full overflow-hidden rounded-xl bg-[#0a0f1c] border border-white/10 ${interactive ? "pointer-events-auto" : "pointer-events-none select-none"}`}
+        className={`relative overflow-hidden rounded-xl bg-[#0a0f1c] border border-white/10 ${interactive ? "pointer-events-auto touch-none" : "pointer-events-none select-none"} ${fullscreen ? "h-full min-h-0" : "h-[340px] sm:h-[380px] lg:h-[400px] max-h-[46vh] w-full"}`}
       >
         {!ready && (
           <div className="absolute inset-0 flex items-center justify-center text-sm text-zinc-500">

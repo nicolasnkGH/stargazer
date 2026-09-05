@@ -1,6 +1,7 @@
 "use client";
 
 import React from "react";
+import { useTranslations } from "next-intl";
 import Icon from "./Icon";
 import SourceTooltip from "./SourceTooltip";
 import type { AuroraForecast, SpaceWeatherReport } from "@/types";
@@ -18,8 +19,21 @@ const KP_COLORS: Record<string, string> = {
 };
 
 export default function AuroraCard({ aurora, spaceWeather }: AuroraCardProps) {
+  const t = useTranslations();
   const kp = aurora?.kp ?? 2.3;
-  const probabilityLabel = aurora?.probability ?? "Low";
+  const rawProb = aurora?.probability ?? "Low";
+  const PROB_FALLBACKS: Record<string, string> = {
+    Low: "Low",
+    Moderate: "Moderate",
+    High: "High",
+  };
+  const probKeyMap: Record<string, string> = {
+    Low: "prob_low",
+    Moderate: "prob_moderate",
+    High: "prob_high",
+  };
+  const probKey = probKeyMap[rawProb] ?? "prob_low";
+  const probabilityLabel = t.has(probKey) ? t(probKey) : (PROB_FALLBACKS[rawProb] ?? rawProb);
   const ringColor = KP_COLORS[aurora?.color ?? "gray"] ?? KP_COLORS.gray;
   const kpPct = Math.min((kp / 9) * 100, 100);
   const events = spaceWeather?.events ?? [];
@@ -40,19 +54,19 @@ export default function AuroraCard({ aurora, spaceWeather }: AuroraCardProps) {
         <div className="flex items-center gap-2">
           <Icon name="zap" className="h-5 w-5 text-purple-400" />
           <div>
-            <h2 className="text-base font-bold text-slate-100 tracking-wide">Aurora &amp; Space Weather</h2>
+            <h2 className="text-base font-bold text-slate-100 tracking-wide">{t("aurora_title")}</h2>
             <p className="text-[0.7rem] text-slate-400 mt-0.5">
-              Data powered by{" "}
+              {t("powered_by_noaa")}{" "}
               <a href="https://www.swpc.noaa.gov/" target="_blank" rel="noopener noreferrer" className="text-purple-400 hover:underline">
-                NOAA Space Weather Prediction Center
+                NOAA SWPC
               </a>
             </p>
           </div>
         </div>
         <SourceTooltip
           source="NOAA SWPC & NASA DONKI"
-          description="Real-time planetary geomagnetic activity (Kp-index), solar wind speed, interplanetary magnetic field (Bt/Bz), coronal mass ejections (CMEs), and geomagnetic storm alerts directly from NOAA and NASA."
-          attribution="NOAA SWPC / NASA DONKI"
+          description={t("source_aurora_desc")}
+          attribution={t("source_aurora_attr")}
         />
       </div>
 
@@ -60,7 +74,7 @@ export default function AuroraCard({ aurora, spaceWeather }: AuroraCardProps) {
       <div className="card-body p-6 grid grid-cols-1 sm:grid-cols-3 gap-4">
         {/* Kp-Index meter */}
         <div className="flex flex-col items-center justify-center rounded-2xl border border-white/10 bg-slate-950/70 p-5 text-center shadow-md backdrop-blur-sm">
-          <h3 className="text-xs font-semibold text-slate-400 mb-3 uppercase tracking-wider">Planetary Kp-Index</h3>
+          <h3 className="text-xs font-semibold text-slate-400 mb-3 uppercase tracking-wider">{t("kp_index")}</h3>
           <div
             className="relative h-[120px] w-[120px] rounded-full flex items-center justify-center shadow-[0_0_15px_rgba(168,85,247,0.2)]"
             style={{
@@ -73,7 +87,7 @@ export default function AuroraCard({ aurora, spaceWeather }: AuroraCardProps) {
             </div>
           </div>
           <p className="text-xs text-slate-300 mt-3 leading-snug font-medium">
-            {aurora?.message ?? `Kp ${kp}: Low probability of Auroras`}
+            {t.has("kp_status_msg") ? t("kp_status_msg", { kp, probability: probabilityLabel }) : `Kp ${kp}: ${probabilityLabel}`}
           </p>
         </div>
 
@@ -81,7 +95,7 @@ export default function AuroraCard({ aurora, spaceWeather }: AuroraCardProps) {
         <div className="flex flex-col justify-between rounded-2xl border border-white/10 bg-slate-950/70 p-5 shadow-md backdrop-blur-sm">
           <div>
             <h3 className="flex items-center gap-1.5 text-xs font-semibold text-slate-400 mb-3 uppercase tracking-wider">
-              <Icon name="sparkles" className="h-4 w-4 text-purple-400" /> Aurora Visibility
+              <Icon name="sparkles" className="h-4 w-4 text-purple-400" /> {t("aurora_visibility")}
             </h3>
             <div className="flex items-baseline gap-2">
               <span className="text-4xl font-extrabold text-purple-300 leading-none">{probabilityLabel}</span>
@@ -94,9 +108,9 @@ export default function AuroraCard({ aurora, spaceWeather }: AuroraCardProps) {
             </div>
           </div>
           <p className="text-xs text-slate-300 mt-4 leading-relaxed">
-            {probabilityLabel === "Low"
-              ? "Aurora is unlikely to be visible at your current latitude."
-              : "Elevated geomagnetic activity — auroras may be visible toward the pole-facing horizon."}
+            {rawProb === "Low"
+              ? (t.has("aurora_unlikely") ? t("aurora_unlikely") : "Very low probability of aurora activity at your latitude.")
+              : (t.has("aurora_elevated") ? t("aurora_elevated") : "Elevated aurora activity detected. Check your northern horizon!")}
           </p>
         </div>
 
@@ -104,11 +118,11 @@ export default function AuroraCard({ aurora, spaceWeather }: AuroraCardProps) {
         <div className="flex flex-col justify-between rounded-2xl border border-white/10 bg-slate-950/70 p-5 shadow-md backdrop-blur-sm">
           <div>
             <h3 className="flex items-center gap-1.5 text-xs font-semibold text-slate-400 mb-3 uppercase tracking-wider">
-              <Icon name="alert-triangle" className="h-4 w-4 text-amber-400" /> Space Weather Alerts
+              <Icon name="alert-triangle" className="h-4 w-4 text-amber-400" /> {t("space_weather_alerts")}
             </h3>
             <div className="flex flex-col gap-2 max-h-[140px] overflow-y-auto pr-1">
               {events.length === 0 ? (
-                <p className="text-xs text-slate-400 text-center py-6">No active space weather alerts.</p>
+                <p className="text-xs text-slate-400 text-center py-6">{t("no_active_alerts")}</p>
               ) : (
                 events.map((e, i) => (
                   <div key={i} className="rounded-xl bg-amber-950/40 border border-amber-500/30 p-2.5">

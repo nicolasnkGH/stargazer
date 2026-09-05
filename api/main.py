@@ -39,9 +39,13 @@ from engine import (
     NEARBY_TARGETS,
 )
 from engine.cache import get_cache, set_cache
+from engine.ai_translate import (
+    translate_seeing, translate_moon, translate_planets,
+    translate_targets, translate_apod, translate_bortle
+)
 from engine.push import save_subscription, broadcast_notification, PUSH_AVAILABLE, VAPID_PUBLIC_KEY
 from engine.scheduler import start_scheduler, stop_scheduler
-from config import LATITUDE, LONGITUDE, BORTLE_CLASS, TELESCOPE_APERTURE_MM, ELEVATION_M
+from config import LATITUDE, LONGITUDE, BORTLE_CLASS, TELESCOPE_APERTURE_MM, ELEVATION_M, NASA_APOD_KEY
 from fastapi import Request
 
 def _is_allowed_origin(origin: str) -> bool:
@@ -220,8 +224,8 @@ def get_moon():
 
 
 @app.get("/nasa/apod")
-def get_apod():
-    cache_key = "nasa_apod"
+def get_apod(lang: str = Query("en")):
+    cache_key = f"nasa_apod_{lang}"
     cached = get_cache(cache_key)
     if cached and isinstance(cached, dict) and cached.get("url"):
         return JSONResponse(content=cached)
@@ -236,7 +240,8 @@ def get_apod():
         "copyright": "© Gwenaël Blanck",
     }
 
-    api_key = os.getenv("NASA_API_KEY", "DEMO_KEY")
+    result = fallback
+    api_key = NASA_APOD_KEY or os.getenv("NASA_APOD_KEY", "DEMO_KEY")
     url = f"https://api.nasa.gov/planetary/apod?api_key={api_key}"
     try:
         req = urllib.request.Request(url)
@@ -252,12 +257,14 @@ def get_apod():
                     "media_type": data.get("media_type", "image"),
                     "copyright": data.get("copyright", fallback["copyright"]),
                 }
-                set_cache(cache_key, result, ttl_seconds=86400)
-                return JSONResponse(content=result)
     except Exception as e:
         print(f"APOD fetch error: {e}")
     
-    return JSONResponse(content=fallback)
+    if lang and lang.lower() != "en":
+        result = translate_apod(result, lang)
+
+    set_cache(cache_key, result, ttl_seconds=86400)
+    return JSONResponse(content=result)
 @app.get("/nasa/space-weather")
 def get_space_weather():
     """NASA DONKI space weather events (CME + geomagnetic storms) — last 3 days, cached 3h."""
@@ -363,12 +370,16 @@ def get_aurora(lat: Optional[float] = None):
 def get_bortle(
     lat: Annotated[Optional[float], AfterValidator(validate_latitude)] = Query(None),
     lon: Annotated[Optional[float], AfterValidator(validate_longitude)] = Query(None),
+    lang: str = Query("en"),
 ):
     """Estimate Bortle light pollution class from coordinates."""
     try:
         use_lat = lat if lat is not None else float(LATITUDE)
         use_lon = lon if lon is not None else float(LONGITUDE)
-        return get_bortle_info(lat=use_lat, lon=use_lon)
+        info = get_bortle_info(lat=use_lat, lon=use_lon)
+        if lang and lang.lower() != "en":
+            info = translate_bortle(info, lang)
+        return info
     except Exception as e:
         return JSONResponse(status_code=500, content={"error": "Internal server error"})
 
@@ -529,10 +540,14 @@ def monthly(
 def moon(
     lat: Annotated[Optional[float], AfterValidator(validate_latitude)] = Query(None),
     lon: Annotated[Optional[float], AfterValidator(validate_longitude)] = Query(None),
+    lang: str = Query("en"),
 ):
     """Current moon phase and rise/set times."""
     try:
-        return get_moon_info(lat=lat, lon=lon)
+        info = get_moon_info(lat=lat, lon=lon)
+        if lang and lang.lower() != "en":
+            info = translate_moon(info, lang)
+        return info
     except Exception as e:
         return JSONResponse(status_code=500, content={"error": "Internal server error"})
 
@@ -540,10 +555,14 @@ def moon(
 def planets(
     lat: Annotated[Optional[float], AfterValidator(validate_latitude)] = Query(None),
     lon: Annotated[Optional[float], AfterValidator(validate_longitude)] = Query(None),
+    lang: str = Query("en"),
 ):
     """All planets with current altitude/azimuth."""
     try:
-        return {"planets": get_planet_positions(lat=lat, lon=lon)}
+        p_list = get_planet_positions(lat=lat, lon=lon)
+        if lang and lang.lower() != "en":
+            p_list = translate_planets(p_list, lang)
+        return {"planets": p_list}
     except Exception as e:
         return JSONResponse(status_code=500, content={"error": "Internal server error"})
 
@@ -569,10 +588,11 @@ def iss(
 def seeing(
     lat: Annotated[Optional[float], AfterValidator(validate_latitude)] = Query(None),
     lon: Annotated[Optional[float], AfterValidator(validate_longitude)] = Query(None),
+    lang: str = Query("en"),
 ):
     """Astronomical seeing forecast (cloud cover, wind, visibility) - Rule Based Only."""
     try:
-        return get_seeing_forecast(lat=lat, lon=lon, ai_enabled=False)
+        return get_seeing_forecast(lat=lat, lon=lon, ai_enabled=False, lang=lang)
     except Exception as e:
         return JSONResponse(status_code=500, content={"error": "Internal server error"})
 
@@ -596,6 +616,7 @@ def targets(
     visible_only: bool = Query(default=False, description="Only return currently visible targets"),
     type_filter: str = Query(default="all", description="Filter by type: all, globular, open, star, double, nebula"),
     bortle: Optional[int] = Query(None, ge=1, le=9, description="Bortle Class (1-9) for light pollution filtering"),
+    lang: str = Query("en"),
 ):
     """Full Target database filtered by constellation."""
     try:
@@ -606,6 +627,8 @@ def targets(
         if type_filter != "all":
             all_targets = [t for t in all_targets
                            if type_filter.lower() in t.get("type", "").lower()]
+        if lang and lang.lower() != "en":
+            all_targets = translate_targets(all_targets, lang)
         return {
             "total": len(all_targets),
             "bortle": BORTLE_CLASS,

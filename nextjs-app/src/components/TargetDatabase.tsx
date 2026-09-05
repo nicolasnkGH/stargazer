@@ -32,10 +32,10 @@ const TYPE_OPTIONS = [
 ] as const;
 
 const SORT_OPTIONS = [
-  { value: "default", label: "Default" },
-  { value: "visibility", label: "🔭 In View Now First" },
-  { value: "magnitude", label: "✨ Brightest First" },
-  { value: "name", label: "🔤 Name (A–Z)" },
+  { value: "default", key: "sort_default" },
+  { value: "visibility", key: "sort_visibility" },
+  { value: "magnitude", key: "sort_magnitude" },
+  { value: "name", key: "sort_name" },
 ] as const;
 
 function matchesEquipment(t: CatalogTarget, equip: string): boolean {
@@ -66,7 +66,7 @@ function matchesType(t: CatalogTarget, type: string, counts: GalleryCounts | und
 }
 
 export default function TargetDatabase() {
-  const translate = useTranslations();
+  const t = useTranslations();
 
   const [targets, setTargets] = useState<CatalogTarget[]>([]);
   const [loading, setLoading] = useState(true);
@@ -226,20 +226,20 @@ export default function TargetDatabase() {
           <Icon name="binoculars" className="h-5 w-5 text-sky-400" />
           <h2 className="text-base font-bold text-slate-100 tracking-wide">
             {filter === "Visible Now (My Sky)"
-              ? "🌟 All Targets Visible Now"
+              ? `🌟 ${t("target_visible_now_lbl")}`
               : filter === "All Constellations (Full DB)"
-              ? "🌌 All Targets (Full Database)"
-              : `✨ ${filter} Must-See Targets`}
+              ? `🌌 ${t("target_all_const_lbl")}`
+              : `✨ ${filter} ${t("targets_title_suffix")}`}
           </h2>
         </div>
         <div className="flex items-center gap-3">
           <SourceTooltip
             source="OpenNGC, Messier & Caldwell"
-            description="Comprehensive astronomical deep-sky target database combining OpenNGC, Messier, and Caldwell catalogs with real-time topocentric altitude, azimuth, Bortle visibility limits, and transit times."
+            description={t.has("source_desc_targets") ? t("source_desc_targets") : "Comprehensive astronomical deep-sky target database combining OpenNGC, Messier, and Caldwell catalogs with real-time topocentric altitude, azimuth, Bortle visibility limits, and transit times."}
             attribution="OpenNGC / SEDS Messier / Skyfield"
           />
           <span className="text-xs text-slate-400 font-mono">
-            Showing {visibleSubset.length} of {filteredTargets.length} targets
+            {t("target_showing_count", { count: visibleSubset.length, total: filteredTargets.length })}
           </span>
         </div>
       </div>
@@ -247,7 +247,7 @@ export default function TargetDatabase() {
       <div className="card-body p-6">
         {/* Equipment filter */}
         <div className="flex flex-wrap items-center gap-1.5 mb-3">
-          <span className="text-xs text-slate-400 font-semibold mr-1">Equipment:</span>
+          <span className="text-xs text-slate-400 font-semibold mr-1">{t("target_equipment_lbl")}</span>
           {EQUIPMENT_OPTIONS.map((o) => (
             <button
               key={o.value}
@@ -258,14 +258,14 @@ export default function TargetDatabase() {
                   : "bg-white/5 text-slate-400 border border-white/5 hover:bg-white/10 hover:text-slate-200"
               }`}
             >
-              {o.label}
+              {o.value === "all" ? t("filter_all") : o.label}
             </button>
           ))}
         </div>
 
         {/* Object Type filter */}
         <div className="flex flex-wrap items-center gap-1.5 mb-4">
-          <span className="text-xs text-slate-400 font-semibold mr-1">Object:</span>
+          <span className="text-xs text-slate-400 font-semibold mr-1">{t("target_object_lbl")}</span>
           {TYPE_OPTIONS.map((o) => (
             <button
               key={o.value}
@@ -276,7 +276,7 @@ export default function TargetDatabase() {
                   : "bg-white/5 text-slate-400 border border-white/5 hover:bg-white/10 hover:text-slate-200"
               }`}
             >
-              {translate(o.key)}
+              {t(o.key)}
             </button>
           ))}
         </div>
@@ -284,29 +284,29 @@ export default function TargetDatabase() {
         {/* Search & Sort Row */}
         <div className="flex flex-wrap items-center gap-3 mb-5 p-3 rounded-xl bg-slate-950/60 border border-white/10">
           <div className="flex items-center gap-2 min-w-[240px]">
-            <span className="text-xs text-slate-400 font-semibold">🔍 Search Constellation:</span>
+            <span className="text-xs text-slate-400 font-semibold">{t("target_search_const_lbl")}</span>
             <input
               type="text"
               value={nameQuery}
               onChange={(e) => setNameQuery(e.target.value)}
-              placeholder="Type constellation name..."
+              placeholder="..."
               className="rounded-lg bg-slate-900 border border-white/15 px-3 py-1.5 text-xs text-slate-100 placeholder:text-slate-500 outline-none w-full"
             />
           </div>
 
           <div className="flex items-center gap-2 min-w-[260px]">
-            <span className="text-xs text-slate-400 font-semibold">🎯 Filter Target Name:</span>
+            <span className="text-xs text-slate-400 font-semibold">{t("target_filter_name_lbl")}</span>
             <input
               type="text"
               value={nameQuery}
               onChange={(e) => setNameQuery(e.target.value)}
-              placeholder="Type object name (e.g. M31, Mars, Ring)..."
+              placeholder="e.g. M31, Mars, Ring..."
               className="rounded-lg bg-slate-900 border border-white/15 px-3 py-1.5 text-xs text-slate-100 placeholder:text-slate-500 outline-none w-full"
             />
           </div>
 
           <div className="flex items-center gap-2">
-            <span className="text-xs text-slate-400 font-semibold">↕ Sort:</span>
+            <span className="text-xs text-slate-400 font-semibold">{t("target_sort_lbl")}</span>
             <select
               value={sortVal}
               onChange={(e) => setSortVal(e.target.value)}
@@ -314,7 +314,7 @@ export default function TargetDatabase() {
             >
               {SORT_OPTIONS.map((o) => (
                 <option key={o.value} value={o.value}>
-                  {o.label}
+                  {t(o.key)}
                 </option>
               ))}
             </select>
@@ -325,7 +325,7 @@ export default function TargetDatabase() {
         <div className="relative mb-5 border-b border-white/10 pb-4">
           <div className="flex items-center justify-between mb-2">
             <span className="text-xs text-slate-400 font-semibold flex items-center gap-1.5">
-              <span>🌌</span> Constellation Filter:
+              <span>🌌</span> {t("target_const_filter_lbl")}
             </span>
             {/* Scroll Navigation Arrows */}
             <div className="flex items-center gap-1">
@@ -337,7 +337,7 @@ export default function TargetDatabase() {
               >
                 ‹
               </button>
-              <span className="text-[0.62rem] font-mono text-zinc-500 px-1 select-none">Swipe / Scroll</span>
+              <span className="text-[0.62rem] font-mono text-zinc-500 px-1 select-none">{t("target_swipe_scroll")}</span>
               <button
                 onClick={() => scrollPills("right")}
                 className="h-6 w-6 rounded-md bg-white/5 border border-white/10 text-zinc-400 hover:text-white hover:bg-white/10 flex items-center justify-center text-xs font-bold transition-all active:scale-95 cursor-pointer"
@@ -365,7 +365,7 @@ export default function TargetDatabase() {
                   : "border-white/10 bg-white/5 text-slate-400 hover:text-slate-200"
               }`}
             >
-              🌟 Visible Now (My Sky)
+              🌟 {t("target_visible_now_lbl")}
             </button>
 
             <button
@@ -376,7 +376,7 @@ export default function TargetDatabase() {
                   : "border-white/10 bg-white/5 text-slate-400 hover:text-slate-200"
               }`}
             >
-              🌌 All Constellations (Full DB)
+              🌌 {t("target_all_const_lbl")}
             </button>
 
             {CONSTELLATION_FILTERS.slice(2).map((c) => (
@@ -397,7 +397,7 @@ export default function TargetDatabase() {
 
         <p className="text-xs text-slate-400 mb-5 italic flex items-center gap-1.5">
           <Icon name="telescope" className="h-3.5 w-3.5 text-cyan-400 flex-shrink-0" />
-          <span>Visibility depends on local sky conditions, light pollution, and your equipment. This database highlights the most prominent targets for amateur stargazers.</span>
+          <span>{t("target_notice")}</span>
         </p>
 
         {activeBortle && bortleInfo && (

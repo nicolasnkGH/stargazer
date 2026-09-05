@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { useTranslations } from "next-intl";
 import Icon from "./Icon";
 import { useAladinReady } from "@/hooks/useAladinReady";
 import { ALADIN_CONTAINER_ID } from "@/lib/constants";
@@ -15,6 +16,7 @@ interface FovModalProps {
 }
 
 export default function FovModal({ open, onClose, raDeg, decDeg, targetName }: FovModalProps) {
+  const t = useTranslations();
   const ready = useAladinReady(open);
   const [aladin, setAladin] = useState<AladinInstance | null>(null);
 
@@ -72,7 +74,7 @@ export default function FovModal({ open, onClose, raDeg, decDeg, targetName }: F
       <div className="w-full max-w-[650px] max-h-[90vh] overflow-y-auto rounded-xl border border-white/10 bg-[#0f172a] p-5">
         <h2 className="mb-4 flex items-center gap-2 text-lg font-semibold text-white">
           <Icon name="scan" className="h-5 w-5 text-purple-400" />
-          Interactive Sky Simulator: {targetName}
+          {t("fov_simulator_title", { targetName })}
         </h2>
 
         <div
@@ -155,9 +157,9 @@ export default function FovModal({ open, onClose, raDeg, decDeg, targetName }: F
               </svg>
 
               <div className="absolute bottom-3 left-3 bg-slate-950/80 border border-white/10 px-3 py-1.5 rounded-lg text-[0.7rem] text-zinc-400 font-mono flex flex-col gap-0.5 pointer-events-auto">
-                <span className="text-sky-300 font-bold">Simulator Loading...</span>
-                <span>Coordinates: {raDeg.toFixed(2)}° RA / {decDeg.toFixed(2)}° Dec</span>
-                <span>FOV: 1.50°</span>
+                <span className="text-sky-300 font-bold">{t("fov_simulator_loading")}</span>
+                <span>{t("fov_coordinates", { ra: raDeg.toFixed(2), dec: decDeg.toFixed(2) })}</span>
+                <span>{t("fov_label", { fov: "1.50" })}</span>
               </div>
             </div>
           )}
@@ -167,7 +169,7 @@ export default function FovModal({ open, onClose, raDeg, decDeg, targetName }: F
           onClick={handleClose}
           className="mt-4 w-full rounded-lg border border-white/10 bg-white/5 py-2 text-sm text-zinc-200 hover:bg-white/10 transition-colors"
         >
-          Close Simulator
+          {t("close_simulator")}
         </button>
       </div>
     </div>

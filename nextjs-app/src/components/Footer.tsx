@@ -58,7 +58,7 @@ export default async function Footer() {
             rel="noopener"
             className="inline-flex items-center gap-1 rounded-full border border-sky-500/30 bg-sky-500/10 px-2.5 py-1 text-xs font-medium text-sky-300 hover:bg-sky-500/20 transition-colors"
           >
-            Collaborate <Icon name="arrow-up-right" className="h-3 w-3" />
+            {t("btn_collaborate")} <Icon name="arrow-up-right" className="h-3 w-3" />
           </a>
         </div>
 
@@ -104,7 +104,7 @@ export default async function Footer() {
               {NAV_LINKS.map((link) => (
                 <li key={link.href}>
                   <a href={link.href} className="text-xs text-zinc-400 hover:text-zinc-200 transition-colors">
-                    {"label" in link ? link.label : t(link.key)}
+                    {"label" in link ? (link.label as string) : t(link.key, { defaultValue: link.key })}
                   </a>
                 </li>
               ))}
@@ -128,9 +128,9 @@ export default async function Footer() {
 
         {/* Bottom bar */}
         <div className="flex items-center justify-between pt-6 border-t border-white/5">
-          <span className="text-xs text-zinc-500">2026 Nicolas Teixeira. All rights reserved.</span>
+          <span className="text-xs text-zinc-500">{t("all_rights_reserved")}</span>
           <a href="#top" className="text-xs text-zinc-500 hover:text-zinc-300 transition-colors">
-            Back to top ↑
+            {t("nav_back_to_top")} ↑
           </a>
         </div>
       </div>

@@ -1,19 +1,10 @@
 "use client";
 
 import React, { useState } from "react";
+import { useTranslations } from "next-intl";
 import Icon from "./Icon";
 
 export const PREFLIGHT_STORAGE_KEY = "stargazer_preflight_checks";
-
-export const PREFLIGHT_ITEMS = [
-  { id: "scope", label: "Scope cooled to ambient temperature (30+ mins)" },
-  { id: "dark", label: "Bortle <= 6 or local light pollution managed" },
-  { id: "moon", label: "Moon phase < 70% or positioned away from target" },
-  { id: "dew", label: "Dew shield / heater turned on (dew spread < 5°C)" },
-  { id: "filters", label: "Appropriate visual / narrowband filters selected" },
-  { id: "power", label: "Battery / power supply fully charged" },
-  { id: "camera", label: "Camera sensor / eyepieces & memory card ready" },
-];
 
 export function usePreflightChecked() {
   const [checked, setChecked] = useState<Record<string, boolean>>(() => {
@@ -47,10 +38,11 @@ export function usePreflightChecked() {
     }
   };
 
-  const completedCount = PREFLIGHT_ITEMS.filter((it) => checked[it.id]).length;
-  const isAllDone = completedCount === PREFLIGHT_ITEMS.length;
+  const totalCount = 7;
+  const completedCount = Object.values(checked).filter(Boolean).length;
+  const isAllDone = completedCount === totalCount;
 
-  return { checked, toggle, reset, completedCount, totalCount: PREFLIGHT_ITEMS.length, isAllDone };
+  return { checked, toggle, reset, completedCount, totalCount, isAllDone };
 }
 
 export default function PreflightChecklistModal({
@@ -60,11 +52,22 @@ export default function PreflightChecklistModal({
   open: boolean;
   onClose: () => void;
 }) {
+  const t = useTranslations();
   const { checked, toggle, reset, completedCount, totalCount, isAllDone } = usePreflightChecked();
 
   if (!open) return null;
 
   const pct = Math.round((completedCount / totalCount) * 100);
+
+  const items = [
+    { id: "scope", label: t("preflight_item_scope") },
+    { id: "dark", label: t("preflight_item_dark") },
+    { id: "moon", label: t("preflight_item_moon") },
+    { id: "dew", label: t("preflight_item_dew") },
+    { id: "filters", label: t("preflight_item_filters") },
+    { id: "power", label: t("preflight_item_power") },
+    { id: "camera", label: t("preflight_item_camera") },
+  ];
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/75 backdrop-blur-sm animate-fadeIn">
@@ -75,8 +78,8 @@ export default function PreflightChecklistModal({
               <Icon name="check-square" className="h-5 w-5 text-green-400" />
             </div>
             <div>
-              <h2 className="text-base font-bold text-slate-100">Observing Pre-Flight Checklist</h2>
-              <p className="text-xs text-zinc-400">Standard field preparation routine</p>
+              <h2 className="text-base font-bold text-slate-100">{t("preflight_checklist_title")}</h2>
+              <p className="text-xs text-zinc-400">{t("preflight_subtitle")}</p>
             </div>
           </div>
           <button
@@ -90,9 +93,9 @@ export default function PreflightChecklistModal({
         {/* Progress Bar */}
         <div className="mb-5 bg-slate-900 rounded-xl p-3.5 border border-white/5">
           <div className="flex justify-between items-center text-xs mb-1.5 font-semibold">
-            <span className="text-zinc-300">Preparation Progress</span>
+            <span className="text-zinc-300">{t("prep_progress")}</span>
             <span className={isAllDone ? "text-green-400 font-bold" : "text-sky-400 font-mono"}>
-              {completedCount}/{totalCount} Completed ({pct}%)
+              {completedCount}/{totalCount} {t("lbl_completed")} ({pct}%)
             </span>
           </div>
           <div className="w-full h-2 bg-slate-800 rounded-full overflow-hidden">
@@ -103,14 +106,14 @@ export default function PreflightChecklistModal({
           </div>
           {isAllDone && (
             <p className="text-xs text-emerald-400 font-medium mt-2 flex items-center gap-1.5 animate-pulse">
-              <span>🚀</span> All systems verified — your telescope is ready to observe!
+              {t("preflight_all_ready")}
             </p>
           )}
         </div>
 
         {/* Checkbox List */}
         <div className="space-y-2 max-h-[60vh] overflow-y-auto pr-1">
-          {PREFLIGHT_ITEMS.map((c) => (
+          {items.map((c) => (
             <button
               key={c.id}
               type="button"
@@ -139,14 +142,14 @@ export default function PreflightChecklistModal({
             onClick={reset}
             className="text-xs text-zinc-500 hover:text-zinc-300 underline underline-offset-2 transition-colors"
           >
-            Reset checklist
+            {t("btn_reset_checklist")}
           </button>
           <button
             type="button"
             onClick={onClose}
             className="rounded-xl border border-sky-500/50 bg-sky-500/20 hover:bg-sky-500/30 px-5 py-2 text-xs font-semibold text-sky-200 transition-all active:scale-95"
           >
-            Done
+            {t("btn_done")}
           </button>
         </div>
       </div>

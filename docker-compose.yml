@@ -1,5 +1,3 @@
-version: "3.9"
-
 services:
   stargazer-api:
     build: ./api
@@ -16,7 +14,7 @@ services:
       - skyfield_data:/app/.skyfield
       - ./package.json:/app/package.json:ro
     healthcheck:
-      test: ["CMD", "curl", "-f", "http://localhost:8181/health"]
+      test: [ "CMD", "curl", "-f", "http://localhost:8181/health" ]
       interval: 30s
       timeout: 10s
       retries: 3
@@ -44,7 +42,7 @@ services:
     healthcheck:
       # Use 127.0.0.1 explicitly: busybox wget tries ::1 for "localhost" first
       # and the Next.js server only listens on IPv4.
-      test: ["CMD", "wget", "-q", "--spider", "http://127.0.0.1:3000/api/health"]
+      test: [ "CMD", "wget", "-q", "--spider", "http://127.0.0.1:3000/api/health" ]
       interval: 30s
       timeout: 10s
       retries: 3

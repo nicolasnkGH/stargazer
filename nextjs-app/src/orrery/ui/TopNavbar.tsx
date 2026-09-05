@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { useTranslations } from 'next-intl';
 import {
   Telescope,
   Moon,
@@ -19,6 +20,7 @@ interface TopNavbarProps {
 }
 
 export const TopNavbar: React.FC<TopNavbarProps> = ({ onSelectBody, selectedBody }) => {
+  const t = useTranslations();
   const [timeStr, setTimeStr] = useState<string>('');
   const [dateStr, setDateStr] = useState<string>('');
   const [searchQuery, setSearchQuery] = useState('');
@@ -107,7 +109,7 @@ export const TopNavbar: React.FC<TopNavbarProps> = ({ onSelectBody, selectedBody
           <button
             onClick={() => setIsSearchOpen(!isSearchOpen)}
             className="p-2 rounded-xl bg-white/5 hover:bg-cyan-500/10 border border-white/10 text-slate-300 hover:text-cyan-300 transition-colors"
-            title="Search Planets"
+            title={t("orrery_title_search")}
           >
             <Search className="w-4 h-4" />
           </button>
@@ -116,7 +118,7 @@ export const TopNavbar: React.FC<TopNavbarProps> = ({ onSelectBody, selectedBody
             <div className="absolute right-0 top-12 w-64 bg-slate-900/95 backdrop-blur-2xl border border-cyan-500/30 rounded-2xl p-3 shadow-2xl z-50">
               <input
                 type="text"
-                placeholder="Find planet or moon..."
+                placeholder={t("orrery_search_placeholder")}
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
                 className="w-full bg-slate-950/80 border border-slate-700 rounded-xl px-3 py-2 text-xs text-white placeholder-slate-500 focus:outline-none focus:border-cyan-400"

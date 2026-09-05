@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { useTranslations } from "next-intl";
 import Icon from "./Icon";
 import Modal from "./Modal";
 import { API_BASE } from "@/lib/constants";
@@ -25,6 +26,7 @@ async function fetchEntries(targetId: string): Promise<GalleryEntry[]> {
 }
 
 export default function GalleryModal({ targetId, targetName, open, onClose }: GalleryModalProps) {
+  const t = useTranslations();
   const [tab, setTab] = useState<Tab>("view");
   const [entries, setEntries] = useState<GalleryEntry[]>([]);
   const [loading, setLoading] = useState(true);
@@ -136,7 +138,7 @@ export default function GalleryModal({ targetId, targetName, open, onClose }: Ga
   }
 
   return (
-    <Modal open={open} onClose={onClose} title={`Gallery & Astro-Share: ${targetName}`}>
+    <Modal open={open} onClose={onClose} title={t("gallery_modal_title", { target: targetName })}>
       <div className="flex gap-1 mb-4">
         <button
           onClick={() => setTab("view")}
@@ -146,7 +148,7 @@ export default function GalleryModal({ targetId, targetName, open, onClose }: Ga
               : "bg-white/5 text-zinc-400 border border-white/5 hover:bg-white/10"
           }`}
         >
-          Shared Images 🖼️
+          {t("tab_shared_images")}
         </button>
         <button
           onClick={() => setTab("upload")}
@@ -156,7 +158,7 @@ export default function GalleryModal({ targetId, targetName, open, onClose }: Ga
               : "bg-white/5 text-zinc-400 border border-white/5 hover:bg-white/10"
           }`}
         >
-          Upload Photo 📤
+          {t("tab_upload_photo")}
         </button>
       </div>
 
@@ -169,11 +171,11 @@ export default function GalleryModal({ targetId, targetName, open, onClose }: Ga
       {tab === "view" && (
         <div className="flex flex-col gap-4 max-h-[380px] overflow-y-auto">
           {reportNotice && <p className="text-xs text-zinc-400">{reportNotice}</p>}
-          {loading && <p className="py-6 text-center text-sm text-zinc-400">Loading shared images...</p>}
-          {loadError && <p className="py-6 text-center text-sm text-red-400">Failed to load shared images.</p>}
+          {loading && <p className="py-6 text-center text-sm text-zinc-400">{t("loading_shared_images")}</p>}
+          {loadError && <p className="py-6 text-center text-sm text-red-400">{t("failed_load_images")}</p>}
           {!loading && !loadError && entries.filter((e) => !reportedIds.has(e.id)).length === 0 && (
             <p className="py-6 text-center text-sm text-zinc-400">
-              No photos shared for this object yet. Be the first to share!
+              {t("no_photos_shared")}
             </p>
           )}
           {entries
@@ -189,7 +191,7 @@ export default function GalleryModal({ targetId, targetName, open, onClose }: Ga
                   className="absolute top-2.5 right-2.5 z-10 rounded border border-red-500/40 bg-red-500/20 px-1.5 py-0.5 text-[0.65rem] text-red-300 hover:bg-red-500/30 transition-colors flex items-center gap-1"
                 >
                   <Icon name="flag" className="h-2.5 w-2.5" />
-                  Report
+                  {t("btn_report")}
                 </button>
                 <div className="flex max-h-[250px] items-center justify-center overflow-hidden rounded-md bg-black">
                   {/* eslint-disable-next-line @next/next/no-img-element */}
@@ -201,16 +203,16 @@ export default function GalleryModal({ targetId, targetName, open, onClose }: Ga
                 </div>
                 <div className="flex items-center gap-1.5 text-sm font-semibold text-zinc-100">
                   <Icon name="user" className="h-3.5 w-3.5 text-zinc-400" />
-                  Shared by: {entry.author}
+                  {t("lbl_shared_by")} {entry.author}
                 </div>
                 <div className="flex flex-col gap-0.5 text-xs text-zinc-400">
-                  <span>📍 Location: {entry.location}</span>
-                  <span>🔭 Gear Used: {entry.gear}</span>
-                  {entry.note && <span>📝 Note: {entry.note}</span>}
-                  <span>📅 Date: {entry.created_at}</span>
+                  <span>{t("lbl_location")} {entry.location}</span>
+                  <span>{t("lbl_gear_used")} {entry.gear}</span>
+                  {entry.note && <span>{t("lbl_note")} {entry.note}</span>}
+                  <span>📅 {t("lbl_date")} {entry.created_at}</span>
                 </div>
                 <div className="rounded-md border border-white/5 bg-black/20 p-2 text-xs text-zinc-300">
-                  <strong>💬 Comment:</strong> {entry.comment}
+                  <strong>{t("lbl_comment")}</strong> {entry.comment}
                 </div>
               </div>
             ))}
@@ -236,7 +238,7 @@ export default function GalleryModal({ targetId, targetName, open, onClose }: Ga
           <input
             type="text"
             required
-            placeholder="Your name"
+            placeholder={t("ph_your_name")}
             value={form.author}
             onChange={(e) => setForm((f) => ({ ...f, author: e.target.value }))}
             className="rounded-lg border border-white/10 bg-white/[0.03] px-3 py-2 text-sm text-zinc-200 placeholder:text-zinc-600 focus:outline-none focus:border-sky-500/40"
@@ -244,7 +246,7 @@ export default function GalleryModal({ targetId, targetName, open, onClose }: Ga
           <input
             type="text"
             required
-            placeholder="Location (e.g. Cherry Springs Park)"
+            placeholder={t("ph_location")}
             value={form.location}
             onChange={(e) => setForm((f) => ({ ...f, location: e.target.value }))}
             className="rounded-lg border border-white/10 bg-white/[0.03] px-3 py-2 text-sm text-zinc-200 placeholder:text-zinc-600 focus:outline-none focus:border-sky-500/40"
@@ -252,14 +254,14 @@ export default function GalleryModal({ targetId, targetName, open, onClose }: Ga
           <input
             type="text"
             required
-            placeholder="Gear (e.g. Celestron 130SLT, 25mm Eyepiece)"
+            placeholder={t("ph_gear")}
             value={form.gear}
             onChange={(e) => setForm((f) => ({ ...f, gear: e.target.value }))}
             className="rounded-lg border border-white/10 bg-white/[0.03] px-3 py-2 text-sm text-zinc-200 placeholder:text-zinc-600 focus:outline-none focus:border-sky-500/40"
           />
           <textarea
             required
-            placeholder="Comment"
+            placeholder={t("ph_comment")}
             rows={2}
             value={form.comment}
             onChange={(e) => setForm((f) => ({ ...f, comment: e.target.value }))}
@@ -267,7 +269,7 @@ export default function GalleryModal({ targetId, targetName, open, onClose }: Ga
           />
           <input
             type="text"
-            placeholder="Note (optional)"
+            placeholder={t("ph_note_optional")}
             value={form.note}
             onChange={(e) => setForm((f) => ({ ...f, note: e.target.value }))}
             className="rounded-lg border border-white/10 bg-white/[0.03] px-3 py-2 text-sm text-zinc-200 placeholder:text-zinc-600 focus:outline-none focus:border-sky-500/40"
@@ -280,7 +282,7 @@ export default function GalleryModal({ targetId, targetName, open, onClose }: Ga
             disabled={submitting}
             className="rounded-lg border border-sky-500/40 bg-sky-500/20 px-4 py-2 text-sm font-medium text-sky-300 transition-colors hover:bg-sky-500/30 disabled:opacity-50"
           >
-            {submitting ? "Verifying Safety & Uploading... ⏳" : "Submit for Safety Verification & Share 🚀"}
+            {submitting ? t("btn_submitting_share") : t("btn_submit_share")}
           </button>
         </form>
       )}
