@@ -35,7 +35,6 @@ export default async function OpengraphImage() {
           backgroundImage: `url(${starfieldSvg(size.width, size.height, 220)})`,
         }}
       >
-        {/* eslint-disable-next-line @next/next/no-img-element */}
         <img
           src={mascotSrc}
           width={260}

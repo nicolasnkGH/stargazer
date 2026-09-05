@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import useSWR from "swr";
 import { useTranslations } from "next-intl";
 import Icon from "./Icon";
@@ -73,10 +73,6 @@ export default function SeeingConditions({
   const t = useTranslations();
   const seeing = useAiSeeing(initialSeeing);
   const [checklistOpen, setChecklistOpen] = useState(false);
-  const [mounted, setMounted] = useState(false);
-  useEffect(() => {
-    setMounted(true);
-  }, []);
   const { completedCount, totalCount, isAllDone } = usePreflightChecked();
 
   if (!seeing) {
@@ -113,7 +109,7 @@ export default function SeeingConditions({
           <div className="flex items-center gap-2">
             <SourceTooltip
               source="Open-Meteo & ECMWF"
-              description={t.has("source_desc_seeing") ? t("source_desc_seeing") : "Atmospheric seeing score, transparency, cloud coverage, humidity, wind, and dew point calculated via Open-Meteo and European Centre for Medium-Range Weather Forecasts (ECMWF) data."}
+              description={t.has("source_desc_seeing") ? t("source_desc_seeing") : "Atmospheric seeing score, transparency, cloud coverage, humidity, wind, and dew point calculated via Open-Meteo..."}
               attribution="Open-Meteo / ECMWF"
             />
             <button
@@ -127,7 +123,7 @@ export default function SeeingConditions({
               title="Open Pre-Flight Checklist"
             >
               <Icon name="check-square" className={`h-3.5 w-3.5 ${isAllDone ? "text-green-400" : "text-zinc-400"}`} />
-              {mounted && <span className="text-[0.68rem]">{completedCount}/{totalCount}</span>}
+              <span suppressHydrationWarning className="text-[0.68rem]">{completedCount}/{totalCount}</span>
             </button>
           </div>
         </div>

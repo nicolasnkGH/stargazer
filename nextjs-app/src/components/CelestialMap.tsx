@@ -42,7 +42,7 @@ export default function CelestialMap({ targets, centerRaHours, centerDecDeg, ful
   useEffect(() => {
     if (initializedRef.current && typeof window !== "undefined" && window.Celestial) {
       window.dispatchEvent(new Event("resize"));
-      (window.Celestial as any).redraw();
+      (window.Celestial as { redraw: () => void }).redraw();
     }
   }, [fullscreen, ready]);
 
@@ -152,7 +152,7 @@ export default function CelestialMap({ targets, centerRaHours, centerDecDeg, ful
     <div className={`relative w-full ${fullscreen ? "h-full min-h-0" : ""}`}>
       <div
         id={CELESTIAL_MAP_CONTAINER_ID}
-        className={`relative overflow-hidden rounded-xl bg-[#0a0f1c] border border-white/10 ${interactive ? "pointer-events-auto touch-none" : "pointer-events-none select-none"} ${fullscreen ? "h-full min-h-0" : "h-[340px] sm:h-[380px] lg:h-[400px] max-h-[46vh] w-full"}`}
+        className={`relative overflow-hidden rounded-xl bg-[#0a0f1c] border border-white/10 ${interactive ? "pointer-events-auto touch-none" : "pointer-events-none select-none"} ${fullscreen ? "h-[...]`}
       >
         {!ready && (
           <div className="absolute inset-0 flex items-center justify-center text-sm text-zinc-500">
@@ -165,7 +165,7 @@ export default function CelestialMap({ targets, centerRaHours, centerDecDeg, ful
         <div className="absolute inset-0 z-10 flex flex-col items-center justify-center bg-slate-950/50 backdrop-blur-[2px] rounded-xl">
           <button
             onClick={() => setInteractive(true)}
-            className="flex items-center gap-2 rounded-full border border-sky-400/50 bg-slate-900/90 px-6 py-3 text-sm font-bold text-white shadow-[0_0_25px_rgba(56,189,248,0.4)] hover:scale-105 hover:border-sky-300 transition-all pointer-events-auto"
+            className="flex items-center gap-2 rounded-full border border-sky-400/50 bg-slate-900/90 px-6 py-3 text-sm font-bold text-white shadow-[0_0_25px_rgba(56,189,248,0.4)] hover:scale-105 [...]"
           >
             <span>✨ Click to interact</span>
           </button>
@@ -175,7 +175,7 @@ export default function CelestialMap({ targets, centerRaHours, centerDecDeg, ful
       {interactive && (
         <button
           onClick={() => setInteractive(false)}
-          className="absolute top-3 right-3 z-20 rounded-lg bg-slate-900/90 px-3 py-1.5 text-xs font-semibold text-cyan-300 border border-cyan-500/40 hover:bg-slate-800 transition-colors shadow-lg"
+          className="absolute top-3 right-3 z-20 rounded-lg bg-slate-900/90 px-3 py-1.5 text-xs font-semibold text-cyan-300 border border-cyan-500/40 hover:bg-slate-800 transition-colors shadow-l[...]"
         >
           🔒 Lock Map (Allow Page Scroll)
         </button>
