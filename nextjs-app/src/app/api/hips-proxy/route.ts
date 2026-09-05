@@ -28,7 +28,18 @@ export async function GET(req: NextRequest) {
       return Response.json({ error: "URL host is not allowed" }, { status: 400 });
     }
 
-    const res = await fetch(parsedUrl.toString(), {
+    if (parsedUrl.username || parsedUrl.password) {
+      return Response.json({ error: "URL must not include credentials" }, { status: 400 });
+    }
+
+    if (parsedUrl.port) {
+      return Response.json({ error: "URL port is not allowed" }, { status: 400 });
+    }
+
+    const safeUrl = new URL(parsedUrl.pathname + parsedUrl.search, `${parsedUrl.protocol}//${parsedUrl.hostname}`);
+
+    const res = await fetch(safeUrl.toString(), {
+      redirect: "error",
       headers: {
         "User-Agent": "StarGazer-Astronomy-Portal/3.2.0",
         Accept: "*/*",
