@@ -145,7 +145,8 @@ def _call_ai(payload: dict, timeout: int = 15) -> Optional[str]:
             if auth_header:
                 headers["Authorization"] = f"Bearer {auth_header}"
             parsed = urlparse(AI_API_URL)
-            if parsed.hostname and parsed.hostname.endswith("nick-t.net"):
+            host = (parsed.hostname or "").lower()
+            if host == "nick-t.net" or host.endswith(".nick-t.net"):
                 if CF_ACCESS_CLIENT_ID and CF_ACCESS_CLIENT_SECRET:
                     headers["CF-Access-Client-Id"] = CF_ACCESS_CLIENT_ID
                     headers["CF-Access-Client-Secret"] = CF_ACCESS_CLIENT_SECRET
