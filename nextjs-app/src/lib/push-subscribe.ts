@@ -34,7 +34,12 @@ export async function subscribeToPush(): Promise<void> {
   if (!subRes.ok) throw new Error("Failed to save subscription on the server.");
 }
 
-export async function sendTestPush(): Promise<void> {
+export async function sendTestPush(): Promise<{ sent: number; failed: number; total: number }> {
   const res = await fetch("/api/push/test", { method: "POST" });
-  if (!res.ok) throw new Error("Test push failed — no active subscriptions or push not configured.");
+  if (!res.ok) throw new Error("Test push failed — push is not configured on the server.");
+  const data = (await res.json()) as { sent: number; failed: number; total: number };
+  if (data.total === 0) {
+    throw new Error("No active subscriptions found. Please click 'Enable Notifications' first!");
+  }
+  return data;
 }

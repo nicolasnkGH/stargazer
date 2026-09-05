@@ -19,8 +19,8 @@ const serwist = new Serwist({
   navigationPreload: true,
   runtimeCaching: [
     {
-      matcher({ url }) {
-        return url.pathname.startsWith("/api/");
+      matcher({ url, request }) {
+        return request.method === "GET" && url.pathname.startsWith("/api/") && !url.pathname.startsWith("/api/push/");
       },
       handler: new StaleWhileRevalidate({
         cacheName: "stargazer-api-cache",
