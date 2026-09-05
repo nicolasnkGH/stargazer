@@ -128,8 +128,11 @@ docker compose up --build
 Opens at `http://localhost:3000` (Next.js frontend) and `http://localhost:8181` (Python API).
 
 ### 2. CI/CD Deployment Pipeline (`.github/workflows/pipeline.yml`)
-* Automatically runs Playwright E2E UI smoke tests, Next.js build verification, and Python Bandit security scans.
-* On merge to `main`, builds and deploys updated containers directly to **Google Cloud Run**.
+* **Validation & Testing**: Automatically executes Next.js build verification, `check:i18n` translation parity audits, Python `pytest` unit test suites, `pip-audit` security vulnerability scans, and Python `bandit` SAST scans.
+* **Keyless OIDC Authentication**: Uses **GCP Workload Identity Federation** (`google-github-actions/auth@v2` via `secrets.WIF_PROVIDER` & `vars.GCP_SA_EMAIL`) for secure, keyless authentication without stored service account JSON keys.
+* **Parallel Deployment Jobs**: Independently builds and deploys `stargazer-frontend` and `stargazer` (FastAPI backend) to **Google Cloud Run** using path filtering to skip unnecessary builds.
+* **Post-Deploy Health Verification**: Performs automated HTTP health checks against `/api/health` and `/health` with automatic retry logic before creating semver tags and releases.
+* **Web Push & VAPID Alerts**: Integrated VAPID EC key pair distribution and Web Push notification endpoints for real-time astronomical alerts.
 
 ---
 
