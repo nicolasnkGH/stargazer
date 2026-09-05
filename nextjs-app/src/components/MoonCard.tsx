@@ -117,6 +117,12 @@ function Moon3DWidget({ illumination_pct, phase_name }: { illumination_pct: numb
       };
       animate(performance.now());
 
+      const handleContextLost = (event: Event) => {
+        event.preventDefault();
+        setHasError(true);
+      };
+      renderer.domElement.addEventListener("webglcontextlost", handleContextLost);
+
       const resizeObserver = new ResizeObserver((entries) => {
         for (const entry of entries) {
           const { width, height } = entry.contentRect;
@@ -130,6 +136,7 @@ function Moon3DWidget({ illumination_pct, phase_name }: { illumination_pct: numb
 
       return () => {
         cancelAnimationFrame(rafId);
+        renderer.domElement.removeEventListener("webglcontextlost", handleContextLost);
         io.disconnect();
         resizeObserver.disconnect();
         document.removeEventListener("visibilitychange", onVisibilityChange);
@@ -150,17 +157,41 @@ function Moon3DWidget({ illumination_pct, phase_name }: { illumination_pct: numb
     const frac = Math.max(0, Math.min(100, illumination_pct)) / 100;
     return (
       <div className="w-full h-44 flex items-center justify-center p-4">
-        <div className="relative w-28 h-28 rounded-full bg-slate-900 border-2 border-amber-300/30 shadow-[0_0_25px_rgba(251,191,36,0.2)] flex items-center justify-center overflow-hidden">
+        <div className="relative w-32 h-32 rounded-full bg-slate-950 border border-amber-300/30 shadow-[0_0_30px_rgba(251,191,36,0.25)] flex items-center justify-center overflow-hidden">
           <svg viewBox="0 0 100 100" className="w-full h-full">
-            <circle cx="50" cy="50" r="48" fill="#0f172a" />
+            <defs>
+              <radialGradient id="moonDark" cx="30%" cy="30%" r="70%">
+                <stop offset="0%" stopColor="#1e293b" />
+                <stop offset="100%" stopColor="#020617" />
+              </radialGradient>
+              <radialGradient id="moonLit" cx="40%" cy="40%" r="60%">
+                <stop offset="0%" stopColor="#fef08a" />
+                <stop offset="70%" stopColor="#f59e0b" />
+                <stop offset="100%" stopColor="#d97706" />
+              </radialGradient>
+            </defs>
+            {/* Dark unilluminated moon disc */}
+            <circle cx="50%" cy="50%" r="48" fill="url(#moonDark)" />
+            
+            {/* Craters on dark side */}
+            <circle cx="35" cy="40" r="5" fill="#0f172a" opacity="0.6" />
+            <circle cx="65" cy="65" r="7" fill="#0f172a" opacity="0.6" />
+            <circle cx="45" cy="70" r="4" fill="#0f172a" opacity="0.5" />
+            <circle cx="30" cy="60" r="3" fill="#0f172a" opacity="0.5" />
+            
+            {/* Illuminated Phase path */}
             <path
               d={
                 isWaxing
-                  ? `M 50 2 A 48 48 0 0 1 50 98 A ${Math.abs(48 * (1 - 2 * frac))} 48 0 0 ${frac > 0.5 ? "1" : "0"} 50 2`
-                  : `M 50 2 A 48 48 0 0 0 50 98 A ${Math.abs(48 * (1 - 2 * frac))} 48 0 0 ${frac > 0.5 ? "0" : "1"} 50 2`
+                  ? `M 50 2 A 48 48 0 0 1 50 98 A ${Math.max(0.1, Math.abs(48 * (1 - 2 * frac)))} 48 0 0 ${frac > 0.5 ? "1" : "0"} 50 2`
+                  : `M 50 2 A 48 48 0 0 0 50 98 A ${Math.max(0.1, Math.abs(48 * (1 - 2 * frac)))} 48 0 0 ${frac > 0.5 ? "0" : "1"} 50 2`
               }
-              fill="#fef08a"
+              fill="url(#moonLit)"
             />
+
+            {/* Crater highlights on lit side */}
+            <circle cx="60" cy="35" r="4" fill="#ca8a04" opacity="0.4" />
+            <circle cx="70" cy="50" r="3" fill="#ca8a04" opacity="0.3" />
           </svg>
         </div>
       </div>

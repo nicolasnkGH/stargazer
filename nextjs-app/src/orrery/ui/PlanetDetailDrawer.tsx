@@ -117,6 +117,7 @@ export const PlanetDetailDrawer: React.FC<PlanetDetailDrawerProps> = ({
       <div className="flex justify-center py-2 relative">
         <div className="relative w-36 h-36 rounded-full flex items-center justify-center shadow-[0_0_40px_rgba(6,182,212,0.3)] overflow-hidden border border-white/10 group">
           {TEXTURE_MAP[planet.textureType] ? (
+            // eslint-disable-next-line @next/next/no-img-element
             <img
               src={TEXTURE_MAP[planet.textureType]}
               alt={displayName}

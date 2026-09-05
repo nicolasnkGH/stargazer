@@ -1,11 +1,11 @@
 "use client";
 
-import React, { useState, useEffect, useRef } from "react";
+import { useState, useRef, useEffect } from "react";
+import useSWR from "swr";
 import Icon from "./Icon";
 import SourceTooltip from "./SourceTooltip";
 import type { WeeklyReport } from "@/types";
 import { UNITS_STORAGE_KEY } from "@/lib/constants";
-
 import { useTranslations } from "next-intl";
 
 function RatingBadge({ rating }: { rating: string }) {
@@ -42,10 +42,62 @@ function StatusDot({ cloud_pct }: { cloud_pct: number }) {
   return <span className="h-2.5 w-2.5 rounded-full bg-red-400 shadow-[0_0_8px_rgba(248,113,113,0.8)]" title="Cloudy" />;
 }
 
-export default function WeeklyForecast({ report }: { report: WeeklyReport | null }) {
+const swrFetcher = (url: string) => fetch(url).then((res) => res.json());
+
+/** Read the active location's lat/lon from localStorage. Returns null until mounted. */
+function useActiveLocationCoords(): { lat: number; lon: number } | null {
+  const [coords, setCoords] = useState<{ lat: number; lon: number } | null>(null);
+
+  useEffect(() => {
+    function readCoords() {
+      try {
+        const activeId = localStorage.getItem("stargazer_active_loc");
+        const raw = localStorage.getItem("stargazer_locations");
+        if (raw) {
+          const locs: Array<{ id: string; lat: number; lon: number }> = JSON.parse(raw);
+          const active = activeId ? locs.find((l) => l.id === activeId) : locs[0];
+          if (active) {
+            setCoords({ lat: active.lat, lon: active.lon });
+            return;
+          }
+        }
+      } catch {
+        // ignore parse errors
+      }
+      setCoords(null);
+    }
+
+    readCoords();
+
+    // Re-read whenever another component changes location in localStorage (e.g. LocationModal)
+    window.addEventListener("storage", readCoords);
+    return () => window.removeEventListener("storage", readCoords);
+  }, []);
+
+  return coords;
+}
+
+export default function WeeklyForecast({ report: initialReport }: { report: WeeklyReport | null }) {
   const t = useTranslations();
   const [isMetric, setIsMetric] = useState(true);
   const scrollRef = useRef<HTMLDivElement>(null);
+
+  const coords = useActiveLocationCoords();
+
+  // Build a location-specific SWR key so the forecast refetches automatically when location changes.
+  // coords is null on first paint — fall back to no query params so the server-side
+  // initialReport is used immediately without a redundant fetch.
+  const swrKey = coords
+    ? `/api/weekly?lat=${coords.lat.toFixed(4)}&lon=${coords.lon.toFixed(4)}`
+    : "/api/weekly";
+
+  const { data: swrData } = useSWR<WeeklyReport>(
+    swrKey,
+    swrFetcher,
+    { fallbackData: initialReport ?? undefined, revalidateOnFocus: false }
+  );
+
+  const report = swrData || initialReport;
 
   const scrollDays = (dir: "left" | "right") => {
     if (scrollRef.current) {

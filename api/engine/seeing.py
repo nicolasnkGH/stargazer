@@ -514,13 +514,10 @@ def get_seeing_forecast(lat=None, lon=None, ai_enabled: bool = False, lang: str 
     url = (
         f"https://api.open-meteo.com/v1/forecast"
         f"?latitude={use_lat}&longitude={use_lon}"
-        # Surface
         f"&hourly=cloudcover,cloudcover_low,cloudcover_mid,cloudcover_high,"
         f"visibility,windspeed_10m,winddirection_10m,"
         f"precipitation_probability,temperature_2m,dewpoint_2m,"
-        f"relativehumidity_2m,surface_pressure"
-        # Upper atmosphere (jet stream proxy)
-        f"&hourly=windspeed_500hPa"
+        f"relativehumidity_2m,surface_pressure,windspeed_500hPa"
         f"&daily=sunrise,sunset,precipitation_sum"
         f"&timezone=auto&forecast_days=7"
     )

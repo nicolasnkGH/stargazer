@@ -1,6 +1,7 @@
 import Icon from "./Icon";
 import { getTranslations } from "next-intl/server";
 import { TECH_BADGES, API_SOURCES, NAV_LINKS, RESOURCES, STARGAZER_REPO_URL } from "@/lib/constants";
+import pkg from "../../package.json";
 
 const REPO = "nicolasnkGH/stargazer";
 
@@ -48,7 +49,7 @@ export default async function Footer() {
             rel="noopener"
             className="inline-flex items-center gap-1 rounded-full border border-green-500/30 bg-green-500/10 px-2.5 py-1 text-xs font-medium text-green-300 hover:bg-green-500/20 transition-colors"
           >
-            <Icon name="tag" className="h-3 w-3" /> {latestTag && latestTag >= "v3.2.0" ? latestTag : "v3.2.0"}
+            <Icon name="tag" className="h-3 w-3" /> {process.env.NEXT_PUBLIC_APP_VERSION || latestTag || `v${pkg.version}`}
           </a>
           <a
             href={`${STARGAZER_REPO_URL}/issues`}

@@ -20,6 +20,7 @@ export default function SolarSystemHero({ }: SolarSystemHeroProps) {
   const [zoomLevel, setZoomLevel] = useState<number>(6);
   const [panOffset, setPanOffset] = useState<{ x: number; y: number }>({ x: 0, y: 0 });
   const [resetCount, setResetCount] = useState<number>(0);
+  const [touchMode, setTouchMode] = useState<"scroll" | "orbit">("scroll");
 
   const handlePan = (dir: 'up' | 'down' | 'left' | 'right' | 'reset') => {
     const step = 6;
@@ -68,7 +69,34 @@ export default function SolarSystemHero({ }: SolarSystemHeroProps) {
         zoomLevel={zoomLevel}
         panOffset={panOffset}
         resetCount={resetCount}
+        touchMode={touchMode}
       />
+
+      {/* Mobile Touch Mode Switcher (Allows smooth page scroll vs 3D camera rotation) */}
+      <div className="absolute top-4 left-4 z-20 md:hidden flex items-center gap-1.5 bg-slate-950/80 border border-cyan-500/30 backdrop-blur-md rounded-full p-1 shadow-lg">
+        <button
+          type="button"
+          onClick={() => setTouchMode("scroll")}
+          className={`px-3 py-1 rounded-full text-[0.68rem] font-bold tracking-wide transition-all cursor-pointer ${
+            touchMode === "scroll"
+              ? "bg-cyan-500 text-slate-950 shadow-[0_0_10px_rgba(6,182,212,0.6)]"
+              : "text-zinc-400 hover:text-zinc-200"
+          }`}
+        >
+          📱 Scroll Page
+        </button>
+        <button
+          type="button"
+          onClick={() => setTouchMode("orbit")}
+          className={`px-3 py-1 rounded-full text-[0.68rem] font-bold tracking-wide transition-all cursor-pointer ${
+            touchMode === "orbit"
+              ? "bg-cyan-500 text-slate-950 shadow-[0_0_10px_rgba(6,182,212,0.6)]"
+              : "text-zinc-400 hover:text-zinc-200"
+          }`}
+        >
+          🔄 3D Orbit
+        </button>
+      </div>
 
       {/* Center Overview Title Overlay (Visible when no planet is selected) */}
       <CenterOverlay

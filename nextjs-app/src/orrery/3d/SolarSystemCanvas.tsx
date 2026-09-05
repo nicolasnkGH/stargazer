@@ -15,9 +15,10 @@ interface CameraControllerProps {
   zoomLevel: number;
   panOffset?: { x: number; y: number };
   resetCount?: number;
+  touchMode?: "scroll" | "orbit";
 }
 
-const CameraController: React.FC<CameraControllerProps> = ({ selectedBody, zoomLevel, panOffset, resetCount }) => {
+const CameraController: React.FC<CameraControllerProps> = ({ selectedBody, zoomLevel, panOffset, resetCount, touchMode = "scroll" }) => {
   const { camera } = useThree();
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const controlsRef = useRef<any>(null);
@@ -103,7 +104,7 @@ const CameraController: React.FC<CameraControllerProps> = ({ selectedBody, zoomL
       ref={controlsRef}
       enablePan
       enableZoom={false}
-      enableRotate
+      enableRotate={!(isMobile && touchMode === "scroll")}
       enableDamping
       dampingFactor={0.05}
       onStart={() => {
@@ -125,6 +126,7 @@ interface SolarSystemCanvasProps {
   zoomLevel: number;
   panOffset?: { x: number; y: number };
   resetCount?: number;
+  touchMode?: "scroll" | "orbit";
 }
 
 export const SolarSystemCanvas: React.FC<SolarSystemCanvasProps> = ({
@@ -135,6 +137,7 @@ export const SolarSystemCanvas: React.FC<SolarSystemCanvasProps> = ({
   zoomLevel,
   panOffset,
   resetCount,
+  touchMode = "scroll",
 }) => {
   const containerRef = useRef<HTMLDivElement>(null);
   const [isVisible, setIsVisible] = useState(true);
@@ -177,7 +180,7 @@ export const SolarSystemCanvas: React.FC<SolarSystemCanvasProps> = ({
       >
         <color attach="background" args={["#020617"]} />
 
-        <CameraController selectedBody={selectedBody} zoomLevel={zoomLevel} panOffset={panOffset} resetCount={resetCount} />
+        <CameraController selectedBody={selectedBody} zoomLevel={zoomLevel} panOffset={panOffset} resetCount={resetCount} touchMode={touchMode} />
         <SpaceBackground />
 
         {planetBodies.map((planet) => (
