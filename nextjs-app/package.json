@@ -7,7 +7,7 @@
     "build": "next build",
     "start": "next start",
     "lint": "eslint",
-    "check:i18n": "node scripts/check-translations.js"
+    "check:i18n": "node scripts/check-translations.mjs"
   },
   "dependencies": {
     "@react-three/drei": "^10.7.8",
@@ -41,7 +41,7 @@
   },
   "lint-staged": {
     "messages/**/*.json": [
-      "node scripts/check-translations.js"
+      "node scripts/check-translations.mjs"
     ]
   }
 }

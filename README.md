@@ -23,7 +23,7 @@
   - Introduced client-side `IntlProvider` wrapper and direct locale dictionary lookup to eliminate missing message warnings and prevent raw key leakage during Turbopack dynamic code generation.
   - Safe translation guards added for Aurora risk levels, planetary facts, and observation checklist items.
 - **🧪 Translation Integrity CLI & Git Hook Automation:**
-  - Added CLI check tool `npm run check:i18n` (`scripts/check-translations.js`) that diffs locale dictionary files against `en.json` and flags missing keys.
+  - Added CLI check tool `npm run check:i18n` (`scripts/check-translations.mjs`) that diffs locale dictionary files against `en.json` and flags missing keys.
   - Integrated Git pre-commit hooks to block commits if locale files become desynchronized.
 
 ---
