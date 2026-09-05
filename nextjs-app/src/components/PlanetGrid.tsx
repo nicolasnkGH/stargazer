@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useMemo, useRef } from "react";
+import { useEffect, useRef } from "react";
 import * as THREE from "three";
 import { OrbitControls } from "three/examples/jsm/controls/OrbitControls.js";
 import { useTranslations } from "next-intl";
@@ -107,7 +107,7 @@ function makePlanetBump(name: string): HTMLCanvasElement {
 function Planet3DCanvas({ name }: { name: string }) {
   const containerRef = useRef<HTMLDivElement>(null);
   const key = name.toLowerCase();
-  const cfg = useMemo(() => PLANET_CONFIGS[key] || {}, [key]);
+  const cfg = PLANET_CONFIGS[key];
 
   useEffect(() => {
     const container = containerRef.current;
@@ -140,7 +140,7 @@ function Planet3DCanvas({ name }: { name: string }) {
     scene.add(fillLight);
 
     const planetGroup = new THREE.Group();
-    if (cfg.tilt) {
+    if (cfg?.tilt) {
       planetGroup.rotation.z = THREE.MathUtils.degToRad(cfg.tilt);
     }
     scene.add(planetGroup);
@@ -151,13 +151,13 @@ function Planet3DCanvas({ name }: { name: string }) {
     let mat: THREE.Material;
     if (key === "sun") {
       mat = new THREE.MeshBasicMaterial({
-        map: cfg.texUrl ? texLoader.load(cfg.texUrl) : null,
+        map: cfg?.texUrl ? texLoader.load(cfg.texUrl) : null,
       });
     } else {
       mat = new THREE.MeshStandardMaterial({
-        map: cfg.texUrl ? texLoader.load(cfg.texUrl) : null,
+        map: cfg?.texUrl ? texLoader.load(cfg.texUrl) : null,
         bumpMap: new THREE.CanvasTexture(makePlanetBump(key)),
-        bumpScale: cfg.bumpScale ?? 0.01,
+        bumpScale: cfg?.bumpScale ?? 0.01,
         roughness: key === "venus" ? 0.9 : 0.7,
         metalness: 0.1,
       });
@@ -167,7 +167,7 @@ function Planet3DCanvas({ name }: { name: string }) {
     planetGroup.add(mesh);
 
     let ringMesh: THREE.Mesh | null = null;
-    if (cfg.hasRing) {
+    if (cfg?.hasRing) {
       const ringGeo = new THREE.RingGeometry(1.3, 2.2, 64);
       const pos = ringGeo.attributes.position;
       const uv = ringGeo.attributes.uv;
@@ -180,7 +180,7 @@ function Planet3DCanvas({ name }: { name: string }) {
       }
 
       const ringMat = new THREE.MeshStandardMaterial({
-        map: cfg.ringTex ? texLoader.load(cfg.ringTex) : null,
+        map: cfg?.ringTex ? texLoader.load(cfg.ringTex) : null,
         side: THREE.DoubleSide,
         transparent: true,
         opacity: 0.85,
@@ -206,7 +206,7 @@ function Planet3DCanvas({ name }: { name: string }) {
     const FPS_INTERVAL = 1000 / 30;
     let rafId = 0;
     let lastT = 0;
-    const speed = cfg.rotSpeed ?? 0.003;
+    const speed = cfg?.rotSpeed ?? 0.003;
     const animate = (t: number) => {
       rafId = requestAnimationFrame(animate);
       if (!visible || !pageVisible) return;
@@ -240,7 +240,7 @@ function Planet3DCanvas({ name }: { name: string }) {
     };
   }, [key, cfg]);
 
-  const bgStyle = cfg.radialGlow
+  const bgStyle = cfg?.radialGlow
     ? { background: cfg.radialGlow }
     : { background: "radial-gradient(circle at center, rgba(56,189,248,0.2) 0%, transparent 70%)" };
 
