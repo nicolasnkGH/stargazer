@@ -65,6 +65,11 @@ function matchesType(t: CatalogTarget, type: string, counts: GalleryCounts | und
   return true;
 }
 
+function isStarTarget(target: CatalogTarget): boolean {
+  const targetType = target.type?.toLowerCase() ?? "";
+  return targetType.includes("star") && !targetType.includes("cluster");
+}
+
 export default function TargetDatabase() {
   const locale = useLocale();
   const messages = (useMessages() as Record<string, string>) || {};
@@ -501,6 +506,7 @@ export default function TargetDatabase() {
           raDeg={fovTarget.ra_hours * 15}
           decDeg={fovTarget.dec_degrees}
           targetName={fovTarget.name}
+          isStarTarget={isStarTarget(fovTarget)}
         />
       )}
     </section>

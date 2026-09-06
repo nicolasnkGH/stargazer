@@ -9,9 +9,12 @@ interface EyepieceSimulationProps {
   magnification: number;
   seeingSim: boolean;
   eyepieceFov: number;
+  isStarTarget?: boolean;
 }
 
-const PLANET_CONFIGS: Record<string, { texture: string; radius: number; tilt: number; rotPeriodHours: number }> = {
+type PlanetConfig = { texture: string; radius: number; tilt: number; rotPeriodHours: number };
+
+const PLANET_CONFIGS: Record<string, PlanetConfig> = {
   sun:     { texture: "/textures/2k_sun.jpg",           radius: 1.0,  tilt: 7.25,   rotPeriodHours: 600    },
   mercury: { texture: "/textures/mercury.jpg",           radius: 0.38, tilt: 0.03,   rotPeriodHours: 1407   },
   venus:   { texture: "/textures/venus.jpg",             radius: 0.95, tilt: 177.3,  rotPeriodHours: -5832  },
@@ -23,6 +26,21 @@ const PLANET_CONFIGS: Record<string, { texture: string; radius: number; tilt: nu
   uranus:  { texture: "/textures/uranus.jpg",            radius: 1.1,  tilt: 97.77,  rotPeriodHours: -17.24 },
   neptune: { texture: "/textures/neptune.jpg",           radius: 1.05, tilt: 28.32,  rotPeriodHours: 16.11  },
 };
+
+/** Star configuration fallback - glowing sphere for non-planet targets */
+const STAR_CONFIG: PlanetConfig = {
+  texture: "",
+  radius: 0.45,
+  tilt: 0,
+  rotPeriodHours: 24,
+};
+
+/** Get config by key - preserve Jupiter fallback for unsupported names unless explicitly marked as a star target. */
+function getConfig(key: string, isStarTarget: boolean): PlanetConfig {
+  const planetConfig = PLANET_CONFIGS[key];
+  if (planetConfig) return planetConfig;
+  return isStarTarget ? STAR_CONFIG : PLANET_CONFIGS.jupiter;
+}
 
 /** Ephemeris calculation for Galilean Moons (days per orbit, relative distance in radii) */
 const JUPITER_MOONS = [
@@ -47,10 +65,12 @@ export const EyepieceSimulation: React.FC<EyepieceSimulationProps> = ({
   magnification,
   seeingSim,
   eyepieceFov,
+  isStarTarget = false,
 }) => {
   const containerRef = useRef<HTMLDivElement>(null);
   const key = normalizePlanetKey(targetName);
-  const cfg = PLANET_CONFIGS[key] || PLANET_CONFIGS["jupiter"];
+  const cfg = getConfig(key, isStarTarget);
+  const isStar = isStarTarget;
   const [hasError, setHasError] = useState(false);
 
   useEffect(() => {
@@ -109,25 +129,40 @@ export const EyepieceSimulation: React.FC<EyepieceSimulationProps> = ({
       sunLight.position.set(-20, 10, 35);
       scene.add(sunLight);
 
-      // Target Planet Mesh — reduced segments (32 vs 64): 4x fewer vertices, imperceptible at card size
-      const planetGeo = new THREE.SphereGeometry(cfg.radius, 32, 32);
+      // Target Mesh (Planet or Star) - reduced segments for performance
+      let planetGeo: THREE.SphereGeometry;
+      let planetMat: THREE.Material;
       const texLoader = new THREE.TextureLoader();
-      const texture = texLoader.load(cfg.texture, undefined, undefined, () => setHasError(true));
-      texture.colorSpace = THREE.SRGBColorSpace;
 
-      const planetMat = new THREE.MeshStandardMaterial({
-        map: texture,
-        roughness: 0.8,
-        metalness: 0.1,
-      });
+      if (isStar) {
+        // Star: bright emissive point-like sphere (no texture)
+        planetGeo = new THREE.SphereGeometry(cfg.radius, 24, 24);
+        planetMat = new THREE.MeshStandardMaterial({
+          color: 0xffffff,
+          emissive: 0x8899ff,
+          emissiveIntensity: 2.2,
+          roughness: 0.15,
+          metalness: 0,
+        });
+      } else {
+        // Planet: texture-based sphere
+        planetGeo = new THREE.SphereGeometry(cfg.radius, 32, 32);
+        const texture = texLoader.load(cfg.texture, undefined, undefined, () => setHasError(true));
+        texture.colorSpace = THREE.SRGBColorSpace;
+        planetMat = new THREE.MeshStandardMaterial({
+          map: texture,
+          roughness: 0.8,
+          metalness: 0.1,
+        });
+      }
 
       const planetMesh = new THREE.Mesh(planetGeo, planetMat);
       planetMesh.rotation.z = THREE.MathUtils.degToRad(cfg.tilt);
       scene.add(planetMesh);
 
-      // Saturn Rings
+      // Saturn Rings - planets only
       let ringMesh: THREE.Mesh | null = null;
-      if (key === "saturn") {
+      if (!isStar && key === "saturn") {
         const ringGeo = new THREE.RingGeometry(cfg.radius * 1.35, cfg.radius * 2.3, 48);
         const pos = ringGeo.attributes.position;
         const uv = ringGeo.attributes.uv;
@@ -246,14 +281,21 @@ export const EyepieceSimulation: React.FC<EyepieceSimulationProps> = ({
         document.removeEventListener("visibilitychange", onVisibilityChange);
         renderer.domElement.removeEventListener("webglcontextlost", handleContextLost);
         renderer.dispose();
-        planetGeo.dispose();
-        planetMat.dispose();
-        starGeo.dispose();
-        starMat.dispose();
-        if (ringMesh) {
-          ringMesh.geometry.dispose();
-          (ringMesh.material as THREE.Material).dispose();
+        
+        if (isStar) {
+          // Clean up star wireframe
+          planetGeo.dispose();
+          planetMat.dispose();
+        } else {
+          // Clean up planet texture and rings
+          planetGeo.dispose();
+          planetMat.dispose();
+          if (ringMesh) {
+            ringMesh.geometry.dispose();
+            (ringMesh.material as THREE.Material).dispose();
+          }
         }
+        
         moonMeshes.forEach(({ mesh }) => {
           mesh.geometry.dispose();
           (mesh.material as THREE.Material).dispose();
@@ -263,32 +305,44 @@ export const EyepieceSimulation: React.FC<EyepieceSimulationProps> = ({
       console.warn("Eyepiece WebGL init failed, fallback to 2D optical disc:", err);
       setTimeout(() => setHasError(true), 0);
     }
-  }, [targetName, magnification, seeingSim, eyepieceFov, cfg, key]);
+  }, [targetName, magnification, seeingSim, eyepieceFov, cfg, isStar, key]);
 
   if (hasError) {
     const scale = magnification / 120;
     return (
       <div className="relative w-full h-full flex items-center justify-center bg-[#010206] rounded-full overflow-hidden">
-        <div
-          className="relative rounded-full bg-cover bg-center border border-white/30 shadow-[0_0_20px_rgba(255,255,255,0.2)] transition-transform duration-300"
-          style={{
-            width: `${Math.max(12, Math.min(80, 24 * scale))}px`,
-            height: `${Math.max(12, Math.min(80, 24 * scale))}px`,
-            backgroundImage: `url(${cfg.texture})`,
-          }}
-        >
-          {key === "saturn" && (
-            <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
-              <div
-                className="rounded-full border-[1.5px] border-amber-200/90 bg-amber-500/25 transform -rotate-15 shadow-[0_0_10px_rgba(245,158,11,0.5)]"
-                style={{
-                  width:  `${Math.max(36, Math.min(180, 72 * scale))}px`,
-                  height: `${Math.max(10, Math.min(50,  20 * scale))}px`,
-                }}
-              />
-            </div>
-          )}
-        </div>
+        {isStar ? (
+          // Star fallback: glowing point of light
+          <div
+            className="rounded-full bg-white shadow-[0_0_15px_rgba(255,255,255,0.9),0_0_30px_rgba(136,153,255,0.6)]"
+            style={{
+              width: `${Math.max(4, Math.min(20, 8 * scale))}px`,
+              height: `${Math.max(4, Math.min(20, 8 * scale))}px`,
+            }}
+          />
+        ) : (
+          // Planet fallback - texture disc with optional Saturn rings
+          <div
+            className="relative rounded-full bg-cover bg-center border border-white/30 shadow-[0_0_20px_rgba(255,255,255,0.2)] transition-transform duration-300"
+            style={{
+              width: `${Math.max(12, Math.min(80, 24 * scale))}px`,
+              height: `${Math.max(12, Math.min(80, 24 * scale))}px`,
+              backgroundImage: `url(${cfg.texture})`,
+            }}
+          >
+            {key === "saturn" && (
+              <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
+                <div
+                  className="rounded-full border-[1.5px] border-amber-200/90 bg-amber-500/25 transform -rotate-15 shadow-[0_0_10px_rgba(245,158,11,0.5)]"
+                  style={{
+                    width:  `${Math.max(36, Math.min(180, 72 * scale))}px`,
+                    height: `${Math.max(10, Math.min(50,  20 * scale))}px`,
+                  }}
+                />
+              </div>
+            )}
+          </div>
+        )}
       </div>
     );
   }

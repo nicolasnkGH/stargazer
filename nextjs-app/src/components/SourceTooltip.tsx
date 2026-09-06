@@ -40,6 +40,8 @@ export default function SourceTooltip({
         className="flex items-center gap-1 rounded-full px-1.5 py-0.5 text-[0.65rem] font-mono text-zinc-400 hover:text-sky-300 hover:bg-sky-500/10 border border-white/5 hover:border-sky-400/30 transition-all cursor-pointer select-none"
         title={`${sourceTitle}: ${source}`}
         aria-label={`${sourceTitle}: ${source}`}
+        aria-expanded={open}
+        aria-haspopup="dialog"
       >
         <Icon name="info" className="h-3 w-3 text-sky-400/80" />
         <span className="hidden sm:inline text-[0.6rem] text-zinc-400 hover:text-sky-300">{btnLabel}</span>

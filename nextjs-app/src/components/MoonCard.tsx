@@ -225,6 +225,14 @@ function useMoonFact(fresh: string | undefined) {
 export default function MoonCard({ moon, moonFact }: { moon: MoonData | null; moonFact?: string }) {
   const t = useTranslations();
   const fact = useMoonFact(moonFact);
+  
+  // Keep the placeholder through hydration, then swap in the WebGL widget on the next frame.
+  // This avoids the SSR/client markup mismatch and satisfies react-hooks/set-state-in-effect.
+  const [mounted, setMounted] = useState(false);
+  useEffect(() => {
+    const frame = requestAnimationFrame(() => setMounted(true));
+    return () => cancelAnimationFrame(frame);
+  }, []);
 
   function addMoonToPlan() {
     const err = addToPlan("moon", "🌙 The Moon");
@@ -279,7 +287,11 @@ export default function MoonCard({ moon, moonFact }: { moon: MoonData | null; mo
       </div>
 
       {/* 3D Moon Widget with pointer-events-none so scrolling glides down page */}
-      <Moon3DWidget illumination_pct={moon.illumination_pct} phase_name={moon.phase_name} />
+      {mounted ? (
+        <Moon3DWidget illumination_pct={moon.illumination_pct} phase_name={moon.phase_name} />
+      ) : (
+        <div className="w-full h-44 flex items-center justify-center rounded-lg bg-white/5 animate-pulse" />
+      )}
 
       {(moon.moonrise || moon.moonset || moon.altitude_deg != null) && (
         <div className="mt-3 flex flex-wrap gap-x-4 gap-y-1 text-xs text-zinc-300 font-mono">
