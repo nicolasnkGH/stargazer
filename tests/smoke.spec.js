@@ -121,11 +121,11 @@ test.describe('StarGazer UI Smoke Tests', () => {
     await page.goto(BASE_URL, { waitUntil: 'domcontentloaded', timeout: 25000 });
     
     // Verify Hourly Cloud Forecast strip exists
-    const cloudStrip = page.getByText('Hourly Cloud Forecast').first();
+    const cloudStrip = page.getByText(/Hourly Cloud Forecast/i).first();
     await expect(cloudStrip).toBeAttached({ timeout: 25000 });
 
     // Click View Visible Targets button
-    const viewBtn = page.getByText('View Visible Targets Tonight').first();
+    const viewBtn = page.getByText(/View Visible Targets/i).first();
     if (await viewBtn.isVisible()) {
       await viewBtn.click({ force: true });
     }

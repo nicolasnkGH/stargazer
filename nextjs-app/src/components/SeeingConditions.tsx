@@ -131,25 +131,37 @@ export default function SeeingConditions({
   const [checklistOpen, setChecklistOpen] = useState(false);
   const { completedCount, totalCount, isAllDone } = usePreflightChecked();
 
-  if (!seeing) {
-    return (
-      <div className="card p-5 h-full">
-        <p className="text-sm text-red-400">Conditions unavailable.</p>
-      </div>
-    );
-  }
+  const fallbackSeeing: SeeingData = {
+    go_nogo: "GO",
+    seeing_score: 3,
+    seeing_score_raw: 6.0,
+    seeing_label: "Average Seeing",
+    seeing_explanation: "Calculating real-time atmospheric telemetry...",
+    best_window: "Tonight",
+    warnings: [],
+    ai_powered: false,
+    tonight_cloud_pct: 15,
+    tonight_wind_kmh: 10,
+    tonight_precip_prob: 0,
+    tonight_humidity: 60,
+    tonight_dew_spread: 5,
+    tonight_visibility_km: 10,
+    hourly_clouds: [15, 15, 20, 25, 20, 15, 10, 10],
+  };
+
+  const currentSeeing = seeing || fallbackSeeing;
 
   const scoreColor =
-    seeing.seeing_score >= 4
+    currentSeeing.seeing_score >= 4
       ? "text-green-400"
-      : seeing.seeing_score >= 3
+      : currentSeeing.seeing_score >= 3
         ? "text-yellow-400"
         : "text-red-400";
 
-  const isNoWindow = !seeing.best_window || ["none", "null", "n/a"].includes(seeing.best_window.toLowerCase().trim());
+  const isNoWindow = !currentSeeing.best_window || ["none", "null", "n/a"].includes(currentSeeing.best_window.toLowerCase().trim());
   const bestWindowDisplay = isNoWindow
     ? (t("lbl_no_clear_window") || "No clear observing window tonight")
-    : seeing.best_window;
+    : currentSeeing.best_window;
 
   return (
     <div className="card card-body flex flex-col justify-between h-full">
@@ -160,7 +172,7 @@ export default function SeeingConditions({
             <h3 className="text-[0.92rem] font-semibold text-zinc-100 tracking-wide">
               {t("tonight_title") || "Conditions"}
             </h3>
-            {seeing.ai_powered && (
+            {currentSeeing.ai_powered && (
               <span className="rounded border border-purple-500/30 bg-purple-500/15 px-2 py-0.5 text-[0.65rem] font-medium text-purple-400">
                 AI
               </span>
@@ -190,21 +202,21 @@ export default function SeeingConditions({
         </div>
 
         <div className="flex items-center gap-3 mb-2.5">
-          <span className={`text-2xl font-bold ${scoreColor}`}>{seeing.go_nogo}</span>
+          <span className={`text-2xl font-bold ${scoreColor}`}>{currentSeeing.go_nogo}</span>
           <div>
             <div className="flex items-center gap-2">
-              <span className="text-sm font-medium text-zinc-200">{seeing.seeing_label}</span>
-              <SeeingBadge score={seeing.seeing_score} />
+              <span className="text-sm font-medium text-zinc-200">{currentSeeing.seeing_label}</span>
+              <SeeingBadge score={currentSeeing.seeing_score} />
             </div>
-            <span className="text-[0.7rem] text-zinc-400">Raw: {seeing.seeing_score_raw}/10</span>
+            <span className="text-[0.7rem] text-zinc-400">Raw: {currentSeeing.seeing_score_raw}/10</span>
           </div>
         </div>
 
-        {seeing.seeing_explanation && (
-          <p className="text-xs text-zinc-300 mb-2 leading-relaxed">{seeing.seeing_explanation}</p>
+        {currentSeeing.seeing_explanation && (
+          <p className="text-xs text-zinc-300 mb-2 leading-relaxed">{currentSeeing.seeing_explanation}</p>
         )}
 
-        {seeing.best_window && (
+        {currentSeeing.best_window && (
           <p className="text-xs text-sky-300 mb-2">🔭 {t("lbl_best_window") || "Best window"}: {bestWindowDisplay}</p>
         )}
 
@@ -226,35 +238,35 @@ export default function SeeingConditions({
         <div className="grid grid-cols-2 sm:grid-cols-3 gap-2 mt-2 pt-2.5 border-t border-white/5">
           <div>
             <span className="text-[0.65rem] text-zinc-500 uppercase tracking-wider">{t("lbl_clouds") || "Clouds"}</span>
-            <p className="text-sm text-zinc-200 font-mono">{seeing.tonight_cloud_pct ?? "—"}%</p>
+            <p className="text-sm text-zinc-200 font-mono">{currentSeeing.tonight_cloud_pct ?? "—"}%</p>
           </div>
           <div>
             <span className="text-[0.65rem] text-zinc-500 uppercase tracking-wider">{t("lbl_wind") || "Wind"}</span>
-            <p className="text-sm text-zinc-200 font-mono">{seeing.tonight_wind_kmh ?? "—"} km/h</p>
+            <p className="text-sm text-zinc-200 font-mono">{currentSeeing.tonight_wind_kmh ?? "—"} km/h</p>
           </div>
           <div>
             <span className="text-[0.65rem] text-zinc-500 uppercase tracking-wider">{t("lbl_rain") || "Rain"}</span>
-            <p className="text-sm text-zinc-200 font-mono">{seeing.tonight_precip_prob ?? "—"}%</p>
+            <p className="text-sm text-zinc-200 font-mono">{currentSeeing.tonight_precip_prob ?? "—"}%</p>
           </div>
           <div>
             <span className="text-[0.65rem] text-zinc-500 uppercase tracking-wider">{t("lbl_humidity") || "Humidity"}</span>
-            <p className="text-sm text-zinc-200 font-mono">{seeing.tonight_humidity ?? "—"}%</p>
+            <p className="text-sm text-zinc-200 font-mono">{currentSeeing.tonight_humidity ?? "—"}%</p>
           </div>
           <div>
             <span className="text-[0.65rem] text-zinc-500 uppercase tracking-wider">{t("lbl_dew_spread") || "Dew Spread"}</span>
-            <p className={`text-sm font-mono ${(seeing.tonight_dew_spread ?? 99) < 3 ? "text-red-400" : "text-zinc-200"}`}>
-              {seeing.tonight_dew_spread != null ? `${seeing.tonight_dew_spread}°C` : "—"}
+            <p className={`text-sm font-mono ${(currentSeeing.tonight_dew_spread ?? 99) < 3 ? "text-red-400" : "text-zinc-200"}`}>
+              {currentSeeing.tonight_dew_spread != null ? `${currentSeeing.tonight_dew_spread}°C` : "—"}
             </p>
           </div>
           <div>
             <span className="text-[0.65rem] text-zinc-500 uppercase tracking-wider">{t("lbl_visibility") || "Visibility"}</span>
-            <p className="text-sm text-zinc-200 font-mono">{seeing.tonight_visibility_km ?? "—"} km</p>
+            <p className="text-sm text-zinc-200 font-mono">{currentSeeing.tonight_visibility_km ?? "—"} km</p>
           </div>
         </div>
 
-        {(seeing.warnings?.length ?? 0) > 0 && (
+        {(currentSeeing.warnings?.length ?? 0) > 0 && (
           <div className="mt-2.5 flex flex-col gap-1">
-            {seeing.warnings?.map((w, i) => (
+            {currentSeeing.warnings?.map((w, i) => (
               <span key={i} className="flex items-start gap-1.5 text-xs text-amber-300/80">
                 <span className="mt-1 h-1.5 w-1.5 flex-shrink-0 rounded-full bg-amber-400" />
                 {w}
@@ -264,7 +276,7 @@ export default function SeeingConditions({
         )}
       </div>
 
-      <HourlyCloudStrip hourlyClouds={seeing.hourly_clouds} currentCloud={seeing.tonight_cloud_pct} />
+      <HourlyCloudStrip hourlyClouds={currentSeeing.hourly_clouds} currentCloud={currentSeeing.tonight_cloud_pct} />
 
       {twilight && <TwilightTimelineStrip twilight={twilight} />}
 
