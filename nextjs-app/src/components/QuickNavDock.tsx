@@ -12,6 +12,7 @@ export default function QuickNavDock() {
   const [nightMode, setNightMode] = useState(false);
   const [checklistOpen, setChecklistOpen] = useState(false);
   const [showTop, setShowTop] = useState(false);
+  const [isCollapsed, setIsCollapsed] = useState(false);
   const [mounted, setMounted] = useState(false);
 
   useEffect(() => {
@@ -64,11 +65,15 @@ export default function QuickNavDock() {
 
   return (
     <>
-      {/* DESKTOP: Vertical Floating Rail (Only on Large Screens >= 1024px) */}
+      {/* DESKTOP: Vertical Floating Rail (Only on Extra-Large Screens >= 1280px) */}
       <nav
         id="quick-nav-dock"
         aria-label="Quick observatory navigation"
-        className="hidden lg:flex fixed right-4 top-1/2 -translate-y-1/2 z-40 flex-col items-center gap-2 p-2 rounded-2xl bg-slate-950/40 backdrop-blur-xl border border-cyan-500/20 shadow-[0_4px_30px_rgba(0,0,0,0.8)] ring-1 ring-white/10"
+        className={`hidden xl:flex fixed top-1/2 -translate-y-1/2 z-40 flex-col items-center gap-2 p-2 rounded-2xl bg-slate-950/80 backdrop-blur-xl border border-cyan-500/20 shadow-[0_4px_30px_rgba(0,0,0,0.8)] ring-1 ring-white/10 transition-all duration-300 ${
+          isCollapsed
+            ? "right-0 translate-x-[calc(100%-10px)] opacity-60 hover:opacity-100"
+            : "right-2 2xl:right-4 3xl:right-[calc(50vw-850px)]"
+        }`}
       >
         {/* Red Light / Night Mode Button */}
         <div className="relative group">
@@ -169,6 +174,25 @@ export default function QuickNavDock() {
           <span className="pointer-events-none absolute right-12 top-1/2 -translate-y-1/2 opacity-0 group-hover:opacity-100 transition-opacity duration-200 whitespace-nowrap rounded-lg bg-slate-900/95 border border-white/10 px-2.5 py-1 text-xs text-indigo-300 font-mono shadow-xl z-50">
             {t("tab_sky_badge")}
           </span>
+        </div>
+
+        <div className="w-6 h-px bg-white/10 my-0.5" />
+
+        {/* Collapse / Expand Toggle */}
+        <div className="relative group">
+          <button
+            onClick={() => setIsCollapsed(!isCollapsed)}
+            className="flex h-8 w-8 items-center justify-center rounded-lg bg-slate-900/90 border border-white/15 text-slate-400 hover:text-sky-300 hover:border-sky-400/50 transition-all cursor-pointer select-none"
+            title={isCollapsed ? "Expand Quick Nav" : "Collapse Quick Nav"}
+            aria-label={isCollapsed ? "Expand Quick Nav" : "Collapse Quick Nav"}
+          >
+            <Icon name={isCollapsed ? "chevron-left" : "chevron-right"} className="h-4 w-4" />
+          </button>
+          {!isCollapsed && (
+            <span className="pointer-events-none absolute right-10 top-1/2 -translate-y-1/2 opacity-0 group-hover:opacity-100 transition-opacity duration-200 whitespace-nowrap rounded-lg bg-slate-900/95 border border-white/10 px-2.5 py-1 text-xs text-slate-300 font-mono shadow-xl z-50">
+              Collapse Nav
+            </span>
+          )}
         </div>
       </nav>
 

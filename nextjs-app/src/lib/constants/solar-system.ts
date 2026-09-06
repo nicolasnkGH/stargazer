@@ -1,6 +1,6 @@
 import type { PlanetDef } from "@/types";
 
-export const TEX_BASE = "/assets/";
+export const TEX_BASE = "/textures/";
 
 export const PLANETS: PlanetDef[] = [
   {
@@ -11,7 +11,7 @@ export const PLANETS: PlanetDef[] = [
     color: 0xffcc33,
     emissive: 0xffaa00,
     emissiveIntensity: 4.0,
-    textureUrl: `${TEX_BASE}2k_sun.jpg`,
+    textureUrl: `${TEX_BASE}2k_sun.webp`,
   },
   {
     name: "Mercury",
@@ -20,7 +20,7 @@ export const PLANETS: PlanetDef[] = [
     speed: 0.018,
     color: 0x8c7e6d,
     emissive: 0x1a1510,
-    textureUrl: `${TEX_BASE}mercury.jpg`,
+    textureUrl: `${TEX_BASE}mercury.webp`,
   },
   {
     name: "Venus",
@@ -29,7 +29,7 @@ export const PLANETS: PlanetDef[] = [
     speed: 0.012,
     color: 0xc8a878,
     emissive: 0x1a1408,
-    textureUrl: `${TEX_BASE}venus.jpg`,
+    textureUrl: `${TEX_BASE}venus.webp`,
   },
   {
     name: "Earth",
@@ -38,7 +38,7 @@ export const PLANETS: PlanetDef[] = [
     speed: 0.01,
     color: 0x4488cc,
     emissive: 0x0a1020,
-    textureUrl: `${TEX_BASE}2k_earth_daymap.jpg`,
+    textureUrl: `${TEX_BASE}2k_earth_daymap.webp`,
   },
   {
     name: "Mars",
@@ -47,7 +47,7 @@ export const PLANETS: PlanetDef[] = [
     speed: 0.008,
     color: 0xb85a3a,
     emissive: 0x1a0800,
-    textureUrl: `${TEX_BASE}mars.jpg`,
+    textureUrl: `${TEX_BASE}mars.webp`,
   },
   {
     name: "Jupiter",
@@ -56,7 +56,7 @@ export const PLANETS: PlanetDef[] = [
     speed: 0.004,
     color: 0xc8a878,
     emissive: 0x1a1408,
-    textureUrl: `${TEX_BASE}jupiter.jpg`,
+    textureUrl: `${TEX_BASE}jupiter.webp`,
   },
   {
     name: "Saturn",
@@ -65,7 +65,7 @@ export const PLANETS: PlanetDef[] = [
     speed: 0.003,
     color: 0xd8c898,
     emissive: 0x1a1508,
-    textureUrl: `${TEX_BASE}saturn.jpg`,
+    textureUrl: `${TEX_BASE}saturn.webp`,
     ringInner: 6.0,
     ringOuter: 10.0,
   },
@@ -76,7 +76,7 @@ export const PLANETS: PlanetDef[] = [
     speed: 0.002,
     color: 0x78b8c8,
     emissive: 0x0a1520,
-    textureUrl: `${TEX_BASE}uranus.jpg`,
+    textureUrl: `${TEX_BASE}uranus.webp`,
   },
   {
     name: "Neptune",
@@ -85,6 +85,6 @@ export const PLANETS: PlanetDef[] = [
     speed: 0.001,
     color: 0x3355bb,
     emissive: 0x050a20,
-    textureUrl: `${TEX_BASE}neptune.jpg`,
+    textureUrl: `${TEX_BASE}neptune.webp`,
   },
 ];

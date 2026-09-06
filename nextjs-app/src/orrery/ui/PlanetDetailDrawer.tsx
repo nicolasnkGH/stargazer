@@ -3,16 +3,16 @@ import { useTranslations, useLocale } from 'next-intl';
 import { ArrowLeft, Thermometer, Orbit, RotateCw, Moon, Sparkles, Compass } from 'lucide-react';
 import { PlanetData } from '../types';
 const TEXTURE_MAP: Record<string, string> = {
-  sun: '/assets/2k_sun.jpg',
-  mercury: '/assets/mercury.jpg',
-  venus: '/assets/venus.jpg',
-  earth: '/assets/2k_earth_daymap.jpg',
-  moon: '/assets/moon_texture.jpg',
-  mars: '/assets/mars.jpg',
-  jupiter: '/assets/jupiter.jpg',
-  saturn: '/assets/saturn.jpg',
-  uranus: '/assets/uranus.jpg',
-  neptune: '/assets/neptune.jpg',
+  sun: '/textures/2k_sun.webp',
+  mercury: '/textures/mercury.webp',
+  venus: '/textures/venus.webp',
+  earth: '/textures/2k_earth_daymap.webp',
+  moon: '/textures/moon_texture.webp',
+  mars: '/textures/mars.webp',
+  jupiter: '/textures/jupiter.webp',
+  saturn: '/textures/saturn.webp',
+  uranus: '/textures/uranus.webp',
+  neptune: '/textures/neptune.webp',
 };
 
 const LOCALIZED_BODIES: Record<string, Record<string, string>> = {

@@ -78,7 +78,7 @@ function Moon3DWidget({ illumination_pct, phase_name }: { illumination_pct: numb
       const texLoader = new THREE.TextureLoader();
       const mat = new THREE.MeshStandardMaterial({
         map: texLoader.load(
-          "/assets/moon_texture.jpg",
+          "/textures/moon_texture.webp",
           undefined,
           undefined,
           () => setHasError(true)
@@ -160,18 +160,18 @@ function Moon3DWidget({ illumination_pct, phase_name }: { illumination_pct: numb
         <div className="relative w-32 h-32 rounded-full bg-slate-950 border border-amber-300/30 shadow-[0_0_30px_rgba(251,191,36,0.25)] flex items-center justify-center overflow-hidden">
           <svg viewBox="0 0 100 100" className="w-full h-full">
             <defs>
-              <radialGradient id="moonDark" cx="30%" cy="30%" r="70%">
-                <stop offset="0%" stopColor="#1e293b" />
-                <stop offset="100%" stopColor="#020617" />
+              <radialGradient id="moonDark" cx="30" cy="30" r="70" gradientUnits="userSpaceOnUse">
+                <stop offset="0%" stopColor="#334155" />
+                <stop offset="100%" stopColor="#0f172a" />
               </radialGradient>
-              <radialGradient id="moonLit" cx="40%" cy="40%" r="60%">
+              <radialGradient id="moonLit" cx="40" cy="40" r="60" gradientUnits="userSpaceOnUse">
                 <stop offset="0%" stopColor="#fef08a" />
                 <stop offset="70%" stopColor="#f59e0b" />
                 <stop offset="100%" stopColor="#d97706" />
               </radialGradient>
             </defs>
             {/* Dark unilluminated moon disc */}
-            <circle cx="50%" cy="50%" r="48" fill="url(#moonDark)" />
+            <circle cx="50" cy="50" r="48" fill="url(#moonDark)" />
             
             {/* Craters on dark side */}
             <circle cx="35" cy="40" r="5" fill="#0f172a" opacity="0.6" />
@@ -265,10 +265,7 @@ export default function MoonCard({ moon, moonFact }: { moon: MoonData | null; mo
       </div>
 
       <div className="flex items-center gap-3 mb-3">
-        <span className="text-3xl">{moon.emoji ?? moon.phase_name.split(" ")[0] ?? "🌙"}</span>
-        <div>
-          <p className="text-base font-semibold text-zinc-100">{moon.phase_name}</p>
-        </div>
+        <p className="text-base font-semibold text-zinc-100">{moon.phase_name}</p>
       </div>
 
       <div className="w-full rounded-full bg-white/10 h-2 overflow-hidden mb-3">

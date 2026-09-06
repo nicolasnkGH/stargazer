@@ -86,7 +86,11 @@ function formatDuration(minutes: number): string {
   return `${h}h ${m}m`;
 }
 
-function useDarkInCountdown(astroStart: string | null | undefined): string | null {
+function useDarkInCountdown(
+  astroStart: string | null | undefined,
+  astroEnd: string | null | undefined,
+  locale: string
+): string | null {
   const [display, setDisplay] = useState<string | null>(null);
 
   useEffect(() => {
@@ -94,17 +98,24 @@ function useDarkInCountdown(astroStart: string | null | undefined): string | nul
       const now = new Date();
       const currentMin = now.getHours() * 60 + now.getMinutes();
       const startMin = parseTimeToMinutes(astroStart);
+      const endMin = parseTimeToMinutes(astroEnd);
 
       if (startMin === null) {
         setDisplay(null);
         return;
       }
 
-      if (currentMin < startMin) {
+      if (currentMin < startMin && (endMin === null || currentMin >= endMin)) {
         const remaining = startMin - currentMin;
-        setDisplay(`in ${formatDuration(remaining)}`);
+        const inPrefix = locale === "pt" ? "em" : locale === "es" ? "en" : "in";
+        setDisplay(`${inPrefix} ${formatDuration(remaining)}`);
+      } else if (
+        currentMin >= startMin ||
+        (endMin !== null && currentMin < endMin)
+      ) {
+        const activeLabel = locale === "pt" ? "Ativo" : locale === "es" ? "Activo" : "Active";
+        setDisplay(activeLabel);
       } else {
-        // It is already dark (or past dark start) — do NOT show "hours left"
         setDisplay(null);
       }
     };
@@ -112,7 +123,7 @@ function useDarkInCountdown(astroStart: string | null | undefined): string | nul
     update();
     const timer = setInterval(update, 30000);
     return () => clearInterval(timer);
-  }, [astroStart]);
+  }, [astroStart, astroEnd, locale]);
 
   return display;
 }
@@ -209,7 +220,11 @@ export default function Header() {
     }
   );
 
-  const darkInStr = useDarkInCountdown(tonight?.twilight_timeline?.astro_start);
+  const darkInStr = useDarkInCountdown(
+    tonight?.twilight_timeline?.astro_start,
+    tonight?.twilight_timeline?.astro_end,
+    locale
+  );
 
   const seeing = tonight?.seeing;
   const weatherItems: { text: string; tooltip: string }[] = [];
@@ -277,14 +292,20 @@ export default function Header() {
   }
 
   if (darkInStr) {
+    const isActive = darkInStr === "Active" || darkInStr === "Ativo" || darkInStr === "Activo";
     weatherItems.push({
       text: `🌑 Dark ${darkInStr}`,
-      tooltip:
-        locale === "pt"
-          ? "Tempo até o início do céu totalmente escuro (noite astronômica, Sol < -18°)"
+      tooltip: isActive
+        ? locale === "pt"
+          ? "Céu astronômico totalmente escuro no momento (Sol < -18°)"
           : locale === "es"
-          ? "Tiempo hasta el inicio del cielo totalmente oscuro (noche astronómica, Sol < -18°)"
-          : "Countdown until complete astronomical darkness begins (Sun below -18°)",
+          ? "Cielo astronómico totalmente oscuro actualmente (Sol < -18°)"
+          : "Complete astronomical darkness is currently active (Sun below -18°)"
+        : locale === "pt"
+        ? "Tempo até o início do céu totalmente escuro (noite astronômica, Sol < -18°)"
+        : locale === "es"
+        ? "Tiempo hasta el inicio del cielo totalmente oscuro (noche astronómica, Sol < -18°)"
+        : "Countdown until complete astronomical darkness begins (Sun below -18°)",
     });
   }
 
@@ -348,7 +369,7 @@ export default function Header() {
     <header className="fixed top-0 left-0 right-0 z-[100] border-b border-cyan-500/15 bg-slate-950/95 py-2 px-2 sm:px-6 backdrop-blur-2xl shadow-[0_4px_30px_rgba(0,0,0,0.6)] w-full">
       <div className="mx-auto flex max-w-full flex-nowrap items-center justify-between gap-1.5 sm:gap-4">
         {/* Logo */}
-        <a href="#hero-section" className="flex flex-shrink-0 items-center gap-1.5 sm:gap-2.5 no-underline">
+        <a href="#hero-section" aria-label="StarGazer Home" className="flex flex-shrink-0 items-center gap-1.5 sm:gap-2.5 no-underline">
           <Icon name="telescope" className="h-5 w-5 sm:h-6 sm:w-6 animate-float text-sky-400 drop-shadow-[0_0_12px_rgba(74,158,255,0.5)]" />
           <span
             className="hidden xs:inline whitespace-nowrap bg-gradient-to-br from-white to-zinc-400 bg-clip-text text-base sm:text-[1.4rem] font-bold leading-tight tracking-tight text-transparent"

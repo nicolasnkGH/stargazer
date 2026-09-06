@@ -104,13 +104,13 @@ const CameraController: React.FC<CameraControllerProps> = ({ selectedBody, zoomL
       ref={controlsRef}
       enablePan
       enableZoom={false}
-      enableRotate={!(isMobile && touchMode === "scroll")}
+      enableRotate={!isMobile}
       enableDamping
       dampingFactor={0.05}
       onStart={() => {
         isAnimating.current = false;
       }}
-      touches={{ ONE: THREE.TOUCH.ROTATE, TWO: THREE.TOUCH.DOLLY_PAN }}
+      touches={isMobile ? { ONE: THREE.TOUCH.PAN, TWO: THREE.TOUCH.DOLLY_PAN } : { ONE: THREE.TOUCH.ROTATE, TWO: THREE.TOUCH.DOLLY_PAN }}
       maxDistance={350}
       minDistance={1.5}
       maxPolarAngle={Math.PI / 1.8}

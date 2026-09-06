@@ -127,6 +127,7 @@ export default function ActiveConstellation() {
           <select
             value={selectedAbbr ?? ""}
             onChange={(e) => setSelectedAbbr(e.target.value)}
+            aria-label="Select Constellation"
             className="rounded-lg border border-white/10 bg-slate-900/50 py-1.5 px-2.5 text-xs text-zinc-200 outline-none hover:border-white/30 cursor-pointer"
           >
             {ALL_CONSTELLATIONS.map((c) => {

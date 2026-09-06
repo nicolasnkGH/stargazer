@@ -325,6 +325,7 @@ export default function TargetDatabase() {
             <select
               value={equipFilter}
               onChange={(e) => setEquipFilter(e.target.value)}
+              aria-label={t("target_equip_lbl")}
               className="rounded-lg bg-slate-900 border border-white/15 px-3 py-1.5 text-xs text-slate-100 outline-none cursor-pointer"
             >
               {EQUIPMENT_OPTIONS.map((o) => (
@@ -352,6 +353,7 @@ export default function TargetDatabase() {
             <select
               value={sortVal}
               onChange={(e) => setSortVal(e.target.value)}
+              aria-label={t("target_sort_lbl")}
               className="rounded-lg bg-slate-900 border border-white/15 px-3 py-1.5 text-xs text-slate-100 outline-none cursor-pointer"
             >
               {SORT_OPTIONS.map((o) => (
@@ -501,6 +503,7 @@ export default function TargetDatabase() {
           raDeg={fovTarget.ra_hours * 15}
           decDeg={fovTarget.dec_degrees}
           targetName={fovTarget.name}
+          targetType={fovTarget.type}
         />
       )}
     </section>

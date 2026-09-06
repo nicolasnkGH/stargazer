@@ -47,7 +47,7 @@ export default function SourceTooltip({
 
       {open && (
         <div
-          className="absolute right-0 top-full mt-1.5 z-50 w-64 sm:w-72 p-3 rounded-xl border border-sky-400/30 bg-slate-950/95 backdrop-blur-xl shadow-2xl text-xs text-zinc-300 pointer-events-auto animate-fadeIn"
+          className="absolute right-0 top-full mt-1.5 z-50 w-64 sm:w-72 max-w-[85vw] p-3 rounded-xl border border-sky-400/30 bg-slate-950/95 backdrop-blur-xl shadow-2xl text-xs text-zinc-300 pointer-events-auto animate-fadeIn"
           onClick={(e) => e.stopPropagation()}
         >
           <div className="flex items-center justify-between gap-1.5 font-bold text-sky-300 text-xs mb-1.5 border-b border-white/10 pb-1.5">
@@ -55,7 +55,7 @@ export default function SourceTooltip({
               <span>🛡️</span>
               <span>{verifiedLabel}</span>
             </span>
-            <span className="text-[0.65rem] font-mono text-zinc-400 font-normal truncate max-w-[120px]">
+            <span className="text-[0.65rem] font-mono text-zinc-400 font-normal">
               {source}
             </span>
           </div>

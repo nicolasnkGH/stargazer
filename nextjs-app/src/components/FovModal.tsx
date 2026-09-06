@@ -14,9 +14,10 @@ interface FovModalProps {
   raDeg: number;
   decDeg: number;
   targetName: string;
+  targetType?: string;
 }
 
-export default function FovModal({ open, onClose, raDeg, decDeg, targetName }: FovModalProps) {
+export default function FovModal({ open, onClose, raDeg, decDeg, targetName, targetType }: FovModalProps) {
   const t = useTranslations();
   const locale = useLocale();
   const messages = (useMessages() as Record<string, string>) || {};
@@ -145,6 +146,7 @@ export default function FovModal({ open, onClose, raDeg, decDeg, targetName }: F
                 <div className="absolute inset-0 bg-black rounded-full overflow-hidden flex items-center justify-center">
                   <EyepieceSimulation
                     targetName={targetName}
+                    targetType={targetType}
                     magnification={magnification}
                     seeingSim={seeingSim}
                     eyepieceFov={eyepieceFov}

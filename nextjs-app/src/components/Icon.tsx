@@ -8,6 +8,7 @@ import {
   FiCamera,
   FiCheckCircle,
   FiCheckSquare,
+  FiChevronLeft,
   FiChevronRight,
   FiClock,
   FiCompass,
@@ -74,6 +75,7 @@ const ICONS: Record<string, IconType> = {
   camera: FiCamera, // no legacy data-lucide equivalent (Observation Log entries)
   "check-circle": FiCheckCircle, // no legacy equivalent (GalleryModal approve state)
   "check-square": FiCheckSquare,
+  "chevron-left": FiChevronLeft,
   "chevron-right": FiChevronRight,
   clock: FiClock,
   "clock-3": LuClock3, // no legacy equivalent (Plan My Night card icon)
