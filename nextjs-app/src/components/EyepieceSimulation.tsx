@@ -299,7 +299,7 @@ export const EyepieceSimulation: React.FC<EyepieceSimulationProps> = ({
       console.warn("Eyepiece WebGL init failed, fallback to 2D optical disc:", err);
       setTimeout(() => setHasError(true), 0);
     }
-  }, [targetName, magnification, seeingSim, eyepieceFov, cfg, key]);
+  }, [targetName, magnification, seeingSim, eyepieceFov, cfg, isStar, key]);
 
   if (hasError) {
     const scale = magnification / 120;

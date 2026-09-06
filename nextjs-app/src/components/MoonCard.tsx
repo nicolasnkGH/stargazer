@@ -228,7 +228,10 @@ export default function MoonCard({ moon, moonFact }: { moon: MoonData | null; mo
   
   // Delay rendering until client-side to avoid SSR hydration mismatch with WebGL
   const [mounted, setMounted] = useState(false);
-  useEffect(() => { setMounted(true); }, []);
+  useEffect(() => {
+    const frame = requestAnimationFrame(() => setMounted(true));
+    return () => cancelAnimationFrame(frame);
+  }, []);
 
   function addMoonToPlan() {
     const err = addToPlan("moon", "🌙 The Moon");

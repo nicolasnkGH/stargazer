@@ -20,7 +20,7 @@ export default function SolarSystemHero({ }: SolarSystemHeroProps) {
   const [zoomLevel, setZoomLevel] = useState<number>(6);
   const [panOffset, setPanOffset] = useState<{ x: number; y: number }>({ x: 0, y: 0 });
   const [resetCount, setResetCount] = useState<number>(0);
-  const [touchMode, setTouchMode] = useState<"scroll" | "orbit">("scroll");
+  const touchMode: "scroll" | "orbit" = "scroll";
 
   const handlePan = (dir: 'up' | 'down' | 'left' | 'right' | 'reset') => {
     const step = 6;
