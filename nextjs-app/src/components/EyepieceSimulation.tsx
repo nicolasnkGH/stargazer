@@ -12,7 +12,9 @@ interface EyepieceSimulationProps {
   isStarTarget?: boolean;
 }
 
-const PLANET_CONFIGS: Record<string, { texture: string; radius: number; tilt: number; rotPeriodHours: number }> = {
+type PlanetConfig = { texture: string; radius: number; tilt: number; rotPeriodHours: number };
+
+const PLANET_CONFIGS: Record<string, PlanetConfig> = {
   sun:     { texture: "/textures/2k_sun.jpg",           radius: 1.0,  tilt: 7.25,   rotPeriodHours: 600    },
   mercury: { texture: "/textures/mercury.jpg",           radius: 0.38, tilt: 0.03,   rotPeriodHours: 1407   },
   venus:   { texture: "/textures/venus.jpg",             radius: 0.95, tilt: 177.3,  rotPeriodHours: -5832  },
@@ -26,7 +28,7 @@ const PLANET_CONFIGS: Record<string, { texture: string; radius: number; tilt: nu
 };
 
 /** Star configuration fallback - glowing sphere for non-planet targets */
-const STAR_CONFIG: { texture: string; radius: number; tilt: number; rotPeriodHours: number } = {
+const STAR_CONFIG: PlanetConfig = {
   texture: "",
   radius: 0.45,
   tilt: 0,
@@ -34,7 +36,7 @@ const STAR_CONFIG: { texture: string; radius: number; tilt: number; rotPeriodHou
 };
 
 /** Get config by key - preserve Jupiter fallback for unsupported names unless explicitly marked as a star target. */
-function getConfig(key: string, isStarTarget: boolean) {
+function getConfig(key: string, isStarTarget: boolean): PlanetConfig {
   if (PLANET_CONFIGS[key]) return PLANET_CONFIGS[key];
   return isStarTarget ? STAR_CONFIG : PLANET_CONFIGS.jupiter;
 }
