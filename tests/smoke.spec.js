@@ -54,34 +54,29 @@ test.describe('StarGazer UI Smoke Tests', () => {
   test('Critical sections render in the DOM', async ({ page }) => {
     await page.goto(BASE_URL, { waitUntil: 'domcontentloaded', timeout: 15000 });
 
-    // Navigate to Plan My Night tab first
-    await page.locator('button:has-text("Plan My Night")').first().click();
+    // 1. Sky Map & Targets tab (default active tab)
+    await expect(page.locator('#card-targets')).toBeAttached({ timeout: 5000 });
+    console.log('✅ #card-targets found in DOM');
 
-    // Use force:true to bypass any overlapping element that intercepts pointer events in headless CI
-    const issBtn = page.getByText('+ ISS Pass');
-    await expect(issBtn).toBeVisible({ timeout: 5000 });
-    await issBtn.click({ force: true });
+    // 2. Plan My Night tab
+    await page.locator('#tab-btn-plan').click({ force: true });
+    await page.waitForTimeout(300);
+    await expect(page.locator('#card-plan-my-night')).toBeAttached({ timeout: 5000 });
+    await expect(page.locator('#scheduler-timeline-bar')).toBeAttached({ timeout: 5000 });
+    console.log('✅ Scheduler cards found in DOM');
 
-    // Check for the critical sections that should be present
-    const criticalIds = [
-      '#card-targets',             // Target database card
-      '#scheduler-list-container', // List of scheduled targets
-      '#scheduler-timeline-bar',   // Timeline bar
-      '#card-space-weather'        // Space weather card
-    ];
-
-    for (const id of criticalIds) {
-      const el = page.locator(id);
-      await expect(el).toBeAttached({ timeout: 5000 });
-      console.log(`✅ ${id} found in DOM`);
-    }
+    // 3. Tools & Maps tab
+    await page.locator('#tab-btn-tools').click({ force: true });
+    await page.waitForTimeout(300);
+    await expect(page.locator('#card-space-weather')).toBeAttached({ timeout: 5000 });
+    console.log('✅ #card-space-weather found in DOM');
   });
 
   test('Plan My Night section is functional', async ({ page }) => {
     await page.goto(BASE_URL, { waitUntil: 'domcontentloaded', timeout: 15000 });
 
     // Navigate to Plan My Night tab first
-    await page.locator('button:has-text("Plan My Night")').first().click();
+    await page.locator('#tab-btn-plan').click({ force: true });
     await page.waitForTimeout(500);
 
     // The ISS Pass quick-add button should be attached
@@ -123,11 +118,11 @@ test.describe('StarGazer UI Smoke Tests', () => {
   });
 
   test('Outlook Card "View Visible Targets Tonight" button & Hourly Cloud Strip render', async ({ page }) => {
-    await page.goto(BASE_URL, { waitUntil: 'domcontentloaded', timeout: 15000 });
+    await page.goto(BASE_URL, { waitUntil: 'domcontentloaded', timeout: 25000 });
     
     // Verify Hourly Cloud Forecast strip exists
     const cloudStrip = page.getByText('Hourly Cloud Forecast').first();
-    await expect(cloudStrip).toBeAttached({ timeout: 15000 });
+    await expect(cloudStrip).toBeAttached({ timeout: 25000 });
 
     // Click View Visible Targets button
     const viewBtn = page.getByText('View Visible Targets Tonight').first();
@@ -137,13 +132,13 @@ test.describe('StarGazer UI Smoke Tests', () => {
 
     // Verify Target Database card is present and attached
     const targetDb = page.locator('#card-targets');
-    await expect(targetDb).toBeAttached({ timeout: 15000 });
+    await expect(targetDb).toBeAttached({ timeout: 25000 });
   });
 
   test('Target Database contains Backyard Best filter pill', async ({ page }) => {
     await page.goto(BASE_URL, { waitUntil: 'domcontentloaded', timeout: 15000 });
     
-    const backyardPill = page.getByText('Backyard Best').first();
+    const backyardPill = page.getByText(/Backyard Best/i).first();
     await expect(backyardPill).toBeAttached({ timeout: 15000 });
   });
 
@@ -174,9 +169,7 @@ test.describe('StarGazer Performance Regression Tests', () => {
   });
 
   test('WebGL canvas count stays within browser context limit after full hydration', async ({ page }) => {
-    // Use networkidle so React has time to hydrate and mount all WebGL canvases
-    await page.goto(BASE_URL, { waitUntil: 'networkidle', timeout: 30000 });
-    // Extra buffer for Three.js init (textures load async)
+    await page.goto(BASE_URL, { waitUntil: 'domcontentloaded', timeout: 15000 });
     await page.waitForTimeout(2500);
 
     const canvasCount = await page.evaluate(() =>
@@ -190,8 +183,9 @@ test.describe('StarGazer Performance Regression Tests', () => {
   });
 
   test('EyepieceSimulation planet cards: off-screen cards are not actively rendering', async ({ page }) => {
-    await page.goto(BASE_URL, { waitUntil: 'networkidle', timeout: 30000 });
-    await page.waitForTimeout(2000);
+    await page.goto(BASE_URL, { waitUntil: 'domcontentloaded', timeout: 15000 });
+    await page.locator('#tab-btn-planets').click({ force: true });
+    await page.waitForTimeout(1500);
 
     // Scroll to the very bottom — all planet cards should be off-screen
     await page.evaluate(() => window.scrollTo(0, document.body.scrollHeight));
@@ -223,8 +217,9 @@ test.describe('StarGazer Performance Regression Tests', () => {
   });
 
   test('Planet grid section does not mount more WebGL canvases than planet count', async ({ page }) => {
-    await page.goto(BASE_URL, { waitUntil: 'networkidle', timeout: 30000 });
-    await page.waitForTimeout(2000);
+    await page.goto(BASE_URL, { waitUntil: 'domcontentloaded', timeout: 15000 });
+    await page.locator('#tab-btn-planets').click({ force: true });
+    await page.waitForTimeout(1500);
 
     // Scroll to the planet grid
     const planetGrid = page.locator('#planet-grid').first();

@@ -16,20 +16,30 @@ function isProcessing(data: AiSeeingResponse | undefined): data is { status: "pr
   return !!data && "status" in data && data.status === "processing";
 }
 
-/** Shows the rule-based seeing data immediately, upgrades to AI analysis once /api/seeing/ai resolves. */
+/** Shows the rule-based seeing data immediately, upgrades to AI analysis once /api/seeing/ai resolves.
+ * Fallbacks to client-side /api/seeing fetch if initial server data is null. */
 function useAiSeeing(initial: SeeingData | null, coords?: LocationCoords | null): SeeingData | null {
   const [pollCount, setPollCount] = useState(0);
-  const shouldPoll = !!initial && !initial.ai_powered && pollCount < AI_SEEING_MAX_POLLS;
   const locQuery = coords ? `?lat=${coords.lat}&lon=${coords.lon}` : "";
-  const apiUrl = shouldPoll ? `/api/seeing/ai${locQuery}` : null;
+  const shouldPollAi = !!initial && !initial.ai_powered && pollCount < AI_SEEING_MAX_POLLS;
+  const shouldFetchInitial = !initial;
 
-  const { data } = useSWR<AiSeeingResponse>(apiUrl, aiFetcher, {
-    refreshInterval: (latest) => (isProcessing(latest as AiSeeingResponse | undefined) ? AI_SEEING_POLL_INTERVAL_MS : 0),
-    onSuccess: () => setPollCount((c) => c + 1),
+  const apiUrl = shouldFetchInitial
+    ? `/api/seeing${locQuery}`
+    : (shouldPollAi ? `/api/seeing/ai${locQuery}` : null);
+
+  const { data } = useSWR<SeeingData | AiSeeingResponse>(apiUrl, aiFetcher, {
+    refreshInterval: (latest) => {
+      if (shouldFetchInitial) return 3000;
+      return isProcessing(latest as AiSeeingResponse | undefined) ? AI_SEEING_POLL_INTERVAL_MS : 0;
+    },
+    onSuccess: () => {
+      if (shouldPollAi) setPollCount((c) => c + 1);
+    },
     revalidateOnFocus: false,
   });
 
-  if (data && !isProcessing(data)) return data;
+  if (data && !isProcessing(data as AiSeeingResponse)) return data as SeeingData;
   return initial;
 }
 

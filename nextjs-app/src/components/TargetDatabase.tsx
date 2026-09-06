@@ -276,17 +276,6 @@ export default function TargetDatabase() {
     return filteredTargets.slice(0, displayedCount);
   }, [filteredTargets, displayedCount]);
 
-  if (loading) {
-    return (
-      <section id="card-targets" className="w-full mb-8">
-        <div className="card animate-pulse p-6 bg-slate-900/90 border border-white/10 rounded-2xl">
-          <div className="h-6 w-48 bg-white/10 rounded mb-4" />
-          <div className="h-40 bg-white/5 rounded" />
-        </div>
-      </section>
-    );
-  }
-
   return (
     <section id="card-targets" className="card w-full mb-8 border border-cyan-500/20 bg-slate-900/90 shadow-xl overflow-hidden">
       <div className="card-header border-b border-cyan-500/20 px-6 py-4 bg-slate-900/80 justify-between flex-wrap gap-3">
