@@ -9,6 +9,7 @@ import Icon from "./Icon";
 import SourceTooltip from "./SourceTooltip";
 import FovModal from "./FovModal";
 import type { PlanetData } from "@/types";
+import { useClientLocation } from "@/hooks/useClientLocation";
 import { normalizePlanetKey } from "@/lib/constants/planet-grid";
 import EyepieceSimulation from "./EyepieceSimulation";
 
@@ -610,8 +611,10 @@ export default function PlanetGrid({ planets: initialPlanets = [] }: { planets?:
   const locale = useLocale();
   const messages = (useMessages() as Record<string, string>) || {};
   const t = useTranslations();
+  const coords = useClientLocation();
+  const locQuery = coords ? `&lat=${coords.lat}&lon=${coords.lon}` : "";
 
-  const { data: swrData } = useSWR<{ planets: PlanetData[] }>(`/api/planets?lang=${locale}`, swrFetcher, {
+  const { data: swrData } = useSWR<{ planets: PlanetData[] }>(`/api/planets?lang=${locale}${locQuery}`, swrFetcher, {
     revalidateOnFocus: false,
     dedupingInterval: 60000,
   });

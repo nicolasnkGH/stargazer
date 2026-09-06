@@ -119,7 +119,7 @@ def _parse_ai_response(data):
                 "score": score,
                 "label": str(result.get("label", ""))[:60],
                 "explanation": str(result.get("explanation", ""))[:300],
-                "best_window": str(result.get("best_window", "Check conditions"))[:60],
+                "best_window": "No clear window tonight" if str(result.get("best_window", "")).strip().lower() in ("none", "null", "n/a", "none.") else str(result.get("best_window", "Check conditions"))[:60],
                 "warnings": [str(w)[:80] for w in result.get("warnings", [])[:4]],
                 "recommended_targets": result.get("recommended_targets", []),
                 "ai_powered": True,
@@ -391,7 +391,7 @@ def _rule_based_seeing_score(weather: dict, moon_illum: float, moon_alt: float, 
     elif cloud < 60:
         best_window = "Early evening (8–11 PM)"
     else:
-        best_window = "Check hourly cloud forecast"
+        best_window = "No clear window tonight"
 
     # Get phase name from illumination for fact lookup
     phase_pct = moon_illum / 100
@@ -472,20 +472,63 @@ def _rule_based_seeing_score(weather: dict, moon_illum: float, moon_alt: float, 
                 "reason": reason,
             })
 
-    # Fun rule-based astronomical event of the night
+    # Fun rule-based astronomical event of the night / week based on current month
     event_of_the_night = None
     import datetime
     today = datetime.date.today()
-    if today.month == 7:
-        event_of_the_night = {
-            "name": "Summer Milky Way Season",
-            "description": "Peak season to observe the core of our galaxy stretching through Sagittarius and Scorpius. Best visible around midnight away from city lights."
+    month = today.month
+
+    events_by_month = {
+        1: {
+            "name": "Quadrantids Meteor Shower & Winter Hexagon",
+            "description": "Peak season for the bright Winter Hexagon stars (Sirius, Betelgeuse, Rigel, Capella, Aldebaran, Procyon) and early January Quadrantids."
+        },
+        2: {
+            "name": "Orion Nebula Zenith & Sirius Peak",
+            "description": "Orion (M42) and Sirius reach their highest culmination in the southern evening sky — optimal for nebulae astrophotography."
+        },
+        3: {
+            "name": "Spring Equinox & Messier Marathon Season",
+            "description": "Zodiacal light visible after dusk in dark skies. Peak window to observe dozens of Virgo Galaxy Cluster Messier targets in one night."
+        },
+        4: {
+            "name": "Lyrids Meteor Shower & Galaxy Season",
+            "description": "The Lyrids peak in late April. Leo and Virgo galaxies (M87, M104 Sombrero) are in prime zenith viewing position."
+        },
+        5: {
+            "name": "Eta Aquariids & Spring Deep Sky",
+            "description": "Eta Aquariid meteors (debris from Comet Halley) stream across pre-dawn skies. Hercules Cluster M13 in prime position."
+        },
+        6: {
+            "name": "June Solstice & Noctilucent Clouds",
+            "description": "High-latitude night sky displays rare electric-blue Noctilucent clouds. Scorpius and Antares dominate southern evening sky."
+        },
+        7: {
+            "name": "Summer Milky Way Core & Delta Aquariids",
+            "description": "Peak season to observe the rich galactic core stretching through Sagittarius and Scorpius. Best visible around midnight away from city lights."
+        },
+        8: {
+            "name": "Perseids Meteor Shower Peak",
+            "description": "The famous Perseid meteor shower peaks with up to 100 meteors/hour! Scan the northeastern sky after midnight for bright fireballs."
+        },
+        9: {
+            "name": "Autumnal Equinox & Andromeda Galaxy Zenith",
+            "description": "M31 Andromeda Galaxy and M33 Triangulum reach ideal zenith elevation early in the evening."
+        },
+        10: {
+            "name": "Orionids Meteor Shower & Pleiades Rising",
+            "description": "Orionids peak in mid-October. M45 Pleiades star cluster rises early in the evening, heralding the autumn stargazing season."
+        },
+        11: {
+            "name": "Leonids Meteor Shower & Taurus Double Cluster",
+            "description": "Leonid meteors produce fast green-trailing fireballs in mid-November. Double Cluster in Perseus is at supreme clarity."
+        },
+        12: {
+            "name": "Geminids Meteor Shower Peak",
+            "description": "The king of meteor showers! Over 120 multi-colored meteors per hour peak mid-December, visible all night long."
         }
-    elif today.month == 8:
-        event_of_the_night = {
-            "name": "Perseids Meteor Shower Preparation",
-            "description": "Perseids are beginning to show activity. Scan the northeastern sky after midnight for bright, fast-moving shooting stars."
-        }
+    }
+    event_of_the_night = events_by_month.get(month, events_by_month[8])
 
     return {
         "score": score,

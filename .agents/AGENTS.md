@@ -24,6 +24,12 @@ These rules apply to ALL AI agents working in this repository. There are no exce
 - **ALL UI changes, new components, badges, tooltips, or feature additions in StarGazer MUST include complete translations across all 3 supported locale dictionaries (`en.json`, `pt.json`, `es.json`) automatically, unless explicitly requested otherwise.**
 - **All 3 translation files MUST pass `npm run check:i18n` with 100% key symmetry before any work is considered complete.**
 
+## 🛡️ Architecture & Component Regression Prevention Rules
+1. **Centralized Data Hooks**: SWR calls MUST use `useClientLocation()` from `@/hooks/useClientLocation` and include location query parameters (`?lat=${lat}&lon=${lon}`) to ensure location changes reflect across all components without defaulting to `.env` values.
+2. **CSS Overflow Protection**: NEVER place `overflow-hidden` or `clip` on parent/header container wrappers that contain absolute hover tooltips, dropdown popovers, or floating menus.
+3. **Defensive Data Formatting**: Raw API strings (like `"None"`, `"null"`, `"check conditions"`) MUST be sanitized through guard functions before rendering to the DOM to prevent awkward fallback text.
+4. **Automated Verification**: Before declaring a task complete, run `npm run check:i18n`, `npx tsc --noEmit`, `npm run build`, and Playwright E2E tests (`npx playwright test tests/smoke.spec.js`) to verify layout & behavior.
+
 ## 🔒 Scope Constraint
 Only touch files directly relevant to the task. Do not refactor unrelated code or alter PR title formats.
 

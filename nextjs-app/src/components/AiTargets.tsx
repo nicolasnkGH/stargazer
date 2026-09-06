@@ -9,6 +9,8 @@ import { API_BASE } from "@/lib/constants";
 import { addToPlan } from "@/hooks/useNightPlan";
 import { showToast } from "@/lib/toast";
 
+import { useClientLocation } from "@/hooks/useClientLocation";
+
 interface AiTargetsProps {
   bestTargets?: MustSeeTarget[];
   mustSee?: MustSeeTarget[];
@@ -25,9 +27,11 @@ export default function AiTargets({
   const locale = useLocale();
   const messages = (useMessages() as Record<string, string>) || {};
   const t = useTranslations();
+  const coords = useClientLocation();
 
   const lang = locale || "en";
-  const { data: seeingData } = useSWR(`${API_BASE}/seeing/ai?lang=${lang}`, fetcher, {
+  const locQuery = coords ? `&lat=${coords.lat}&lon=${coords.lon}` : "";
+  const { data: seeingData } = useSWR(`${API_BASE}/seeing/ai?lang=${lang}${locQuery}`, fetcher, {
     revalidateOnFocus: false,
     dedupingInterval: 60000,
   });
@@ -47,7 +51,11 @@ export default function AiTargets({
       ? "Análisis de visibilidad AI para esta noche basado en su clima local y contaminación lumínica."
       : "AI seeing forecast based on your local weather and light pollution.");
 
-  const bestWindow = seeingData?.best_window || (locale === "pt" ? "A noite toda" : locale === "es" ? "Toda la noche" : "All night");
+  const rawWindow = seeingData?.best_window;
+  const isNoWindow = !rawWindow || ["none", "null", "n/a"].includes(rawWindow.toLowerCase().trim());
+  const bestWindow = isNoWindow
+    ? (locale === "pt" ? "Sem janela clara hoje" : locale === "es" ? "Sin ventana clara hoy" : "No clear window tonight")
+    : rawWindow;
 
   const recTargets = seeingData?.recommended_targets || [];
 
@@ -207,17 +215,35 @@ export default function AiTargets({
             })
           )}
 
-          {/* Card 6: Did You Know Trivia Card */}
-          <div className="hud-card relative rounded-2xl border border-purple-500/40 bg-gradient-to-br from-purple-950/50 via-slate-900/90 to-slate-950/95 p-5 flex items-center gap-3 shadow-[0_0_20px_rgba(168,85,247,0.15)] overflow-hidden group">
+          {/* Card 6: Celestial Events & Did You Know Trivia */}
+          <div className="hud-card relative rounded-2xl border border-purple-500/40 bg-gradient-to-br from-purple-950/50 via-slate-900/90 to-slate-950/95 p-5 flex flex-col justify-between shadow-[0_0_20px_rgba(168,85,247,0.15)] overflow-hidden group">
             <div className="absolute inset-0 bg-[linear-gradient(rgba(168,85,247,0.04)_50%,transparent_50%)] bg-[size:100%_4px] pointer-events-none z-10" />
-            <span className="text-amber-300 text-sm flex-shrink-0 relative z-20">✨</span>
-            <div className="relative z-20">
-              <span className="font-bold text-purple-300 text-xs uppercase tracking-wider block mb-1">
-                {getTxt("did_you_know", locale === "pt" ? "SABIA QUE?" : locale === "es" ? "¿SABÍAS QUE?" : "DID YOU KNOW?")}
-              </span>
+            <div className="relative z-20 space-y-2">
+              <div className="flex items-center gap-2">
+                <span className="text-amber-300 text-sm">📅</span>
+                <span className="font-bold text-purple-300 text-xs uppercase tracking-wider block">
+                  {seeingData?.event_of_the_night?.name || getTxt("celestial_events_title", locale === "pt" ? "EVENTO CELESTIAL EM DESTAQUE" : locale === "es" ? "EVENTO CELESTIAL DESTACADO" : "FEATURED CELESTIAL EVENT")}
+                </span>
+              </div>
               <p className="text-xs text-purple-100/90 leading-relaxed font-medium">
-                {didYouKnowText}
+                {seeingData?.event_of_the_night?.description || didYouKnowText}
               </p>
+            </div>
+            <div className="mt-3 pt-2.5 border-t border-purple-500/20 flex items-center justify-between relative z-20">
+              <span className="text-[0.65rem] text-purple-300/80 font-mono">
+                {locale === "pt" ? "Atualizado para esta semana" : locale === "es" ? "Actualizado para esta semana" : "Updated for this week"}
+              </span>
+              <button
+                type="button"
+                onClick={() => {
+                  const evtName = seeingData?.event_of_the_night?.name || "Featured Celestial Event";
+                  const err = addToPlan("celestial_event", `📅 ${evtName}`);
+                  if (err) showToast(err);
+                }}
+                className="rounded-lg border border-purple-400/30 bg-purple-950/60 hover:bg-purple-500/20 px-2.5 py-1 text-[0.7rem] font-semibold text-purple-200 transition-all cursor-pointer"
+              >
+                + {getTxt("btn_add_to_plan", locale === "pt" ? "Adicionar ao Plano" : locale === "es" ? "Añadir al Plan" : "Add to Plan")}
+              </button>
             </div>
           </div>
         </div>

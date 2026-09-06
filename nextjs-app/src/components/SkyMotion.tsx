@@ -8,6 +8,7 @@ import MotionFactCard from "./MotionFactCard";
 import SourceTooltip from "./SourceTooltip";
 import type { IssPass, MeteorShower, CometData, NeoObject } from "@/types";
 import { API_BASE } from "@/lib/constants";
+import { useClientLocation } from "@/hooks/useClientLocation";
 
 const fetcher = (url: string) => fetch(url).then((r) => r.json());
 
@@ -38,27 +39,29 @@ function formatTime(str: string | undefined): string {
 export default function SkyMotion() {
   const t = useTranslations();
   const [tab, setTab] = useState<TabKey>("iss");
+  const coords = useClientLocation();
+  const locQuery = coords ? `?lat=${coords.lat}&lon=${coords.lon}` : "";
 
   const { data: issData } = useSWR<{ passes?: IssPass[] }>(
-    `${API_BASE}/iss`,
+    `${API_BASE}/iss${locQuery}`,
     fetcher,
     { revalidateOnFocus: false }
   );
 
   const { data: meteorsData } = useSWR<{ showers?: MeteorShower[] }>(
-    `${API_BASE}/meteors`,
+    `${API_BASE}/meteors${locQuery}`,
     fetcher,
     { revalidateOnFocus: false }
   );
 
   const { data: cometsData } = useSWR<{ comets?: CometData[] }>(
-    `${API_BASE}/comets`,
+    `${API_BASE}/comets${locQuery}`,
     fetcher,
     { revalidateOnFocus: false }
   );
 
   const { data: neoData } = useSWR<{ neos?: NeoObject[] }>(
-    `${API_BASE}/asteroids`,
+    `${API_BASE}/asteroids${locQuery}`,
     fetcher,
     { revalidateOnFocus: false }
   );

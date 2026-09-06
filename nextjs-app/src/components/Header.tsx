@@ -43,6 +43,7 @@ import type { Locale, TonightReport, BortleInfo } from "@/types";
 import Modal from "./Modal";
 import LocationControl from "./LocationControl";
 import { parseLocationCookie } from "@/lib/location-cookie";
+import { useClientLocation } from "@/hooks/useClientLocation";
 import DataSettingsModal from "./DataSettingsModal";
 import { startOnboardingTour } from "./OnboardingTour";
 
@@ -139,13 +140,16 @@ export default function Header() {
   const locale = useLocale();
   const [menuOpen, setMenuOpen] = useState(false);
   const [showTourPrompt, setShowTourPrompt] = useState(false);
+  const coords = useClientLocation();
+  const locSearch = coords ? `?lat=${coords.lat}&lon=${coords.lon}` : "";
+
   const { data: health, error: healthError } = useSWR<{ status: string }>("/api/health", healthFetcher, {
     refreshInterval: HEALTH_POLL_INTERVAL_MS,
     revalidateOnFocus: false,
   });
   const isChecking = !health && !healthError;
   const isLive = !healthError && health?.status === "ok";
-  const { data: tonight } = useSWR<TonightReport>("/api/tonight", healthFetcher, {
+  const { data: tonight } = useSWR<TonightReport>(locSearch ? `/api/tonight${locSearch}` : "/api/tonight", healthFetcher, {
     refreshInterval: HUD_POLL_INTERVAL_MS,
     revalidateOnFocus: false,
   });
@@ -191,25 +195,6 @@ export default function Header() {
 
   const seeingLabel = locale === "pt" ? "Seeing" : locale === "es" ? "Seeing" : "Seeing";
   const dewLabel = locale === "pt" ? "Orvalho Δ" : locale === "es" ? "Rocío Δ" : "Dew Δ";
-
-  const [locSearch, setLocSearch] = useState<string>("");
-
-  useEffect(() => {
-    const updateLoc = () => {
-      if (typeof document === "undefined") return;
-      const raw = document.cookie
-        .split("; ")
-        .find((row) => row.startsWith("stargazer_loc="))
-        ?.split("=")[1];
-      const coords = parseLocationCookie(raw);
-      if (coords) {
-        setLocSearch(`?lat=${coords.lat}&lon=${coords.lon}`);
-      }
-    };
-    updateLoc();
-    window.addEventListener("stargazer_location_change", updateLoc);
-    return () => window.removeEventListener("stargazer_location_change", updateLoc);
-  }, []);
 
   const { data: bortleData } = useSWR<BortleInfo>(
     `/api/bortle${locSearch}`,
@@ -385,7 +370,7 @@ export default function Header() {
         </div>
 
         {/* Telemetry pill (Visible on xl screens >= 1280px) */}
-        <div id="desktop-telemetry-strip" className="hidden xl:flex min-w-0 flex-1 items-center gap-1 sm:gap-1.5 overflow-hidden rounded-full border border-white/10 bg-white/5 px-2.5 py-1 text-xs text-slate-200">
+        <div id="desktop-telemetry-strip" className="hidden xl:flex min-w-0 flex-1 items-center gap-1 sm:gap-1.5 overflow-visible rounded-full border border-white/10 bg-white/5 px-2.5 py-1 text-xs text-slate-200">
           <TelemetryBadge
             text={
               isChecking ? (

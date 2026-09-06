@@ -11,6 +11,7 @@ import { addToPlan } from "@/hooks/useNightPlan";
 import { showToast } from "@/lib/toast";
 import GalleryButton from "./GalleryButton";
 import FovModal from "./FovModal";
+import { getClientCoords } from "@/hooks/useClientLocation";
 
 const galleryFetcher = (url: string) => fetch(url).then((r) => r.json());
 
@@ -23,6 +24,7 @@ const EQUIPMENT_OPTIONS = [
 
 const TYPE_OPTIONS = [
   { value: "all", key: "filter_all" },
+  { value: "backyard-best", key: "filter_backyard_best" },
   { value: "globular", key: "filter_globular" },
   { value: "open", key: "filter_open" },
   { value: "double", key: "filter_double" },
@@ -55,6 +57,7 @@ function matchesEquipment(t: CatalogTarget, equip: string): boolean {
 
 function matchesType(t: CatalogTarget, type: string, counts: GalleryCounts | undefined): boolean {
   if (type === "all") return true;
+  if (type === "backyard-best") return (t.altitude_deg ?? 0) >= 30;
   if (type === "has-images") return !!counts && (counts[t.id] ?? 0) > 0;
   const targetType = t.type?.toLowerCase() ?? "";
   if (type === "globular") return targetType.includes("globular");
@@ -168,8 +171,17 @@ export default function TargetDatabase() {
         }
       }
     };
+    const handleFilterVisible = () => {
+      setFilter("Visible Now (My Sky)");
+      setSortVal("visibility");
+      setTimeout(() => setDisplayedCount(6), 0);
+    };
     window.addEventListener("sg-select-constellation", handleSelect);
-    return () => window.removeEventListener("sg-select-constellation", handleSelect);
+    window.addEventListener("sg-filter-visible-targets", handleFilterVisible);
+    return () => {
+      window.removeEventListener("sg-select-constellation", handleSelect);
+      window.removeEventListener("sg-filter-visible-targets", handleFilterVisible);
+    };
   }, []);
 
   useEffect(() => {
@@ -188,13 +200,16 @@ export default function TargetDatabase() {
       setError(null);
       try {
         const lang = locale || "en";
-        let url = `${API_BASE}/targets?lang=${lang}`;
+        const coords = getClientCoords();
+        const locQuery = coords ? `&lat=${coords.lat}&lon=${coords.lon}` : "";
+
+        let url = `${API_BASE}/targets?lang=${lang}${locQuery}`;
         if (filter === "Visible Now (My Sky)") {
-          url = `${API_BASE}/targets?constellation=all&visible_only=true&lang=${lang}`;
+          url = `${API_BASE}/targets?constellation=all&visible_only=true&lang=${lang}${locQuery}`;
         } else if (filter === "All Constellations (Full DB)") {
-          url = `${API_BASE}/targets?constellation=all&lang=${lang}`;
+          url = `${API_BASE}/targets?constellation=all&lang=${lang}${locQuery}`;
         } else {
-          url = `${API_BASE}/targets?constellation=${encodeURIComponent(filter)}&lang=${lang}`;
+          url = `${API_BASE}/targets?constellation=${encodeURIComponent(filter)}&lang=${lang}${locQuery}`;
         }
         const res = await fetch(url);
         if (!res.ok) throw new Error(`HTTP ${res.status}`);
@@ -310,7 +325,7 @@ export default function TargetDatabase() {
                     : "bg-white/5 text-slate-400 border-white/10 hover:text-slate-200"
                 }`}
               >
-                {t(o.key)}
+                {getTxt(o.key, o.value === "backyard-best" ? "✨ Backyard Best (Alt > 30°)" : o.value)}
                 {o.value === "has-images" && galleryCounts && (
                   <span className="ml-1 rounded-full bg-cyan-400/30 px-1.5 py-0.2 text-[0.65rem] text-cyan-200 font-bold">
                     {Object.values(galleryCounts).reduce((a, b) => a + b, 0)}

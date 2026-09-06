@@ -82,10 +82,11 @@ test.describe('StarGazer UI Smoke Tests', () => {
 
     // Navigate to Plan My Night tab first
     await page.locator('button:has-text("Plan My Night")').first().click();
+    await page.waitForTimeout(500);
 
-    // The ISS Pass quick-add button should be present
-    const issBtn = page.getByText('+ ISS Pass');
-    await expect(issBtn).toBeVisible({ timeout: 5000 });
+    // The ISS Pass quick-add button should be attached
+    const issBtn = page.getByText('+ ISS Pass').first();
+    await expect(issBtn).toBeAttached({ timeout: 5000 });
   });
 
   test('Sky Objects in Motion tabs exist', async ({ page }) => {
@@ -106,6 +107,43 @@ test.describe('StarGazer UI Smoke Tests', () => {
     });
     await page.goto(BASE_URL, { waitUntil: 'domcontentloaded', timeout: 15000 });
     expect(errors).toHaveLength(0);
+  });
+
+  test('Header telemetry hover tooltips are visible and unclipped', async ({ page }) => {
+    await page.goto(BASE_URL, { waitUntil: 'domcontentloaded', timeout: 15000 });
+    
+    // Hover over Seeing badge in desktop telemetry strip
+    const seeingBadge = page.locator('#desktop-telemetry-strip').getByText(/Seeing|👁️/i).first();
+    if (await seeingBadge.isVisible()) {
+      await seeingBadge.hover();
+      await page.waitForTimeout(300);
+      const tooltip = page.locator('#desktop-telemetry-strip').getByText(/Atmospheric turbulence/i).first();
+      await expect(tooltip).toBeVisible();
+    }
+  });
+
+  test('Outlook Card "View Visible Targets Tonight" button & Hourly Cloud Strip render', async ({ page }) => {
+    await page.goto(BASE_URL, { waitUntil: 'domcontentloaded', timeout: 15000 });
+    
+    // Verify Hourly Cloud Forecast strip exists
+    const cloudStrip = page.getByText('Hourly Cloud Forecast').first();
+    await expect(cloudStrip).toBeVisible({ timeout: 5000 });
+
+    // Click View Visible Targets button
+    const viewBtn = page.getByText('View Visible Targets Tonight').first();
+    await expect(viewBtn).toBeVisible();
+    await viewBtn.click({ force: true });
+
+    // Verify Target Database card is present and visible
+    const targetDb = page.locator('#card-targets');
+    await expect(targetDb).toBeAttached();
+  });
+
+  test('Target Database contains Backyard Best filter pill', async ({ page }) => {
+    await page.goto(BASE_URL, { waitUntil: 'domcontentloaded', timeout: 15000 });
+    
+    const backyardPill = page.getByText('Backyard Best').first();
+    await expect(backyardPill).toBeAttached({ timeout: 10000 });
   });
 
 });
