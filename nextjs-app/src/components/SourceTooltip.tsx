@@ -23,7 +23,7 @@ export default function SourceTooltip({
 
   // Add touch support: tap to open/close tooltip on mobile
   const handlePointerDown = (e: React.PointerEvent) => {
-    if (e.pointerType !== "touch" && e.pointerType !== "pen") return;
+    if (e.pointerType !== "touch") return;
     e.preventDefault();
     e.stopPropagation();
     suppressClickRef.current = true;

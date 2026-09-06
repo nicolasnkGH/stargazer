@@ -37,7 +37,8 @@ const STAR_CONFIG: PlanetConfig = {
 
 /** Get config by key - preserve Jupiter fallback for unsupported names unless explicitly marked as a star target. */
 function getConfig(key: string, isStarTarget: boolean): PlanetConfig {
-  if (PLANET_CONFIGS[key]) return PLANET_CONFIGS[key];
+  const planetConfig = PLANET_CONFIGS[key];
+  if (planetConfig) return planetConfig;
   return isStarTarget ? STAR_CONFIG : PLANET_CONFIGS.jupiter;
 }
 
