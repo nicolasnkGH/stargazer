@@ -135,13 +135,14 @@ export const EyepieceSimulation: React.FC<EyepieceSimulationProps> = ({
       const texLoader = new THREE.TextureLoader();
 
       if (isStar) {
-        // Star: glowing wireframe sphere (no texture)
-        planetGeo = new THREE.SphereGeometry(cfg.radius, 16, 16);
-        planetMat = new THREE.MeshBasicMaterial({
-          color: 0x8899ff,
-          wireframe: true,
-          transparent: true,
-          opacity: 0.35,
+        // Star: bright emissive point-like sphere (no texture)
+        planetGeo = new THREE.SphereGeometry(cfg.radius, 24, 24);
+        planetMat = new THREE.MeshStandardMaterial({
+          color: 0xffffff,
+          emissive: 0x8899ff,
+          emissiveIntensity: 2.2,
+          roughness: 0.15,
+          metalness: 0,
         });
       } else {
         // Planet: texture-based sphere

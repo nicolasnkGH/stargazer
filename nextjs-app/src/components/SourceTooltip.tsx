@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useRef, useState } from "react";
+import React, { useState } from "react";
 import { useTranslations } from "next-intl";
 import Icon from "./Icon";
 
@@ -18,17 +18,7 @@ export default function SourceTooltip({
   attribution,
 }: SourceTooltipProps) {
   const [open, setOpen] = useState(false);
-  const suppressClickRef = useRef(false);
   const t = useTranslations();
-
-  // Add touch support: tap to open/close tooltip on mobile
-  const handlePointerDown = (e: React.PointerEvent) => {
-    if (e.pointerType !== "touch") return;
-    e.preventDefault();
-    e.stopPropagation();
-    suppressClickRef.current = true;
-    setOpen((v) => !v);
-  };
 
   const sourceTitle = t.has("source_title") ? t("source_title") : "Source";
   const verifiedLabel = t.has("source_verified_label") ? t("source_verified_label") : "Verified Data Source";
@@ -44,16 +34,9 @@ export default function SourceTooltip({
       <button
         type="button"
         onClick={(e) => {
-          if (suppressClickRef.current) {
-            suppressClickRef.current = false;
-            e.preventDefault();
-            e.stopPropagation();
-            return;
-          }
           e.stopPropagation();
           setOpen((v) => !v);
         }}
-        onPointerDown={handlePointerDown}
         className="flex items-center gap-1 rounded-full px-1.5 py-0.5 text-[0.65rem] font-mono text-zinc-400 hover:text-sky-300 hover:bg-sky-500/10 border border-white/5 hover:border-sky-400/30 transition-all cursor-pointer select-none"
         title={`${sourceTitle}: ${source}`}
         aria-label={`${sourceTitle}: ${source}`}
