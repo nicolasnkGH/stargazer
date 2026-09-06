@@ -20,6 +20,12 @@ export default function SourceTooltip({
   const [open, setOpen] = useState(false);
   const t = useTranslations();
 
+  // Add touch support: tap to open/close tooltip on mobile
+  const handlePointerDown = (e: React.PointerEvent) => {
+    e.preventDefault();
+    setOpen((v) => !v);
+  };
+
   const sourceTitle = t.has("source_title") ? t("source_title") : "Source";
   const verifiedLabel = t.has("source_verified_label") ? t("source_verified_label") : "Verified Data Source";
   const providerLabel = t.has("source_provider_label") ? t("source_provider_label") : "Provider:";
@@ -37,6 +43,7 @@ export default function SourceTooltip({
           e.stopPropagation();
           setOpen((v) => !v);
         }}
+        onPointerDown={handlePointerDown}
         className="flex items-center gap-1 rounded-full px-1.5 py-0.5 text-[0.65rem] font-mono text-zinc-400 hover:text-sky-300 hover:bg-sky-500/10 border border-white/5 hover:border-sky-400/30 transition-all cursor-pointer select-none"
         title={`${sourceTitle}: ${source}`}
         aria-label={`${sourceTitle}: ${source}`}

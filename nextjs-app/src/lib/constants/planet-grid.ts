@@ -13,6 +13,7 @@ export const PLANET_TEXTURES: Record<string, string> = {
 export function normalizePlanetKey(name: string): string {
   if (!name) return "jupiter";
   const n = name.toLowerCase().trim();
+  // Planet keywords
   if (n.includes("merc")) return "mercury";
   if (n.includes("vê") || n.includes("ve")) return "venus";
   if (n.includes("ear") || n.includes("terr")) return "earth";
@@ -23,5 +24,6 @@ export function normalizePlanetKey(name: string): string {
   if (n.includes("nep") || n.includes("net")) return "neptune";
   if (n.includes("sun") || n.includes("sol")) return "sun";
   if (n.includes("moon") || n.includes("lua")) return "moon";
+  // Stars: fall through to raw name for star configs
   return n;
 }

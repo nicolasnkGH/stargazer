@@ -225,6 +225,10 @@ function useMoonFact(fresh: string | undefined) {
 export default function MoonCard({ moon, moonFact }: { moon: MoonData | null; moonFact?: string }) {
   const t = useTranslations();
   const fact = useMoonFact(moonFact);
+  
+  // Delay rendering until client-side to avoid SSR hydration mismatch with WebGL
+  const [mounted, setMounted] = useState(false);
+  useEffect(() => { setMounted(true); }, []);
 
   function addMoonToPlan() {
     const err = addToPlan("moon", "🌙 The Moon");
@@ -279,7 +283,11 @@ export default function MoonCard({ moon, moonFact }: { moon: MoonData | null; mo
       </div>
 
       {/* 3D Moon Widget with pointer-events-none so scrolling glides down page */}
-      <Moon3DWidget illumination_pct={moon.illumination_pct} phase_name={moon.phase_name} />
+      {mounted ? (
+        <Moon3DWidget illumination_pct={moon.illumination_pct} phase_name={moon.phase_name} />
+      ) : (
+        <div className="w-full h-44 flex items-center justify-center rounded-lg bg-white/5 animate-pulse" />
+      )}
 
       {(moon.moonrise || moon.moonset || moon.altitude_deg != null) && (
         <div className="mt-3 flex flex-wrap gap-x-4 gap-y-1 text-xs text-zinc-300 font-mono">
