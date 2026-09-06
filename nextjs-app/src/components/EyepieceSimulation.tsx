@@ -9,6 +9,7 @@ interface EyepieceSimulationProps {
   magnification: number;
   seeingSim: boolean;
   eyepieceFov: number;
+  isStarTarget?: boolean;
 }
 
 const PLANET_CONFIGS: Record<string, { texture: string; radius: number; tilt: number; rotPeriodHours: number }> = {
@@ -32,9 +33,10 @@ const STAR_CONFIG: { texture: string; radius: number; tilt: number; rotPeriodHou
   rotPeriodHours: 24,
 };
 
-/** Get config by key - returns planet config or star fallback */
-function getConfig(key: string) {
-  return PLANET_CONFIGS[key] || STAR_CONFIG;
+/** Get config by key - preserve Jupiter fallback for unsupported names unless explicitly marked as a star target. */
+function getConfig(key: string, isStarTarget: boolean) {
+  if (PLANET_CONFIGS[key]) return PLANET_CONFIGS[key];
+  return isStarTarget ? STAR_CONFIG : PLANET_CONFIGS.jupiter;
 }
 
 /** Ephemeris calculation for Galilean Moons (days per orbit, relative distance in radii) */
@@ -60,12 +62,12 @@ export const EyepieceSimulation: React.FC<EyepieceSimulationProps> = ({
   magnification,
   seeingSim,
   eyepieceFov,
+  isStarTarget = false,
 }) => {
   const containerRef = useRef<HTMLDivElement>(null);
   const key = normalizePlanetKey(targetName);
-  // Get config and detect if target is a star (stars have no texture)
-  const cfg = getConfig(key);
-  const isStar = !cfg.texture;
+  const cfg = getConfig(key, isStarTarget);
+  const isStar = isStarTarget;
   const [hasError, setHasError] = useState(false);
 
   useEffect(() => {

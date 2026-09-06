@@ -14,9 +14,10 @@ interface FovModalProps {
   raDeg: number;
   decDeg: number;
   targetName: string;
+  isStarTarget?: boolean;
 }
 
-export default function FovModal({ open, onClose, raDeg, decDeg, targetName }: FovModalProps) {
+export default function FovModal({ open, onClose, raDeg, decDeg, targetName, isStarTarget = false }: FovModalProps) {
   const t = useTranslations();
   const locale = useLocale();
   const messages = (useMessages() as Record<string, string>) || {};
@@ -148,6 +149,7 @@ export default function FovModal({ open, onClose, raDeg, decDeg, targetName }: F
                     magnification={magnification}
                     seeingSim={seeingSim}
                     eyepieceFov={eyepieceFov}
+                    isStarTarget={isStarTarget}
                   />
                 </div>
 
@@ -263,5 +265,4 @@ export default function FovModal({ open, onClose, raDeg, decDeg, targetName }: F
     </div>
   );
 }
-
 

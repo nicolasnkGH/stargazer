@@ -226,7 +226,8 @@ export default function MoonCard({ moon, moonFact }: { moon: MoonData | null; mo
   const t = useTranslations();
   const fact = useMoonFact(moonFact);
   
-  // Delay rendering until client-side to avoid SSR hydration mismatch with WebGL
+  // Keep the placeholder through hydration, then swap in the WebGL widget on the next frame.
+  // This avoids the SSR/client markup mismatch and satisfies react-hooks/set-state-in-effect.
   const [mounted, setMounted] = useState(false);
   useEffect(() => {
     const frame = requestAnimationFrame(() => setMounted(true));
