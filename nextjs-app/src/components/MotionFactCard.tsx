@@ -43,7 +43,7 @@ export default function MotionFactCard({ type }: { type: MotionFactType }) {
   const text = messages[key] || fact.text;
 
   return (
-    <div className="mb-4 rounded-xl border border-white/10 bg-white/[0.03] p-4">
+    <div className="mb-0 rounded-xl border border-white/10 bg-white/[0.03] p-4">
       <div className={`flex items-start gap-3 transition-opacity duration-200 ${visible ? "opacity-100" : "opacity-0"}`}>
         <span className="text-2xl flex-shrink-0">{fact.icon}</span>
         <p className="text-xs text-zinc-300 leading-relaxed">{text}</p>

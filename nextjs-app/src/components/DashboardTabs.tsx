@@ -130,14 +130,14 @@ export default function DashboardTabs({
 
   return (
     <div className="w-full flex flex-col space-y-6">
-      {/* Sticky Tab Bar */}
-      <div className="sticky top-20 sm:top-16 z-30 w-full py-2 bg-slate-950/95 backdrop-blur-2xl border-b border-cyan-500/20 shadow-[0_8px_30px_rgba(0,0,0,0.7)]">
+      {/* Ultra-High-Contrast Observatory Sticky Tab Bar */}
+      <div className="sticky top-14 sm:top-12 z-40 w-full py-2.5 bg-slate-950/95 backdrop-blur-3xl border-y-2 border-cyan-400/40 shadow-[0_12px_45px_rgba(0,0,0,0.95),0_0_20px_rgba(6,182,212,0.2)]">
         <div className="relative max-w-7xl mx-auto flex items-center px-2 sm:px-4">
           {/* Left Scroll Button */}
           {canScrollLeft && (
             <button
               onClick={() => scrollTabs("left")}
-              className="absolute left-1 z-10 flex h-7 w-7 items-center justify-center rounded-full bg-slate-900/90 border border-cyan-500/40 text-cyan-300 shadow-lg hover:bg-cyan-500/20 transition-all cursor-pointer"
+              className="absolute left-1 z-20 flex h-9 w-9 items-center justify-center rounded-full bg-slate-900 border-2 border-cyan-400 text-cyan-300 shadow-[0_0_20px_rgba(6,182,212,0.6)] hover:bg-cyan-500/30 transition-all cursor-pointer"
               title="Scroll tabs left"
               aria-label="Scroll tabs left"
             >
@@ -145,25 +145,25 @@ export default function DashboardTabs({
             </button>
           )}
 
-          {/* Scrollable Container with Gradient Fade Mask */}
+          {/* High-Contrast Capsule Navigation Dock */}
           <div
             ref={scrollRef}
             onScroll={checkScroll}
-            className="flex items-center gap-2 sm:gap-3 overflow-x-auto px-2 py-1 scrollbar-none w-full"
+            className="flex items-center gap-2.5 sm:gap-4 overflow-x-auto p-2 rounded-2xl bg-slate-900/95 border-2 border-cyan-500/30 shadow-[inset_0_2px_12px_rgba(0,0,0,0.8),0_0_15px_rgba(6,182,212,0.15)] scrollbar-none w-full"
             style={{
               maskImage: canScrollLeft && canScrollRight
-                ? "linear-gradient(to right, transparent, black 24px, black calc(100% - 24px), transparent)"
+                ? "linear-gradient(to right, transparent, black 28px, black calc(100% - 28px), transparent)"
                 : canScrollRight
-                ? "linear-gradient(to right, black calc(100% - 32px), transparent)"
+                ? "linear-gradient(to right, black calc(100% - 36px), transparent)"
                 : canScrollLeft
-                ? "linear-gradient(to right, transparent, black 32px)"
+                ? "linear-gradient(to right, transparent, black 36px)"
                 : undefined,
               WebkitMaskImage: canScrollLeft && canScrollRight
-                ? "linear-gradient(to right, transparent, black 24px, black calc(100% - 24px), transparent)"
+                ? "linear-gradient(to right, transparent, black 28px, black calc(100% - 28px), transparent)"
                 : canScrollRight
-                ? "linear-gradient(to right, black calc(100% - 32px), transparent)"
+                ? "linear-gradient(to right, black calc(100% - 36px), transparent)"
                 : canScrollLeft
-                ? "linear-gradient(to right, transparent, black 32px)"
+                ? "linear-gradient(to right, transparent, black 36px)"
                 : undefined,
             }}
           >
@@ -179,32 +179,40 @@ export default function DashboardTabs({
                   onClick={() => {
                     setActiveTab(tab.key);
                   }}
-                  className={`group relative flex items-center gap-2 rounded-xl px-3.5 sm:px-4 py-2 sm:py-2.5 text-xs sm:text-sm font-semibold transition-all duration-200 whitespace-nowrap cursor-pointer select-none flex-shrink-0 ${
+                  className={`group relative flex items-center gap-3 rounded-xl px-4 sm:px-6 py-2.5 sm:py-3 text-xs sm:text-sm font-extrabold tracking-wider transition-all duration-300 whitespace-nowrap cursor-pointer select-none flex-shrink-0 ${
                     isActive
-                      ? "text-white bg-gradient-to-r from-sky-600/40 to-indigo-600/40 border border-sky-400/70 shadow-[0_0_16px_rgba(56,189,248,0.35)] ring-1 ring-sky-400/50 scale-[1.02]"
-                      : "text-zinc-400 hover:text-zinc-100 hover:bg-white/5 border border-white/10 bg-slate-900/60"
+                      ? "text-cyan-100 bg-gradient-to-r from-cyan-600/40 via-sky-600/35 to-indigo-600/40 border-2 border-cyan-300 shadow-[0_0_28px_rgba(6,182,212,0.65),inset_0_0_15px_rgba(6,182,212,0.25)] ring-2 ring-cyan-400/70 scale-[1.04]"
+                      : "text-slate-200 hover:text-white bg-slate-800/90 hover:bg-slate-800 border-2 border-slate-700/80 hover:border-cyan-400/60 hover:shadow-[0_0_18px_rgba(6,182,212,0.35)]"
                   }`}
                 >
-                  <Icon
-                    name={tab.icon}
-                    className={`h-4 w-4 transition-colors flex-shrink-0 ${
-                      isActive ? "text-sky-400 animate-pulse" : "text-zinc-500 group-hover:text-zinc-300"
+                  <div
+                    className={`flex items-center justify-center p-1.5 rounded-lg transition-all ${
+                      isActive
+                        ? "bg-cyan-400/30 text-cyan-200 shadow-[0_0_12px_rgba(6,182,212,0.5)]"
+                        : "bg-slate-700/60 text-slate-300 group-hover:text-cyan-300 group-hover:bg-cyan-500/20"
                     }`}
-                  />
-                  <span>{label}</span>
+                  >
+                    <Icon
+                      name={tab.icon}
+                      className={`h-4 w-4 transition-transform group-hover:scale-125 ${
+                        isActive ? "text-cyan-200 animate-pulse" : ""
+                      }`}
+                    />
+                  </div>
+                  <span className="drop-shadow-sm">{label}</span>
                   {badge && (
                     <span
-                      className={`text-[0.62rem] font-mono px-1.5 py-0.5 rounded-md flex-shrink-0 ${
+                      className={`text-[0.68rem] font-mono px-2.5 py-0.5 rounded-md font-bold uppercase tracking-wider transition-all flex-shrink-0 ${
                         isActive
-                          ? "bg-sky-500/30 text-sky-200 border border-sky-400/40"
-                          : "bg-white/5 text-zinc-500 hidden sm:inline-block"
+                          ? "bg-cyan-400 text-slate-950 font-black shadow-[0_0_12px_rgba(6,182,212,0.8)]"
+                          : "bg-slate-700/80 text-cyan-300 border border-cyan-500/40 group-hover:border-cyan-400 group-hover:bg-cyan-950/80 hidden sm:inline-block"
                       }`}
                     >
                       {badge}
                     </span>
                   )}
                   {isActive && (
-                    <span className="absolute -bottom-2 left-1/2 -translate-x-1/2 w-8 h-1 bg-gradient-to-r from-sky-400 to-indigo-500 rounded-full shadow-[0_0_8px_rgba(56,189,248,0.9)]" />
+                    <span className="absolute -bottom-2 left-1/2 -translate-x-1/2 w-16 h-1.5 bg-gradient-to-r from-cyan-400 via-sky-300 to-cyan-400 rounded-full shadow-[0_0_16px_rgba(6,182,212,1),0_0_30px_rgba(6,182,212,0.8)]" />
                   )}
                 </button>
               );
@@ -215,7 +223,7 @@ export default function DashboardTabs({
           {canScrollRight && (
             <button
               onClick={() => scrollTabs("right")}
-              className="absolute right-1 z-10 flex h-7 w-7 items-center justify-center rounded-full bg-slate-900/90 border border-cyan-500/40 text-cyan-300 shadow-lg hover:bg-cyan-500/20 transition-all cursor-pointer"
+              className="absolute right-1 z-20 flex h-9 w-9 items-center justify-center rounded-full bg-slate-900 border-2 border-cyan-400 text-cyan-300 shadow-[0_0_20px_rgba(6,182,212,0.6)] hover:bg-cyan-500/30 transition-all cursor-pointer"
               title="Scroll tabs right"
               aria-label="Scroll tabs right"
             >

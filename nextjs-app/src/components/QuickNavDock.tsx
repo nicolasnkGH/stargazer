@@ -65,14 +65,26 @@ export default function QuickNavDock() {
 
   return (
     <>
+      {/* DESKTOP: Collapsed Edge Trigger Handle */}
+      {isCollapsed && (
+        <button
+          onClick={() => setIsCollapsed(false)}
+          className="hidden xl:flex fixed right-0 top-1/2 -translate-y-1/2 z-50 flex items-center justify-center h-14 w-7 bg-slate-950/90 hover:bg-slate-900 border-l border-y border-cyan-500/40 text-cyan-400 rounded-l-2xl shadow-[0_0_20px_rgba(6,182,212,0.4)] transition-all cursor-pointer hover:w-9 group"
+          title="Expand Observatory Dock"
+          aria-label="Expand Observatory Dock"
+        >
+          <Icon name="chevron-left" className="h-4 w-4 group-hover:scale-125 transition-transform text-cyan-300" />
+        </button>
+      )}
+
       {/* DESKTOP: Vertical Floating Rail (Only on Extra-Large Screens >= 1280px) */}
       <nav
         id="quick-nav-dock"
         aria-label="Quick observatory navigation"
         className={`hidden xl:flex fixed top-1/2 -translate-y-1/2 z-40 flex-col items-center gap-2 p-2 rounded-2xl bg-slate-950/80 backdrop-blur-xl border border-cyan-500/20 shadow-[0_4px_30px_rgba(0,0,0,0.8)] ring-1 ring-white/10 transition-all duration-300 ${
           isCollapsed
-            ? "right-0 translate-x-[calc(100%-10px)] opacity-60 hover:opacity-100"
-            : "right-2 2xl:right-4 3xl:right-[calc(50vw-850px)]"
+            ? "right-0 translate-x-full opacity-0 pointer-events-none"
+            : "right-2 2xl:right-4 3xl:right-[calc(50vw-850px)] opacity-100"
         }`}
       >
         {/* Red Light / Night Mode Button */}

@@ -55,10 +55,24 @@ export const EyepieceSimulation: React.FC<EyepieceSimulationProps> = ({
   const isPlanetTarget = Boolean(PLANET_CONFIGS[key] && (PLANET_CONFIGS[key] !== PLANET_CONFIGS["jupiter"] || key === "jupiter"));
   const cfg = isPlanetTarget ? PLANET_CONFIGS[key] : null;
   const [hasError, setHasError] = useState(false);
+  const [isInView, setIsInView] = useState(false);
+
+  useEffect(() => {
+    const el = containerRef.current;
+    if (!el) return;
+    const observer = new IntersectionObserver(
+      ([entry]) => {
+        setIsInView(entry.isIntersecting);
+      },
+      { threshold: 0.05 }
+    );
+    observer.observe(el);
+    return () => observer.disconnect();
+  }, []);
 
   useEffect(() => {
     const container = containerRef.current;
-    if (!container) return;
+    if (!container || !isInView) return;
 
     let animationId: number;
     let isVisible = false;
@@ -392,7 +406,7 @@ export const EyepieceSimulation: React.FC<EyepieceSimulationProps> = ({
       console.warn("Eyepiece WebGL init failed, fallback to 2D optical disc:", err);
       setTimeout(() => setHasError(true), 0);
     }
-  }, [targetName, targetType, magnification, seeingSim, eyepieceFov, cfg, isPlanetTarget, key]);
+  }, [targetName, targetType, magnification, seeingSim, eyepieceFov, cfg, isPlanetTarget, key, isInView]);
 
   if (hasError) {
     const scale = magnification / 120;

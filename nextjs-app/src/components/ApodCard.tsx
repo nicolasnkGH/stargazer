@@ -11,19 +11,21 @@ interface ApodCardProps {
 }
 
 const DEFAULT_APOD: ApodData = {
-  title: "Eclipse Pair",
-  date: "2026-08-29",
+  title: "Andromeda Galaxy (M31) Cosmic Core",
+  date: "2026-09-30",
   explanation:
-    "Eclipses tend to come in pairs. Twice a year, during an eclipse season that lasts about 34 days, Sun, Moon, and Earth can nearly align. Then the new and full phases of the Moon, separated by just over 14 days, create a solar and a lunar eclipse.",
-  url: "https://apod.nasa.gov/apod/image/2404/EclipsePair_Blanck_1080.jpg",
-  hdurl: "https://apod.nasa.gov/apod/image/2404/EclipsePair_Blanck_1080.jpg",
+    "The Andromeda Galaxy (M31) is the closest major spiral galaxy to our Milky Way. Spanning roughly 220,000 light-years across, it contains over one trillion stars and presents a breathtaking galactic disc with prominent dust lanes and bright star clusters visible through backyard telescopes.",
+  url: "https://images-assets.nasa.gov/image/PIA12348/PIA12348~orig.jpg",
+  hdurl: "https://images-assets.nasa.gov/image/PIA12348/PIA12348~orig.jpg",
   media_type: "image",
-  copyright: "© Gwenaël Blanck",
+  copyright: "© NASA / JPL-Caltech",
 };
 
 export default function ApodCard({ apod }: ApodCardProps) {
   const t = useTranslations();
   const data = apod && apod.url ? apod : DEFAULT_APOD;
+  const [hasError, setHasError] = React.useState(false);
+  const imgSrc = hasError ? "/textures/targets/m31.webp" : (data.url || DEFAULT_APOD.url);
 
   return (
     <section id="apod-card" className="card w-full mb-8 border border-sky-500/20 bg-slate-900/90 shadow-xl overflow-hidden">
@@ -46,7 +48,7 @@ export default function ApodCard({ apod }: ApodCardProps) {
         </div>
       </div>
 
-      {/* Body matching Screenshot 5 layout */}
+      {/* Body */}
       <div className="card-body p-6 grid grid-cols-1 md:grid-cols-2 gap-6 items-center">
         <div className="relative rounded-2xl overflow-hidden bg-black/60 min-h-[260px] flex items-center justify-center border border-white/10 shadow-lg group">
           {data.media_type === "video" ? (
@@ -54,9 +56,10 @@ export default function ApodCard({ apod }: ApodCardProps) {
           ) : (
             // eslint-disable-next-line @next/next/no-img-element
             <img
-              src={data.url}
+              src={imgSrc}
               alt={data.title}
               title="Click to view in HD"
+              onError={() => setHasError(true)}
               className="w-full h-auto max-h-[380px] object-cover rounded-2xl transition-transform duration-500 group-hover:scale-[1.02]"
             />
           )}
