@@ -302,6 +302,55 @@ export default function TargetDatabase() {
           </div>
         )}
 
+        <div className="flex flex-wrap items-center justify-between gap-3 mb-4 p-3 rounded-xl bg-slate-950/70 border border-white/10">
+          <div className="flex flex-wrap items-center gap-2">
+            <span className="text-xs text-slate-400 font-semibold mr-1">{t("lbl_scope") || "Scope"}:</span>
+            <button
+              onClick={() => setFilter("All Constellations (Full DB)")}
+              className={`px-3 py-1 rounded-lg text-xs font-bold transition-all border cursor-pointer ${
+                filter === "All Constellations (Full DB)"
+                  ? "bg-sky-500/25 text-sky-300 border-sky-400/50 shadow-sm"
+                  : "bg-white/5 text-slate-400 border-white/10 hover:text-slate-200"
+              }`}
+            >
+              🌌 {t("filter_full_db") || "All Constellations (Full DB)"}
+            </button>
+            <button
+              onClick={() => setFilter("Visible Now (My Sky)")}
+              className={`px-3 py-1 rounded-lg text-xs font-bold transition-all border cursor-pointer ${
+                filter === "Visible Now (My Sky)"
+                  ? "bg-cyan-500/25 text-cyan-300 border-cyan-400/50 shadow-sm"
+                  : "bg-white/5 text-slate-400 border-white/10 hover:text-slate-200"
+              }`}
+            >
+              👁️ {t("filter_visible_now") || "Visible Now (My Sky)"}
+            </button>
+
+            {filter !== "All Constellations (Full DB)" && filter !== "Visible Now (My Sky)" && (
+              <div className="flex items-center gap-2 px-3 py-1 rounded-lg bg-amber-500/15 border border-amber-500/40 text-amber-300 text-xs font-bold">
+                <span>✨ {t("lbl_constellation") || "Constellation"}: <strong className="text-amber-200">{filter}</strong></span>
+                <button
+                  onClick={() => setFilter("All Constellations (Full DB)")}
+                  className="ml-1 hover:bg-amber-500/30 p-0.5 rounded text-amber-200 hover:text-white transition-all cursor-pointer flex items-center justify-center"
+                  title="Clear constellation filter and show all targets"
+                >
+                  <Icon name="x" className="h-3.5 w-3.5" />
+                </button>
+              </div>
+            )}
+          </div>
+
+          {filter !== "All Constellations (Full DB)" && (
+            <button
+              onClick={() => setFilter("All Constellations (Full DB)")}
+              className="text-xs text-cyan-400 hover:text-cyan-300 font-semibold cursor-pointer flex items-center gap-1"
+            >
+              <span>{t("btn_show_all_targets") || "Show All Targets"}</span>
+              <Icon name="arrow-right" className="h-3 w-3" />
+            </button>
+          )}
+        </div>
+
         <div className="flex flex-wrap items-center justify-between gap-3 mb-4">
           <div className="flex flex-wrap items-center gap-2">
             {TYPE_OPTIONS.map((o) => (

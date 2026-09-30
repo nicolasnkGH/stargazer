@@ -8,6 +8,8 @@ import { CenterOverlay } from "@/orrery/ui/CenterOverlay";
 import { PlanetDetailDrawer } from "@/orrery/ui/PlanetDetailDrawer";
 import { DashboardControls } from "@/orrery/ui/DashboardControls";
 
+import WebGlErrorBoundary from "./WebGlErrorBoundary";
+
 interface SolarSystemHeroProps {
   twilight?: TwilightTimeline | null;
   bortle?: number | null;
@@ -60,17 +62,19 @@ export default function SolarSystemHero({ }: SolarSystemHeroProps) {
       className="relative w-full h-[85vh] min-h-[600px] overflow-hidden bg-slate-950 font-sans select-none touch-pan-y"
       onWheel={handleWheel}
     >
-      {/* 3D Three.js Solar System Canvas */}
-      <SolarSystemCanvas
-        selectedBody={selectedBody}
-        onSelectBody={setSelectedBody}
-        timeMultiplier={timeMultiplier}
-        isPaused={isPaused}
-        zoomLevel={zoomLevel}
-        panOffset={panOffset}
-        resetCount={resetCount}
-        touchMode={touchMode}
-      />
+      {/* 3D Three.js Solar System Canvas with Dark WebGL Error Boundary */}
+      <WebGlErrorBoundary fallbackTitle="3D Orrery Telemetry Active">
+        <SolarSystemCanvas
+          selectedBody={selectedBody}
+          onSelectBody={setSelectedBody}
+          timeMultiplier={timeMultiplier}
+          isPaused={isPaused}
+          zoomLevel={zoomLevel}
+          panOffset={panOffset}
+          resetCount={resetCount}
+          touchMode={touchMode}
+        />
+      </WebGlErrorBoundary>
 
 
 

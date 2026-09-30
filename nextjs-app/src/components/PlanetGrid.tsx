@@ -161,189 +161,155 @@ function Planet3DCanvas({ name }: { name: string }) {
   const containerRef = useRef<HTMLDivElement>(null);
   const key = normalizePlanetKey(name);
   const cfg = PLANET_CONFIGS[key] || {};
-  const [hasError, setHasError] = useState(false);
+  const [isInView, setIsInView] = useState(false);
+
+  useEffect(() => {
+    const el = containerRef.current;
+    if (!el) return;
+    const observer = new IntersectionObserver(
+      ([entry]) => {
+        setIsInView(entry.isIntersecting);
+      },
+      { threshold: 0.05 }
+    );
+    observer.observe(el);
+    return () => observer.disconnect();
+  }, []);
 
   useEffect(() => {
     const container = containerRef.current;
-    if (!container) return;
+    if (!container || !isInView) return;
 
-    try {
-      const w = container.clientWidth || 180;
-      const h = container.clientHeight || 180;
+    const w = container.clientWidth || 180;
+    const h = container.clientHeight || 180;
 
-      const scene = new THREE.Scene();
-      const camera = new THREE.PerspectiveCamera(45, w / h, 0.1, 100);
-      camera.position.z = 3.2;
+    const scene = new THREE.Scene();
+    const camera = new THREE.PerspectiveCamera(42, w / h, 0.1, 100);
+    camera.position.z = 3.2;
 
-      const renderer = new THREE.WebGLRenderer({ alpha: true, antialias: true });
-      renderer.setSize(w, h);
-      renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
-      renderer.domElement.style.pointerEvents = "auto";
+    const renderer = new THREE.WebGLRenderer({ alpha: true, antialias: true, powerPreference: "low-power" });
+    renderer.setSize(w, h);
+    renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
 
-      while (container.firstChild) {
-        container.removeChild(container.firstChild);
-      }
-      container.appendChild(renderer.domElement);
-
-      scene.add(new THREE.AmbientLight(0xffffff, key === "sun" ? 2.5 : 0.4));
-      const dirLight = new THREE.DirectionalLight(0xfff5e6, key === "sun" ? 0 : 1.8);
-      dirLight.position.set(4, 2, 3);
-      scene.add(dirLight);
-
-      const fillLight = new THREE.DirectionalLight(0x406090, 0.3);
-      fillLight.position.set(-4, -1, -2);
-      scene.add(fillLight);
-
-      const planetGroup = new THREE.Group();
-      if (cfg.tilt) {
-        planetGroup.rotation.z = THREE.MathUtils.degToRad(cfg.tilt);
-      }
-      scene.add(planetGroup);
-
-      const geo = new THREE.SphereGeometry(1, 48, 48);
-      const texLoader = new THREE.TextureLoader();
-
-      const texUrl = cfg.texUrl || `/textures/${key}.jpg`;
-      let mat: THREE.Material;
-      if (key === "sun") {
-        mat = new THREE.MeshBasicMaterial({
-          map: texLoader.load(texUrl, undefined, undefined, () => setHasError(true)),
-        });
-      } else {
-        mat = new THREE.MeshStandardMaterial({
-          map: texLoader.load(texUrl, undefined, undefined, () => setHasError(true)),
-          bumpMap: new THREE.CanvasTexture(makePlanetBump(key)),
-          bumpScale: cfg.bumpScale ?? 0.01,
-          roughness: key === "venus" ? 0.9 : 0.7,
-          metalness: 0.1,
-        });
-      }
-
-      const mesh = new THREE.Mesh(geo, mat);
-      planetGroup.add(mesh);
-
-      let ringMesh: THREE.Mesh | null = null;
-      if (cfg.hasRing) {
-        const ringGeo = new THREE.RingGeometry(1.3, 2.2, 64);
-        const pos = ringGeo.attributes.position;
-        const uv = ringGeo.attributes.uv;
-        for (let i = 0; i < pos.count; i++) {
-          const vx = pos.getX(i);
-          const vy = pos.getY(i);
-          const len = Math.sqrt(vx * vx + vy * vy);
-          const norm = (len - 1.3) / (2.2 - 1.3);
-          uv.setXY(i, norm, 0.5);
-        }
-
-        const ringMat = new THREE.MeshStandardMaterial({
-          map: cfg.ringTex ? texLoader.load(cfg.ringTex) : null,
-          side: THREE.DoubleSide,
-          transparent: true,
-          opacity: 0.85,
-          roughness: 0.5,
-        });
-        ringMesh = new THREE.Mesh(ringGeo, ringMat);
-        ringMesh.rotation.x = Math.PI / 2;
-        planetGroup.add(ringMesh);
-      }
-
-      const controls = new OrbitControls(camera, renderer.domElement);
-      controls.enablePan = false;
-      controls.enableZoom = false; 
-      controls.autoRotate = false;
-
-      let visible = true;
-      const io = new IntersectionObserver(([e]) => { visible = e.isIntersecting; }, { threshold: 0.05 });
-      io.observe(container);
-      let pageVisible = !document.hidden;
-      const onVisibilityChange = () => { pageVisible = !document.hidden; };
-      document.addEventListener("visibilitychange", onVisibilityChange);
-
-      const handleContextLost = (event: Event) => {
-        event.preventDefault();
-        try {
-          renderer.dispose();
-          if (container && renderer.domElement && container.contains(renderer.domElement)) {
-            container.removeChild(renderer.domElement);
-          }
-        } catch {
-          // ignore cleanup error
-        }
-        setHasError(true);
-      };
-      renderer.domElement.addEventListener("webglcontextlost", handleContextLost);
-
-      const FPS_INTERVAL = 1000 / 30;
-      let rafId = 0;
-      let lastT = 0;
-      const speed = cfg.rotSpeed ?? 0.003;
-      const animate = (t: number) => {
-        rafId = requestAnimationFrame(animate);
-        if (!visible || !pageVisible) return;
-        if (t - lastT < FPS_INTERVAL) return;
-        lastT = t;
-        mesh.rotation.y += speed;
-        renderer.render(scene, camera);
-      };
-      animate(performance.now());
-
-      const resizeObserver = new ResizeObserver((entries) => {
-        for (const entry of entries) {
-          const { width, height } = entry.contentRect;
-          if (!width || !height) continue;
-          camera.aspect = width / height;
-          camera.updateProjectionMatrix();
-          renderer.setSize(width, height);
-        }
-      });
-      resizeObserver.observe(container);
-
-      return () => {
-        cancelAnimationFrame(rafId);
-        renderer.domElement.removeEventListener("webglcontextlost", handleContextLost);
-        io.disconnect();
-        resizeObserver.disconnect();
-        document.removeEventListener("visibilitychange", onVisibilityChange);
-        controls.dispose();
-        renderer.dispose();
-        mat.dispose();
-        geo.dispose();
-      };
-    } catch (err) {
-      console.warn("Planet WebGL setup failed, fallback to 2D disc:", err);
-      setTimeout(() => setHasError(true), 0);
+    while (container.firstChild) {
+      container.removeChild(container.firstChild);
     }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [key]);
+    container.appendChild(renderer.domElement);
+
+    // Deep ambient celestial light
+    scene.add(new THREE.AmbientLight(0xffffff, key === "sun" ? 2.5 : 0.45));
+    const dirLight = new THREE.DirectionalLight(0xfff5e6, key === "sun" ? 0 : 2.0);
+    dirLight.position.set(4, 2, 3);
+    scene.add(dirLight);
+
+    const fillLight = new THREE.DirectionalLight(0x406090, 0.35);
+    fillLight.position.set(-4, -1, -2);
+    scene.add(fillLight);
+
+    const planetGroup = new THREE.Group();
+    if (cfg.tilt) {
+      planetGroup.rotation.z = THREE.MathUtils.degToRad(cfg.tilt);
+    }
+    scene.add(planetGroup);
+
+    const geo = new THREE.SphereGeometry(1, 48, 48);
+    const texLoader = new THREE.TextureLoader();
+    const texUrl = cfg.texUrl || `/textures/${key}.jpg`;
+
+    let mat: THREE.Material;
+    if (key === "sun") {
+      mat = new THREE.MeshBasicMaterial({
+        map: texLoader.load(texUrl),
+      });
+    } else {
+      mat = new THREE.MeshStandardMaterial({
+        map: texLoader.load(texUrl),
+        bumpMap: new THREE.CanvasTexture(makePlanetBump(key)),
+        bumpScale: cfg.bumpScale ?? 0.015,
+        roughness: key === "venus" ? 0.9 : 0.65,
+        metalness: 0.1,
+      });
+    }
+
+    const mesh = new THREE.Mesh(geo, mat);
+    planetGroup.add(mesh);
+
+    let ringMesh: THREE.Mesh | null = null;
+    let ringGeo: THREE.RingGeometry | null = null;
+    let ringMat: THREE.MeshStandardMaterial | null = null;
+
+    if (cfg.hasRing) {
+      ringGeo = new THREE.RingGeometry(1.35, 2.3, 64);
+      const pos = ringGeo.attributes.position;
+      const uv = ringGeo.attributes.uv;
+      for (let i = 0; i < pos.count; i++) {
+        const vx = pos.getX(i);
+        const vy = pos.getY(i);
+        const len = Math.sqrt(vx * vx + vy * vy);
+        const norm = (len - 1.35) / (2.3 - 1.35);
+        uv.setXY(i, norm, 0.5);
+      }
+      uv.needsUpdate = true;
+
+      const ringTex = cfg.ringTex || "/textures/saturn_ring_color.webp";
+      ringMat = new THREE.MeshStandardMaterial({
+        map: texLoader.load(ringTex),
+        side: THREE.DoubleSide,
+        transparent: true,
+        opacity: 0.9,
+        roughness: 0.4,
+      });
+      ringMesh = new THREE.Mesh(ringGeo, ringMat);
+      ringMesh.rotation.x = Math.PI / 2;
+      planetGroup.add(ringMesh);
+    }
+
+    const controls = new OrbitControls(camera, renderer.domElement);
+    controls.enablePan = false;
+    controls.enableZoom = false;
+    controls.autoRotate = false;
+
+    let rafId = 0;
+    const animate = () => {
+      rafId = requestAnimationFrame(animate);
+      mesh.rotation.y += cfg.rotSpeed ? cfg.rotSpeed * 0.8 : 0.003;
+      renderer.render(scene, camera);
+    };
+    animate();
+
+    const handleResize = () => {
+      if (!container) return;
+      const nw = container.clientWidth || 180;
+      const nh = container.clientHeight || 180;
+      camera.aspect = nw / nh;
+      camera.updateProjectionMatrix();
+      renderer.setSize(nw, nh);
+    };
+    window.addEventListener("resize", handleResize);
+
+    return () => {
+      cancelAnimationFrame(rafId);
+      window.removeEventListener("resize", handleResize);
+      renderer.dispose();
+      geo.dispose();
+      mat.dispose();
+      if (ringGeo) ringGeo.dispose();
+      if (ringMat) ringMat.dispose();
+      if (renderer.domElement && renderer.domElement.parentNode) {
+        renderer.domElement.parentNode.removeChild(renderer.domElement);
+      }
+    };
+  }, [key, isInView]);
 
   const bgStyle = cfg.radialGlow
     ? { background: cfg.radialGlow }
     : { background: "radial-gradient(circle at center, rgba(56,189,248,0.2) 0%, transparent 70%)" };
 
-  if (hasError) {
-    const tex = cfg.texUrl || `/textures/${key}.jpg`;
-    return (
-      <div className="w-full h-44 flex items-center justify-center relative touch-pan-y" style={bgStyle}>
-        <div
-          className="w-24 h-24 rounded-full bg-cover bg-center border border-white/20 shadow-[0_0_25px_rgba(255,255,255,0.2)] relative overflow-hidden"
-          style={{ backgroundImage: `url(${tex})` }}
-        >
-          {cfg.hasRing && (
-            <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
-              <div className="w-36 h-8 rounded-full border border-amber-300/70 bg-amber-500/20 transform -rotate-12 shadow-[0_0_10px_rgba(245,158,11,0.4)]" />
-            </div>
-          )}
-        </div>
-      </div>
-    );
-  }
-
   return (
-    <div className="w-full h-44 flex items-center justify-center relative touch-pan-y">
+    <div className="w-full h-44 flex items-center justify-center relative touch-pan-y" style={bgStyle}>
       <div
         ref={containerRef}
-        className="w-full h-full rounded-xl overflow-hidden relative z-10 touch-pan-y"
-        style={bgStyle}
+        className="aspect-square h-44 w-44 rounded-full overflow-hidden flex items-center justify-center cursor-grab active:cursor-grabbing"
       />
     </div>
   );

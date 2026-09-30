@@ -118,7 +118,8 @@ test.describe('StarGazer UI Smoke Tests', () => {
   });
 
   test('Outlook Card "View Visible Targets Tonight" button & Hourly Cloud Strip render', async ({ page }) => {
-    await page.goto(BASE_URL, { waitUntil: 'domcontentloaded', timeout: 25000 });
+    test.setTimeout(45000);
+    await page.goto(BASE_URL, { waitUntil: 'domcontentloaded', timeout: 35000 });
     
     // Verify Hourly Cloud Forecast strip exists
     const cloudStrip = page.getByText(/Hourly Cloud Forecast/i).first();

@@ -8,38 +8,48 @@ import type { WeeklyReport } from "@/types";
 import { UNITS_STORAGE_KEY } from "@/lib/constants";
 import { useTranslations } from "next-intl";
 
+function getMoonEmoji(illum: number, phaseName?: string): string {
+  const p = (phaseName || "").toLowerCase();
+  if (illum < 5) return "🌑";
+  if (illum > 95) return "🌕";
+  const isWaxing = !(p.includes("waning") || p.includes("last") || p.includes("third") || p.includes("3q"));
+  if (illum < 45) return isWaxing ? "🌒" : "🌘";
+  if (illum < 65) return isWaxing ? "🌓" : "🌗";
+  return isWaxing ? "🌔" : "🌖";
+}
+
 function RatingBadge({ rating }: { rating: string }) {
   const t = useTranslations();
   if (!rating) return <span className="text-xs font-semibold text-slate-400">—</span>;
   if (rating.includes("Excellent"))
     return (
-      <span className="rounded bg-emerald-950/80 border border-emerald-500/40 px-2 py-0.5 text-[0.65rem] font-bold text-emerald-300">
+      <span className="rounded-lg bg-emerald-950/80 border border-emerald-400/60 px-2 py-0.5 text-[0.65rem] font-bold text-emerald-300 shadow-[0_0_10px_rgba(52,211,153,0.3)]">
         🌟 {t("excellent") || "Excellent"}
       </span>
     );
   if (rating.includes("Good"))
     return (
-      <span className="rounded bg-green-950/80 border border-green-500/40 px-2 py-0.5 text-[0.65rem] font-bold text-green-300">
+      <span className="rounded-lg bg-green-950/80 border border-green-500/50 px-2 py-0.5 text-[0.65rem] font-bold text-green-300">
         🟢 {t("good") || "Good"}
       </span>
     );
   if (rating.includes("Fair"))
     return (
-      <span className="rounded bg-yellow-950/80 border border-yellow-500/40 px-2 py-0.5 text-[0.65rem] font-bold text-yellow-300">
+      <span className="rounded-lg bg-amber-950/80 border border-amber-500/50 px-2 py-0.5 text-[0.65rem] font-bold text-amber-300">
         🟡 {t("fair") || "Fair"}
       </span>
     );
   return (
-    <span className="rounded bg-red-950/80 border border-red-500/40 px-2 py-0.5 text-[0.65rem] font-bold text-red-300">
+    <span className="rounded-lg bg-rose-950/80 border border-rose-500/50 px-2 py-0.5 text-[0.65rem] font-bold text-rose-300">
       🔴 {t("poor") || "Poor"}
     </span>
   );
 }
 
 function StatusDot({ cloud_pct }: { cloud_pct: number }) {
-  if (cloud_pct <= 30) return <span className="h-2.5 w-2.5 rounded-full bg-emerald-400 shadow-[0_0_8px_rgba(52,211,153,0.8)]" title="Clear Sky" />;
-  if (cloud_pct <= 60) return <span className="h-2.5 w-2.5 rounded-full bg-amber-400 shadow-[0_0_8px_rgba(251,191,36,0.8)]" title="Partly Cloudy" />;
-  return <span className="h-2.5 w-2.5 rounded-full bg-red-400 shadow-[0_0_8px_rgba(248,113,113,0.8)]" title="Cloudy" />;
+  if (cloud_pct <= 30) return <span className="h-2 w-2 rounded-full bg-emerald-400 shadow-[0_0_8px_rgba(52,211,153,0.9)]" title="Clear Sky" />;
+  if (cloud_pct <= 60) return <span className="h-2 w-2 rounded-full bg-amber-400 shadow-[0_0_8px_rgba(251,191,36,0.9)]" title="Partly Cloudy" />;
+  return <span className="h-2 w-2 rounded-full bg-rose-400 shadow-[0_0_8px_rgba(244,63,94,0.9)]" title="Cloudy" />;
 }
 
 const swrFetcher = (url: string) => fetch(url).then((res) => res.json());
@@ -198,57 +208,103 @@ export default function WeeklyForecast({ report: initialReport }: { report: Week
                 ? `${Math.round(day.temp_c)}°C`
                 : `${Math.round((day.temp_c * 9) / 5 + 32)}°F`;
 
+              const moonEmoji = getMoonEmoji(day.moon_illumination, day.moon_phase);
+              const clearScore = Math.max(0, 100 - day.cloud_pct);
+
               return (
                 <div
                   key={i}
                   style={{ scrollSnapAlign: "start" }}
-                  className={`rounded-2xl border p-4 flex flex-col justify-between items-center text-center gap-2 transition-all shadow-md flex-shrink-0 w-[200px] sm:w-auto snap-start ${
+                  className={`rounded-2xl border p-4 flex flex-col justify-between items-center text-center gap-3 transition-all duration-300 shadow-lg flex-shrink-0 w-[205px] sm:w-auto snap-start hover:scale-[1.02] group/card ${
                     isToday
-                      ? "border-cyan-400/60 bg-slate-950/90 shadow-[0_0_15px_rgba(6,182,212,0.2)]"
+                      ? "border-cyan-400 bg-gradient-to-b from-cyan-950/40 via-slate-950/90 to-slate-950/95 shadow-[0_0_20px_rgba(6,182,212,0.3)] ring-1 ring-cyan-400/50"
                       : (day.rating ?? "").includes("Excellent") || (day.rating ?? "").includes("Good")
-                      ? "border-emerald-500/30 bg-slate-950/70"
-                      : "border-white/10 bg-slate-950/50"
+                      ? "border-emerald-500/40 bg-gradient-to-b from-emerald-950/20 via-slate-950/80 to-slate-950/90 hover:border-emerald-400/60"
+                      : "border-white/10 bg-slate-950/70 hover:border-white/20"
                   }`}
                 >
                   {/* Day Header */}
                   <div className="flex items-center justify-between w-full pb-2 border-b border-white/10">
                     <div className="flex items-center gap-1.5">
                       <StatusDot cloud_pct={day.cloud_pct} />
-                      <span className="text-xs font-bold text-slate-100">{day.date.split(",")[0]}</span>
+                      <span className="text-xs font-bold text-slate-100 tracking-wide">{day.date.split(",")[0]}</span>
                     </div>
-                    {isToday && (
-                      <span className="text-[0.6rem] font-bold text-cyan-300 bg-cyan-950/80 border border-cyan-400/40 px-1.5 py-0.5 rounded">
+                    {isToday ? (
+                      <span className="text-[0.62rem] font-bold text-cyan-300 bg-cyan-950/90 border border-cyan-400/50 px-1.5 py-0.5 rounded shadow-sm">
                         TODAY
+                      </span>
+                    ) : (
+                      <span className="text-[0.65rem] text-slate-400 font-mono">
+                        {day.date.split(" ")[1] || ""}
                       </span>
                     )}
                   </div>
 
                   {/* Rating Badge */}
-                  <div className="my-1">
+                  <div>
                     <RatingBadge rating={day.rating} />
                   </div>
 
+                  {/* Sky Clarity Meter Bar */}
+                  <div className="w-full space-y-1">
+                    <div className="flex items-center justify-between text-[0.65rem]">
+                      <span className="text-slate-400 font-medium">Sky Clarity</span>
+                      <span className={`font-mono font-bold ${clearScore > 70 ? "text-emerald-400" : clearScore > 40 ? "text-amber-400" : "text-rose-400"}`}>
+                        {Math.round(clearScore)}%
+                      </span>
+                    </div>
+                    <div className="h-1.5 w-full bg-slate-800 rounded-full overflow-hidden">
+                      <div
+                        className={`h-full rounded-full transition-all duration-500 ${
+                          clearScore > 70
+                            ? "bg-gradient-to-r from-emerald-500 to-cyan-400"
+                            : clearScore > 40
+                            ? "bg-gradient-to-r from-amber-500 to-yellow-400"
+                            : "bg-gradient-to-r from-rose-600 to-rose-400"
+                        }`}
+                        style={{ width: `${clearScore}%` }}
+                      />
+                    </div>
+                  </div>
+
                   {/* Weather & Sky Stats */}
-                  <div className="space-y-1 w-full text-xs">
+                  <div className="space-y-1.5 w-full text-xs bg-slate-900/60 p-2.5 rounded-xl border border-white/5">
                     <div className="flex items-center justify-between text-slate-300">
-                      <span className="text-slate-400">{t("lbl_clouds") || "Clouds"}</span>
+                      <span className="text-slate-400 flex items-center gap-1">
+                        <span>☁️</span>
+                        <span>{t("lbl_clouds") || "Clouds"}</span>
+                      </span>
                       <span className="font-mono font-bold text-cyan-300">{Math.round(day.cloud_pct)}%</span>
                     </div>
+
                     <div className="flex items-center justify-between text-slate-300">
-                      <span className="text-slate-400">{t("lbl_wind") || "Wind"}</span>
+                      <span className="text-slate-400 flex items-center gap-1">
+                        <span>🌡️</span>
+                        <span>{t("lbl_temp") || "Temp"}</span>
+                      </span>
                       <span className="font-mono font-bold text-amber-300">{tempDisplay}</span>
                     </div>
+
                     <div className="flex items-center justify-between text-slate-300">
-                      <span className="text-slate-400">{t("lbl_moon") || "Moon"}</span>
+                      <span className="text-slate-400 flex items-center gap-1">
+                        <span>{moonEmoji}</span>
+                        <span>{t("lbl_moon") || "Moon"}</span>
+                      </span>
                       <span className="font-mono text-purple-300 font-bold">{day.moon_illumination}%</span>
                     </div>
                   </div>
 
                   {/* Highlights */}
                   {(day.highlights ?? []).length > 0 && (
-                    <div className="mt-2 w-full pt-2 border-t border-white/10 text-[0.65rem] text-slate-300 leading-tight italic">
+                    <div className="w-full pt-1">
                       {(day.highlights ?? []).slice(0, 1).map((h, j) => (
-                        <p key={j} className="truncate w-full" title={h}>{h}</p>
+                        <div
+                          key={j}
+                          className="px-2 py-1 rounded-lg bg-sky-500/10 border border-sky-400/25 text-[0.62rem] text-sky-200 font-medium truncate w-full shadow-sm"
+                          title={h}
+                        >
+                          ✨ {h}
+                        </div>
                       ))}
                     </div>
                   )}

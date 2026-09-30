@@ -44,6 +44,7 @@ export default function StarfieldBackground() {
   return (
     <canvas
       ref={canvasRef}
+      data-starfield="true"
       className="fixed inset-0 z-0 pointer-events-none"
       style={{ width: "100vw", height: "100vh" }}
     />
