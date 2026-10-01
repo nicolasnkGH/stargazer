@@ -891,7 +891,10 @@ export const Sun: React.FC<SunProps> = ({ data, isSelected, onSelect }) => {
 
   // Render loop update with explicit immutability suppression for Three.js WebGL uniforms
   useFrame((state, delta) => {
-    const time = state.clock.getElapsedTime();
+    // Modern Three.js / R3F clock & timer elapsed time computation
+    const time = (state.clock && typeof state.clock.getElapsedTime === 'function')
+      ? state.clock.getElapsedTime()
+      : (typeof performance !== 'undefined' ? performance.now() * 0.001 : 0);
 
     // 1. Update Perlin Noise Cubemap
     perlinSetup.perlinMat.uniforms.uTime.value = time * 0.1;

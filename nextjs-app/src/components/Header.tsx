@@ -42,7 +42,6 @@ import {
 import type { Locale, TonightReport, BortleInfo } from "@/types";
 import Modal from "./Modal";
 import LocationControl from "./LocationControl";
-import { parseLocationCookie } from "@/lib/location-cookie";
 import { useClientLocation } from "@/hooks/useClientLocation";
 import DataSettingsModal from "./DataSettingsModal";
 import { startOnboardingTour } from "./OnboardingTour";
@@ -424,8 +423,8 @@ export default function Header() {
         <div className="flex flex-shrink-0 items-center gap-1 sm:gap-2">
           {/* Clock (Visible on 2xl screens >= 1536px) */}
           <div className="hidden items-center gap-2 whitespace-nowrap font-mono 2xl:flex">
-            <span id="clock" className="text-[0.85rem]">{currentTime}</span>
-            <span id="date-display" className="text-[0.75rem] text-zinc-400">{currentDate}</span>
+            <span id="clock" suppressHydrationWarning className="text-[0.85rem]">{currentTime}</span>
+            <span id="date-display" suppressHydrationWarning className="text-[0.75rem] text-zinc-400">{currentDate}</span>
           </div>
 
           <button
