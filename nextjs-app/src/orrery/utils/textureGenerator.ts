@@ -86,8 +86,22 @@ export function getSmartTexture(key: string, cdnUrl: string, proceduralFallback:
     cdnUrl,
     (loadedTex) => {
       loadedTex.colorSpace = THREE.SRGBColorSpace;
-      loadedTex.needsUpdate = true;
-      // Copy loaded image onto cached texture or swap
+      // If fallbackTexture is a CanvasTexture with differing dimensions, resize/draw cleanly
+      // rather than assigning .image of mismatched dimensions which triggers GL_INVALID_VALUE glTexSubImage2D
+      if (fallbackTexture instanceof THREE.CanvasTexture && fallbackTexture.image instanceof HTMLCanvasElement) {
+        const canvas = fallbackTexture.image;
+        if (loadedTex.image && (canvas.width !== loadedTex.image.width || canvas.height !== loadedTex.image.height)) {
+          canvas.width = loadedTex.image.width;
+          canvas.height = loadedTex.image.height;
+        }
+        const ctx = canvas.getContext('2d');
+        if (ctx && loadedTex.image) {
+          ctx.clearRect(0, 0, canvas.width, canvas.height);
+          ctx.drawImage(loadedTex.image, 0, 0);
+          fallbackTexture.needsUpdate = true;
+          return;
+        }
+      }
       fallbackTexture.image = loadedTex.image;
       fallbackTexture.needsUpdate = true;
     },
