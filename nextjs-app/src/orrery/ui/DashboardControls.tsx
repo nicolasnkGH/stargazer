@@ -90,38 +90,38 @@ export const DashboardControls: React.FC<DashboardControlsProps> = ({
       </div>
 
       {/* Bottom Main Controls Deck (Lifts above mobile quick nav dock on small screens) */}
-      <div className="absolute bottom-20 sm:bottom-4 left-3 right-3 sm:left-6 sm:right-6 z-20 flex flex-wrap items-end justify-between gap-2.5 sm:gap-3 pointer-events-none">
+      <div className="absolute bottom-16 sm:bottom-4 left-2 right-2 sm:left-6 sm:right-6 z-20 flex flex-wrap items-end justify-between gap-1.5 sm:gap-3 pointer-events-none">
         {/* Left Side: D-Pad Puck + Speed Pill + Mobile Touch Mode Toggle */}
-        <div className="pointer-events-auto flex items-center space-x-2 sm:space-x-3 flex-shrink-0">
+        <div className="pointer-events-auto flex items-center space-x-1.5 sm:space-x-3 flex-shrink-0">
           {/* Navigation D-Pad Puck */}
-          <div className="relative w-16 h-16 sm:w-24 sm:h-24 rounded-full bg-slate-900/80 backdrop-blur-2xl border border-white/10 shadow-2xl flex items-center justify-center p-1 sm:p-2">
+          <div className="relative w-14 h-14 sm:w-24 sm:h-24 rounded-full bg-slate-900/80 backdrop-blur-2xl border border-white/10 shadow-2xl flex items-center justify-center p-1 sm:p-2">
             <button
               onClick={() => onPan && onPan("up")}
               className="absolute top-0.5 sm:top-1 text-slate-400 hover:text-cyan-300 p-0.5 sm:p-1 transition-transform active:scale-90"
               title={t("orrery_title_pan_up")}
             >
-              <ChevronUp className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
+              <ChevronUp className="w-3 h-3 sm:w-4 sm:h-4" />
             </button>
             <button
               onClick={() => onPan && onPan("down")}
               className="absolute bottom-0.5 sm:bottom-1 text-slate-400 hover:text-cyan-300 p-0.5 sm:p-1 transition-transform active:scale-90"
               title={t("orrery_title_pan_down")}
             >
-              <ChevronDown className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
+              <ChevronDown className="w-3 h-3 sm:w-4 sm:h-4" />
             </button>
             <button
               onClick={() => onPan && onPan("left")}
               className="absolute left-0.5 sm:left-1 text-slate-400 hover:text-cyan-300 p-0.5 sm:p-1 transition-transform active:scale-90"
               title={t("orrery_title_pan_left")}
             >
-              <ChevronLeft className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
+              <ChevronLeft className="w-3 h-3 sm:w-4 sm:h-4" />
             </button>
             <button
               onClick={() => onPan && onPan("right")}
               className="absolute right-0.5 sm:right-1 text-slate-400 hover:text-cyan-300 p-0.5 sm:p-1 transition-transform active:scale-90"
               title={t("orrery_title_pan_right")}
             >
-              <ChevronRight className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
+              <ChevronRight className="w-3 h-3 sm:w-4 sm:h-4" />
             </button>
 
             {/* Inner Puck Center Reset Button */}
@@ -130,15 +130,15 @@ export const DashboardControls: React.FC<DashboardControlsProps> = ({
                 onSelectBody(null);
                 if (onPan) onPan("reset");
               }}
-              className="w-7 h-7 sm:w-10 sm:h-10 rounded-full bg-gradient-to-tr from-cyan-500/30 to-blue-600/30 border border-cyan-400/40 shadow-[0_0_15px_rgba(6,182,212,0.4)] flex items-center justify-center text-cyan-300 hover:scale-105 active:scale-95 transition-all"
+              className="w-6 h-6 sm:w-10 sm:h-10 rounded-full bg-gradient-to-tr from-cyan-500/30 to-blue-600/30 border border-cyan-400/40 shadow-[0_0_15px_rgba(6,182,212,0.4)] flex items-center justify-center text-cyan-300 hover:scale-105 active:scale-95 transition-all"
               title={t("orrery_title_reset_view")}
             >
-              <Crosshair className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
+              <Crosshair className="w-3 h-3 sm:w-4 sm:h-4" />
             </button>
           </div>
 
           {/* Time Speed & Orbit Controls */}
-          <div className="flex items-center space-x-1.5 sm:space-x-2 bg-slate-900/80 backdrop-blur-2xl border border-white/10 px-2.5 py-1.5 sm:px-4 sm:py-2.5 rounded-2xl shadow-xl text-xs text-white">
+          <div className="flex items-center space-x-1 sm:space-x-2 bg-slate-900/80 backdrop-blur-2xl border border-white/10 px-2 py-1 sm:px-4 sm:py-2.5 rounded-2xl shadow-xl text-xs text-white">
             <button
               onClick={onTogglePause}
               className="p-1 sm:p-2 rounded-xl bg-cyan-500/20 hover:bg-cyan-500/30 border border-cyan-400/40 text-cyan-300 transition-all active:scale-95"
@@ -168,7 +168,7 @@ export const DashboardControls: React.FC<DashboardControlsProps> = ({
           {onToggleTouchMode && (
             <button
               onClick={onToggleTouchMode}
-              className={`flex sm:hidden items-center gap-1.5 px-2.5 py-1.5 rounded-2xl border text-[11px] font-semibold shadow-xl transition-all active:scale-95 ${
+              className={`flex sm:hidden items-center gap-1 px-2 py-1 rounded-2xl border text-[10px] font-semibold shadow-xl transition-all active:scale-95 ${
                 touchMode === "orbit"
                   ? "bg-cyan-500 text-slate-950 border-cyan-300 shadow-[0_0_12px_rgba(6,182,212,0.6)]"
                   : "bg-slate-900/90 text-cyan-300 border-white/15"

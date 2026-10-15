@@ -32,6 +32,12 @@ const CameraController: React.FC<CameraControllerProps> = ({ selectedBody, zoomL
     return () => window.removeEventListener("resize", checkMobile);
   }, []);
 
+  useEffect(() => {
+    if (controlsRef.current?.domElement) {
+      controlsRef.current.domElement.style.touchAction = isMobile && touchMode === "scroll" ? "pan-y" : "none";
+    }
+  }, [isMobile, touchMode]);
+
   const targetPos = useRef(new THREE.Vector3(0, 0, 0));
   const desiredCamPos = useRef(new THREE.Vector3(0, 45, 70));
   const isAnimating = useRef(true);
@@ -156,11 +162,25 @@ export const SolarSystemCanvas: React.FC<SolarSystemCanvasProps> = ({
     return () => observer.disconnect();
   }, []);
 
+  const [isMobile, setIsMobile] = useState(false);
+
+  useEffect(() => {
+    const checkMobile = () => setIsMobile(window.innerWidth < 768);
+    checkMobile();
+    window.addEventListener("resize", checkMobile);
+    return () => window.removeEventListener("resize", checkMobile);
+  }, []);
+
   const sunData = CELESTIAL_BODIES.find((b) => b.id === "sun")!;
   const planetBodies = CELESTIAL_BODIES.filter((b) => b.type !== "star" && b.id !== "moon");
 
   return (
-    <div ref={containerRef} className="absolute inset-0 w-full h-full bg-slate-950 overflow-hidden select-none touch-pan-y">
+    <div
+      ref={containerRef}
+      className={`absolute inset-0 w-full h-full bg-slate-950 overflow-hidden touch-pan-y ${
+        isMobile && touchMode === "scroll" ? "pointer-events-none" : "pointer-events-auto"
+      }`}
+    >
       <Canvas
         frameloop={isVisible ? "always" : "never"}
         dpr={[1, 1.5]}
@@ -172,7 +192,15 @@ export const SolarSystemCanvas: React.FC<SolarSystemCanvasProps> = ({
           powerPreference: "high-performance",
           toneMapping: THREE.ACESFilmicToneMapping,
         }}
-        style={{ touchAction: "pan-y" }}
+        style={{
+          touchAction: "pan-y",
+          pointerEvents: isMobile && touchMode === "scroll" ? "none" : "auto",
+        }}
+        onCreated={({ gl }) => {
+          if (gl.domElement) {
+            gl.domElement.style.touchAction = isMobile && touchMode === "scroll" ? "pan-y" : "none";
+          }
+        }}
         onPointerDown={(e) => {
           if (e.target === e.currentTarget) {
             onSelectBody(null);
