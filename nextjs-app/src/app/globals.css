@@ -11,16 +11,16 @@
 
 :root {
   /* Backgrounds — deep midnight navy / astronomy console */
-  --bg-void:        #050510;
-  --bg-deep:        #08091a;
-  --bg-card:        rgba(11, 17, 32, 0.95);
-  --bg-card-hover:  rgba(15, 23, 42, 0.98);
-  --bg-glass:       rgba(15, 23, 42, 0.35);
+  --bg-void:        #030712;
+  --bg-deep:        #060a17;
+  --bg-card:        #090e1f;
+  --bg-card-hover:  #0d142b;
+  --bg-glass:       rgba(15, 23, 42, 0.75);
 
   /* Borders — subtle midnight blue */
-  --border:         rgba(100, 120, 220, 0.14);
-  --border-glow:    rgba(120, 160, 255, 0.30);
-  --border-hover:   rgba(148, 163, 220, 0.28);
+  --border:         rgba(100, 120, 220, 0.18);
+  --border-glow:    rgba(120, 160, 255, 0.35);
+  --border-hover:   rgba(148, 163, 220, 0.32);
 
   /* Accent palette */
   --accent-blue:    #4a9eff;
@@ -41,23 +41,25 @@
   --radius-sm: 10px;
 
   /* Shadows & glows */
-  --shadow-card:   0 4px 40px rgba(0, 0, 50, 0.55), 0 1px 0 rgba(100, 140, 255, 0.08) inset;
+  --shadow-card:   0 4px 40px rgba(0, 0, 30, 0.75), 0 1px 0 rgba(100, 140, 255, 0.12) inset;
   --glow-blue:     0 0 30px rgba(74, 158, 255, 0.14);
   --glow-hover:    0 0 32px rgba(74, 158, 255, 0.22), 0 4px 40px rgba(0,0,50,0.55);
 
   /* Color scheme */
-  --background: #050510;
+  --background: #030712;
   --foreground: #e8ecff;
 }
 
-/* ── Cards — translucent dark-slate glass (original design) ───────────── */
+/* ── Cards — solid dark astronomy console surface ─────────────────────── */
 
 .card {
+  position: relative;
+  z-index: 2;
   background: var(--bg-card);
   border: 1px solid var(--border);
   border-radius: var(--radius);
-  backdrop-filter: blur(12px);
-  -webkit-backdrop-filter: blur(12px);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
   box-shadow: var(--shadow-card);
   overflow: hidden;
   transition: box-shadow 0.28s ease, border-color 0.28s ease;
@@ -76,8 +78,8 @@
   gap: 10px;
   flex-wrap: wrap;
   padding: 14px 20px;
-  border-bottom: 1px solid rgba(100, 120, 220, 0.10);
-  background: rgba(15, 23, 42, 0.25);
+  border-bottom: 1px solid rgba(100, 120, 220, 0.15);
+  background: rgba(13, 19, 39, 0.95);
 }
 
 .card-header h2 {
@@ -89,9 +91,10 @@
 
 .card-body {
   padding: 20px;
+  background: var(--bg-card);
 }
 
-/* ── Float animation ──────────────────────────────────────────────────── */
+/* ── Float & Marquee animations ────────────────────────────────────────── */
 
 @keyframes float {
   0%, 100% { transform: translateY(0); }
@@ -100,6 +103,27 @@
 
 .animate-float {
   animation: float 4s ease-in-out infinite;
+}
+
+@keyframes ticker-scroll {
+  0% {
+    transform: translate3d(0, 0, 0);
+  }
+  100% {
+    transform: translate3d(-50%, 0, 0);
+  }
+}
+
+.animate-ticker {
+  display: flex;
+  width: max-content;
+  animation: ticker-scroll 32s linear infinite;
+  will-change: transform;
+}
+
+.animate-ticker:hover,
+.animate-ticker:active {
+  animation-play-state: paused;
 }
 
 /* ── Hero section ─────────────────────────────────────────────────────── */

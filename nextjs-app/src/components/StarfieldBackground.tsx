@@ -24,9 +24,9 @@ export default function StarfieldBackground() {
       for (let i = 0; i < STAR_COUNT; i++) {
         const x = Math.random() * canvas.width;
         const y = Math.random() * canvas.height;
-        const size = Math.random() * 1.5 + 0.3;
+        const size = Math.random() * 1.0 + 0.25;
         const color = STAR_COLORS[Math.floor(Math.random() * STAR_COLORS.length)];
-        const alpha = Math.random() * 0.5 + 0.3;
+        const alpha = Math.random() * 0.30 + 0.12;
 
         ctx.beginPath();
         ctx.arc(x, y, size, 0, Math.PI * 2);
@@ -45,7 +45,7 @@ export default function StarfieldBackground() {
     <canvas
       ref={canvasRef}
       data-starfield="true"
-      className="fixed inset-0 z-0 pointer-events-none"
+      className="fixed inset-0 -z-10 pointer-events-none"
       style={{ width: "100vw", height: "100vh" }}
     />
   );

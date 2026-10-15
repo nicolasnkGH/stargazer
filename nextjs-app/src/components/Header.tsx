@@ -364,7 +364,7 @@ export default function Header() {
         </a>
 
         {/* Location Pill */}
-        <div className="flex flex-shrink min-w-0 max-w-[130px] xs:max-w-[170px] sm:max-w-[210px] md:max-w-[250px] items-center rounded-full border border-sky-500/30 bg-sky-950/40 px-2 py-0.5 sm:px-3 sm:py-1 text-xs text-sky-200 shadow-[0_0_15px_rgba(56,189,248,0.15)] hover:border-sky-400 transition-all truncate">
+        <div className="flex flex-shrink min-w-0 max-w-[170px] xs:max-w-[220px] sm:max-w-[260px] md:max-w-[300px] items-center rounded-full border border-sky-500/30 bg-sky-950/40 px-2 py-0.5 sm:px-3 sm:py-1 text-xs text-sky-200 shadow-[0_0_15px_rgba(56,189,248,0.15)] hover:border-sky-400 transition-all truncate">
           <LocationControl />
         </div>
 
@@ -436,7 +436,7 @@ export default function Header() {
           </button>
 
           <select
-            className="rounded-lg border border-white/10 bg-slate-900/60 py-1 px-1 sm:px-2 text-xs text-zinc-200 outline-none hover:border-white/30 cursor-pointer"
+            className="hidden sm:inline-block rounded-lg border border-white/10 bg-slate-900/60 py-1 px-1 sm:px-2 text-xs text-zinc-200 outline-none hover:border-white/30 cursor-pointer"
             style={{ fontFamily: "'Space Grotesk', system-ui, sans-serif" }}
             value={locale}
             onChange={(e) => setLocale(e.target.value as Locale)}
@@ -605,24 +605,77 @@ export default function Header() {
         </div>
       </div>
 
-      {/* Telemetry Sub-strip (Visible on screens < 1280px / xl) */}
-      <div id="mobile-telemetry-strip" className="flex xl:hidden w-full items-center gap-2 border-t border-cyan-500/15 pt-1.5 mt-1 text-[0.7rem] font-mono text-zinc-300 overflow-x-auto no-scrollbar px-1">
-        <div className="flex items-center gap-1 flex-shrink-0">
-          <span className={`inline-block h-2 w-2 rounded-full ${isChecking ? "bg-zinc-500" : isLive ? "animate-pulse bg-emerald-400" : "bg-rose-500"}`} />
-          <span className={`font-bold tracking-wider ${isChecking ? "text-zinc-400" : isLive ? "text-emerald-400" : "text-rose-400"}`}>
-            {isChecking ? "..." : isLive ? t("telemetry_live") : t("telemetry_offline")}
-          </span>
+      {/* Telemetry Sub-strip / Smooth Scrolling Marquee Banner on Mobile & Tablet (< 1280px) */}
+      <div
+        id="mobile-telemetry-strip"
+        className="relative xl:hidden w-full overflow-hidden border-t border-cyan-500/15 pt-1.5 mt-1 select-none"
+        style={{
+          maskImage: "linear-gradient(to right, transparent, black 16px, black calc(100% - 16px), transparent)",
+          WebkitMaskImage: "linear-gradient(to right, transparent, black 16px, black calc(100% - 16px), transparent)",
+        }}
+      >
+        <div className="animate-ticker flex items-center gap-2 py-0.5 font-mono text-[0.72rem]">
+          {/* Main Track Items */}
+          <div className="flex items-center gap-2 flex-shrink-0">
+            {/* Live / Offline Chip */}
+            <span className={`inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full border text-[0.68rem] font-semibold whitespace-nowrap shadow-sm ${
+              isChecking
+                ? "bg-sky-950/60 border-sky-500/30 text-sky-400"
+                : isLive
+                ? "bg-emerald-950/60 border-emerald-500/40 text-emerald-400 drop-shadow-[0_0_6px_rgba(52,211,153,0.4)]"
+                : "bg-rose-950/60 border-rose-500/40 text-rose-400"
+            }`}>
+              <span className={`h-1.5 w-1.5 rounded-full ${
+                isChecking ? "bg-sky-400 animate-ping" : isLive ? "bg-emerald-400 animate-pulse" : "bg-rose-500"
+              }`} />
+              <span>{isChecking ? "..." : isLive ? t("telemetry_live") : t("telemetry_offline")}</span>
+            </span>
+
+            {/* Moon Phase Chip */}
+            <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-slate-900/90 border border-white/10 text-slate-200 whitespace-nowrap shadow-sm">
+              <span>{hudMoon}</span>
+            </span>
+
+            {/* Weather / Telemetry Chips */}
+            {weatherItems.map((item, idx) => (
+              <span
+                key={idx}
+                className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-slate-900/90 border border-white/10 text-sky-200 whitespace-nowrap shadow-sm"
+              >
+                {item.text}
+              </span>
+            ))}
+          </div>
+
+          {/* Seamless Duplicate Set for Infinite Marquee */}
+          <div className="flex items-center gap-2 flex-shrink-0" aria-hidden="true">
+            <span className={`inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full border text-[0.68rem] font-semibold whitespace-nowrap shadow-sm ${
+              isChecking
+                ? "bg-sky-950/60 border-sky-500/30 text-sky-400"
+                : isLive
+                ? "bg-emerald-950/60 border-emerald-500/40 text-emerald-400 drop-shadow-[0_0_6px_rgba(52,211,153,0.4)]"
+                : "bg-rose-950/60 border-rose-500/40 text-rose-400"
+            }`}>
+              <span className={`h-1.5 w-1.5 rounded-full ${
+                isChecking ? "bg-sky-400 animate-ping" : isLive ? "bg-emerald-400 animate-pulse" : "bg-rose-500"
+              }`} />
+              <span>{isChecking ? "..." : isLive ? t("telemetry_live") : t("telemetry_offline")}</span>
+            </span>
+
+            <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-slate-900/90 border border-white/10 text-slate-200 whitespace-nowrap shadow-sm">
+              <span>{hudMoon}</span>
+            </span>
+
+            {weatherItems.map((item, idx) => (
+              <span
+                key={`dup-${idx}`}
+                className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-slate-900/90 border border-white/10 text-sky-200 whitespace-nowrap shadow-sm"
+              >
+                {item.text}
+              </span>
+            ))}
+          </div>
         </div>
-        <span className="h-3 w-px bg-white/15 flex-shrink-0" />
-        <span className="whitespace-nowrap flex-shrink-0 text-slate-200">{hudMoon}</span>
-        {weatherItems.map((item, idx) => (
-          <React.Fragment key={idx}>
-            <span className="h-3 w-px bg-white/15 flex-shrink-0" />
-            <span className="whitespace-nowrap flex-shrink-0 text-sky-200" title={item.tooltip}>{item.text}</span>
-          </React.Fragment>
-        ))}
-        <span className="h-3 w-px bg-white/15 flex-shrink-0" />
-        <span className="flex-shrink-0 text-zinc-400 font-sans whitespace-nowrap ml-auto">{currentTime} • {currentDate}</span>
       </div>
 
       {aboutOpen && <Modal open={aboutOpen} title={t("about_stargazer_v3")} onClose={() => setAboutOpen(false)}><div>{t("dashboard_built_desc")}</div></Modal>}
