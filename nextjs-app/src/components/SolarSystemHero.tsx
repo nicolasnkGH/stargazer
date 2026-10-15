@@ -101,6 +101,8 @@ export default function SolarSystemHero({ }: SolarSystemHeroProps) {
         onSelectBody={setSelectedBody}
         selectedBody={selectedBody}
         onPan={handlePan}
+        touchMode={touchMode}
+        onToggleTouchMode={() => setTouchMode((prev) => (prev === "scroll" ? "orbit" : "scroll"))}
       />
     </section>
   );

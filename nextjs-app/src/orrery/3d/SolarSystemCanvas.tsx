@@ -102,9 +102,10 @@ const CameraController: React.FC<CameraControllerProps> = ({ selectedBody, zoomL
   return (
     <OrbitControls
       ref={controlsRef}
-      enablePan
+      enabled={!isMobile || touchMode === "orbit"}
+      enablePan={!isMobile || touchMode === "orbit"}
       enableZoom={false}
-      enableRotate={!isMobile}
+      enableRotate={!isMobile || touchMode === "orbit"}
       enableDamping
       dampingFactor={0.05}
       onStart={() => {

@@ -60,7 +60,7 @@ export default async function Home() {
         twilight={tonight?.twilight_timeline}
         bortle={bortle?.bortle}
       />
-      <div className="flex w-full flex-col items-center gap-6 overflow-x-hidden">
+      <main className="relative z-10 flex w-full flex-col items-center gap-6 overflow-x-hidden bg-slate-950/95 backdrop-blur-md">
         <div className="w-full max-w-[1600px] px-2 sm:px-8 py-6 space-y-6 overflow-x-hidden">
           {/* Top Dashboard: Pinned "At-a-Glance" Data */}
           <div className="w-full space-y-6">
@@ -117,7 +117,7 @@ export default async function Home() {
 
           <Footer />
         </div>
-      </div>
+      </main>
     </div>
   );
 }
