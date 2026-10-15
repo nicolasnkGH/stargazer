@@ -59,7 +59,7 @@ export default function SolarSystemHero({ }: SolarSystemHeroProps) {
   return (
     <section
       id="hero-section"
-      className="relative w-full h-[85vh] min-h-[600px] overflow-hidden bg-slate-950 font-sans select-none touch-pan-y"
+      className="relative w-full h-[calc(100svh-4rem)] max-h-[620px] min-h-[460px] sm:h-[85vh] sm:min-h-[580px] sm:max-h-none overflow-hidden bg-slate-950 font-sans touch-pan-y"
       onWheel={handleWheel}
     >
       {/* 3D Three.js Solar System Canvas with Dark WebGL Error Boundary */}
