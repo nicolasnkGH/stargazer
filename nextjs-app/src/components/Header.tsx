@@ -134,6 +134,137 @@ function setLocale(locale: Locale) {
   window.location.reload();
 }
 
+function DraggableTelemetryStrip({ children }: { children: React.ReactNode }) {
+  const containerRef = useRef<HTMLDivElement>(null);
+  const isInteractingRef = useRef(false);
+  const resumeTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+  const dragStartRef = useRef<{ startX: number; scrollLeft: number } | null>(null);
+
+  useEffect(() => {
+    const el = containerRef.current;
+    if (!el) return;
+
+    let animId: number;
+    let lastTime = performance.now();
+    const speedPxPerSec = 28;
+
+    const step = (time: number) => {
+      const dt = Math.min((time - lastTime) / 1000, 0.1);
+      lastTime = time;
+
+      if (!isInteractingRef.current && el) {
+        el.scrollLeft += speedPxPerSec * dt;
+        const half = el.scrollWidth / 2;
+        if (half > 0 && el.scrollLeft >= half) {
+          el.scrollLeft -= half;
+        }
+      }
+      animId = requestAnimationFrame(step);
+    };
+
+    animId = requestAnimationFrame(step);
+
+    const scheduleResume = () => {
+      if (resumeTimeoutRef.current) clearTimeout(resumeTimeoutRef.current);
+      resumeTimeoutRef.current = setTimeout(() => {
+        isInteractingRef.current = false;
+      }, 1500);
+    };
+
+    const onPointerDown = (e: PointerEvent) => {
+      if (e.pointerType === "mouse" && e.button !== 0) return;
+      isInteractingRef.current = true;
+      if (resumeTimeoutRef.current) clearTimeout(resumeTimeoutRef.current);
+      dragStartRef.current = { startX: e.clientX, scrollLeft: el.scrollLeft };
+      try {
+        el.setPointerCapture?.(e.pointerId);
+      } catch {}
+    };
+
+    const onPointerMove = (e: PointerEvent) => {
+      if (!dragStartRef.current) return;
+      const dx = e.clientX - dragStartRef.current.startX;
+      let nextScroll = dragStartRef.current.scrollLeft - dx;
+      const half = el.scrollWidth / 2;
+      if (half > 0) {
+        while (nextScroll >= half) {
+          nextScroll -= half;
+          dragStartRef.current.scrollLeft -= half;
+        }
+        while (nextScroll < 0) {
+          nextScroll += half;
+          dragStartRef.current.scrollLeft += half;
+        }
+      }
+      el.scrollLeft = nextScroll;
+    };
+
+    const onPointerUp = (e: PointerEvent) => {
+      if (dragStartRef.current) {
+        dragStartRef.current = null;
+        try {
+          el.releasePointerCapture?.(e.pointerId);
+        } catch {}
+      }
+      scheduleResume();
+    };
+
+    const onWheel = () => {
+      isInteractingRef.current = true;
+      scheduleResume();
+    };
+
+    const onScroll = () => {
+      const half = el.scrollWidth / 2;
+      if (half > 0) {
+        if (el.scrollLeft >= half) {
+          el.scrollLeft -= half;
+        } else if (el.scrollLeft < 0) {
+          el.scrollLeft += half;
+        }
+      }
+    };
+
+    el.addEventListener("pointerdown", onPointerDown);
+    el.addEventListener("pointermove", onPointerMove);
+    el.addEventListener("pointerup", onPointerUp);
+    el.addEventListener("pointercancel", onPointerUp);
+    el.addEventListener("wheel", onWheel, { passive: true });
+    el.addEventListener("scroll", onScroll, { passive: true });
+
+    return () => {
+      cancelAnimationFrame(animId);
+      if (resumeTimeoutRef.current) clearTimeout(resumeTimeoutRef.current);
+      el.removeEventListener("pointerdown", onPointerDown);
+      el.removeEventListener("pointermove", onPointerMove);
+      el.removeEventListener("pointerup", onPointerUp);
+      el.removeEventListener("pointercancel", onPointerUp);
+      el.removeEventListener("wheel", onWheel);
+      el.removeEventListener("scroll", onScroll);
+    };
+  }, []);
+
+  return (
+    <div
+      ref={containerRef}
+      id="mobile-telemetry-strip"
+      className="relative xl:hidden w-full overflow-x-auto select-none border-t border-cyan-500/15 pt-1.5 mt-1 cursor-grab active:cursor-grabbing [scrollbar-width:none] [-ms-overflow-style:none] [&::-webkit-scrollbar]:hidden touch-pan-x"
+      style={{
+        maskImage: "linear-gradient(to right, transparent, black 16px, black calc(100% - 16px), transparent)",
+        WebkitMaskImage: "linear-gradient(to right, transparent, black 16px, black calc(100% - 16px), transparent)",
+        WebkitOverflowScrolling: "touch",
+      }}
+    >
+      <div className="flex items-center gap-2 py-0.5 font-mono text-[0.72rem] w-max">
+        {children}
+        <div aria-hidden="true" className="flex items-center gap-2">
+          {children}
+        </div>
+      </div>
+    </div>
+  );
+}
+
 export default function Header() {
   const t = useTranslations();
   const locale = useLocale();
@@ -605,78 +736,37 @@ export default function Header() {
         </div>
       </div>
 
-      {/* Telemetry Sub-strip / Smooth Scrolling Marquee Banner on Mobile & Tablet (< 1280px) */}
-      <div
-        id="mobile-telemetry-strip"
-        className="relative xl:hidden w-full overflow-hidden border-t border-cyan-500/15 pt-1.5 mt-1 select-none"
-        style={{
-          maskImage: "linear-gradient(to right, transparent, black 16px, black calc(100% - 16px), transparent)",
-          WebkitMaskImage: "linear-gradient(to right, transparent, black 16px, black calc(100% - 16px), transparent)",
-        }}
-      >
-        <div className="animate-ticker flex items-center gap-2 py-0.5 font-mono text-[0.72rem]">
-          {/* Main Track Items */}
-          <div className="flex items-center gap-2 flex-shrink-0">
-            {/* Live / Offline Chip */}
-            <span className={`inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full border text-[0.68rem] font-semibold whitespace-nowrap shadow-sm ${
-              isChecking
-                ? "bg-sky-950/60 border-sky-500/30 text-sky-400"
-                : isLive
-                ? "bg-emerald-950/60 border-emerald-500/40 text-emerald-400 drop-shadow-[0_0_6px_rgba(52,211,153,0.4)]"
-                : "bg-rose-950/60 border-rose-500/40 text-rose-400"
-            }`}>
-              <span className={`h-1.5 w-1.5 rounded-full ${
-                isChecking ? "bg-sky-400 animate-ping" : isLive ? "bg-emerald-400 animate-pulse" : "bg-rose-500"
-              }`} />
-              <span>{isChecking ? "..." : isLive ? t("telemetry_live") : t("telemetry_offline")}</span>
-            </span>
+      {/* Telemetry Sub-strip / Draggable Continuous Marquee Banner on Mobile & Tablet (< 1280px) */}
+      <DraggableTelemetryStrip>
+        {/* Live / Offline Chip */}
+        <span className={`inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full border text-[0.68rem] font-semibold whitespace-nowrap shadow-sm ${
+          isChecking
+            ? "bg-sky-950/60 border-sky-500/30 text-sky-400"
+            : isLive
+            ? "bg-emerald-950/60 border-emerald-500/40 text-emerald-400 drop-shadow-[0_0_6px_rgba(52,211,153,0.4)]"
+            : "bg-rose-950/60 border-rose-500/40 text-rose-400"
+        }`}>
+          <span className={`h-1.5 w-1.5 rounded-full ${
+            isChecking ? "bg-sky-400 animate-ping" : isLive ? "bg-emerald-400 animate-pulse" : "bg-rose-500"
+          }`} />
+          <span>{isChecking ? "..." : isLive ? t("telemetry_live") : t("telemetry_offline")}</span>
+        </span>
 
-            {/* Moon Phase Chip */}
-            <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-slate-900/90 border border-white/10 text-slate-200 whitespace-nowrap shadow-sm">
-              <span>{hudMoon}</span>
-            </span>
+        {/* Moon Phase Chip */}
+        <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-slate-900/90 border border-white/10 text-slate-200 whitespace-nowrap shadow-sm">
+          <span>{hudMoon}</span>
+        </span>
 
-            {/* Weather / Telemetry Chips */}
-            {weatherItems.map((item, idx) => (
-              <span
-                key={idx}
-                className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-slate-900/90 border border-white/10 text-sky-200 whitespace-nowrap shadow-sm"
-              >
-                {item.text}
-              </span>
-            ))}
-          </div>
-
-          {/* Seamless Duplicate Set for Infinite Marquee */}
-          <div className="flex items-center gap-2 flex-shrink-0" aria-hidden="true">
-            <span className={`inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full border text-[0.68rem] font-semibold whitespace-nowrap shadow-sm ${
-              isChecking
-                ? "bg-sky-950/60 border-sky-500/30 text-sky-400"
-                : isLive
-                ? "bg-emerald-950/60 border-emerald-500/40 text-emerald-400 drop-shadow-[0_0_6px_rgba(52,211,153,0.4)]"
-                : "bg-rose-950/60 border-rose-500/40 text-rose-400"
-            }`}>
-              <span className={`h-1.5 w-1.5 rounded-full ${
-                isChecking ? "bg-sky-400 animate-ping" : isLive ? "bg-emerald-400 animate-pulse" : "bg-rose-500"
-              }`} />
-              <span>{isChecking ? "..." : isLive ? t("telemetry_live") : t("telemetry_offline")}</span>
-            </span>
-
-            <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-slate-900/90 border border-white/10 text-slate-200 whitespace-nowrap shadow-sm">
-              <span>{hudMoon}</span>
-            </span>
-
-            {weatherItems.map((item, idx) => (
-              <span
-                key={`dup-${idx}`}
-                className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-slate-900/90 border border-white/10 text-sky-200 whitespace-nowrap shadow-sm"
-              >
-                {item.text}
-              </span>
-            ))}
-          </div>
-        </div>
-      </div>
+        {/* Weather / Telemetry Chips */}
+        {weatherItems.map((item, idx) => (
+          <span
+            key={idx}
+            className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-slate-900/90 border border-white/10 text-sky-200 whitespace-nowrap shadow-sm"
+          >
+            {item.text}
+          </span>
+        ))}
+      </DraggableTelemetryStrip>
 
       {aboutOpen && <Modal open={aboutOpen} title={t("about_stargazer_v3")} onClose={() => setAboutOpen(false)}><div>{t("dashboard_built_desc")}</div></Modal>}
       {dataSettingsOpen && <DataSettingsModal open={dataSettingsOpen} onClose={() => setDataSettingsOpen(false)} />}
