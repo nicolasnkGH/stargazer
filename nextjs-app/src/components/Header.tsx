@@ -144,25 +144,53 @@ function DraggableTelemetryStrip({ children }: { children: React.ReactNode }) {
     const el = containerRef.current;
     if (!el) return;
 
-    let animId: number;
+    let animId: number | null = null;
     let lastTime = performance.now();
+    let isVisible = true;
+    let isMobileView = typeof window !== "undefined" ? window.innerWidth < 1280 : false;
     const speedPxPerSec = 28;
+
+    const observer = new IntersectionObserver(
+      ([entry]) => {
+        isVisible = entry.isIntersecting;
+      },
+      { threshold: 0.05 }
+    );
+    observer.observe(el);
+
+    const handleResize = () => {
+      isMobileView = window.innerWidth < 1280;
+      if (!isMobileView && animId !== null) {
+        cancelAnimationFrame(animId);
+        animId = null;
+      } else if (isMobileView && animId === null) {
+        lastTime = performance.now();
+        animId = requestAnimationFrame(step);
+      }
+    };
+    window.addEventListener("resize", handleResize);
 
     const step = (time: number) => {
       const dt = Math.min((time - lastTime) / 1000, 0.1);
       lastTime = time;
 
-      if (!isInteractingRef.current && el) {
+      if (!isInteractingRef.current && isVisible && isMobileView && el) {
         el.scrollLeft += speedPxPerSec * dt;
         const half = el.scrollWidth / 2;
         if (half > 0 && el.scrollLeft >= half) {
           el.scrollLeft -= half;
         }
       }
-      animId = requestAnimationFrame(step);
+      if (isMobileView) {
+        animId = requestAnimationFrame(step);
+      } else {
+        animId = null;
+      }
     };
 
-    animId = requestAnimationFrame(step);
+    if (isMobileView) {
+      animId = requestAnimationFrame(step);
+    }
 
     const scheduleResume = () => {
       if (resumeTimeoutRef.current) clearTimeout(resumeTimeoutRef.current);
@@ -233,7 +261,9 @@ function DraggableTelemetryStrip({ children }: { children: React.ReactNode }) {
     el.addEventListener("scroll", onScroll, { passive: true });
 
     return () => {
-      cancelAnimationFrame(animId);
+      if (animId !== null) cancelAnimationFrame(animId);
+      observer.disconnect();
+      window.removeEventListener("resize", handleResize);
       if (resumeTimeoutRef.current) clearTimeout(resumeTimeoutRef.current);
       el.removeEventListener("pointerdown", onPointerDown);
       el.removeEventListener("pointermove", onPointerMove);
@@ -560,6 +590,7 @@ export default function Header() {
 
           <button
             onClick={toggleUnits}
+            suppressHydrationWarning
             className="flex h-8 sm:h-9 items-center justify-center rounded-lg border border-white/10 bg-white/5 px-1.5 sm:px-2.5 text-[0.7rem] sm:text-xs text-zinc-200 transition hover:bg-purple-600/20 hover:border-purple-500/50"
             title={t("title_toggle_units")}
           >
