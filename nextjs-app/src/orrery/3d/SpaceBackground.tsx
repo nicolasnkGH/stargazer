@@ -82,7 +82,7 @@ export const SpaceBackground: React.FC = () => {
   const skyboxTex = useMemo(() => createNebulaSkyboxTexture(), []);
 
   const [starPositions, starColors] = useMemo(() => {
-    const count = 6000;
+    const count = 2500;
     const positions = new Float32Array(count * 3);
     const colors = new Float32Array(count * 3);
 
@@ -124,7 +124,7 @@ export const SpaceBackground: React.FC = () => {
   return (
     <group>
       <mesh ref={nebulaSkyboxRef}>
-        <sphereGeometry args={[500, 64, 64]} />
+        <sphereGeometry args={[500, 32, 32]} />
         <meshBasicMaterial
           map={skyboxTex}
           side={THREE.BackSide}
