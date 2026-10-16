@@ -182,7 +182,7 @@ export const SolarSystemCanvas: React.FC<SolarSystemCanvasProps> = ({
     >
       <Canvas
         frameloop={isVisible ? "always" : "never"}
-        dpr={[1, 1.5]}
+        dpr={[1, 1.2]}
         shadows={false}
         camera={{ position: [0, 35, 55], fov: 45, near: 0.1, far: 1000 }}
         gl={{
