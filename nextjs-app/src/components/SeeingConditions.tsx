@@ -39,7 +39,12 @@ function useAiSeeing(initial: SeeingData | null, coords?: LocationCoords | null)
     revalidateOnFocus: false,
   });
 
-  if (data && !isProcessing(data as AiSeeingResponse)) return data as SeeingData;
+  if (data && !isProcessing(data as AiSeeingResponse)) {
+    const seeingData = data as SeeingData;
+    if (seeingData.seeing_score != null) {
+      return seeingData;
+    }
+  }
   return initial;
 }
 
@@ -149,7 +154,10 @@ export default function SeeingConditions({
     hourly_clouds: [15, 15, 20, 25, 20, 15, 10, 10],
   };
 
-  const currentSeeing = seeing || fallbackSeeing;
+  const currentSeeing =
+    (seeing && seeing.seeing_score != null)
+      ? seeing
+      : (initialSeeing && initialSeeing.seeing_score != null ? initialSeeing : fallbackSeeing);
 
   const scoreColor =
     currentSeeing.seeing_score >= 4

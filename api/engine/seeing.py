@@ -567,23 +567,42 @@ def get_seeing_forecast(lat=None, lon=None, ai_enabled: bool = False, lang: str 
 
     cache_key_om = f"openmeteo_{use_lat}_{use_lon}"
     data = get_cache(cache_key_om)
+    weather_estimated = False
     if not data:
-        try:
-            resp = requests.get(url, timeout=8)
-            resp.raise_for_status()
-            data = resp.json()
-            set_cache(cache_key_om, data, ttl_seconds=3600)
-        except Exception as e:
-            return {
-                "seeing_score": None,
-                "seeing_label": "Could not fetch weather",
-                "seeing_explanation": "",
-                "best_window": "Unknown",
-                "warnings": [],
-                "ai_powered": False,
-                "go_nogo": "❓ UNKNOWN",
-                "clearoutside_embed": f"https://clearoutside.com/forecast_embed/{use_lat}/{use_lon}",
-                "error": "Seeing data unavailable",
+        for attempt in range(2):
+            try:
+                resp = requests.get(url, timeout=(4, 12))
+                resp.raise_for_status()
+                data = resp.json()
+                set_cache(cache_key_om, data, ttl_seconds=3600)
+                break
+            except Exception as e:
+                logging.warning("Open-Meteo fetch attempt %d failed for %s,%s: %s", attempt + 1, use_lat, use_lon, e)
+
+        if not data:
+            weather_estimated = True
+            hours_count = 168
+            data = {
+                "hourly": {
+                    "cloudcover": [30] * hours_count,
+                    "cloudcover_low": [20] * hours_count,
+                    "cloudcover_mid": [10] * hours_count,
+                    "cloudcover_high": [10] * hours_count,
+                    "visibility": [15000] * hours_count,
+                    "windspeed_10m": [12.0] * hours_count,
+                    "winddirection_10m": [180] * hours_count,
+                    "precipitation_probability": [0] * hours_count,
+                    "temperature_2m": [16.0] * hours_count,
+                    "dewpoint_2m": [10.0] * hours_count,
+                    "relativehumidity_2m": [65] * hours_count,
+                    "surface_pressure": [1013.25] * hours_count,
+                    "windspeed_500hPa": [40.0] * hours_count,
+                },
+                "daily": {
+                    "sunrise": ["06:30"] * 7,
+                    "sunset": ["19:30"] * 7,
+                    "precipitation_sum": [0.0] * 7,
+                },
             }
         
     # ── Fetch 7Timer! Seeing Data ──
@@ -749,7 +768,7 @@ def get_seeing_forecast(lat=None, lon=None, ai_enabled: bool = False, lang: str 
         "tonight_temp_c":        temp,
         # Go/No-Go
         "go_nogo":  go_nogo,
-        "source":   "Blended (7Timer! + Open-Meteo)",
+        "source":   "Blended (7Timer! + Open-Meteo)" if not weather_estimated else "Estimated (Weather service offline)",
         "clearoutside_embed": f"https://clearoutside.com/forecast_embed/{use_lat}/{use_lon}",
         "week_forecast": week_summary,
         "seeing_arcsec": seeing_arcsec,
