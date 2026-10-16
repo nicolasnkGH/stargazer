@@ -289,6 +289,7 @@ export const Sun: React.FC<SunProps> = ({ data, isSelected, onSelect }) => {
       },
     });
   }, []);
+  const sunMaterialRef = useRef(sunMaterial);
 
   // Glow Halo Material & Geometry
   const glowGeo = useMemo(() => createGlowGeometry(data.radius * 0.99), [data.radius]);
@@ -330,7 +331,7 @@ export const Sun: React.FC<SunProps> = ({ data, isSelected, onSelect }) => {
       : (typeof performance !== 'undefined' ? performance.now() * 0.001 : 0);
 
     // Update Main Sun Sphere
-    sunMaterial.uniforms.uTime.value = time * 0.25;
+    sunMaterialRef.current.uniforms.uTime.value = time * 0.25;
     if (sunMeshRef.current) {
       sunMeshRef.current.rotation.y += data.rotationSpeed * delta * 15;
     }
