@@ -577,7 +577,8 @@ def get_seeing_forecast(lat=None, lon=None, ai_enabled: bool = False, lang: str 
                 set_cache(cache_key_om, data, ttl_seconds=3600)
                 break
             except Exception as e:
-                logging.warning("Open-Meteo fetch attempt %d failed for %s,%s: %s", attempt + 1, use_lat, use_lon, e)
+                coord_source = "custom" if (lat is not None or lon is not None) else "default"
+                logging.warning("Open-Meteo fetch attempt %d failed (coord_source=%s): %s", attempt + 1, coord_source, e)
 
         if not data:
             weather_estimated = True
