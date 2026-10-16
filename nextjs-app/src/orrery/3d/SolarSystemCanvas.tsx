@@ -1,7 +1,6 @@
 import React, { useRef, useEffect, useState } from "react";
 import { Canvas, useFrame, useThree } from "@react-three/fiber";
 import { OrbitControls } from "@react-three/drei";
-import { EffectComposer, Bloom } from "@react-three/postprocessing";
 import * as THREE from "three";
 import { PlanetData } from "../types";
 import { CELESTIAL_BODIES } from "../data/planetsData";
@@ -233,13 +232,6 @@ export const SolarSystemCanvas: React.FC<SolarSystemCanvasProps> = ({
           />
         ))}
 
-        <EffectComposer multisampling={0}>
-          <Bloom
-            intensity={0.8}
-            luminanceThreshold={0.4}
-            luminanceSmoothing={0.85}
-          />
-        </EffectComposer>
       </Canvas>
     </div>
   );
