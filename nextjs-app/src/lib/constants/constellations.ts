@@ -31,3 +31,37 @@ export const ALL_CONSTELLATIONS = [
   { abbr: "Pup", name: "Puppis", emoji: "⛵" },
   { abbr: "Col", name: "Columba", emoji: "🕊️" },
 ] as const;
+
+/** IAU standard center coordinates (RA in decimal hours, Dec in decimal degrees) for instant zero-latency map centering */
+export const CONSTELLATION_COORDS: Record<string, { ra: number; dec: number }> = {
+  Sco: { ra: 16.89, dec: -30.74 },
+  UMa: { ra: 11.31, dec: 50.72 },
+  Ori: { ra: 5.58,  dec: 5.39 },
+  Cas: { ra: 1.32,  dec: 62.19 },
+  Cyg: { ra: 20.59, dec: 42.03 },
+  Cru: { ra: 12.44, dec: -60.19 },
+  CMa: { ra: 6.83,  dec: -22.14 },
+  CMi: { ra: 7.65,  dec: 5.22 },
+  Cen: { ra: 13.43, dec: -47.34 },
+  Ari: { ra: 2.64,  dec: 20.79 },
+  Tau: { ra: 4.70,  dec: 15.96 },
+  Gem: { ra: 7.07,  dec: 22.60 },
+  Aur: { ra: 6.07,  dec: 42.03 },
+  Per: { ra: 3.44,  dec: 41.79 },
+  Cnc: { ra: 8.65,  dec: 19.81 },
+  Leo: { ra: 10.67, dec: 13.14 },
+  LMi: { ra: 10.25, dec: 33.14 },
+  Vir: { ra: 13.41, dec: -4.16 },
+  Lib: { ra: 15.20, dec: -15.62 },
+  Sgr: { ra: 19.11, dec: -25.48 },
+  Cap: { ra: 21.05, dec: -18.02 },
+  Aqr: { ra: 22.29, dec: -10.79 },
+  Psc: { ra: 0.48,  dec: 13.97 },
+  Mon: { ra: 7.06,  dec: -5.74 },
+  Lyn: { ra: 7.98,  dec: 44.85 },
+  Lep: { ra: 5.57,  dec: -19.05 },
+  Cam: { ra: 5.92,  dec: 69.38 },
+  Pup: { ra: 7.61,  dec: -31.31 },
+  Col: { ra: 5.86,  dec: -35.12 },
+};
+

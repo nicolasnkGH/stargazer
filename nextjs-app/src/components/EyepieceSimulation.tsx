@@ -43,6 +43,234 @@ const SATURN_MOONS = [
 const TARGET_FPS = 20;
 const FRAME_INTERVAL_MS = 1000 / TARGET_FPS;
 
+/** Helper to generate a soft Gaussian circular star sprite texture */
+function createStarTexture(): THREE.CanvasTexture {
+  const canvas = document.createElement("canvas");
+  canvas.width = 64;
+  canvas.height = 64;
+  const ctx = canvas.getContext("2d");
+  if (ctx) {
+    const grad = ctx.createRadialGradient(32, 32, 0, 32, 32, 30);
+    grad.addColorStop(0, "rgba(255, 255, 255, 1.0)");
+    grad.addColorStop(0.2, "rgba(255, 255, 255, 0.85)");
+    grad.addColorStop(0.5, "rgba(255, 255, 255, 0.25)");
+    grad.addColorStop(1, "rgba(255, 255, 255, 0)");
+    ctx.fillStyle = grad;
+    ctx.fillRect(0, 0, 64, 64);
+  }
+  const tex = new THREE.CanvasTexture(canvas);
+  tex.needsUpdate = true;
+  return tex;
+}
+
+/** Helper to generate an authentic diffuse galaxy profile (exponential halo, bulge, dust lane) */
+function createGalaxyTexture(name: string): THREE.CanvasTexture {
+  const canvas = document.createElement("canvas");
+  canvas.width = 512;
+  canvas.height = 512;
+  const ctx = canvas.getContext("2d");
+  if (!ctx) return new THREE.CanvasTexture(canvas);
+
+  const cx = 256;
+  const cy = 256;
+  const lowerName = name.toLowerCase();
+
+  ctx.save();
+  ctx.translate(cx, cy);
+
+  const angle = lowerName.includes("m51") ? 0 : -32;
+  ctx.rotate(THREE.MathUtils.degToRad(angle));
+
+  const isFaceOn = lowerName.includes("m51") || lowerName.includes("m101") || lowerName.includes("whirlpool");
+  const scaleX = isFaceOn ? 1.25 : 2.5;
+  const scaleY = isFaceOn ? 1.25 : 0.95;
+  ctx.scale(scaleX, scaleY);
+
+  // 1. Outer diffuse galactic halo (exponential luminous falloff)
+  const haloGrad = ctx.createRadialGradient(0, 0, 0, 0, 0, 115);
+  haloGrad.addColorStop(0, "rgba(205, 225, 245, 0.22)");
+  haloGrad.addColorStop(0.35, "rgba(180, 205, 230, 0.12)");
+  haloGrad.addColorStop(0.7, "rgba(140, 175, 210, 0.04)");
+  haloGrad.addColorStop(1, "rgba(0, 0, 0, 0)");
+  ctx.fillStyle = haloGrad;
+  ctx.beginPath();
+  ctx.arc(0, 0, 115, 0, Math.PI * 2);
+  ctx.fill();
+
+  // 2. Inner galactic disk
+  const diskGrad = ctx.createRadialGradient(0, 0, 0, 0, 0, 68);
+  diskGrad.addColorStop(0, "rgba(255, 248, 230, 0.58)");
+  diskGrad.addColorStop(0.35, "rgba(238, 228, 205, 0.32)");
+  diskGrad.addColorStop(0.75, "rgba(195, 210, 230, 0.1)");
+  diskGrad.addColorStop(1, "rgba(0, 0, 0, 0)");
+  ctx.fillStyle = diskGrad;
+  ctx.beginPath();
+  ctx.arc(0, 0, 68, 0, Math.PI * 2);
+  ctx.fill();
+
+  // 3. Central galactic bulge
+  const bulgeGrad = ctx.createRadialGradient(0, 0, 0, 0, 0, 28);
+  bulgeGrad.addColorStop(0, "rgba(255, 252, 242, 0.9)");
+  bulgeGrad.addColorStop(0.35, "rgba(255, 240, 215, 0.55)");
+  bulgeGrad.addColorStop(0.75, "rgba(235, 215, 185, 0.2)");
+  bulgeGrad.addColorStop(1, "rgba(0, 0, 0, 0)");
+  ctx.fillStyle = bulgeGrad;
+  ctx.beginPath();
+  ctx.arc(0, 0, 28, 0, Math.PI * 2);
+  ctx.fill();
+
+  // 4. Stellar nucleus (unresolved core visible in amateur eyepieces)
+  const coreGrad = ctx.createRadialGradient(0, 0, 0, 0, 0, 8);
+  coreGrad.addColorStop(0, "rgba(255, 255, 255, 1.0)");
+  coreGrad.addColorStop(0.4, "rgba(255, 250, 235, 0.7)");
+  coreGrad.addColorStop(1, "rgba(0, 0, 0, 0)");
+  ctx.fillStyle = coreGrad;
+  ctx.beginPath();
+  ctx.arc(0, 0, 8, 0, Math.PI * 2);
+  ctx.fill();
+
+  ctx.restore();
+
+  // 5. Subtle absorption dust lane cutting through the bulge
+  if (!isFaceOn) {
+    ctx.save();
+    ctx.translate(cx, cy);
+    ctx.rotate(THREE.MathUtils.degToRad(angle));
+
+    const dustGrad = ctx.createLinearGradient(0, -18, 0, -4);
+    dustGrad.addColorStop(0, "rgba(0, 0, 0, 0)");
+    dustGrad.addColorStop(0.5, "rgba(1, 2, 6, 0.7)");
+    dustGrad.addColorStop(1, "rgba(0, 0, 0, 0)");
+    ctx.fillStyle = dustGrad;
+    ctx.beginPath();
+    ctx.ellipse(0, -11, 105, 5, 0, 0, Math.PI * 2);
+    ctx.fill();
+
+    ctx.restore();
+  }
+
+  const tex = new THREE.CanvasTexture(canvas);
+  tex.needsUpdate = true;
+  return tex;
+}
+
+/** Helper to generate realistic diffuse or planetary nebula clouds */
+function createNebulaTexture(name: string): THREE.CanvasTexture {
+  const canvas = document.createElement("canvas");
+  canvas.width = 512;
+  canvas.height = 512;
+  const ctx = canvas.getContext("2d");
+  if (!ctx) return new THREE.CanvasTexture(canvas);
+
+  const cx = 256;
+  const cy = 256;
+  const isRing = name.toLowerCase().includes("m57") || name.toLowerCase().includes("ring");
+
+  if (isRing) {
+    // M57 Ring Nebula: Ethereal oval donut of ionized gas [O III] / H-alpha
+    ctx.save();
+    ctx.translate(cx, cy);
+    ctx.scale(1.25, 0.95);
+    const ringGrad = ctx.createRadialGradient(0, 0, 24, 0, 0, 85);
+    ringGrad.addColorStop(0, "rgba(0, 0, 0, 0)");
+    ringGrad.addColorStop(0.2, "rgba(90, 215, 205, 0.12)");
+    ringGrad.addColorStop(0.65, "rgba(100, 235, 220, 0.65)");
+    ringGrad.addColorStop(0.85, "rgba(175, 130, 205, 0.4)");
+    ringGrad.addColorStop(1, "rgba(0, 0, 0, 0)");
+    ctx.fillStyle = ringGrad;
+    ctx.beginPath();
+    ctx.arc(0, 0, 85, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.restore();
+  } else {
+    // Diffuse / Emission Nebula (like M42 Orion): multi-lobed luminous gas veils
+    const wing1 = ctx.createRadialGradient(cx - 28, cy + 12, 0, cx - 28, cy + 12, 135);
+    wing1.addColorStop(0, "rgba(110, 235, 225, 0.52)");
+    wing1.addColorStop(0.35, "rgba(90, 195, 210, 0.28)");
+    wing1.addColorStop(0.75, "rgba(145, 115, 185, 0.1)");
+    wing1.addColorStop(1, "rgba(0, 0, 0, 0)");
+    ctx.fillStyle = wing1;
+    ctx.beginPath();
+    ctx.arc(cx - 28, cy + 12, 135, 0, Math.PI * 2);
+    ctx.fill();
+
+    const wing2 = ctx.createRadialGradient(cx + 38, cy - 18, 0, cx + 38, cy - 18, 115);
+    wing2.addColorStop(0, "rgba(130, 242, 220, 0.48)");
+    wing2.addColorStop(0.4, "rgba(105, 185, 215, 0.22)");
+    wing2.addColorStop(0.75, "rgba(170, 125, 195, 0.08)");
+    wing2.addColorStop(1, "rgba(0, 0, 0, 0)");
+    ctx.fillStyle = wing2;
+    ctx.beginPath();
+    ctx.arc(cx + 38, cy - 18, 115, 0, Math.PI * 2);
+    ctx.fill();
+
+    const core = ctx.createRadialGradient(cx, cy, 0, cx, cy, 46);
+    core.addColorStop(0, "rgba(225, 255, 252, 0.8)");
+    core.addColorStop(0.45, "rgba(145, 240, 230, 0.38)");
+    core.addColorStop(1, "rgba(0, 0, 0, 0)");
+    ctx.fillStyle = core;
+    ctx.beginPath();
+    ctx.arc(cx, cy, 46, 0, Math.PI * 2);
+    ctx.fill();
+
+    ctx.save();
+    const darkGrad = ctx.createRadialGradient(cx - 16, cy - 38, 0, cx - 16, cy - 38, 52);
+    darkGrad.addColorStop(0, "rgba(1, 2, 6, 0.88)");
+    darkGrad.addColorStop(0.65, "rgba(1, 2, 6, 0.5)");
+    darkGrad.addColorStop(1, "rgba(0, 0, 0, 0)");
+    ctx.fillStyle = darkGrad;
+    ctx.beginPath();
+    ctx.arc(cx - 16, cy - 38, 52, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.restore();
+  }
+
+  const tex = new THREE.CanvasTexture(canvas);
+  tex.needsUpdate = true;
+  return tex;
+}
+
+/** Helper to generate an authentic optical Airy disk pattern for stars */
+function createAiryDiskTexture(colorRgb: string): THREE.CanvasTexture {
+  const canvas = document.createElement("canvas");
+  canvas.width = 128;
+  canvas.height = 128;
+  const ctx = canvas.getContext("2d");
+  if (!ctx) return new THREE.CanvasTexture(canvas);
+
+  const cx = 64;
+  const cy = 64;
+
+  const halo = ctx.createRadialGradient(cx, cy, 0, cx, cy, 54);
+  halo.addColorStop(0, colorRgb.replace("ALPHA", "0.28"));
+  halo.addColorStop(0.45, colorRgb.replace("ALPHA", "0.09"));
+  halo.addColorStop(1, "rgba(0, 0, 0, 0)");
+  ctx.fillStyle = halo;
+  ctx.beginPath();
+  ctx.arc(cx, cy, 54, 0, Math.PI * 2);
+  ctx.fill();
+
+  ctx.strokeStyle = colorRgb.replace("ALPHA", "0.24");
+  ctx.lineWidth = 1.6;
+  ctx.beginPath();
+  ctx.arc(cx, cy, 21, 0, Math.PI * 2);
+  ctx.stroke();
+
+  const core = ctx.createRadialGradient(cx, cy, 0, cx, cy, 12);
+  core.addColorStop(0, "rgba(255, 255, 255, 1.0)");
+  core.addColorStop(0.35, colorRgb.replace("ALPHA", "0.95"));
+  core.addColorStop(0.75, colorRgb.replace("ALPHA", "0.45"));
+  core.addColorStop(1, "rgba(0, 0, 0, 0)");
+  ctx.fillStyle = core;
+  ctx.beginPath();
+  ctx.arc(cx, cy, 12, 0, Math.PI * 2);
+  ctx.fill();
+
+  const tex = new THREE.CanvasTexture(canvas);
+  tex.needsUpdate = true;
+  return tex;
+}
+
 export const EyepieceSimulation: React.FC<EyepieceSimulationProps> = ({
   targetName,
   magnification,
@@ -80,6 +308,9 @@ export const EyepieceSimulation: React.FC<EyepieceSimulationProps> = ({
     let lastFrameTime = 0;
     let disposed = false;
 
+    // Disposables registry to prevent WebGL memory leaks
+    const disposables: { dispose: () => void }[] = [];
+
     try {
       const width = container.clientWidth || 240;
       const height = container.clientHeight || 240;
@@ -88,7 +319,7 @@ export const EyepieceSimulation: React.FC<EyepieceSimulationProps> = ({
       const scene = new THREE.Scene();
       scene.background = new THREE.Color(0x010206);
 
-      // Camera setup — FOV scales inversely with magnification (50x -> wide, 300x -> zoomed high power)
+      // Camera setup — FOV scales inversely with magnification
       const baseFov = Math.max(2, Math.min(30, (80 / (magnification / 50)) * (eyepieceFov / 68)));
       const camera = new THREE.PerspectiveCamera(baseFov, width / height, 0.1, 500);
       camera.position.set(0, 0, 45);
@@ -98,11 +329,16 @@ export const EyepieceSimulation: React.FC<EyepieceSimulationProps> = ({
       renderer.setSize(width, height);
       renderer.setPixelRatio(1);
       renderer.shadowMap.enabled = false;
+      renderer.domElement.setAttribute("data-transparent", "true");
 
       while (container.firstChild) {
         container.removeChild(container.firstChild);
       }
       container.appendChild(renderer.domElement);
+
+      // Reusable soft circular star sprite texture
+      const starTexture = createStarTexture();
+      disposables.push(starTexture);
 
       // Background Starfield Points
       const starCount = 220;
@@ -114,9 +350,17 @@ export const EyepieceSimulation: React.FC<EyepieceSimulationProps> = ({
         starPos[i + 2] = -40 - Math.random() * 60;
       }
       starGeo.setAttribute("position", new THREE.BufferAttribute(starPos, 3));
-      const starMat = new THREE.PointsMaterial({ color: 0xffffff, size: 0.6, transparent: true, opacity: 0.75 });
+      const starMat = new THREE.PointsMaterial({
+        color: 0xffffff,
+        map: starTexture,
+        size: 0.7,
+        transparent: true,
+        opacity: 0.75,
+        blending: THREE.AdditiveBlending,
+      });
       const starPoints = new THREE.Points(starGeo, starMat);
       scene.add(starPoints);
+      disposables.push(starGeo, starMat);
 
       // Lights
       const ambientLight = new THREE.AmbientLight(0x333344, 0.6);
@@ -146,8 +390,9 @@ export const EyepieceSimulation: React.FC<EyepieceSimulationProps> = ({
         planetMesh = new THREE.Mesh(planetGeo, planetMat);
         planetMesh.rotation.z = THREE.MathUtils.degToRad(cfg.tilt);
         scene.add(planetMesh);
+        disposables.push(planetGeo, planetMat);
 
-        // Saturn Rings
+        // Saturn Rings with transparent division and outer fade
         if (key === "saturn") {
           const ringGeo = new THREE.RingGeometry(cfg.radius * 1.35, cfg.radius * 2.3, 48);
           const pos = ringGeo.attributes.position;
@@ -164,15 +409,17 @@ export const EyepieceSimulation: React.FC<EyepieceSimulationProps> = ({
           ringTex.colorSpace = THREE.SRGBColorSpace;
           const ringMat = new THREE.MeshStandardMaterial({
             map: ringTex,
+            alphaMap: ringTex,
             side: THREE.DoubleSide,
             transparent: true,
-            opacity: 0.88,
+            opacity: 0.92,
             roughness: 0.6,
           });
 
           const ringMesh = new THREE.Mesh(ringGeo, ringMat);
           ringMesh.rotation.x = Math.PI / 2;
           planetMesh.add(ringMesh);
+          disposables.push(ringGeo, ringMat);
         }
 
         // Ephemeris Moons
@@ -192,6 +439,7 @@ export const EyepieceSimulation: React.FC<EyepieceSimulationProps> = ({
 
           scene.add(mMesh);
           moonMeshes.push({ mesh: mMesh, periodDays: m.periodDays, dist });
+          disposables.push(mGeo, mMat);
         });
       } else {
         // NON-PLANET OPTICAL TARGETS (Star, Double Star, Galaxy, Nebula, Cluster)
@@ -202,115 +450,216 @@ export const EyepieceSimulation: React.FC<EyepieceSimulationProps> = ({
         const tName = targetName.toLowerCase();
 
         const isDoubleStar = tType.includes("double") || tName.includes("albireo") || tName.includes("mizar") || tName.includes("gamma ari") || tName.includes("61 cyg");
-        const isGalaxy     = tType.includes("galaxy") || tName.includes("m31") || tName.includes("m51") || tName.includes("m82") || tName.includes("andromeda");
-        const isNebula     = tType.includes("nebula") || tName.includes("m42") || tName.includes("m57") || tName.includes("ngc");
-        const isCluster    = tType.includes("cluster") || tType.includes("globular") || tName.includes("m13") || tName.includes("m45") || tName.includes("pleiades");
+        const isGalaxy     = tType.includes("galaxy") || tName.includes("m31") || tName.includes("m51") || tName.includes("m82") || tName.includes("m33") || tName.includes("m81") || tName.includes("m101") || tName.includes("andromeda") || tName.includes("whirlpool") || tName.includes("sombrero") || tName.includes("bode");
+        const isNebula     = tType.includes("nebula") || tName.includes("m42") || tName.includes("m57") || tName.includes("m27") || tName.includes("m8") || tName.includes("orion") || tName.includes("ring nebula") || tName.includes("dumbbell") || tName.includes("ngc");
+        const isCluster    = tType.includes("cluster") || tType.includes("globular") || tName.includes("m13") || tName.includes("m45") || tName.includes("m3") || tName.includes("m5") || tName.includes("m22") || tName.includes("pleiades") || tName.includes("hercules");
 
         if (isDoubleStar) {
-          // Double Star Pair (Primary: Amber/Gold, Companion: Sapphire-Blue)
-          const pGeo = new THREE.SphereGeometry(1.0, 16, 16);
-          const pMat = new THREE.MeshBasicMaterial({ color: 0xffb74d });
-          const pMesh = new THREE.Mesh(pGeo, pMat);
-          pMesh.position.set(-1.4, 0.4, 0);
-          nonPlanetGroup.add(pMesh);
+          // Double Star Pair (Airy Disk Diffraction Profiles: Primary Gold, Companion Blue)
+          const pTex = createAiryDiskTexture("rgba(255, 183, 77, ALPHA)");
+          const pMat = new THREE.SpriteMaterial({ map: pTex, blending: THREE.AdditiveBlending, transparent: true });
+          const pSprite = new THREE.Sprite(pMat);
+          pSprite.scale.set(6.5, 6.5, 1);
+          pSprite.position.set(-1.8, 0.5, 0);
+          nonPlanetGroup.add(pSprite);
 
-          const sGeo = new THREE.SphereGeometry(0.65, 16, 16);
-          const sMat = new THREE.MeshBasicMaterial({ color: 0x64b5f6 });
-          const sMesh = new THREE.Mesh(sGeo, sMat);
-          sMesh.position.set(2.2, -0.6, 0);
-          nonPlanetGroup.add(sMesh);
+          const sTex = createAiryDiskTexture("rgba(96, 165, 250, ALPHA)");
+          const sMat = new THREE.SpriteMaterial({ map: sTex, blending: THREE.AdditiveBlending, transparent: true });
+          const sSprite = new THREE.Sprite(sMat);
+          sSprite.scale.set(4.5, 4.5, 1);
+          sSprite.position.set(2.4, -0.7, 0);
+          nonPlanetGroup.add(sSprite);
 
-          const starLight = new THREE.PointLight(0xffb74d, 2.5, 30);
-          starLight.position.set(-1.4, 0.4, 2);
-          nonPlanetGroup.add(starLight);
+          disposables.push(pTex, pMat, sTex, sMat);
         } else if (isGalaxy) {
-          // Galaxy Luminous Core + Spiral Particle Disk
-          const coreGeo = new THREE.SphereGeometry(1.8, 16, 16);
-          const coreMat = new THREE.MeshBasicMaterial({ color: 0xfff8e1, transparent: true, opacity: 0.85 });
-          const coreMesh = new THREE.Mesh(coreGeo, coreMat);
-          nonPlanetGroup.add(coreMesh);
+          // Authentic Diffuse Galactic Halo & Luminous Core
+          const galTex = createGalaxyTexture(targetName);
+          const galMat = new THREE.MeshBasicMaterial({
+            map: galTex,
+            transparent: true,
+            blending: THREE.AdditiveBlending,
+            depthWrite: false,
+            side: THREE.DoubleSide,
+          });
+          const galGeo = new THREE.PlaneGeometry(34, 34);
+          const galMesh = new THREE.Mesh(galGeo, galMat);
+          nonPlanetGroup.add(galMesh);
+          disposables.push(galTex, galMat, galGeo);
 
-          const particleCount = 1000;
-          const pGeo = new THREE.BufferGeometry();
-          const pPos = new Float32Array(particleCount * 3);
-          const pCols = new Float32Array(particleCount * 3);
-          for (let i = 0; i < particleCount; i++) {
-            const angle = (i / particleCount) * Math.PI * 12;
-            const dist  = 1.5 + (i / particleCount) * 12;
-            pPos[i * 3]     = Math.cos(angle) * dist + (Math.random() - 0.5) * 1.5;
-            pPos[i * 3 + 1] = (Math.random() - 0.5) * 0.8;
-            pPos[i * 3 + 2] = Math.sin(angle) * dist + (Math.random() - 0.5) * 1.5;
+          // Resolved Stellar Associations / H II Spiral Arm Knots
+          const spiralKnotCount = 280;
+          const knotGeo = new THREE.BufferGeometry();
+          const knotPos = new Float32Array(spiralKnotCount * 3);
+          const knotCols = new Float32Array(spiralKnotCount * 3);
+          const rad32 = THREE.MathUtils.degToRad(-32);
+          for (let i = 0; i < spiralKnotCount; i++) {
+            const theta = (i / spiralKnotCount) * Math.PI * 7.5;
+            const r = 2.0 + Math.pow(i / spiralKnotCount, 1.4) * 11.5;
+            const armOffset = (i % 2 === 0 ? 0 : Math.PI) + (Math.random() - 0.5) * 0.4;
+            const x = Math.cos(theta + armOffset) * r * 2.1 + (Math.random() - 0.5) * 0.8;
+            const y = Math.sin(theta + armOffset) * r * 0.85 + (Math.random() - 0.5) * 0.5;
 
-            pCols[i * 3]     = 0.5 + Math.random() * 0.5;
-            pCols[i * 3 + 1] = 0.8 + Math.random() * 0.2;
-            pCols[i * 3 + 2] = 1.0;
+            knotPos[i * 3]     = x * Math.cos(rad32) - y * Math.sin(rad32);
+            knotPos[i * 3 + 1] = x * Math.sin(rad32) + y * Math.cos(rad32);
+            knotPos[i * 3 + 2] = (Math.random() - 0.5) * 0.5;
+
+            knotCols[i * 3]     = 0.85 + Math.random() * 0.15;
+            knotCols[i * 3 + 1] = 0.9 + Math.random() * 0.1;
+            knotCols[i * 3 + 2] = 1.0;
           }
-          pGeo.setAttribute("position", new THREE.BufferAttribute(pPos, 3));
-          pGeo.setAttribute("color", new THREE.BufferAttribute(pCols, 3));
-          const pMat = new THREE.PointsMaterial({ size: 0.8, vertexColors: true, transparent: true, opacity: 0.7 });
-          const galaxyParticles = new THREE.Points(pGeo, pMat);
-          galaxyParticles.rotation.x = Math.PI / 3;
-          nonPlanetGroup.add(galaxyParticles);
+          knotGeo.setAttribute("position", new THREE.BufferAttribute(knotPos, 3));
+          knotGeo.setAttribute("color", new THREE.BufferAttribute(knotCols, 3));
+          const knotMat = new THREE.PointsMaterial({
+            size: 0.55,
+            map: starTexture,
+            vertexColors: true,
+            transparent: true,
+            opacity: 0.32,
+            blending: THREE.AdditiveBlending,
+            depthWrite: false,
+          });
+          const knotPoints = new THREE.Points(knotGeo, knotMat);
+          nonPlanetGroup.add(knotPoints);
+          disposables.push(knotGeo, knotMat);
+
+          // Foreground Field Stars (Milky Way stars in FOV)
+          const fieldStarCount = 28;
+          const fieldGeo = new THREE.BufferGeometry();
+          const fieldPos = new Float32Array(fieldStarCount * 3);
+          for (let i = 0; i < fieldStarCount * 3; i += 3) {
+            fieldPos[i]     = (Math.random() - 0.5) * 26;
+            fieldPos[i + 1] = (Math.random() - 0.5) * 26;
+            fieldPos[i + 2] = 1.0 + Math.random() * 2.0;
+          }
+          fieldGeo.setAttribute("position", new THREE.BufferAttribute(fieldPos, 3));
+          const fieldMat = new THREE.PointsMaterial({
+            size: 0.85,
+            map: starTexture,
+            color: 0xffffff,
+            transparent: true,
+            opacity: 0.9,
+            blending: THREE.AdditiveBlending,
+          });
+          const fieldPoints = new THREE.Points(fieldGeo, fieldMat);
+          nonPlanetGroup.add(fieldPoints);
+          disposables.push(fieldGeo, fieldMat);
         } else if (isNebula) {
-          // Volumetric Glowing Particle Nebula Cloud
-          const nCount = 600;
-          const nGeo = new THREE.BufferGeometry();
-          const nPos = new Float32Array(nCount * 3);
-          const nCols = new Float32Array(nCount * 3);
-          for (let i = 0; i < nCount; i++) {
-            const rad = Math.random() * 8;
-            const theta = Math.random() * Math.PI * 2;
-            nPos[i * 3]     = Math.cos(theta) * rad;
-            nPos[i * 3 + 1] = Math.sin(theta) * rad * 0.6;
-            nPos[i * 3 + 2] = (Math.random() - 0.5) * 3;
+          // Ethereal Diffuse Gas Cloud
+          const nebTex = createNebulaTexture(targetName);
+          const nebMat = new THREE.MeshBasicMaterial({
+            map: nebTex,
+            transparent: true,
+            blending: THREE.AdditiveBlending,
+            depthWrite: false,
+            side: THREE.DoubleSide,
+          });
+          const nebGeo = new THREE.PlaneGeometry(32, 32);
+          const nebMesh = new THREE.Mesh(nebGeo, nebMat);
+          nonPlanetGroup.add(nebMesh);
+          disposables.push(nebTex, nebMat, nebGeo);
 
-            if (i % 2 === 0) {
-              nCols[i * 3] = 0.1; nCols[i * 3 + 1] = 0.9; nCols[i * 3 + 2] = 0.9; // Cyan
-            } else {
-              nCols[i * 3] = 0.9; nCols[i * 3 + 1] = 0.3; nCols[i * 3 + 2] = 0.8; // Magenta
-            }
+          // Embedded Stars (e.g. Trapezium in Orion or Central Star in Ring Nebula)
+          const isRing = targetName.toLowerCase().includes("m57") || targetName.toLowerCase().includes("ring");
+          const trapCount = isRing ? 1 : 4;
+          const trapGeo = new THREE.BufferGeometry();
+          const trapPos = new Float32Array(trapCount * 3);
+          if (isRing) {
+            trapPos[0] = 0; trapPos[1] = 0; trapPos[2] = 0.5;
+          } else {
+            trapPos[0] = -0.4; trapPos[1] =  0.3; trapPos[2] = 0.5;
+            trapPos[3] =  0.4; trapPos[4] =  0.4; trapPos[5] = 0.5;
+            trapPos[6] =  0.2; trapPos[7] = -0.3; trapPos[8] = 0.5;
+            trapPos[9] = -0.3; trapPos[10] = -0.4; trapPos[11] = 0.5;
           }
-          nGeo.setAttribute("position", new THREE.BufferAttribute(nPos, 3));
-          nGeo.setAttribute("color", new THREE.BufferAttribute(nCols, 3));
-          const nMat = new THREE.PointsMaterial({ size: 1.5, vertexColors: true, transparent: true, opacity: 0.65 });
-          const nebPoints = new THREE.Points(nGeo, nMat);
-          nonPlanetGroup.add(nebPoints);
-
-          const cStarGeo = new THREE.SphereGeometry(0.6, 12, 12);
-          const cStarMat = new THREE.MeshBasicMaterial({ color: 0xe0f2fe });
-          const cStarMesh = new THREE.Mesh(cStarGeo, cStarMat);
-          nonPlanetGroup.add(cStarMesh);
+          trapGeo.setAttribute("position", new THREE.BufferAttribute(trapPos, 3));
+          const trapMat = new THREE.PointsMaterial({
+            size: 1.2,
+            map: starTexture,
+            color: 0xecfeff,
+            transparent: true,
+            opacity: 0.95,
+            blending: THREE.AdditiveBlending,
+          });
+          const trapPoints = new THREE.Points(trapGeo, trapMat);
+          nonPlanetGroup.add(trapPoints);
+          disposables.push(trapGeo, trapMat);
         } else if (isCluster) {
-          // Sparkling Cluster Swarm
-          const cCount = 500;
+          // Unresolved Central Glow
+          const glowCanvas = document.createElement("canvas");
+          glowCanvas.width = 128;
+          glowCanvas.height = 128;
+          const glowCtx = glowCanvas.getContext("2d");
+          if (glowCtx) {
+            const gGrad = glowCtx.createRadialGradient(64, 64, 0, 64, 64, 58);
+            gGrad.addColorStop(0, "rgba(255, 245, 220, 0.45)");
+            gGrad.addColorStop(0.3, "rgba(240, 230, 200, 0.2)");
+            gGrad.addColorStop(1, "rgba(0, 0, 0, 0)");
+            glowCtx.fillStyle = gGrad;
+            glowCtx.fillRect(0, 0, 128, 128);
+          }
+          const glowTex = new THREE.CanvasTexture(glowCanvas);
+          const glowMat = new THREE.MeshBasicMaterial({
+            map: glowTex,
+            transparent: true,
+            blending: THREE.AdditiveBlending,
+            depthWrite: false,
+          });
+          const glowGeo = new THREE.PlaneGeometry(18, 18);
+          const glowMesh = new THREE.Mesh(glowGeo, glowMat);
+          nonPlanetGroup.add(glowMesh);
+          disposables.push(glowTex, glowMat, glowGeo);
+
+          // 650 Resolved Pinpoint Stars with King/Plummer radial density
+          const cCount = 650;
           const cGeo = new THREE.BufferGeometry();
           const cPos = new Float32Array(cCount * 3);
+          const cCols = new Float32Array(cCount * 3);
           for (let i = 0; i < cCount; i++) {
-            const rad = Math.pow(Math.random(), 2.5) * 10;
+            const u = Math.random();
+            const rad = Math.pow(u, 2.2) * 11.0;
             const theta = Math.random() * Math.PI * 2;
             const phi = (Math.random() - 0.5) * Math.PI;
             cPos[i * 3]     = rad * Math.cos(theta) * Math.cos(phi);
             cPos[i * 3 + 1] = rad * Math.sin(phi);
-            cPos[i * 3 + 2] = rad * Math.sin(theta) * Math.cos(phi);
+            cPos[i * 3 + 2] = rad * Math.sin(theta) * Math.cos(phi) * 0.5;
+
+            if (i % 5 === 0) {
+              cCols[i * 3] = 1.0; cCols[i * 3 + 1] = 0.85; cCols[i * 3 + 2] = 0.65;
+            } else if (i % 7 === 0) {
+              cCols[i * 3] = 0.75; cCols[i * 3 + 1] = 0.9; cCols[i * 3 + 2] = 1.0;
+            } else {
+              cCols[i * 3] = 0.98; cCols[i * 3 + 1] = 0.98; cCols[i * 3 + 2] = 1.0;
+            }
           }
           cGeo.setAttribute("position", new THREE.BufferAttribute(cPos, 3));
-          const cMat = new THREE.PointsMaterial({ color: 0xfffaed, size: 0.9, transparent: true, opacity: 0.85 });
+          cGeo.setAttribute("color", new THREE.BufferAttribute(cCols, 3));
+          const cMat = new THREE.PointsMaterial({
+            size: 0.85,
+            map: starTexture,
+            vertexColors: true,
+            transparent: true,
+            opacity: 0.88,
+            blending: THREE.AdditiveBlending,
+            depthWrite: false,
+          });
           const clusterPoints = new THREE.Points(cGeo, cMat);
           nonPlanetGroup.add(clusterPoints);
+          disposables.push(cGeo, cMat);
         } else {
-          // Single Star (Spectral Color based on Name/Type)
-          let starColor = 0xffe082; // Default Yellow
-          if (tName.includes("betel") || tName.includes("anta") || tName.includes("red")) starColor = 0xef5350;
-          else if (tName.includes("rigel") || tName.includes("vega") || tName.includes("sirius") || tName.includes("spica")) starColor = 0x90caf9;
+          // Single Star with Airy disk diffraction glow
+          let starColorRgb = "rgba(255, 224, 130, ALPHA)";
+          if (tName.includes("betel") || tName.includes("anta") || tName.includes("red") || tName.includes("aldebaran")) {
+            starColorRgb = "rgba(248, 113, 113, ALPHA)";
+          } else if (tName.includes("rigel") || tName.includes("vega") || tName.includes("sirius") || tName.includes("spica")) {
+            starColorRgb = "rgba(147, 197, 253, ALPHA)";
+          }
 
-          const sGeo = new THREE.SphereGeometry(1.2, 16, 16);
-          const sMat = new THREE.MeshBasicMaterial({ color: starColor });
-          const sMesh = new THREE.Mesh(sGeo, sMat);
-          nonPlanetGroup.add(sMesh);
-
-          const sLight = new THREE.PointLight(starColor, 3, 30);
-          sLight.position.set(0, 0, 2);
-          nonPlanetGroup.add(sLight);
+          const starTex = createAiryDiskTexture(starColorRgb);
+          const starMat = new THREE.SpriteMaterial({ map: starTex, blending: THREE.AdditiveBlending, transparent: true });
+          const starSprite = new THREE.Sprite(starMat);
+          starSprite.scale.set(7.5, 7.5, 1);
+          nonPlanetGroup.add(starSprite);
+          disposables.push(starTex, starMat);
         }
       }
 
@@ -335,10 +684,6 @@ export const EyepieceSimulation: React.FC<EyepieceSimulationProps> = ({
           planetMesh.rotation.y += rotSpeed * delta * 5000;
         }
 
-        if (nonPlanetGroup) {
-          nonPlanetGroup.rotation.y += delta * 0.1;
-        }
-
         moonMeshes.forEach(({ mesh, periodDays, dist }, idx) => {
           const liveAngle = ((nowDays + elapsed / 86400) / periodDays) * Math.PI * 2 + idx * 1.2;
           mesh.position.x = Math.cos(liveAngle) * dist;
@@ -347,8 +692,8 @@ export const EyepieceSimulation: React.FC<EyepieceSimulationProps> = ({
         });
 
         if (seeingSim) {
-          camera.position.x = Math.sin(elapsed * 4.5) * 0.04;
-          camera.position.y = Math.cos(elapsed * 3.2) * 0.04;
+          camera.position.x = Math.sin(elapsed * 6.5) * 0.02 + Math.cos(elapsed * 11.2) * 0.01;
+          camera.position.y = Math.cos(elapsed * 5.1) * 0.02 + Math.sin(elapsed * 9.7) * 0.01;
         } else {
           camera.position.x = 0;
           camera.position.y = 0;
@@ -391,15 +736,12 @@ export const EyepieceSimulation: React.FC<EyepieceSimulationProps> = ({
         document.removeEventListener("visibilitychange", onVisibilityChange);
         renderer.domElement.removeEventListener("webglcontextlost", handleContextLost);
         renderer.dispose();
-        starGeo.dispose();
-        starMat.dispose();
-        if (planetMesh) {
-          planetMesh.geometry.dispose();
-          (planetMesh.material as THREE.Material).dispose();
-        }
-        moonMeshes.forEach(({ mesh }) => {
-          mesh.geometry.dispose();
-          (mesh.material as THREE.Material).dispose();
+        disposables.forEach((item) => {
+          try {
+            item.dispose();
+          } catch {
+            // ignore item disposal error
+          }
         });
       };
     } catch (err) {

@@ -7,6 +7,7 @@ import SourceTooltip from "./SourceTooltip";
 import type { WeeklyReport } from "@/types";
 import { UNITS_STORAGE_KEY } from "@/lib/constants";
 import { useTranslations } from "next-intl";
+import { useClientLocation } from "@/hooks/useClientLocation";
 
 function getMoonEmoji(illum: number, phaseName?: string): string {
   const p = (phaseName || "").toLowerCase();
@@ -54,45 +55,12 @@ function StatusDot({ cloud_pct }: { cloud_pct: number }) {
 
 const swrFetcher = (url: string) => fetch(url).then((res) => res.json());
 
-/** Read the active location's lat/lon from localStorage. Returns null until mounted. */
-function useActiveLocationCoords(): { lat: number; lon: number } | null {
-  const [coords, setCoords] = useState<{ lat: number; lon: number } | null>(null);
-
-  useEffect(() => {
-    function readCoords() {
-      try {
-        const activeId = localStorage.getItem("stargazer_active_loc");
-        const raw = localStorage.getItem("stargazer_locations");
-        if (raw) {
-          const locs: Array<{ id: string; lat: number; lon: number }> = JSON.parse(raw);
-          const active = activeId ? locs.find((l) => l.id === activeId) : locs[0];
-          if (active) {
-            setCoords({ lat: active.lat, lon: active.lon });
-            return;
-          }
-        }
-      } catch {
-        // ignore parse errors
-      }
-      setCoords(null);
-    }
-
-    readCoords();
-
-    // Re-read whenever another component changes location in localStorage (e.g. LocationModal)
-    window.addEventListener("storage", readCoords);
-    return () => window.removeEventListener("storage", readCoords);
-  }, []);
-
-  return coords;
-}
-
 export default function WeeklyForecast({ report: initialReport }: { report: WeeklyReport | null }) {
   const t = useTranslations();
   const [isMetric, setIsMetric] = useState(true);
   const scrollRef = useRef<HTMLDivElement>(null);
 
-  const coords = useActiveLocationCoords();
+  const coords = useClientLocation();
 
   // Build a location-specific SWR key so the forecast refetches automatically when location changes.
   // coords is null on first paint — fall back to no query params so the server-side

@@ -63,7 +63,7 @@ export default async function RootLayout({
       lang={locale}
       className={`${spaceGrotesk.variable} ${spaceMono.variable} h-full antialiased overflow-x-hidden`}
     >
-      <body className="min-h-screen flex flex-col overflow-x-hidden">
+      <body className="min-h-screen flex flex-col overflow-x-hidden bg-slate-950 text-slate-100">
         <SerwistProvider swUrl="/serwist/sw.js">
           <IntlProvider locale={locale} messages={messages}>
             <Header />

@@ -23,64 +23,76 @@ const PLANET_CONFIGS: Record<
     tilt?: number;
     texUrl?: string;
     radialGlow?: string;
+    camZ?: number;
+    camY?: number;
   }
 > = {
   sun: {
     rotSpeed: 0.002,
     tilt: 7.25,
-    texUrl: "/textures/2k_sun.jpg",
-    radialGlow: "radial-gradient(circle at center, rgba(245,158,11,0.35) 0%, rgba(217,119,6,0.15) 50%, transparent 80%)",
+    texUrl: "/textures/2k_sun.webp",
+    radialGlow: "radial-gradient(circle at center, rgba(245,158,11,0.25) 0%, rgba(217,119,6,0.1) 50%, transparent 75%)",
+    camZ: 3.2,
+    camY: 0,
   },
   mercury: {
     rotSpeed: 0.003,
     bumpScale: 0.015,
     tilt: 0.03,
-    texUrl: "/textures/mercury.jpg",
-    radialGlow: "radial-gradient(circle at center, rgba(217,119,6,0.25) 0%, rgba(100,116,139,0.15) 60%, transparent 80%)",
+    texUrl: "/textures/mercury.webp",
+    radialGlow: "radial-gradient(circle at center, rgba(148,163,184,0.22) 0%, rgba(100,116,139,0.08) 50%, transparent 75%)",
+    camZ: 3.2,
+    camY: 0.1,
   },
   venus: {
     rotSpeed: -0.001,
-    bumpScale: 0.005,
     tilt: 177.3,
-    texUrl: "/textures/venus.jpg",
-    radialGlow: "radial-gradient(circle at center, rgba(234,179,8,0.35) 0%, rgba(161,98,7,0.15) 60%, transparent 80%)",
+    texUrl: "/textures/venus.webp",
+    radialGlow: "radial-gradient(circle at center, rgba(234,179,8,0.25) 0%, rgba(161,98,7,0.1) 50%, transparent 75%)",
+    camZ: 3.2,
+    camY: 0.1,
   },
   mars: {
     rotSpeed: 0.005,
-    bumpScale: 0.02,
     tilt: 25.19,
-    texUrl: "/textures/mars.jpg",
-    radialGlow: "radial-gradient(circle at center, rgba(239,68,68,0.35) 0%, rgba(153,27,27,0.15) 60%, transparent 80%)",
+    texUrl: "/textures/mars.webp",
+    radialGlow: "radial-gradient(circle at center, rgba(239,68,68,0.25) 0%, rgba(153,27,27,0.1) 50%, transparent 75%)",
+    camZ: 3.2,
+    camY: 0.1,
   },
   jupiter: {
     rotSpeed: 0.012,
-    bumpScale: 0.008,
     tilt: 3.13,
-    texUrl: "/textures/jupiter.jpg",
-    radialGlow: "radial-gradient(circle at center, rgba(249,115,22,0.35) 0%, rgba(194,65,12,0.15) 60%, transparent 80%)",
+    texUrl: "/textures/jupiter.webp",
+    radialGlow: "radial-gradient(circle at center, rgba(249,115,22,0.25) 0%, rgba(194,65,12,0.1) 50%, transparent 75%)",
+    camZ: 3.2,
+    camY: 0.1,
   },
   saturn: {
     rotSpeed: 0.01,
-    bumpScale: 0.005,
     hasRing: true,
-    ringTex: "/textures/saturn_ring_color.jpg",
+    ringTex: "/textures/saturn_ring_color.webp",
     tilt: 26.73,
-    texUrl: "/textures/saturn.jpg",
-    radialGlow: "radial-gradient(circle at center, rgba(234,179,8,0.3) 0%, rgba(202,138,4,0.15) 60%, transparent 80%)",
+    texUrl: "/textures/saturn.webp",
+    radialGlow: "radial-gradient(circle at center, rgba(234,179,8,0.25) 0%, rgba(202,138,4,0.1) 50%, transparent 75%)",
+    camZ: 4.8,
+    camY: 0.75,
   },
   uranus: {
     rotSpeed: -0.007,
-    bumpScale: 0.004,
     tilt: 97.77,
-    texUrl: "/textures/uranus.jpg",
-    radialGlow: "radial-gradient(circle at center, rgba(6,182,212,0.35) 0%, rgba(14,116,144,0.15) 60%, transparent 80%)",
+    texUrl: "/textures/uranus.webp",
+    radialGlow: "radial-gradient(circle at center, rgba(6,182,212,0.25) 0%, rgba(14,116,144,0.1) 50%, transparent 75%)",
+    camZ: 3.2,
+    camY: 0.1,
   },
   neptune: {
     rotSpeed: 0.008,
-    bumpScale: 0.004,
     tilt: 28.32,
-    texUrl: "/textures/neptune.jpg",
-    radialGlow: "radial-gradient(circle at center, rgba(59,130,246,0.35) 0%, rgba(29,78,216,0.15) 60%, transparent 80%)",
+    texUrl: "/textures/neptune.webp",
+    radialGlow: "radial-gradient(circle at center, rgba(59,130,246,0.25) 0%, rgba(29,78,216,0.1) 50%, transparent 75%)",
+    camZ: 3.2,
+    camY: 0.1,
   },
 };
 
@@ -161,14 +173,19 @@ function Planet3DCanvas({ name }: { name: string }) {
   const containerRef = useRef<HTMLDivElement>(null);
   const key = normalizePlanetKey(name);
   const cfg = PLANET_CONFIGS[key] || {};
-  const [isInView, setIsInView] = useState(false);
+  const [hasBeenInView, setHasBeenInView] = useState(false);
+  const isVisibleRef = useRef(false);
 
   useEffect(() => {
     const el = containerRef.current;
     if (!el) return;
     const observer = new IntersectionObserver(
       ([entry]) => {
-        setIsInView(entry.isIntersecting);
+        const inView = entry.isIntersecting;
+        isVisibleRef.current = inView;
+        if (inView) {
+          setHasBeenInView(true);
+        }
       },
       { threshold: 0.05 }
     );
@@ -178,32 +195,49 @@ function Planet3DCanvas({ name }: { name: string }) {
 
   useEffect(() => {
     const container = containerRef.current;
-    if (!container || !isInView) return;
+    if (!container || !hasBeenInView) return;
 
-    const w = container.clientWidth || 180;
-    const h = container.clientHeight || 180;
+    let isDisposed = false;
+    let isPageVisible = document.visibilityState === "visible";
+
+    const onVisibilityChange = () => {
+      isPageVisible = document.visibilityState === "visible";
+    };
+    document.addEventListener("visibilitychange", onVisibilityChange);
+
+    const w = container.clientWidth || 220;
+    const h = container.clientHeight || 176;
 
     const scene = new THREE.Scene();
-    const camera = new THREE.PerspectiveCamera(42, w / h, 0.1, 100);
-    camera.position.z = 3.2;
+    const camera = new THREE.PerspectiveCamera(40, w / h, 0.1, 100);
+    const camZ = cfg.camZ ?? 3.2;
+    const camY = cfg.camY ?? 0.1;
+    camera.position.set(0, camY, camZ);
+    camera.lookAt(0, 0, 0);
 
     const renderer = new THREE.WebGLRenderer({ alpha: true, antialias: true, powerPreference: "low-power" });
     renderer.setSize(w, h);
-    renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+    // Limit pixel ratio to 1.25 to save 60% memory bandwidth on Retina displays
+    renderer.setPixelRatio(Math.min(window.devicePixelRatio, 1.25));
+    renderer.domElement.setAttribute("data-transparent", "true");
+    renderer.domElement.style.backgroundColor = "transparent";
 
     while (container.firstChild) {
       container.removeChild(container.firstChild);
     }
     container.appendChild(renderer.domElement);
 
-    // Deep ambient celestial light
-    scene.add(new THREE.AmbientLight(0xffffff, key === "sun" ? 2.5 : 0.45));
-    const dirLight = new THREE.DirectionalLight(0xfff5e6, key === "sun" ? 0 : 2.0);
-    dirLight.position.set(4, 2, 3);
+    // Balanced celestial ambient illumination
+    scene.add(new THREE.AmbientLight(0xffffff, key === "sun" ? 2.5 : 0.85));
+    
+    // Warm key directional sun light
+    const dirLight = new THREE.DirectionalLight(0xfffaed, key === "sun" ? 0 : 1.6);
+    dirLight.position.set(3.5, 1.8, 2.8);
     scene.add(dirLight);
 
-    const fillLight = new THREE.DirectionalLight(0x406090, 0.35);
-    fillLight.position.set(-4, -1, -2);
+    // Cool deep-space celestial rim light
+    const fillLight = new THREE.DirectionalLight(0x7090c0, 0.45);
+    fillLight.position.set(-3.5, -1.2, -1.8);
     scene.add(fillLight);
 
     const planetGroup = new THREE.Group();
@@ -214,7 +248,7 @@ function Planet3DCanvas({ name }: { name: string }) {
 
     const geo = new THREE.SphereGeometry(1, 48, 48);
     const texLoader = new THREE.TextureLoader();
-    const texUrl = cfg.texUrl || `/textures/${key}.jpg`;
+    const texUrl = cfg.texUrl || `/textures/${key}.webp`;
 
     let mat: THREE.Material;
     if (key === "sun") {
@@ -222,12 +256,16 @@ function Planet3DCanvas({ name }: { name: string }) {
         map: texLoader.load(texUrl),
       });
     } else {
+      // Only rocky bodies (like Mercury) have bump mapping; gas & ice giants and cloud-covered Venus have smooth aerodynamic surfaces
+      const isRocky = key === "mercury" || key === "moon";
       mat = new THREE.MeshStandardMaterial({
         map: texLoader.load(texUrl),
-        bumpMap: new THREE.CanvasTexture(makePlanetBump(key)),
-        bumpScale: cfg.bumpScale ?? 0.015,
-        roughness: key === "venus" ? 0.9 : 0.65,
-        metalness: 0.1,
+        ...(isRocky && cfg.bumpScale ? {
+          bumpMap: new THREE.CanvasTexture(makePlanetBump(key)),
+          bumpScale: cfg.bumpScale,
+        } : {}),
+        roughness: key === "venus" ? 0.85 : key === "uranus" || key === "neptune" ? 0.45 : 0.6,
+        metalness: 0.05,
       });
     }
 
@@ -239,25 +277,31 @@ function Planet3DCanvas({ name }: { name: string }) {
     let ringMat: THREE.MeshStandardMaterial | null = null;
 
     if (cfg.hasRing) {
-      ringGeo = new THREE.RingGeometry(1.35, 2.3, 64);
+      const innerR = 1.25;
+      const outerR = 2.15;
+      ringGeo = new THREE.RingGeometry(innerR, outerR, 128, 32);
       const pos = ringGeo.attributes.position;
       const uv = ringGeo.attributes.uv;
       for (let i = 0; i < pos.count; i++) {
         const vx = pos.getX(i);
         const vy = pos.getY(i);
         const len = Math.sqrt(vx * vx + vy * vy);
-        const norm = (len - 1.35) / (2.3 - 1.35);
-        uv.setXY(i, norm, 0.5);
+        const norm = (len - innerR) / (outerR - innerR);
+        const angle = Math.atan2(vy, vx);
+        const v = (angle + Math.PI) / (Math.PI * 2);
+        uv.setXY(i, norm, v);
       }
       uv.needsUpdate = true;
 
-      const ringTex = cfg.ringTex || "/textures/saturn_ring_color.webp";
+      const ringTex = texLoader.load(cfg.ringTex || "/textures/saturn_ring_color.webp");
       ringMat = new THREE.MeshStandardMaterial({
-        map: texLoader.load(ringTex),
+        map: ringTex,
+        alphaMap: ringTex,
         side: THREE.DoubleSide,
         transparent: true,
-        opacity: 0.9,
-        roughness: 0.4,
+        opacity: 0.95,
+        roughness: 0.35,
+        metalness: 0.05,
       });
       ringMesh = new THREE.Mesh(ringGeo, ringMat);
       ringMesh.rotation.x = Math.PI / 2;
@@ -269,18 +313,32 @@ function Planet3DCanvas({ name }: { name: string }) {
     controls.enableZoom = false;
     controls.autoRotate = false;
 
+    // Throttle rendering loop to 30 FPS maximum to prevent CPU/GPU overload
+    const TARGET_FPS = 30;
+    const FRAME_INTERVAL_MS = 1000 / TARGET_FPS;
+    let lastFrameTime = 0;
     let rafId = 0;
-    const animate = () => {
+
+    const animate = (now: number) => {
+      if (isDisposed) return;
       rafId = requestAnimationFrame(animate);
+
+      // Only perform work and render if card is visible in viewport and tab is active
+      if (!isVisibleRef.current || !isPageVisible) return;
+
+      if (now - lastFrameTime < FRAME_INTERVAL_MS) return;
+      lastFrameTime = now;
+
       mesh.rotation.y += cfg.rotSpeed ? cfg.rotSpeed * 0.8 : 0.003;
       renderer.render(scene, camera);
     };
-    animate();
+
+    rafId = requestAnimationFrame(animate);
 
     const handleResize = () => {
-      if (!container) return;
-      const nw = container.clientWidth || 180;
-      const nh = container.clientHeight || 180;
+      if (!container || isDisposed) return;
+      const nw = container.clientWidth || 220;
+      const nh = container.clientHeight || 176;
       camera.aspect = nw / nh;
       camera.updateProjectionMatrix();
       renderer.setSize(nw, nh);
@@ -288,7 +346,9 @@ function Planet3DCanvas({ name }: { name: string }) {
     window.addEventListener("resize", handleResize);
 
     return () => {
+      isDisposed = true;
       cancelAnimationFrame(rafId);
+      document.removeEventListener("visibilitychange", onVisibilityChange);
       window.removeEventListener("resize", handleResize);
       renderer.dispose();
       geo.dispose();
@@ -299,17 +359,18 @@ function Planet3DCanvas({ name }: { name: string }) {
         renderer.domElement.parentNode.removeChild(renderer.domElement);
       }
     };
-  }, [key, isInView]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [key, hasBeenInView]);
 
   const bgStyle = cfg.radialGlow
     ? { background: cfg.radialGlow }
     : { background: "radial-gradient(circle at center, rgba(56,189,248,0.2) 0%, transparent 70%)" };
 
   return (
-    <div className="w-full h-44 flex items-center justify-center relative touch-pan-y" style={bgStyle}>
+    <div className="w-full h-44 flex items-center justify-center relative touch-pan-y rounded-xl overflow-hidden" style={bgStyle}>
       <div
         ref={containerRef}
-        className="aspect-square h-44 w-44 rounded-full overflow-hidden flex items-center justify-center cursor-grab active:cursor-grabbing"
+        className="w-full h-44 flex items-center justify-center cursor-grab active:cursor-grabbing relative"
       />
     </div>
   );

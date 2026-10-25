@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import useSWR from "swr";
 import { useTranslations } from "next-intl";
 import Icon from "./Icon";
@@ -21,19 +21,25 @@ function isProcessing(data: AiSeeingResponse | undefined): data is { status: "pr
 function useAiSeeing(initial: SeeingData | null, coords?: LocationCoords | null): SeeingData | null {
   const [pollCount, setPollCount] = useState(0);
   const locQuery = coords ? `?lat=${coords.lat}&lon=${coords.lon}` : "";
-  const shouldPollAi = !!initial && !initial.ai_powered && pollCount < AI_SEEING_MAX_POLLS;
-  const shouldFetchInitial = !initial;
+  const [initialCoords, setInitialCoords] = useState(coords);
 
-  const apiUrl = shouldFetchInitial
+  const coordsChanged = !!(coords && initialCoords && (coords.lat !== initialCoords.lat || coords.lon !== initialCoords.lon));
+  const shouldPollAi = !!initial && !initial.ai_powered && pollCount < AI_SEEING_MAX_POLLS;
+  const shouldFetch = !initial || coordsChanged;
+
+  const apiUrl = shouldFetch
     ? `/api/seeing${locQuery}`
     : (shouldPollAi ? `/api/seeing/ai${locQuery}` : null);
 
   const { data } = useSWR<SeeingData | AiSeeingResponse>(apiUrl, aiFetcher, {
     refreshInterval: (latest) => {
-      if (shouldFetchInitial) return 3000;
+      if (shouldFetch) return 0;
       return isProcessing(latest as AiSeeingResponse | undefined) ? AI_SEEING_POLL_INTERVAL_MS : 0;
     },
     onSuccess: () => {
+      if (coordsChanged && coords) {
+        setInitialCoords(coords);
+      }
       if (shouldPollAi) setPollCount((c) => c + 1);
     },
     revalidateOnFocus: false,
@@ -45,7 +51,7 @@ function useAiSeeing(initial: SeeingData | null, coords?: LocationCoords | null)
       return seeingData;
     }
   }
-  return initial;
+  return coordsChanged ? null : initial;
 }
 
 function SeeingBadge({ score }: { score: number }) {
@@ -57,14 +63,21 @@ function SeeingBadge({ score }: { score: number }) {
 
 function HourlyCloudStrip({ hourlyClouds, currentCloud }: { hourlyClouds?: number[]; currentCloud?: number }) {
   const t = useTranslations();
-  const startHour = new Date().getHours();
+  const [mounted, setMounted] = useState(false);
+
+  useEffect(() => {
+    // eslint-disable-next-line react-hooks/set-state-in-effect
+    setMounted(true);
+  }, []);
+
+  const startHour = mounted ? new Date().getHours() : 0;
   // Use provided hourly clouds or mock 8 hours based on current cloud
   const clouds = (hourlyClouds && hourlyClouds.length >= 6)
     ? hourlyClouds.slice(0, 8)
     : Array.from({ length: 8 }, (_, i) => Math.min(100, Math.max(0, Math.round((currentCloud ?? 20) + (i % 3 === 0 ? -10 : i % 2 === 0 ? 15 : 5)))));
 
   return (
-    <div className="mt-3 pt-2.5 border-t border-white/10">
+    <div className="mt-3 pt-2.5 border-t border-white/10" suppressHydrationWarning>
       <div className="flex items-center justify-between text-xs text-white mb-2 font-semibold">
         <span className="flex items-center gap-1.5">
           <Icon name="cloud-sun" className="h-3.5 w-3.5 text-cyan-400" />
@@ -72,7 +85,7 @@ function HourlyCloudStrip({ hourlyClouds, currentCloud }: { hourlyClouds?: numbe
         </span>
         <span className="text-[0.65rem] text-zinc-400">Next 8h</span>
       </div>
-      <div className="grid grid-cols-8 gap-1 items-end h-14 pt-2 bg-slate-900/50 rounded-lg p-1.5 border border-white/5">
+      <div className="grid grid-cols-8 gap-1 items-end h-14 pt-2 bg-slate-900/50 rounded-lg p-1.5 border border-white/5" suppressHydrationWarning>
         {clouds.map((pct, i) => {
           const hour = (startHour + i) % 24;
           const displayHour = `${hour % 12 || 12}${hour >= 12 ? 'p' : 'a'}`;
@@ -80,15 +93,15 @@ function HourlyCloudStrip({ hourlyClouds, currentCloud }: { hourlyClouds?: numbe
           const barColor = pct < 25 ? "bg-emerald-400 shadow-[0_0_8px_rgba(52,211,153,0.5)]" : pct < 60 ? "bg-amber-400 shadow-[0_0_8px_rgba(251,191,36,0.5)]" : "bg-rose-500 shadow-[0_0_8px_rgba(244,63,94,0.5)]";
           
           return (
-            <div key={i} className="flex flex-col items-center h-full justify-end group relative" title={`${hour}:00 - ${pct}% clouds`}>
+            <div key={i} className="flex flex-col items-center h-full justify-end group relative" title={`${hour}:00 - ${pct}% clouds`} suppressHydrationWarning>
               <div className="w-full bg-white/5 rounded-sm overflow-hidden flex flex-col justify-end" style={{ height: '24px' }}>
                 <div 
                   className={`w-full rounded-sm transition-all duration-300 ${barColor}`} 
                   style={{ height: `${clearPct}%` }}
                 />
               </div>
-              <span className="text-[0.6rem] font-mono text-zinc-300 mt-1 font-semibold">{displayHour}</span>
-              <span className="text-[0.55rem] font-mono text-zinc-500">{pct}%</span>
+              <span className="text-[0.6rem] font-mono text-zinc-300 mt-1 font-semibold" suppressHydrationWarning>{displayHour}</span>
+              <span className="text-[0.55rem] font-mono text-zinc-500" suppressHydrationWarning>{pct}%</span>
             </div>
           );
         })}

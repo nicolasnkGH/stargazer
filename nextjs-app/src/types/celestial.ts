@@ -3,6 +3,10 @@ export interface CelestialGlobal {
   display: (config: Record<string, unknown>) => void;
   add: (layer: Record<string, unknown>) => void;
   redraw: () => void;
+  resize?: (config?: number | { width?: number }) => void;
+  clear?: () => void;
+  data?: unknown[];
+  context?: CanvasRenderingContext2D;
   mapProjection: ((coords: [number, number]) => [number, number] | null) & {
     rotate: (angles?: [number, number, number]) => [number, number, number];
     invert: (point: [number, number]) => [number, number] | null;

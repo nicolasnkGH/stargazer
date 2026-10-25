@@ -138,8 +138,10 @@ export default function FovModal({ open, onClose, raDeg, decDeg, targetName, tar
               {/* Outer Metallic / Rubber Eyepiece Barrel Housing (Stelvision Style) */}
               <div className="relative w-[360px] h-[360px] sm:w-[380px] sm:h-[380px] rounded-full border-[14px] border-zinc-800 bg-black shadow-[inset_0_0_60px_#000,0_0_40px_rgba(0,0,0,0.9)] flex items-center justify-center overflow-hidden">
                 {/* Eyepiece Engraved Specifications */}
-                <div className="absolute top-2 text-[0.6rem] font-mono font-bold text-amber-500/70 tracking-widest uppercase pointer-events-none z-30">
-                  STELVISION OPTICS • {eyepieceFov}° APPARENT FOV
+                <div className="absolute top-3.5 sm:top-4 px-2.5 py-0.5 rounded-full bg-zinc-950/85 border border-amber-500/30 text-[0.52rem] sm:text-[0.58rem] font-mono font-semibold text-amber-400/80 tracking-wider uppercase pointer-events-none z-30 shadow-sm flex items-center gap-1.5">
+                  <span>STELVISION OPTICS</span>
+                  <span className="text-amber-500/40">•</span>
+                  <span>{eyepieceFov}° AFOV</span>
                 </div>
 
                 {/* 3D WebGL Live Optical Eyepiece Simulation */}

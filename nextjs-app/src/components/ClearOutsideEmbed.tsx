@@ -1,49 +1,21 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import { useTranslations } from "next-intl";
 import Icon from "./Icon";
 import SourceTooltip from "./SourceTooltip";
-import { parseLocationCookie } from "@/lib/location-cookie";
-import { LOCATION_COOKIE } from "@/lib/constants";
+import { useClientLocation } from "@/hooks/useClientLocation";
 import type { LocationCoords } from "@/types";
 
 const DEFAULT_LAT = 19.82;
 const DEFAULT_LON = -155.47;
 
-function getClientCoords(): LocationCoords | null {
-  if (typeof document === "undefined") return null;
-  const match = document.cookie
-    .split("; ")
-    .find((row) => row.startsWith(`${LOCATION_COOKIE}=`));
-  if (!match) return null;
-  const val = match.split("=")[1];
-  return parseLocationCookie(val);
-}
-
 export default function ClearOutsideEmbed({ coords: initialCoords }: { coords?: LocationCoords | null }) {
   const t = useTranslations();
-  const [coords, setCoords] = useState<LocationCoords | null>(initialCoords ?? null);
+  const clientCoords = useClientLocation();
+  const coords = clientCoords ?? initialCoords ?? null;
   const [imgError, setImgError] = useState(false);
   const [showGuideMobile, setShowGuideMobile] = useState(false);
-
-  useEffect(() => {
-    const active = getClientCoords();
-    // eslint-disable-next-line react-hooks/set-state-in-effect
-    if (active) setCoords(active);
-
-    const handleLoc = () => {
-      const updated = getClientCoords();
-      if (updated) setCoords(updated);
-    };
-
-    window.addEventListener("stargazer_location_change", handleLoc);
-    window.addEventListener("storage", handleLoc);
-    return () => {
-      window.removeEventListener("stargazer_location_change", handleLoc);
-      window.removeEventListener("storage", handleLoc);
-    };
-  }, []);
 
   const lat = (coords?.lat ?? initialCoords?.lat ?? DEFAULT_LAT).toFixed(2);
   const lon = (coords?.lon ?? initialCoords?.lon ?? DEFAULT_LON).toFixed(2);

@@ -147,8 +147,14 @@ function DraggableTelemetryStrip({ children }: { children: React.ReactNode }) {
     let animId: number | null = null;
     let lastTime = performance.now();
     let isVisible = true;
+    let isPageVisible = typeof document !== "undefined" ? document.visibilityState === "visible" : true;
     let isMobileView = typeof window !== "undefined" ? window.innerWidth < 1280 : false;
     const speedPxPerSec = 28;
+
+    const onVisibilityChange = () => {
+      isPageVisible = document.visibilityState === "visible";
+    };
+    document.addEventListener("visibilitychange", onVisibilityChange);
 
     const observer = new IntersectionObserver(
       ([entry]) => {
@@ -174,7 +180,7 @@ function DraggableTelemetryStrip({ children }: { children: React.ReactNode }) {
       const dt = Math.min((time - lastTime) / 1000, 0.1);
       lastTime = time;
 
-      if (!isInteractingRef.current && isVisible && isMobileView && el) {
+      if (!isInteractingRef.current && isVisible && isPageVisible && isMobileView && el) {
         el.scrollLeft += speedPxPerSec * dt;
         const half = el.scrollWidth / 2;
         if (half > 0 && el.scrollLeft >= half) {
@@ -263,6 +269,7 @@ function DraggableTelemetryStrip({ children }: { children: React.ReactNode }) {
     return () => {
       if (animId !== null) cancelAnimationFrame(animId);
       observer.disconnect();
+      document.removeEventListener("visibilitychange", onVisibilityChange);
       window.removeEventListener("resize", handleResize);
       if (resumeTimeoutRef.current) clearTimeout(resumeTimeoutRef.current);
       el.removeEventListener("pointerdown", onPointerDown);

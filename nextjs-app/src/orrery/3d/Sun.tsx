@@ -1,6 +1,6 @@
-/* eslint-disable react-hooks/immutability */
 import React, { useRef, useMemo, useEffect } from 'react';
-import { useFrame, useThree } from '@react-three/fiber';
+import { useFrame } from '@react-three/fiber';
+
 import * as THREE from 'three';
 import { PlanetData } from '../types';
 import { createSunCoronaTexture } from '../utils/textureGenerator';
@@ -174,100 +174,12 @@ const sunSphereFS = `
 `;
 
 // -----------------------------------------------------------------------------
-// 2. Coronal Halo Glow Shaders (Warm Fiery Solar Atmospheric Aura)
-// -----------------------------------------------------------------------------
-const glowVS = `
-  attribute vec3 aPos;
-
-  varying float vRadial;
-  varying vec3 vWorld;
-
-  uniform mat4 uViewProjection;
-  uniform float uRadius;
-
-  uniform vec3 uCamUp;
-  uniform vec3 uCamPos;
-
-  void main(void){
-    vRadial = aPos.z;
-    vec3 side = normalize(cross(normalize(-uCamPos), uCamUp));
-    vec3 p = aPos.x * side + aPos.y * uCamUp;
-    p *= 1.0 + aPos.z * uRadius;
-    vec4 world = vec4(p, 1.0);
-    vWorld = world.xyz;
-    gl_Position = uViewProjection * world;
-  }
-`;
-
-const glowFS = `
-  precision highp float;
-
-  varying float vRadial;
-  varying vec3 vWorld;
-
-  uniform float uFalloffColor;
-  uniform float uTint;
-  uniform float uBrightness;
-
-  vec3 brightnessToColor(float b){
-    b *= uTint;
-    float r = b;
-    float g = pow(b, 2.0) * 0.55;
-    float b_chan = pow(b, 4.0) * 0.2;
-    return (vec3(r, g, b_chan) / (uTint)) * uBrightness;
-  }
-
-  void main(void){
-      float alpha = (1.0 - vRadial);
-      alpha *= alpha;
-      float brightness = 1.0 + alpha * uFalloffColor;
-      gl_FragColor.xyz = brightnessToColor(brightness) * alpha;
-      gl_FragColor.w = alpha;
-  }
-`;
-
-const createGlowGeometry = (rSphere: number, segments = 134) => {
-  const positions = new Float32Array(3 * (2 * segments));
-  let r = 0;
-  for (let a = 0; a < segments; a++) {
-    const s = (a / segments) * Math.PI * 2;
-    const sx = Math.sin(s) * rSphere;
-    const sy = Math.cos(s) * rSphere;
-    positions[r++] = sx;
-    positions[r++] = sy;
-    positions[r++] = 0;
-    positions[r++] = sx;
-    positions[r++] = sy;
-    positions[r++] = 1;
-  }
-  const indices = new Uint16Array(2 * segments * 3);
-  let o = 0;
-  for (let a = 0; a < segments; a++) {
-    const i0 = 2 * a;
-    const i1 = 2 * a + 1;
-    const i2 = 2 * ((a + 1) % segments);
-    const i3 = i2 + 1;
-    indices[o++] = i0;
-    indices[o++] = i1;
-    indices[o++] = i2;
-    indices[o++] = i2;
-    indices[o++] = i1;
-    indices[o++] = i3;
-  }
-  const geo = new THREE.BufferGeometry();
-  geo.setAttribute('aPos', new THREE.BufferAttribute(positions, 3));
-  geo.setIndex(new THREE.BufferAttribute(indices, 1));
-  return geo;
-};
-
-// -----------------------------------------------------------------------------
-// 3. Main Sun React Component
+// 2. Main Sun React Component
 // -----------------------------------------------------------------------------
 export const Sun: React.FC<SunProps> = ({ data, isSelected, onSelect }) => {
   const sunMeshRef = useRef<THREE.Mesh>(null);
   const spriteRef = useRef<THREE.Sprite>(null);
   const [hovered, setHovered] = React.useState(false);
-  const { camera } = useThree();
 
   const coronaTexture = useMemo(() => createSunCoronaTexture(), []);
 
@@ -291,38 +203,13 @@ export const Sun: React.FC<SunProps> = ({ data, isSelected, onSelect }) => {
   }, []);
   const sunMaterialRef = useRef(sunMaterial);
 
-  // Glow Halo Material & Geometry
-  const glowGeo = useMemo(() => createGlowGeometry(data.radius * 0.99), [data.radius]);
-  const glowMaterial = useMemo(() => {
-    return new THREE.ShaderMaterial({
-      vertexShader: glowVS,
-      fragmentShader: glowFS,
-      transparent: true,
-      depthWrite: false,
-      depthTest: false,
-      blending: THREE.NormalBlending,
-      side: THREE.DoubleSide,
-      uniforms: {
-        uViewProjection: { value: new THREE.Matrix4() },
-        uRadius: { value: 0.45 },
-        uTint: { value: 0.35 },
-        uBrightness: { value: 1.1 },
-        uFalloffColor: { value: 0.6 },
-        uCamUp: { value: new THREE.Vector3(0, 1, 0) },
-        uCamPos: { value: new THREE.Vector3() },
-      },
-    });
-  }, []);
-
-  // Dispose materials and geometries on unmount to prevent leaks
+  // Dispose materials on unmount to prevent leaks
   useEffect(() => {
     return () => {
       sunMaterial.dispose();
-      glowMaterial.dispose();
-      glowGeo.dispose();
       coronaTexture.dispose();
     };
-  }, [sunMaterial, glowMaterial, glowGeo, coronaTexture]);
+  }, [sunMaterial, coronaTexture]);
 
   // Fast, lightweight 60fps render loop
   useFrame((state, delta) => {
@@ -336,20 +223,10 @@ export const Sun: React.FC<SunProps> = ({ data, isSelected, onSelect }) => {
       sunMeshRef.current.rotation.y += data.rotationSpeed * delta * 15;
     }
 
-    // Camera matrices for coronal billboard halo
-    const camPos = new THREE.Vector3();
-    camera.getWorldPosition(camPos);
-    const viewMatrix = camera.matrixWorldInverse;
-    const viewProjMatrix = new THREE.Matrix4().multiplyMatrices(camera.projectionMatrix, viewMatrix);
-    const camUp = new THREE.Vector3(0, 1, 0).applyQuaternion(camera.quaternion).normalize();
-
-    glowMaterial.uniforms.uViewProjection.value.copy(viewProjMatrix);
-    glowMaterial.uniforms.uCamPos.value.copy(camPos);
-    glowMaterial.uniforms.uCamUp.value.copy(camUp);
-
+    // Coronal pulse
     if (spriteRef.current) {
-      const pulse = 1 + Math.sin(time * 2.0) * 0.03;
-      spriteRef.current.scale.set(data.radius * 3.6 * pulse, data.radius * 3.6 * pulse, 1);
+      const pulse = 1 + Math.sin(time * 2.0) * 0.035;
+      spriteRef.current.scale.set(data.radius * 3.8 * pulse, data.radius * 3.8 * pulse, 1);
     }
   });
 
@@ -385,17 +262,14 @@ export const Sun: React.FC<SunProps> = ({ data, isSelected, onSelect }) => {
         <sphereGeometry args={[data.radius, 48, 48]} />
       </mesh>
 
-      {/* Coronal Halo Glow Mesh */}
-      <mesh material={glowMaterial} geometry={glowGeo} frustumCulled={false} renderOrder={2} />
-
-      {/* Seamless Soft Sun Corona Billboard Sprite */}
-      <sprite ref={spriteRef} scale={[data.radius * 3.6, data.radius * 3.6, 1]} renderOrder={3}>
+      {/* Seamless Soft Sun Corona Billboard Sprite - Zero hard edges & Zero NaN glitches */}
+      <sprite ref={spriteRef} scale={[data.radius * 3.8, data.radius * 3.8, 1]} renderOrder={2}>
         <spriteMaterial
           map={coronaTexture}
           transparent
           depthWrite={false}
           blending={THREE.AdditiveBlending}
-          opacity={0.85}
+          opacity={0.92}
         />
       </sprite>
 

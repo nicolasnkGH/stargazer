@@ -38,14 +38,19 @@ function makePlanetBump(name: string): HTMLCanvasElement {
 
 function Moon3DWidget({ illumination_pct, phase_name }: { illumination_pct: number; phase_name: string }) {
   const containerRef = useRef<HTMLDivElement>(null);
-  const [isInView, setIsInView] = useState(false);
+  const [hasBeenInView, setHasBeenInView] = useState(false);
+  const isVisibleRef = useRef(false);
 
   useEffect(() => {
     const el = containerRef.current;
     if (!el) return;
     const observer = new IntersectionObserver(
       ([entry]) => {
-        setIsInView(entry.isIntersecting);
+        const inView = entry.isIntersecting;
+        isVisibleRef.current = inView;
+        if (inView) {
+          setHasBeenInView(true);
+        }
       },
       { threshold: 0.05 }
     );
@@ -55,7 +60,15 @@ function Moon3DWidget({ illumination_pct, phase_name }: { illumination_pct: numb
 
   useEffect(() => {
     const container = containerRef.current;
-    if (!container || !isInView) return;
+    if (!container || !hasBeenInView) return;
+
+    let isDisposed = false;
+    let isPageVisible = document.visibilityState === "visible";
+
+    const onVisibilityChange = () => {
+      isPageVisible = document.visibilityState === "visible";
+    };
+    document.addEventListener("visibilitychange", onVisibilityChange);
 
     const w = container.clientWidth || 200;
     const h = container.clientHeight || 180;
@@ -66,7 +79,11 @@ function Moon3DWidget({ illumination_pct, phase_name }: { illumination_pct: numb
 
     const renderer = new THREE.WebGLRenderer({ alpha: true, antialias: true, powerPreference: "low-power" });
     renderer.setSize(w, h);
-    renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+    // Limit pixel ratio to 1.25 to save 60% memory bandwidth on Retina displays
+    renderer.setPixelRatio(Math.min(window.devicePixelRatio, 1.25));
+
+    renderer.domElement.setAttribute("data-transparent", "true");
+    renderer.domElement.style.backgroundColor = "transparent";
 
     while (container.firstChild) {
       container.removeChild(container.firstChild);
@@ -74,7 +91,7 @@ function Moon3DWidget({ illumination_pct, phase_name }: { illumination_pct: numb
     container.appendChild(renderer.domElement);
 
     // Deep ambient starlight
-    scene.add(new THREE.AmbientLight(0x1a2238, 0.35));
+    scene.add(new THREE.AmbientLight(0x1a2238, 0.45));
 
     // Directional sunlight mapped precisely to lunar phase angle
     const pName = (phase_name ?? "").toLowerCase();
@@ -88,7 +105,7 @@ function Moon3DWidget({ illumination_pct, phase_name }: { illumination_pct: numb
     scene.add(dirLight);
 
     // Soft earthshine bounce light on the unlit limb
-    const earthshine = new THREE.DirectionalLight(0x38bdf8, 0.15);
+    const earthshine = new THREE.DirectionalLight(0x38bdf8, 0.25);
     earthshine.position.set(-Math.sin(angle) * 3, -0.2, -Math.cos(angle) * 3);
     scene.add(earthshine);
 
@@ -111,16 +128,30 @@ function Moon3DWidget({ illumination_pct, phase_name }: { illumination_pct: numb
     controls.enableZoom = false;
     controls.autoRotate = false;
 
+    // Throttle rendering loop to 30 FPS maximum to prevent CPU/GPU overload
+    const TARGET_FPS = 30;
+    const FRAME_INTERVAL_MS = 1000 / TARGET_FPS;
+    let lastFrameTime = 0;
     let rafId = 0;
-    const animate = () => {
+
+    const animate = (now: number) => {
+      if (isDisposed) return;
       rafId = requestAnimationFrame(animate);
+
+      // Only perform work and render if card is visible in viewport and tab is active
+      if (!isVisibleRef.current || !isPageVisible) return;
+
+      if (now - lastFrameTime < FRAME_INTERVAL_MS) return;
+      lastFrameTime = now;
+
       mesh.rotation.y += 0.0012;
       renderer.render(scene, camera);
     };
-    animate();
+
+    rafId = requestAnimationFrame(animate);
 
     const handleResize = () => {
-      if (!container) return;
+      if (!container || isDisposed) return;
       const nw = container.clientWidth || 200;
       const nh = container.clientHeight || 180;
       camera.aspect = nw / nh;
@@ -130,7 +161,9 @@ function Moon3DWidget({ illumination_pct, phase_name }: { illumination_pct: numb
     window.addEventListener("resize", handleResize);
 
     return () => {
+      isDisposed = true;
       cancelAnimationFrame(rafId);
+      document.removeEventListener("visibilitychange", onVisibilityChange);
       window.removeEventListener("resize", handleResize);
       renderer.dispose();
       geo.dispose();
@@ -139,16 +172,16 @@ function Moon3DWidget({ illumination_pct, phase_name }: { illumination_pct: numb
         renderer.domElement.parentNode.removeChild(renderer.domElement);
       }
     };
-  }, [illumination_pct, phase_name, isInView]);
+  }, [illumination_pct, phase_name, hasBeenInView]);
 
   return (
     <div
-      className="w-full h-44 flex items-center justify-center relative touch-pan-y"
+      className="w-full h-44 flex items-center justify-center relative touch-pan-y rounded-xl overflow-hidden"
       style={{ background: "radial-gradient(circle at center, rgba(30,40,60,0.35) 0%, transparent 70%)" }}
     >
       <div
         ref={containerRef}
-        className="aspect-square h-44 w-44 rounded-full overflow-hidden flex items-center justify-center cursor-grab active:cursor-grabbing"
+        className="w-full h-44 flex items-center justify-center cursor-grab active:cursor-grabbing relative"
       />
     </div>
   );
