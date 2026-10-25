@@ -708,6 +708,7 @@ export default function Header() {
                           "card-ai-targets": "ai",
                           "card-planets": "planets",
                           "card-solar-system-scope": "planets",
+                          "card-showcase": "showcase",
                           "card-plan-my-night": "plan",
                           "card-preflight": "plan",
                           "card-log": "plan",

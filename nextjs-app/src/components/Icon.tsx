@@ -23,6 +23,7 @@ import {
   FiFlag,
   FiImage,
   FiInfo,
+  FiLock,
   FiMap,
   FiMapPin,
   FiMaximize,
@@ -96,6 +97,7 @@ const ICONS: Record<string, IconType> = {
   image: FiImage,
   info: FiInfo,
   linkedin: LuLinkedin,
+  lock: FiLock,
   map: FiMap,
   "map-pin": FiMapPin,
   maximize: FiMaximize,
@@ -115,6 +117,7 @@ const ICONS: Record<string, IconType> = {
   sunset: FiSunset,
   tag: FiTag, // no legacy equivalent (Footer release-version badge)
   telescope: LuTelescope,
+  trash: FiTrash2,
   "trash-2": FiTrash2,
   user: FiUser, // no legacy equivalent (GalleryModal attribution)
   x: FiX,

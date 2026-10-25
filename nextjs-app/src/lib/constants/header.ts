@@ -11,6 +11,7 @@ export const NAV_LINKS = [
   { href: "#card-ai-targets", key: "nav_ai_targets" },
   { href: "#card-planets", key: "nav_planets" },
   { href: "#card-solar-system-scope", key: "nav_solar_system" },
+  { href: "#card-showcase", key: "nav_showcase" },
   { href: "#card-preflight", key: "nav_preflight" },
   { href: "#card-plan-my-night", key: "nav_plan_my_night" },
   { href: "#card-log", key: "nav_log" },

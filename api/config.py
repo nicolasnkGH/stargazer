@@ -49,6 +49,15 @@ AI_TIMEOUT          = int(os.getenv("AI_TIMEOUT", "60"))     # seconds — per-A
 # API Keys
 NASA_APOD_KEY = os.getenv("NASA_APOD_KEY") or os.getenv("NASA_API_KEY", "DEMO_KEY")
 
+# --- Observatory Passkey / Admin Security Key ---
+STARGAZER_ADMIN_KEY = os.getenv("STARGAZER_ADMIN_KEY", "")
+if not STARGAZER_ADMIN_KEY:
+    import logging
+    logging.getLogger("stargazer").warning(
+        "STARGAZER_ADMIN_KEY environment variable is not set. Using dev fallback 'stargazer-owner-dev'. Set this in production!"
+    )
+    STARGAZER_ADMIN_KEY = "stargazer-owner-dev"
+
 # Target Database — loaded dynamically from data/targets.json
 def _load_targets_json():
     path = os.path.join(os.path.dirname(__file__), "data", "targets.json")

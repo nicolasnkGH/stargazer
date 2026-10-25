@@ -15,7 +15,7 @@ else:
     load_dotenv()
 
 from fastapi import FastAPI, Query, Depends, HTTPException, Header, Request
-from typing import Optional, Annotated
+from typing import Optional, Annotated, List, Union
 from pydantic import AfterValidator, BaseModel
 from fastapi.responses import JSONResponse, PlainTextResponse
 from contextlib import asynccontextmanager
@@ -51,7 +51,8 @@ from engine.ai_translate import (
 )
 from engine.push import save_subscription, broadcast_notification, PUSH_AVAILABLE, VAPID_PUBLIC_KEY
 from engine.scheduler import start_scheduler, stop_scheduler
-from config import LATITUDE, LONGITUDE, BORTLE_CLASS, TELESCOPE_APERTURE_MM, ELEVATION_M, NASA_APOD_KEY
+import secrets
+from config import LATITUDE, LONGITUDE, BORTLE_CLASS, TELESCOPE_APERTURE_MM, ELEVATION_M, NASA_APOD_KEY, STARGAZER_ADMIN_KEY
 from fastapi import Request
 
 def _is_allowed_origin(origin: str) -> bool:
@@ -657,7 +658,19 @@ def constellation_window(
     except Exception as e:
         return JSONResponse(status_code=500, content={"error": "Internal server error"})
 
-from engine.gallery import add_gallery_entry, get_gallery_entries, get_gallery_image, report_image, get_gallery_counts, delete_gallery_entry
+from engine.gallery import (
+    add_gallery_entry,
+    get_gallery_entries,
+    get_gallery_image,
+    get_gallery_raw_image,
+    report_image,
+    get_gallery_counts,
+    delete_gallery_entry,
+    generate_challenge,
+    verify_challenge,
+    add_gallery_comment,
+    delete_gallery_comment
+)
 import base64
 from fastapi import Response
 
@@ -666,23 +679,51 @@ class GalleryUploadRequest(BaseModel):
     target_name: str
     author: str
     location: str
-    gear: str
-    comment: str
+    gear: Optional[str] = ""
+    comment: Optional[str] = ""
     note: Optional[str] = None
+    notes: Optional[str] = None
     image_data: str
+    raw_image_data: Optional[str] = None
+    equipment: Optional[str] = None
+    exposure_details: Optional[str] = None
+    total_integration: Optional[str] = None
+    gain_iso: Optional[str] = None
+    filter: Optional[str] = None
+    processing_software: Optional[Union[List[str], str]] = None
+    capture_date: Optional[str] = None
+    admin_key: Optional[str] = None
 
 @app.post("/api/gallery")
-def upload_to_gallery(req: GalleryUploadRequest):
+def upload_to_gallery(
+    req: GalleryUploadRequest,
+    x_admin_key: Optional[str] = Header(None, alias="X-Admin-Key")
+):
+    provided_key = (x_admin_key or req.admin_key or "").strip()
+    if not secrets.compare_digest(provided_key, STARGAZER_ADMIN_KEY):
+        raise HTTPException(
+            status_code=403,
+            detail="Invalid observatory passkey. Uploads are restricted to the observatory owner."
+        )
     try:
         entry = add_gallery_entry(
             target_id=req.target_id,
             target_name=req.target_name,
             author=req.author,
             location=req.location,
-            gear=req.gear,
-            comment=req.comment,
-            note=req.note,
-            image_base64=req.image_data
+            gear=req.gear or req.equipment or "",
+            comment=req.comment or "",
+            note=req.note or req.notes or "",
+            notes=req.notes or req.note or "",
+            image_base64=req.image_data,
+            raw_image_base64=req.raw_image_data or "",
+            equipment=req.equipment or req.gear or "",
+            exposure_details=req.exposure_details or "",
+            total_integration=req.total_integration or "",
+            gain_iso=req.gain_iso or "",
+            filter_used=req.filter or "",
+            processing_software=req.processing_software or [],
+            capture_date=req.capture_date or ""
         )
         return {"status": "ok", "entry": entry}
     except ValueError as ve:
@@ -709,11 +750,88 @@ def get_image(entry_id: int):
         data += "=" * ((4 - len(data) % 4) % 4)
         image_bytes = base64.b64decode(data)
         return Response(content=image_bytes, media_type="image/jpeg")
+    except HTTPException:
+        raise
     except Exception as e:
         raise HTTPException(status_code=500, detail="Internal server error")
 
-if __name__ == "__main__":
-    uvicorn.run("main:app", host="0.0.0.0", port=8181, reload=False)
+@app.get("/api/gallery/image/{entry_id}/raw")
+def get_raw_image(entry_id: int):
+    try:
+        data = get_gallery_raw_image(entry_id)
+        if not data:
+            raise HTTPException(status_code=404, detail="Raw preview not found")
+        if "," in data:
+            data = data.split(",")[1]
+        data = data.strip()
+        data += "=" * ((4 - len(data) % 4) % 4)
+        image_bytes = base64.b64decode(data)
+        return Response(content=image_bytes, media_type="image/jpeg")
+    except HTTPException:
+        raise
+    except Exception as e:
+        raise HTTPException(status_code=500, detail="Internal server error")
+
+
+class CommentCreateRequest(BaseModel):
+    author: str
+    comment: str
+    challenge_id: str
+    challenge_answer: str
+    website: Optional[str] = ""
+
+@app.get("/api/gallery/challenge")
+def get_comment_challenge():
+    try:
+        return generate_challenge()
+    except Exception as e:
+        raise HTTPException(status_code=500, detail="Internal server error")
+
+@app.post("/api/gallery/image/{entry_id}/comment")
+@app.post("/api/gallery/{entry_id}/comment")
+def create_comment(entry_id: int, req: CommentCreateRequest):
+    # 1. Honeypot check: If bot filled the hidden website field, reject immediately
+    if req.website and req.website.strip():
+        raise HTTPException(status_code=400, detail="Spam detected.")
+    
+    # 2. Challenge verification
+    if not verify_challenge(req.challenge_id, req.challenge_answer):
+        raise HTTPException(status_code=400, detail="Security check failed. Please answer the challenge question correctly.")
+    
+    # 3. Content validations
+    clean_author = req.author.strip()
+    clean_comment = req.comment.strip()
+    if not clean_author:
+        raise HTTPException(status_code=400, detail="Name / Author is required.")
+    if len(clean_author) > 60:
+        raise HTTPException(status_code=400, detail="Name cannot exceed 60 characters.")
+    if not clean_comment:
+        raise HTTPException(status_code=400, detail="Comment cannot be empty.")
+    if len(clean_comment) > 600:
+        raise HTTPException(status_code=400, detail="Comment cannot exceed 600 characters.")
+    
+    comment = add_gallery_comment(entry_id=entry_id, author=clean_author, comment_text=clean_comment)
+    if not comment:
+        raise HTTPException(status_code=404, detail="Image entry not found")
+    return {"status": "ok", "comment": comment}
+
+@app.delete("/api/gallery/image/{entry_id}/comment/{comment_id}")
+@app.delete("/api/gallery/{entry_id}/comment/{comment_id}")
+def delete_comment(
+    entry_id: int,
+    comment_id: int,
+    x_admin_key: Optional[str] = Header(None, alias="X-Admin-Key")
+):
+    provided_key = (x_admin_key or "").strip()
+    if not secrets.compare_digest(provided_key, STARGAZER_ADMIN_KEY):
+        raise HTTPException(
+            status_code=403,
+            detail="Invalid observatory passkey. Deleting comments is restricted to the observatory owner."
+        )
+    success = delete_gallery_comment(entry_id=entry_id, comment_id=comment_id)
+    if not success:
+        raise HTTPException(status_code=404, detail="Comment or image entry not found")
+    return {"status": "deleted", "comment_id": comment_id}
 
 @app.get("/api/gallery/counts")
 def get_counts():
@@ -730,10 +848,24 @@ def report_gallery_image(image_id: int):
     except Exception as e:
         raise HTTPException(status_code=500, detail="Internal server error")
 
+@app.delete("/api/gallery/image/{entry_id}")
 @app.delete("/api/gallery/{entry_id}")
-def delete_entry(entry_id: int):
+def delete_entry(
+    entry_id: int,
+    x_admin_key: Optional[str] = Header(None, alias="X-Admin-Key")
+):
+    provided_key = (x_admin_key or "").strip()
+    if not secrets.compare_digest(provided_key, STARGAZER_ADMIN_KEY):
+        raise HTTPException(
+            status_code=403,
+            detail="Invalid observatory passkey. Deletion is restricted to the observatory owner."
+        )
     try:
         delete_gallery_entry(entry_id)
-        return {"status": "deleted"}
+        return {"status": "deleted", "id": entry_id}
     except Exception as e:
         raise HTTPException(status_code=500, detail="Internal server error")
+
+
+if __name__ == "__main__":
+    uvicorn.run("main:app", host="0.0.0.0", port=8181, reload=False)

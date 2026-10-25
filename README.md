@@ -11,11 +11,46 @@
 
 ---
 
-## 🌟 What's New in v3.2.0 (Full i18n Localization, 3D Orrery Upgrades & Translation Audit Suite)
+## 🌟 What's New in v3.2.0 (Astrophotography Showcase, Telemetry & Target Framing Tools)
 
-**StarGazer v3.2.0** brings complete multi-language parity across English, Spanish, and Portuguese, localizing astronomical facts, ISS/Comet trivia, dynamic UI components, upgrading the 3D Solar System Orrery with expanded zoom and reset capabilities, and introducing automated translation audit tooling.
+**StarGazer v3.2.0** expands beyond visual observing into a full-featured astrophotography companion tailored for smart telescopes (DWARF 3 telephoto/mosaic, Seestar S50) alongside traditional long-focal-length optics (5" 1250mm SCT, 130EQ Newton).
 
 ### 🚀 Key v3.2.0 Major Features & Improvements:
+- **📸 Astrophotography Showcase & Telemetry Schema:**
+  - Dedicated global Astro Showcase tab and masonry gallery with object and optics filter pills.
+  - Rich capture telemetry logging: telescope/lens optics, exposure details (`sub × sec`), total integration time, gain/ISO, filter (Duo-Band, UV/IR-Cut, Dark), processing software (Siril, AstroWizard, PixInsight), capture date, and notes.
+  - Client-side high-resolution photo compression (2048px @ 0.90 quality) preserving crisp star fields and 4K DWARF 3 mosaics.
+- **⚡ Fullscreen Before/After Slider Lightbox (`AstroLightbox`):**
+  - Interactive full-screen split slider comparing raw live stacks directly against post-processed finals.
+  - Locked aspect-ratio container (`object-fit: contain` + CSS polygon clipping) ensuring zero layout shifts or jitter between cropped frames.
+  - AI vision moderation guard applied strictly to primary images to protect unstretched raw astro preview uploads from false rejections and halve upload latency.
+- **🔭 Target Framing & "Will It Fit?" Sensor Overlays:**
+  - All 206 deep-sky targets enriched with astronomical angular dimensions (`size` and `size_arcmin`).
+  - Dynamic "Will It Fit?" recommendation badges categorized for Wide Field (>60'), Medium DSO (15'–60'), and Compact DSO (<15').
+  - Upgraded Aladin Lite v3 simulator (`FovModal`) with authentic sensor bounding reticles:
+    - **DWARF 3 Telephoto**: 3.3° × 1.86° (100mm equiv.)
+    - **DWARF 3 2×2 Mosaic**: ~6.0° × 3.5°
+    - **5" SCT (1250mm)**: 0.8° Circular Eyepiece FOV
+    - **Seestar S50**: 1.29° × 0.73° (250mm)
+- **📈 Tonight's Imaging Window & Smart Capture Recipes:**
+  - Real-time altitude curve sparkline tracking darkness imaging windows (>35° altitude threshold, peak transit time, and azimuth).
+  - Target-specific capture recipes recommending optimal filter selection, sub-exposure duration, and sensor gain.
+  - Moon glow impact warnings alerting observers when lunar illumination (>50%) reduces contrast on broadband targets.
+- **💬 Interactive Photo Comments & Anti-Spam Security:**
+  - Visitors can leave questions, feedback, and processing tips directly under any capture in `AstroLightbox`.
+  - Built-in multi-layered anti-spam: invisible honeypot field + cryptographic astronomy/math verification challenge + owner moderation (`DELETE` with passkey).
+  - Inline confirmation badges (`Delete? Yes / Cancel`) replacing blocking browser popups with instant feedback.
+- **🧭 Card-to-Showcase Navigation & Onboarding Tour Hub:**
+  - Replaced modal upload popups on Moon and target cards with smooth-scroll `[📷 Gallery ↓]` links navigating directly to `#card-showcase` with that target pre-filtered.
+  - Upgraded interactive onboarding tour (`OnboardingTour`) with dedicated steps highlighting the sticky **Observatory Navigation Hub** (`#capsule-nav-dock`) and **Astrophotography Showcase & Telemetry Log** (`#card-showcase`).
+
+---
+
+## 🌟 What's New in v3.1.x (Full i18n Localization, 3D Orrery Upgrades & Translation Audit Suite)
+
+**StarGazer v3.1.x** brings complete multi-language parity across English, Spanish, and Portuguese, localizing astronomical facts, ISS/Comet trivia, dynamic UI components, upgrading the 3D Solar System Orrery with expanded zoom and reset capabilities, and introducing automated translation audit tooling.
+
+### 🚀 Key v3.1.x Major Features & Improvements:
 - **🌐 1:1 Dynamic Multilingual Localization (EN / ES / PT):**
   - Expanded all translation dictionaries (`en.json`, `es.json`, `pt.json`) to 846 synchronized keys across all 3 supported languages.
   - Localized all dynamic ISS and comet astronomy fun facts for full internationalization.

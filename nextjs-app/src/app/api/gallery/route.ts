@@ -7,5 +7,10 @@ export async function GET(request: Request) {
 
 export async function POST(request: Request) {
   const body = await request.text();
-  return proxyRequest("/api/gallery", "", false, { method: "POST", body });
+  const adminKey = request.headers.get("x-admin-key") || request.headers.get("X-Admin-Key");
+  return proxyRequest("/api/gallery", "", false, {
+    method: "POST",
+    body,
+    headers: adminKey ? { "X-Admin-Key": adminKey } : undefined,
+  });
 }
