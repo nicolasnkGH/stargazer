@@ -162,20 +162,34 @@ def get_gallery_entries(target_id: str = None) -> list[dict]:
     data.sort(key=lambda x: x["id"], reverse=True)
     return data
 
+def _build_gallery_image_path(entry_id: int, suffix: str = "") -> str:
+    safe_entry_id = int(entry_id)
+    if safe_entry_id < 0:
+        raise ValueError("Invalid entry_id")
+
+    filename = f"{safe_entry_id}{suffix}.b64"
+    base_dir = os.path.abspath(IMG_DIR)
+    candidate = os.path.abspath(os.path.join(base_dir, filename))
+
+    if os.path.commonpath([base_dir, candidate]) != base_dir:
+        raise ValueError("Invalid image path")
+
+    return candidate
+
 def get_gallery_image(entry_id: int) -> str:
-    img_path = os.path.join(IMG_DIR, f"{entry_id}.b64")
     try:
+        img_path = _build_gallery_image_path(entry_id)
         with open(img_path, "r", encoding="utf-8") as f:
             return f.read()
-    except FileNotFoundError:
+    except (FileNotFoundError, ValueError, TypeError):
         return ""
 
 def get_gallery_raw_image(entry_id: int) -> str:
-    img_path = os.path.join(IMG_DIR, f"{entry_id}_raw.b64")
     try:
+        img_path = _build_gallery_image_path(entry_id, "_raw")
         with open(img_path, "r", encoding="utf-8") as f:
             return f.read()
-    except FileNotFoundError:
+    except (FileNotFoundError, ValueError, TypeError):
         return ""
 
 def datetime_now_str():
