@@ -22,6 +22,7 @@ import LightPollutionCard from "@/components/LightPollutionCard";
 import AuroraCard from "@/components/AuroraCard";
 import ApodCard from "@/components/ApodCard";
 import PreflightChecklistCard from "@/components/PreflightChecklistCard";
+import AstroShowcase from "@/components/AstroShowcase";
 import DashboardTabs from "@/components/DashboardTabs";
 import { fetchBackend } from "@/lib/api-proxy";
 import { REVALIDATE, LOCATION_COOKIE } from "@/lib/constants";
@@ -92,6 +93,11 @@ export default async function Home() {
               <>
                 <PlanetGrid planets={planetsData?.planets} />
                 <SolarSystemExplorerCard />
+              </>
+            }
+            tabShowcase={
+              <>
+                <AstroShowcase />
               </>
             }
             tabPlanMyNight={

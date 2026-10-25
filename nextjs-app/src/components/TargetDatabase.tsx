@@ -11,6 +11,7 @@ import { addToPlan } from "@/hooks/useNightPlan";
 import { showToast } from "@/lib/toast";
 import GalleryButton from "./GalleryButton";
 import FovModal from "./FovModal";
+import AstroFramingBadge from "./AstroFramingBadge";
 import { getClientCoords } from "@/hooks/useClientLocation";
 
 const galleryFetcher = (url: string) => fetch(url).then((r) => r.json());
@@ -457,11 +458,22 @@ export default function TargetDatabase() {
                           <p className="text-xs text-slate-400">{translateType(tTarget.type)}</p>
                         </div>
                       </div>
-                      {tTarget.magnitude != null && (
-                        <span className="font-mono text-xs font-bold text-amber-300 bg-amber-950/60 border border-amber-500/30 px-2.5 py-0.5 rounded-md flex-shrink-0">
-                          mag {tTarget.magnitude}
-                        </span>
-                      )}
+                      <div className="flex items-center gap-1.5 flex-shrink-0">
+                        {galleryCounts && (galleryCounts[tTarget.id] ?? 0) > 0 && (
+                          <span
+                            title={`${galleryCounts[tTarget.id]} user captures available`}
+                            className="flex items-center gap-1 font-mono text-[0.68rem] font-bold text-cyan-300 bg-cyan-950/80 border border-cyan-400/50 px-2 py-0.5 rounded-md shadow-[0_0_10px_rgba(6,182,212,0.3)]"
+                          >
+                            <span>📸</span>
+                            <span>{galleryCounts[tTarget.id]}</span>
+                          </span>
+                        )}
+                        {tTarget.magnitude != null && (
+                          <span className="font-mono text-xs font-bold text-amber-300 bg-amber-950/60 border border-amber-500/30 px-2.5 py-0.5 rounded-md flex-shrink-0">
+                            mag {tTarget.magnitude}
+                          </span>
+                        )}
+                      </div>
                     </div>
 
                     {(tTarget.description || tTarget.notes) && (
@@ -510,6 +522,7 @@ export default function TargetDatabase() {
                             ? (locale === "pt" ? "MODERADO" : locale === "es" ? "MODERADO" : "MODERATE")
                             : (locale === "pt" ? "DESAFIADOR" : locale === "es" ? "DESAFIANTE" : "CHALLENGING")}
                         </span>
+                        <AstroFramingBadge size={tTarget.size} sizeArcmin={tTarget.size_arcmin} compact />
                       </div>
                       <div className="flex items-center gap-2">
                         <span className="font-mono text-[0.7rem] text-slate-400">
@@ -557,6 +570,8 @@ export default function TargetDatabase() {
           decDeg={fovTarget.dec_degrees}
           targetName={fovTarget.name}
           targetType={fovTarget.type}
+          targetId={fovTarget.id}
+          targetSize={fovTarget.size}
         />
       )}
     </section>

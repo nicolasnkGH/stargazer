@@ -4,12 +4,13 @@ import React, { useState, useEffect, useRef } from "react";
 import { useTranslations } from "next-intl";
 import Icon from "./Icon";
 
-type TabKey = "sky" | "ai" | "planets" | "plan" | "tools";
+type TabKey = "sky" | "ai" | "planets" | "showcase" | "plan" | "tools";
 
 interface DashboardTabsProps {
   tabSkyMap: React.ReactNode;
   tabAiPicks: React.ReactNode;
   tabPlanets: React.ReactNode;
+  tabShowcase?: React.ReactNode;
   tabPlanMyNight: React.ReactNode;
   tabTools: React.ReactNode;
 }
@@ -27,6 +28,7 @@ const TABS: TabDef[] = [
   { key: "sky", labelKey: "tab_sky", badgeKey: "tab_sky_badge", icon: "sparkles", defaultLabel: "Sky Map & Targets", defaultBadge: "3D & Catalog" },
   { key: "ai", labelKey: "tab_ai", badgeKey: "tab_ai_badge", icon: "sparkles", defaultLabel: "AI Picks", defaultBadge: "Must-See" },
   { key: "planets", labelKey: "tab_planets", badgeKey: "tab_planets_badge", icon: "orbit", defaultLabel: "Planet Tracker & Solar System", defaultBadge: "Live Positions" },
+  { key: "showcase", labelKey: "tab_showcase", badgeKey: "tab_showcase_badge", icon: "camera", defaultLabel: "Astro Showcase", defaultBadge: "Gallery & Telemetry" },
   { key: "plan", labelKey: "tab_plan", badgeKey: "tab_plan_badge", icon: "calendar-days", defaultLabel: "Plan My Night", defaultBadge: "Checklist & Planner" },
   { key: "tools", labelKey: "tab_tools", badgeKey: "tab_tools_badge", icon: "compass", defaultLabel: "Tools & Maps", defaultBadge: "Forecast & Logs" },
 ];
@@ -38,6 +40,7 @@ const SECTION_TAB_MAP: Record<string, TabKey> = {
   "card-ai-targets": "ai",
   "card-planets": "planets",
   "card-solar-system-scope": "planets",
+  "card-showcase": "showcase",
   "card-plan-my-night": "plan",
   "card-preflight": "plan",
   "card-weekly": "tools",
@@ -52,6 +55,7 @@ export default function DashboardTabs({
   tabSkyMap,
   tabAiPicks,
   tabPlanets,
+  tabShowcase,
   tabPlanMyNight,
   tabTools,
 }: DashboardTabsProps) {
@@ -147,6 +151,7 @@ export default function DashboardTabs({
 
           {/* High-Contrast Capsule Navigation Dock */}
           <div
+            id="capsule-nav-dock"
             ref={scrollRef}
             onScroll={checkScroll}
             className="flex items-center gap-2.5 sm:gap-4 overflow-x-auto p-2 rounded-2xl bg-slate-900/95 border-2 border-cyan-500/30 shadow-[inset_0_2px_12px_rgba(0,0,0,0.8),0_0_15px_rgba(6,182,212,0.15)] scrollbar-none w-full"
@@ -244,6 +249,10 @@ export default function DashboardTabs({
 
       <div className={activeTab === "planets" ? "block space-y-8 animate-fadeIn" : "hidden"}>
         {tabPlanets}
+      </div>
+
+      <div className={activeTab === "showcase" ? "block space-y-8 animate-fadeIn" : "hidden"}>
+        {tabShowcase}
       </div>
 
       <div className={activeTab === "plan" ? "block space-y-8 animate-fadeIn" : "hidden"}>

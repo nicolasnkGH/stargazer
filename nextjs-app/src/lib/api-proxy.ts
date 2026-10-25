@@ -5,6 +5,7 @@ const API_BACKEND = process.env.API_BACKEND || "http://localhost:8181";
 interface BackendRequestInit {
   method?: string;
   body?: string;
+  headers?: Record<string, string>;
 }
 
 async function getLocaleLang(search: string): Promise<string> {
@@ -38,6 +39,7 @@ async function backendFetch(path: string, search: string, revalidate: number | f
       Origin: "http://localhost:3000",
       Accept: "application/json",
       ...(init?.body ? { "Content-Type": "application/json" } : {}),
+      ...(init?.headers ?? {}),
     },
     body: init?.body,
     ...(revalidate === false ? { cache: "no-store" as const } : { next: { revalidate } }),

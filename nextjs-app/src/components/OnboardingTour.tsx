@@ -4,12 +4,14 @@ import { driver } from "driver.js";
 import "driver.js/dist/driver.css";
 
 const STEP_TAB_MAP: Record<string, string> = {
+  "#capsule-nav-dock": "sky",
   "#card-active-const": "sky",
   "#card-constellations": "sky",
   "#card-targets": "sky",
   "#card-ai-targets": "ai",
   "#card-planets": "planets",
   "#card-solar-system-scope": "planets",
+  "#card-showcase": "showcase",
   "#card-plan-my-night": "plan",
   "#card-preflight": "plan",
   "#card-log": "plan",
@@ -38,7 +40,7 @@ export function startOnboardingTour(t?: (key: string) => string) {
           title: tr("tour_step1_title", "Welcome to StarGazer! ✨"),
           description: tr(
             "tour_step1_desc",
-            "Your complete observatory dashboard for amateur astronomy and night sky planning. Let's take a quick 1-minute tour of all the features!"
+            "Your complete observatory dashboard for amateur astronomy, astrophotography, and night sky planning. Let's take a quick 1-minute tour of all the features!"
           ),
           align: "center",
         },
@@ -76,6 +78,18 @@ export function startOnboardingTour(t?: (key: string) => string) {
             "Hour-by-hour visual breakdown of high, mid, and low clouds, fog risk, and wind speed tailored for telescope sessions."
           ),
           side: "top",
+          align: "start",
+        },
+      },
+      {
+        element: "#capsule-nav-dock",
+        popover: {
+          title: tr("tour_step_nav_title", "🧭 Observatory Navigation Hub"),
+          description: tr(
+            "tour_step_nav_desc",
+            "Sticky high-contrast dock! Easily jump between Sky Map & Targets, AI Must-See Picks, Planet Tracker & Orrery, Astro Showcase, and Night Planning tools."
+          ),
+          side: "bottom",
           align: "start",
         },
       },
@@ -122,6 +136,18 @@ export function startOnboardingTour(t?: (key: string) => string) {
           description: tr(
             "tour_step8_desc",
             "Real-time planetary positions, rising/setting times, and an interactive 3D solar system simulation with customizable speeds."
+          ),
+          side: "top",
+          align: "start",
+        },
+      },
+      {
+        element: "#card-showcase",
+        popover: {
+          title: tr("tour_step_showcase_title", "📸 Astrophotography Showcase & Telemetry Log"),
+          description: tr(
+            "tour_step_showcase_desc",
+            "Browse high-resolution deep sky captures, DWARF 3 smart telescope live stacks vs. post-processed before/after comparison sliders, and imaging telemetry."
           ),
           side: "top",
           align: "start",

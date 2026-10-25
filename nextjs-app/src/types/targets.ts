@@ -5,6 +5,7 @@ export interface CatalogTarget {
   constellation: string;
   magnitude?: number;
   size?: string;
+  size_arcmin?: number;
   distance?: string;
   best_month?: string;
   notes?: string;
