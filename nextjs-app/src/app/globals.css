@@ -637,8 +637,23 @@ body.night-mode #night-overlay {
 }
 
 /* ── Canvas Dark Base Override ────────────────────────────── */
-/* All canvas elements get a dark background EXCEPT the fixed starfield background canvas */
-canvas:not([data-starfield]) {
+/* All canvas elements get a dark background EXCEPT the fixed starfield background canvas and transparent canvases */
+canvas:not([data-starfield]):not([data-transparent]) {
   background-color: #020617;
 }
+
+/* ── Celestial Map Canvas Centering & Responsive Scaling ───── */
+#ac-map-container {
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+}
+
+#ac-map-container canvas {
+  display: block !important;
+  margin: auto !important;
+  max-width: 100% !important;
+}
+
+
 

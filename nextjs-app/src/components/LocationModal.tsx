@@ -1,3 +1,4 @@
+/* eslint-disable react-hooks/purity */
 "use client";
 
 import { useState, useRef, useEffect } from "react";
@@ -22,6 +23,8 @@ interface LocationModalProps {
 function activateLocation(loc: SavedLocation) {
   localStorage.setItem(ACTIVE_LOCATION_STORAGE_KEY, loc.id);
   writeLocationCookie(loc.lat, loc.lon);
+  window.dispatchEvent(new CustomEvent("stargazer_location_change", { detail: loc }));
+  window.dispatchEvent(new Event("storage"));
   window.location.reload();
 }
 
@@ -93,12 +96,35 @@ export default function LocationModal({ open, onClose, locations, activeId }: Lo
   }
 
   function pickSuggestion(s: GeocodeSuggestion) {
-    setLat(s.lat.toFixed(4));
-    setLon(s.lon.toFixed(4));
+    const latNum = parseFloat(s.lat.toFixed(4));
+    let lonNum = parseFloat(s.lon.toFixed(4));
+    if (lonNum > 180) lonNum -= 360;
+    if (lonNum < -180) lonNum += 360;
+
     const parts = s.displayName.split(",");
-    setProfileName(parts.length > 1 ? `${parts[0].trim()}, ${parts[1].trim()}` : parts[0].trim());
+    const name = parts.length > 1 ? `${parts[0].trim()}, ${parts[1].trim()}` : parts[0].trim();
+
+    // If already in saved locations, activate immediately
+    const existing = savedLocations.find(
+      (l) => Math.abs(l.lat - latNum) < 0.01 && Math.abs(l.lon - lonNum) < 0.01
+    );
+    if (existing) {
+      activateLocation(existing);
+      return;
+    }
+
+    const newLoc: SavedLocation = {
+      id: `loc_${Date.now()}`,
+      name,
+      lat: latNum,
+      lon: lonNum,
+    };
+    const next = [...savedLocations, newLoc];
+    setSavedLocations(next);
+    persistLocations(next);
     setSuggestions([]);
-    setCitySearch(s.displayName);
+    setCitySearch("");
+    activateLocation(newLoc);
   }
 
   function tryGps() {
