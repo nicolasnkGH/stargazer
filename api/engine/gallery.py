@@ -8,13 +8,6 @@ from config import AI_API_KEY, AI_API_URL, AI_MODEL
 db_dir = os.environ.get("DB_DIR", os.path.join(os.path.dirname(__file__), ".."))
 JSON_PATH = os.path.join(db_dir, "stargazer_gallery.json")
 IMG_DIR = os.path.join(db_dir, "images")
-IMG_DIR_REAL = os.path.realpath(IMG_DIR)
-
-def _safe_image_path(filename: str) -> str | None:
-    candidate = os.path.realpath(os.path.join(IMG_DIR_REAL, filename))
-    if os.path.commonpath([IMG_DIR_REAL, candidate]) != IMG_DIR_REAL:
-        return None
-    return candidate
 
 def init_db():
     if not os.path.exists(db_dir):
@@ -112,13 +105,13 @@ def add_gallery_entry(
     new_id = 1 if not data else max(entry["id"] for entry in data) + 1
     
     # Save primary image to file
-    img_path = os.path.join(IMG_DIR, f"{new_id}.b64")
+    img_path = _build_gallery_image_path(new_id)
     with open(img_path, "w") as f:
         f.write(image_base64)
         
     has_raw = False
     if raw_image_base64 and len(raw_image_base64.strip()) > 0:
-        raw_img_path = os.path.join(IMG_DIR, f"{new_id}_raw.b64")
+        raw_img_path = _build_gallery_image_path(new_id, "_raw")
         with open(raw_img_path, "w") as f:
             f.write(raw_image_base64)
         has_raw = True
@@ -175,8 +168,8 @@ def _build_gallery_image_path(entry_id: int, suffix: str = "") -> str:
         raise ValueError("Invalid entry_id")
 
     filename = f"{safe_entry_id}{suffix}.b64"
-    base_dir = os.path.abspath(IMG_DIR)
-    candidate = os.path.abspath(os.path.join(base_dir, filename))
+    base_dir = os.path.realpath(IMG_DIR)
+    candidate = os.path.realpath(os.path.join(base_dir, filename))
 
     if os.path.commonpath([base_dir, candidate]) != base_dir:
         raise ValueError("Invalid image path")
@@ -202,8 +195,8 @@ def get_gallery_raw_image(entry_id: int) -> str:
 def datetime_now_str():
     from datetime import datetime
     return datetime.utcnow().strftime("%Y-%m-%d %H:%M:%S UTC")
-        path = _safe_image_path(ext)
-        if path and os.path.exists(path):
+
+def report_image(image_id: int):
     data = _load_data()
     for e in data:
         if e["id"] == image_id:
@@ -211,27 +204,17 @@ def datetime_now_str():
             break
     _save_data(data)
 
-def _safe_img_path(filename: str) -> str:
-    base_dir = os.path.realpath(IMG_DIR)
-    candidate = os.path.realpath(os.path.join(base_dir, filename))
-    if os.path.commonpath([base_dir, candidate]) != base_dir:
-        raise ValueError("Unsafe image path")
-    return candidate
-
 def delete_gallery_entry(entry_id: int):
     data = _load_data()
     data = [e for e in data if e["id"] != entry_id]
     _save_data(data)
-    for ext in [f"{entry_id}.b64", f"{entry_id}_raw.b64"]:
+    for suffix in ["", "_raw"]:
         try:
-            path = _safe_img_path(ext)
-        except ValueError:
-            continue
-        if os.path.exists(path):
-            try:
+            path = _build_gallery_image_path(entry_id, suffix)
+            if os.path.exists(path):
                 os.remove(path)
-            except Exception:
-                pass
+        except Exception:
+            pass
 
 def get_gallery_counts() -> dict:
     data = _load_data()
