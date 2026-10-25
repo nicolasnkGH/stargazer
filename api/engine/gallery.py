@@ -204,12 +204,22 @@ def report_image(image_id: int):
             break
     _save_data(data)
 
+def _safe_img_path(filename: str) -> str:
+    base_dir = os.path.realpath(IMG_DIR)
+    candidate = os.path.realpath(os.path.join(base_dir, filename))
+    if os.path.commonpath([base_dir, candidate]) != base_dir:
+        raise ValueError("Unsafe image path")
+    return candidate
+
 def delete_gallery_entry(entry_id: int):
     data = _load_data()
     data = [e for e in data if e["id"] != entry_id]
     _save_data(data)
     for ext in [f"{entry_id}.b64", f"{entry_id}_raw.b64"]:
-        path = os.path.join(IMG_DIR, ext)
+        try:
+            path = _safe_img_path(ext)
+        except ValueError:
+            continue
         if os.path.exists(path):
             try:
                 os.remove(path)
