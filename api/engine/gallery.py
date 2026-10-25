@@ -8,6 +8,13 @@ from config import AI_API_KEY, AI_API_URL, AI_MODEL
 db_dir = os.environ.get("DB_DIR", os.path.join(os.path.dirname(__file__), ".."))
 JSON_PATH = os.path.join(db_dir, "stargazer_gallery.json")
 IMG_DIR = os.path.join(db_dir, "images")
+IMG_DIR_REAL = os.path.realpath(IMG_DIR)
+
+def _safe_image_path(filename: str) -> str | None:
+    candidate = os.path.realpath(os.path.join(IMG_DIR_REAL, filename))
+    if os.path.commonpath([IMG_DIR_REAL, candidate]) != IMG_DIR_REAL:
+        return None
+    return candidate
 
 def init_db():
     if not os.path.exists(db_dir):
@@ -195,8 +202,8 @@ def get_gallery_raw_image(entry_id: int) -> str:
 def datetime_now_str():
     from datetime import datetime
     return datetime.utcnow().strftime("%Y-%m-%d %H:%M:%S UTC")
-
-def report_image(image_id: int):
+        path = _safe_image_path(ext)
+        if path and os.path.exists(path):
     data = _load_data()
     for e in data:
         if e["id"] == image_id:
